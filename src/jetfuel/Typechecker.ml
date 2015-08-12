@@ -2,6 +2,7 @@ open Type
 open ListUtils
 open Expression
 
+exception ParseError of string * Lexing.position
 exception TypecheckError of string * (expr_t option)
 
 let typeof_const (c:const_t): prim_t =
@@ -13,10 +14,16 @@ let typeof_const (c:const_t): prim_t =
 ;;
 
 let escalate ?(ctx:expr_t option = None) (a:jf_t) (b:jf_t): jf_t =
-	(* Hacked for now.  Proper escalation required *)
-    if a != b then raise (
-    	TypecheckError("Invalid match", ctx)
-    ) else a
+    match (a,b) with
+        | (TAny,_) -> b
+        | (_,TAny) -> a
+        | (TPrimitive(TInt),TPrimitive(TInt)) -> 
+                TPrimitive(TInt)
+        | (TPrimitive(TFloat|TInt),
+            TPrimitive(TFloat|TInt)) -> 
+                TPrimitive(TFloat)
+        | _ when a = b -> a
+        | _ -> raise (TypecheckError("Incompatible types", ctx))
 ;;
 
 let test_compat ?(ctx:expr_t option = None) (a:jf_t) (b:jf_t): unit =
@@ -29,11 +36,16 @@ let rec typeof
 		(root:expr_t): jf_t =
   let rcr e = typeof ~validate:validate ~scope:scope e in
   let rcr_f t e = 
-  	if validate && ((escalate ~ctx:(Some(root)) t (rcr e)) != t)
+  	if validate && ((escalate ~ctx:(Some(root)) t (rcr e)) <> t)
   	then raise (TypecheckError("Invalid type escalation", Some(root)))
   in
-  let rcr_s (v:var_t) (t:jf_t) (e:expr_t) =
-  	typeof ~validate:validate ~scope:(StringMap.add v t scope) e
+  let rcr_s (args:(var_t * jf_t) list) (recur_target:expr_t) =
+  	typeof  ~validate:validate 
+            ~scope:(List.fold_left 
+                (fun old_scope (var_name, var_type) ->
+                    StringMap.add var_name var_type old_scope
+                ) scope args)
+            recur_target
   in
   match root with 
     | EIfThenElse(c, t, e) -> 
@@ -47,13 +59,15 @@ let rec typeof
     | EBlock(elist) ->
     	List.fold_left (fun _ curr -> rcr curr) TNone elist
 
-    | ELet(tgt, defn, body) ->
-    	rcr_s tgt (rcr defn) body
+    | ELet(tgt, tgt_t, defn, body) ->
 
-    | ECall(fn, arglist) ->
+    	rcr_s [tgt, (escalate tgt_t (rcr defn))] body
+
+    | ECall(fn, caller_args) ->
     	begin match rcr fn with
-    		| TFn({ Type.typecheck = typecheck_args }) -> 
-    			typecheck_args (List.map rcr arglist)
+    		| TFn(fn_args, ret_t) -> 
+                List.iter2 rcr_f fn_args caller_args;
+                ret_t
     		| _ -> 
     			raise (TypecheckError(
     				"Invalid call", 
@@ -98,7 +112,7 @@ let rec typeof
 
     | EIsA(expr, t) ->
     	begin
-	    	rcr_f TAny expr;
+	    	if validate then test_compat TAny (rcr expr);
 	    	(TPrimitive(TBool))
     	end
 
@@ -140,5 +154,9 @@ let rec typeof
 					Some(root)
 				))
 	    end
+
+    | ELambda(args, body) -> 
+        TFn(List.map snd args, (rcr_s args body))
+
 
 ;;

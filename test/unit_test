@@ -1,0 +1,4 @@
+#!/bin/bash
+BASE=`dirname $0`/..
+TOP=$BASE/jitd_top
+$TOP -I ../src/jetfuel -I ../src/parser -I ../src/util $*
