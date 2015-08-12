@@ -121,7 +121,7 @@ expect          "Cog Constructors"
 
 
 set_var "BODY" (Value.mk_handle "COUNTER" [VPrim(CInt(1))]);;
-expect_int      "Handle Subscript"    1     "BODY['VAL']";;
+expect_int      "Handle Subscript"                    1     "BODY['VAL']";;
 eval "REWRITE BODY AS COUNTER(5)";;
 expect_int      "Handle Subscript (after rewrite)"    5     "BODY['VAL']";;
 
