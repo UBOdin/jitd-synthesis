@@ -22,3 +22,4 @@ setup.log
 # Synthesis-specific files
 jitd
 makefile.dep
+jitd_top

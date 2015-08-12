@@ -39,6 +39,13 @@ type expr_t =
   | ESubscript  of expr_t * expr_t
   | ELambda     of (var_t * jf_t) list * expr_t
 
+let type_of_const: const_t -> prim_t = function
+  | CInt _    -> TInt
+  | CFloat _  -> TFloat
+  | CString _ -> TString
+  | CBool _   -> TBool
+;;
+
 let block_list (a:expr_t): expr_t list = 
   match a with EBlock(l) -> l | _ -> [a]
 ;;
