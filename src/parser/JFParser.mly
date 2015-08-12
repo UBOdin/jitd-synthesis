@@ -68,7 +68,7 @@ add_op :
   | SUB { AMinus }
 
 mult_expression : 
-  | subscript_expression add_op expression { EArithOp($2, $1, $3) }
+  | subscript_expression mult_op expression { EArithOp($2, $1, $3) }
   | subscript_expression { $1 }
 
 mult_op : 
@@ -89,7 +89,7 @@ leaf_expression :
       { $2 }
   | LET var ASSIGN expression IN expression
       { ELet($2, Typechecker.typeof $4, $4, $6) }
-  | REWRITE var ASSIGN expression
+  | REWRITE var AS expression
       { ERewrite($2, $4) }
   | constant
       { EConst($1) }

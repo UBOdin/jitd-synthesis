@@ -47,3 +47,5 @@ let rec string_of_type = function
     ")"
   | TCustom(ct) -> "`"^ct^"`"
 ;;
+
+let string_of_typed_var ((v,t):(var_t * jf_t)): string = v^":"^(string_of_type t);;

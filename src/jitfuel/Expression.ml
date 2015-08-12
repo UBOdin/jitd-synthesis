@@ -46,6 +46,55 @@ let type_of_const: const_t -> prim_t = function
   | CBool _   -> TBool
 ;;
 
+let string_of_const: const_t -> string = function
+  | CInt(i)      -> string_of_int i
+  | CFloat(f)    -> string_of_float f
+  | CString(s)   -> "'"^s^"'"
+  | CBool(true)  -> "true"
+  | CBool(false) -> "false"
+;;
+
+let string_of_arith_op = function  
+  | APlus -> "+"
+  | AMinus -> "-"
+  | ATimes -> "*"
+  | ADiv -> "/"
+  | AAnd -> "&&"
+  | AOr -> "||"
+;;
+
+let string_of_cmp_op = function
+  | CmpEq  -> "=="
+  | CmpNeq -> "!="
+  | CmpLt  -> "<"
+  | CmpGt  -> ">"
+  | CmpLte -> "<="
+  | CmpGte -> ">="
+;;
+
+let rec string_of_expr: expr_t -> string = 
+  let rcr = string_of_expr 
+  in function
+  | EIfThenElse(i, t, e) -> "if "^(rcr i)^" then "^(rcr t)^" else "^(rcr e)
+  | EBlock(l) -> "{ "^(String.concat "; " (List.map rcr l))^" }"
+  | ELet(tgt, tgt_t, tgt_val, body) ->
+    "let "^tgt^":"^(string_of_type tgt_t)^" = "^(rcr tgt_val)^" in "^(rcr body)
+  | ECall(fn, args) ->
+    (rcr fn)^"("^(String.concat "," (List.map rcr args))^")"
+  | ERewrite(tgt, tgt_val) ->
+    "rewrite "^tgt^" as "^(rcr tgt_val)
+  | ENeg(v) -> "-("^(rcr v)^")"
+  | EArithOp(op, a, b) -> (rcr a)^(string_of_arith_op op)^(rcr b)
+  | ECmpOp(op, a, b) -> (rcr a)^(string_of_cmp_op op)^(rcr b)
+  | EConst(c) -> string_of_const c
+  | EVar(v) -> v
+  | EIsA(e, t) -> (rcr e)^" ISA "^(string_of_type t)
+  | ESubscript(base, sub) -> (rcr base)^"["^(rcr sub)^"]"
+  | ELambda(args, body) -> 
+      "/.("^(String.concat "," (List.map string_of_typed_var args))^
+        ") -> "^(rcr body)
+;;
+
 let block_list (a:expr_t): expr_t list = 
   match a with EBlock(l) -> l | _ -> [a]
 ;;

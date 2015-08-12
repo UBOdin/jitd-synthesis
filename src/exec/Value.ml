@@ -1,0 +1,100 @@
+
+open ListUtils
+open Type
+open Expression
+open Cog
+
+type value_t =
+  | VPrim of const_t
+  | VFunction of (jf_t list * jf_t * (value_t list -> value_t))
+  | VHandle of (cog_type_t * tuple_t) ref
+  | VCog of cog_type_t * tuple_t
+  | VTuple of tuple_t
+  | VList of value_t list
+  | VUnit
+and tuple_t = value_t StringMap.t
+
+let rec type_of_value: value_t -> jf_t = function
+	| VPrim(c) -> TPrimitive(Expression.type_of_const c)
+	| VFunction(arg_t, ret_t, defn) -> TFn(arg_t, ret_t)
+	| VHandle(handle) -> 
+		begin match !handle with
+			| (cog_type, body) -> TCog(Some(cog_type))
+		end
+	| VCog(cog_type, body)    -> TCog(Some(cog_type))
+	| VTuple(body) -> 
+		TTuple(
+			StringMap.fold (fun field_name field_val rest ->
+				(field_name, type_of_value field_val) :: rest
+			) body []
+		)
+	| VList([]) -> TList(0, TAny)
+	| VList(vals) -> TList(List.length vals, type_of_value (List.hd vals))
+	| VUnit -> TNone
+;;
+
+exception CastError of value_t * jf_t;;
+
+let cast_to_string: value_t -> string = function
+	| VPrim(CString(v)) -> v
+	| v -> raise (CastError(v, TPrimitive(TString)))
+;;
+let cast_to_int: value_t -> int = function
+	| VPrim(CInt(v)) -> v 
+	| v -> raise (CastError(v, TPrimitive(TInt)))
+;;
+let cast_to_bool: value_t -> bool = function
+	| VPrim(CBool(v)) -> v 
+	| v -> raise (CastError(v, TPrimitive(TBool)))
+;;
+
+let subscript (base:value_t) (idx: value_t): value_t =
+	match base with 
+		| VHandle(cog) -> 
+			StringMap.find (cast_to_string idx) (snd !cog)
+		| VCog(_, cog) -> 
+			StringMap.find (cast_to_string idx) cog
+		| VTuple(tuple) ->
+			StringMap.find (cast_to_string idx) tuple
+		| VList(l) ->
+			List.nth l (cast_to_int idx)
+		| _ -> raise Not_found
+;;
+
+let rec string_of_value: value_t -> string = function
+	| VPrim(c) -> 
+		Expression.string_of_const c
+	| VFunction(arg_t, ret_t, defn) -> 
+		"[("^(String.concat ", " (List.map string_of_type arg_t))^
+			") -> "^(string_of_type ret_t)^"]"
+	| VHandle(handle) -> 
+		let cog = 
+			begin match !handle with
+				| (cog_type, body) -> VCog(cog_type, body)
+			end
+		in
+		"{{ "^(string_of_value cog)^" }}"
+	| VCog(cog_type, body) -> 
+		cog_type^(string_of_value (VTuple(body)))
+	| VTuple(body) -> 
+		"("^(StringMap.fold (fun field_name field_val rest -> 
+			field_name ^ " -> " ^ (string_of_value field_val) ^
+				(if rest = "" then "" else ", ")
+		) body "")^")"
+	| VList(vals) -> 
+		"[ "^(String.concat ", " (List.map string_of_value vals))^" ]"
+	| VUnit -> "ø"
+;;
+
+let mk_cog_body (t:cog_type_t) (fields:value_t list): tuple_t =
+	ListUtils.mk_map (
+		List.map2 (fun field_name field_value -> (field_name, field_value)) 
+				  (Cog.field_names t) fields
+	)
+;;
+let mk_cog (t:cog_type_t) (fields:value_t list): value_t =
+	VCog(t, mk_cog_body t fields)
+;;
+let mk_handle (t:cog_type_t) (fields:value_t list): value_t =
+	VHandle(ref (t, mk_cog_body t fields))
+;;

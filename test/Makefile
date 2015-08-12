@@ -1,4 +1,11 @@
 
+
+TESTS := \
+  typecheck.ml \
+  eval.ml \
+
 all: 
-	@echo "Running Typechecker Tests"
-	@./unit_test typecheck.ml
+	@for i in $(TESTS); do \
+		echo "--- Running Test:" `echo $$i | sed 's/\\.ml//'` "---"; \
+		./unit_test $$i;\
+	done

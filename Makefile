@@ -7,6 +7,7 @@ FILES = \
 	src/jitfuel/Cog \
 	src/jitfuel/Typechecker \
 	src/jitfuel/Pattern \
+	src/exec/Value\
 	src/exec/Runtime
 
 LIBS = str
