@@ -2,10 +2,10 @@
 
 FILES = \
 	src/util/ListUtils \
-	src/jetfuel/Type \
-	src/jetfuel/Expression \
-	src/jetfuel/Cog \
-	src/jetfuel/Typechecker \
+	src/jitfuel/Type \
+	src/jitfuel/Expression \
+	src/jitfuel/Cog \
+	src/jitfuel/Typechecker \
 
 LIBS = str
 
@@ -28,23 +28,23 @@ C_FILES = $(patsubst %, %.cmo, $(FILES))
 all: jitd
 
 $(patsubst %, %.ml,$(LEXERS)) : %.ml : %.mll
-	@echo Building Lexer $(*)
+	@echo Building Lexer $(patsubst src/%,%,$(*))
 	@ocamllex $< 
 
 $(patsubst %, %.ml,$(PARSERS)) : %.ml : %.mly
-	@echo Building Parser $(*)
+	@echo Building Parser $(patsubst src/%,%,$(*))
 	@ocamlyacc $<
   
 $(C_FILES) : %.cmo : %.ml
 	@if [ -f $(*).mli ] ; then \
-		echo Compiling Header $(*);\
+		echo Compiling Header $(patsubst src/%,%,$(*));\
 		$(OCAMLC) -c $(*).mli;\
 	fi
-	@echo Compiling $(*)
+	@echo Compiling $(patsubst src/%,%,$(*))
 	@$(OCAMLC) -c $<
 
 jitd: $(patsubst %, %.cmo, $(FILES)) src/Driver.ml
-	@echo Building $@
+	@echo Building $(patsubst src/%,%,$@)
 	@$(OCAMLC) -o $@ $^
 
 clean: 
