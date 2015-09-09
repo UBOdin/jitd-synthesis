@@ -38,6 +38,7 @@ type expr_t =
   | EIsA        of expr_t * jf_t
   | ESubscript  of expr_t * expr_t
   | ELambda     of (var_t * jf_t) list * expr_t
+  | EList       of expr_t list
 
 let type_of_const: const_t -> prim_t = function
   | CInt _    -> TInt

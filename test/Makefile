@@ -3,6 +3,7 @@
 TESTS := \
   typecheck.ml \
   eval.ml \
+  pattern.ml \
 
 all: 
 	@for i in $(TESTS); do \

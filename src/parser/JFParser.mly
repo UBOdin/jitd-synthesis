@@ -87,6 +87,8 @@ leaf_expression :
       { $2 }
   | LPAREN expression RPAREN
       { $2 }
+  | LBRACK expression_list RBRACK
+      { EList($2) }
   | LET var ASSIGN expression IN expression
       { ELet($2, Typechecker.typeof $4, $4, $6) }
   | REWRITE var AS expression

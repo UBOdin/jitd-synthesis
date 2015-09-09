@@ -116,6 +116,17 @@ let rec typeof
 	    	(TPrimitive(TBool))
     	end
 
+    | EList([]) ->
+        (TList(0, TAny))
+
+    | EList(hd :: rest) ->
+        let hd_t = rcr hd in
+        begin
+            if validate then List.iter (test_compat hd_t) 
+                                       (List.map rcr rest);
+            hd_t
+        end
+
     | ESubscript(expr, subscript) ->
     	begin match rcr expr with
     		| TCog(Some(ctype)) ->

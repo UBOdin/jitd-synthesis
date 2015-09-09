@@ -100,7 +100,8 @@ let rec eval ?(scope:scope_t = (default_scope ()))
 		) (rcr a) (rcr b)
 	| EConst(c) -> VPrim(c)
 	| EVar(v) -> StringMap.find v scope
-	| EIsA(e, t) -> explode "ISA Unimplemented"
+	| EIsA(e, t) -> VPrim(CBool(is_a (Value.type_of_value (rcr e)) t))
+	| EList(elems) -> VList(List.map rcr elems)
 	| ESubscript(value, subscript) -> 
 		Value.subscript (rcr value) (rcr subscript)
 	| ELambda(arg_defns, body) -> 
@@ -117,7 +118,6 @@ let rec eval ?(scope:scope_t = (default_scope ()))
 				in eval ~scope:fn_scope body
 			)
 		)
-	| _ -> explode "Lambda unimplemented"
 	with 
 		| Not_found -> explode "Not Found"
 		| Value.CastError(v, t) ->
