@@ -1,0 +1,23 @@
+
+typedef Key of int
+typedef Record of <key:Key, value:float>
+cog Array(elems:[100,Record], used:int)
+cog SortedArray(elems:[100,Record], used:int)
+cog Delete(source:handle, deleted:handle)
+cog Concat(lhs:handle, rhs:handle)
+cog Tree(lhs:handle, rhs:handle, key:Key)
+
+typedef Iterator of <curr:[SortedArray], idx:int, next:cog>
+
+function next(iter:Iterator): <iter: Iterator, record: Record> -> {
+	let curr: [SortedArray] := iter['curr'] in
+	let idx: int            := iter['idx'] in
+	let next: cog           := iter['next'] in
+	let ret: Record         := curr['elems'][idx] in
+	<iter: (
+		if curr['used'] >= (idx + 1) then
+		   build_iterator(next)
+		else
+	   		<curr: curr, idx: idx+1, next: next>
+	 ), record: ret>
+}
