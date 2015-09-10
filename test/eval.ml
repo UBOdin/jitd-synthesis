@@ -125,4 +125,25 @@ expect_int      "Handle Subscript"                    1     "BODY['VAL']";;
 eval "REWRITE BODY AS COUNTER(5)";;
 expect_int      "Handle Subscript (after rewrite)"    5     "BODY['VAL']";;
 
+expect_int "Patterns: Bindings Hit" 1 
+	"match 1 with x:int -> x else 0";;
+expect_int "Patterns: Bindings Miss" 0 
+	"match 1 with x:float -> x else 0";;
+expect_int "Patterns: Wildcard" 1
+	"match 1 with x -> x else 0";;
+expect_int "Patterns: Nested Wildcard" 0
+	"match COUNTER(1) with :COUNTER(_) -> 0 else 1";;
+expect_int "Patterns: Nested Binding" 5
+	"match COUNTER(5) with :COUNTER(x) -> x else 1";;
+expect_int "Patterns: Nested Sequence" 5
+	"match COUNTER(5) with :COUNTER(x:float) -> 20 
+                         | :COUNTER(x:int) -> x 
+                      else 1";;
+expect_int "Patterns: Nested Sequence 2" 20
+	"match COUNTER(5.0) with :COUNTER(x:float) -> 20 
+                           | :COUNTER(x:int) -> x 
+                        else 1";;
+
+
+
 print_endline "All Evaluator Tests Completed"

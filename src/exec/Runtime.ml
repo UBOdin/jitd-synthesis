@@ -23,6 +23,10 @@ let default_scope (): scope_t =
 	ListUtils.mk_map (cog_constructors()) 
 ;;
 
+let construct_type_scope (scope:scope_t): jf_t StringMap.t =
+	StringMap.map type_of_value scope
+;;
+
 let rec eval ?(scope:scope_t = (default_scope ())) 
 			 (eval_expr:expr_t): value_t =
 	let rcr = eval ~scope:scope in 

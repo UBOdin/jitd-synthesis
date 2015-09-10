@@ -119,6 +119,7 @@ pattern:
   | UNDERSCORE            { (None, Pattern.PType(TAny)) }
   | COLON pattern_body    { (None, $2) }
   | ID COLON pattern_body { (Some($1), $3) }
+  | ID                    { (Some($1), Pattern.PType(TAny)) }
 
 pattern_body:
   | ID LPAREN pattern_list RPAREN { Pattern.PCog($1, $3) }

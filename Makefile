@@ -25,7 +25,7 @@ DIRS = $(shell for i in $(FILES) ; do dirname $$i; done | sort | uniq)
 OCAML_ARGS += $(patsubst %,%.cma,$(LIBS))
 
 OCAMLC = ocamlc -g $(patsubst %, -I %, $(DIRS)) $(OCAML_ARGS)
-OCAMLTOP = ocamlmktop $(patsubst %, -I %, $(DIRS))
+OCAMLTOP = ocamlmktop -g $(patsubst %, -I %, $(DIRS))
 
 C_FILES = $(patsubst %, %.cmo, $(FILES))
 
@@ -46,6 +46,10 @@ $(C_FILES) : %.cmo : %.ml
 	fi
 	@echo Compiling $(patsubst src/%,%,$(*))
 	@$(OCAMLC) -c $<
+
+$(patsubst %, %.cmi, $(PARSERS)) :  
+
+
 
 jitd: $(patsubst %, %.cmo, $(FILES)) src/Driver.ml
 	@echo Building $(patsubst src/%,%,$@)

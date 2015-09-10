@@ -2,8 +2,8 @@
 
 TESTS := \
   typecheck.ml \
-  eval.ml \
   pattern.ml \
+  eval.ml \
 
 all: 
 	@for i in $(TESTS); do \

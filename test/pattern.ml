@@ -20,6 +20,10 @@ Cog.define {
 	Cog.name = "COUNTER";
 	Cog.body = [ "VAL", TPrimitive(TInt) ];
 };;
+Cog.define {
+	Cog.name = "POINTER";
+	Cog.body = [ "TARGET", TCog(None) ];
+};;
 
 reset_scope();;
 
@@ -47,6 +51,12 @@ let expect_raw title v cmd =
 		) err_scope;
 		exit(-1)
 	)
+	| Not_found -> (
+		print_endline (title^": ERROR (not found)\n");
+		print_endline ("  Expression: "^(string_of_expr cmd));
+		exit(-1)
+
+	)
 ;;
 
 let expect title match_idx v patterns =
@@ -56,7 +66,7 @@ let expect title match_idx v patterns =
 		title 
 		(VPrim(CInt(match_idx))) 
 		(Pattern.mk_match (parse v) 
-			(List.map (fun pat -> (pat, (next_idx()))) patterns)
+			(List.map (fun pat -> ((None,pat), (next_idx()))) patterns)
 			(next_idx())
 		)
 ;;
@@ -64,7 +74,7 @@ let expect title match_idx v patterns =
 let no_match = -1;;
 
 let prim_patterns = List.map 
-	(fun pt -> (None, (PType(TPrimitive(pt)))))
+	(fun pt -> (PType(TPrimitive(pt))))
 	[TInt; TFloat; TString; TBool]
 ;;
 
@@ -74,11 +84,24 @@ expect "Primitive: String" 2        "'foo'"   prim_patterns;;
 expect "Primitive: Bool"   3        "true"    prim_patterns;;
 expect "Primitive: Other"  no_match "[1]" 	  prim_patterns;;
 
-expect "Generic: Any"      0        "1"       [(None, PType(TAny))];;
+expect "Generic: Any"      0        "1"       [PType(TAny)];;
 
-dump_scope();;
+expect "Cog: Trivial"       0        "COUNTER(1)" [PType(TAny)];;
+expect "Cog: Typed"         0        "COUNTER(1)"
+		[PCog("COUNTER", [None, PType(TAny)])];;
+expect "Cog: Invalid"       (-1)     "COUNTER(1)"
+		[PCog("COUNTESS", [None, PType(TAny)])];;
+let wrapped_prim_patterns = 
+	(List.map (fun x -> PCog("COUNTER", [None, x])) prim_patterns)
+;;
 
-expect "Cog: COUNTER"      0        "COUNTER(1)" [(None, PType(TAny))];;
-expect "Cog: COUNTER"      0        "COUNTER(1)"
-		[(None, PCog("COUNTER", [(None, PType(TAny))]))]
+expect "Cog: Nested Int"    0 "COUNTER(1)"     wrapped_prim_patterns;;
+expect "Cog: Nested Float"  1 "COUNTER(1.0)"   wrapped_prim_patterns;;
+expect "Cog: Nested String" 2 "COUNTER('foo')" wrapped_prim_patterns;;
+expect "Cog: Nested Bool"   3 "COUNTER(true)"  wrapped_prim_patterns;;
 
+expect "Nested Cog"    0 "POINTER(COUNTER(1))" 
+	[PCog("POINTER", [None, PCog("COUNTER", [None, PType(TAny)])])];;
+
+
+print_endline "All Pattern Tests Completed"
