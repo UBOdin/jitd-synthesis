@@ -28,8 +28,8 @@ let rec type_of_value: value_t -> jf_t = function
 				(field_name, type_of_value field_val) :: rest
 			) body []
 		)
-	| VList([]) -> TList(0, TAny)
-	| VList(vals) -> TList(List.length vals, type_of_value (List.hd vals))
+	| VList([]) -> TList(TAny)
+	| VList(vals) -> TList(type_of_value (List.hd vals))
 	| VUnit -> TNone
 ;;
 
@@ -46,6 +46,17 @@ let cast_to_int: value_t -> int = function
 let cast_to_bool: value_t -> bool = function
 	| VPrim(CBool(v)) -> v 
 	| v -> raise (CastError(v, TPrimitive(TBool)))
+;;
+let cast_to_cog (base: value_t): (string * tuple_t) =
+	match base with
+		| VHandle(data) -> !data
+		| VCog(cog_type, data) -> (cog_type, data)
+		| _ -> raise (CastError(base, TCog(None)))
+;;
+let cast_to_list (base: value_t): (value_t list) =
+	match base with 
+		| VList(data) -> data
+		| _ -> raise (CastError(base, TList(TAny)))
 ;;
 
 let subscript (base:value_t) (idx: value_t): value_t =

@@ -11,7 +11,7 @@ type jf_t =
   | TAny
   | TNone
   | TCog of string option
-  | TList of int * jf_t
+  | TList of jf_t
   | TMap of jf_t * jf_t
   | TTuple of (string * jf_t) list
   | TPrimitive of prim_t
@@ -30,7 +30,7 @@ let rec string_of_type = function
   | TNone -> "#"
   | TCog(None) -> "cog"
   | TCog(Some(s)) -> "<"^s^">"
-  | TList(cnt, t) -> "["^(string_of_int cnt)^"*"^(string_of_type t)^"]"
+  | TList(t) -> "["^(string_of_type t)^"]"
   | TMap(k,t) -> "["^(string_of_type k)^"->"^(string_of_type t)^"]"
   | TTuple(kl) -> "{"^(
       String.concat ", " (
@@ -58,7 +58,7 @@ let rec is_a (src_t: jf_t) (cmp_t: jf_t): bool =
     | (TCog(_), TCog(None)) -> true
     | (TCog(None), TCog(Some(_))) -> false
     | (TCog(Some(ct1)), TCog(Some(ct2))) -> ct1 = ct2
-    | (TList(_, v1), TList(_, v2)) -> is_a v1 v2
+    | (TList(v1), TList(v2)) -> is_a v1 v2
     | (TMap(k1, v1), TMap(k2, v2)) -> (is_a k1 k2) && (is_a v1 v2)
     | (TTuple(kv1), TTuple(kv2)) -> 
         List.for_all (fun (k2, v2) ->      (* For each element of kv2... *)

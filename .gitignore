@@ -23,3 +23,8 @@ setup.log
 jitd
 makefile.dep
 jitd_top
+
+# Synthetic data
+src/parser/JFLexer.ml
+src/parser/JFParser.ml
+src/parser/JFParser.mli

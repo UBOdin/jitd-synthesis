@@ -117,7 +117,7 @@ let rec typeof
     	end
 
     | EList([]) ->
-        (TList(0, TAny))
+        (TList(TAny))
 
     | EList(hd :: rest) ->
         let hd_t = rcr hd in
@@ -140,7 +140,7 @@ let rec typeof
     			 		))
 			 	end
 
-    		| TList(_, t) ->
+    		| TList(t) ->
     			rcr_f (TPrimitive(TInt)) subscript;
     			t
 

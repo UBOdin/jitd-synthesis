@@ -8,7 +8,11 @@ FILES = \
 	src/jitfuel/Typechecker \
 	src/jitfuel/Pattern \
 	src/exec/Value\
-	src/exec/Runtime
+	src/exec/Runtime\
+	crackersim/SimulationParameters\
+	crackersim/CogTypes\
+	crackersim/Iterators\
+	crackersim/JITD
 
 LIBS = str
 
