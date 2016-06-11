@@ -15,6 +15,12 @@ let cast_to_record (base: Value.value_t): record_t =
 	( cast_to_key  (Value.subscript base (Value.VPrim(Expression.CString("KEY" )))), 
 		cast_to_data (Value.subscript base (Value.VPrim(Expression.CString("DATA"))))
 	);;
+let box_key (k: key_t) = Value.VPrim(Expression.CInt(k))
+let box_data (v: data_t) = Value.VPrim(Expression.CInt(v))
+let box_record ((k,v): record_t) = Value.VTuple(ListUtils.mk_map [
+    "KEY", box_key k;
+    "DATA", box_data v;
+  ])
 let get_key ( (k, _): record_t) = k;;
 let cast_to_buffer (base: Value.value_t): record_t list =
 	List.map cast_to_record (Value.cast_to_list base);;

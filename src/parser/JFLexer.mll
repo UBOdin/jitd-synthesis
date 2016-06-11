@@ -42,6 +42,7 @@ let keywords = List.fold_left
     ( "IN",       IN );
     ( "AS",       AS );
     ( "NOT",      NOT );
+    ( "LAMBDA",   LAMBDA );
   ];;
 }
 

@@ -28,7 +28,7 @@ open Expression;;
 %token <bool> BOOLCONST
 %token POLICY RULE COG IS APPLY TO DONE LET REWRITE ON IN AS
 %token IF THEN ELSE
-%token MATCH WITH
+%token MATCH WITH LAMBDA
 
 %start expression
 %type <Expression.expr_t> expression
@@ -69,16 +69,16 @@ add_op :
 
 mult_expression : 
   | subscript_expression mult_op expression { EArithOp($2, $1, $3) }
-  | subscript_expression { $1 }
+  | subscript_expression                    { $1 }
 
 mult_op : 
   | MULT { ATimes }
   | DIV  { ADiv }
 
 subscript_expression : 
-  | leaf_expression LBRACK expression RBRACK { ESubscript($1, $3) }
+  | leaf_expression LBRACK expression RBRACK      { ESubscript($1, $3) }
   | leaf_expression LPAREN expression_list RPAREN { ECall($1, $3) }
-  | leaf_expression                          { $1 }
+  | leaf_expression                               { $1 }
 
 leaf_expression : 
   | IF expression THEN expression ELSE expression 
@@ -91,6 +91,8 @@ leaf_expression :
       { EList($2) }
   | LET var ASSIGN expression IN expression
       { ELet($2, Typechecker.typeof $4, $4, $6) }
+  | LAMBDA LPAREN arg_list RPAREN SINGLEARROW expression
+      { ELambda($3, $6) }
   | REWRITE var AS expression
       { ERewrite($2, $4) }
   | constant
@@ -103,6 +105,10 @@ leaf_expression :
 bar_or_not:
   | PIPE { () }
   |      { () }
+
+arg_list: 
+  | var COLON typedef COMMA arg_list { ($1, $3) :: $5 }
+  | var COLON typedef                { [$1, $3] }
 
 match_list: 
   | pattern_effect PIPE match_list { $1 :: $3 }
