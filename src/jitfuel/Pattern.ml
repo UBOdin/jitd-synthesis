@@ -28,7 +28,13 @@ let mk_match ?(match_base_type:jf_t = TAny)
           )
         end
   in
+  let pattern_cast (expr: expr_t) = function 
+    | PType(TAny) -> expr
+    | PType t -> EAsA(expr, t)
+    | PCog(cog_name, _) -> EAsA(expr, TCog(Some(cog_name)))
+  in
   let rec pattern_bindings (struct_name, struct_type) target continuation =
+    let typed_target = pattern_cast target struct_type in
     let recursive_continuation = 
       match struct_type with
         | PType _ -> continuation
@@ -37,7 +43,7 @@ let mk_match ?(match_base_type:jf_t = TAny)
             List.fold_left2 (fun rest field_subscript field_pattern ->
               pattern_bindings field_pattern field_subscript rest
             ) continuation 
-              (Cog.all_subscripts cog_name target)
+              (Cog.all_subscripts cog_name typed_target)
               cog_body
             with Not_found -> continuation
           end
@@ -60,10 +66,10 @@ let mk_match ?(match_base_type:jf_t = TAny)
   in
     ELet("__match_target", match_base_type, target, 
       List.fold_right (fun (pattern,match_body) rest ->
-        EIfThenElse(
-          pattern_match pattern (EVar("__match_target")),
-          pattern_bindings pattern (EVar("__match_target")) match_body,
-          rest
-        )
+          EIfThenElse(
+            pattern_match pattern (EVar("__match_target")),
+            pattern_bindings pattern (EVar("__match_target")) match_body,
+            rest
+          )
       ) matches elseclause
     )

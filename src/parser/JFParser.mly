@@ -3,6 +3,10 @@
 open Type;;
 open Expression;;
 
+let raise_parse_error msg =
+  raise (Typechecker.ParseError(msg, Lexing.dummy_pos))
+;;
+   
 
 %}
 
@@ -35,7 +39,9 @@ open Expression;;
 
 %%
   
-expression : bool_expression { $1 }
+expression : 
+  | bool_expression { $1 }
+  | error { raise_parse_error "Bad Expression" }
 
 bool_expression : 
   | NOT cmp_expression { ENeg($2) }
@@ -83,6 +89,8 @@ subscript_expression :
 leaf_expression : 
   | IF expression THEN expression ELSE expression 
       { EIfThenElse($2, $4, $6) }
+  | LBRACE RBRACE 
+      { EBlock([]) }
   | LBRACE expression_seq RBRACE 
       { $2 }
   | LPAREN expression RPAREN
@@ -101,6 +109,8 @@ leaf_expression :
       { EVar($1) }
   | MATCH expression WITH bar_or_not match_list ELSE expression
       { Pattern.mk_match $2 $5 $7 }
+  | error 
+      { raise_parse_error "Couldn't match a valid expression" }
 
 bar_or_not:
   | PIPE { () }
@@ -113,6 +123,8 @@ arg_list:
 match_list: 
   | pattern_effect PIPE match_list { $1 :: $3 }
   | pattern_effect                 { [$1] }
+  | error 
+      { raise_parse_error "Invalid Match List" }
 
 pattern_list:
   | pattern COMMA pattern_list { $1 :: $3 }
@@ -126,10 +138,14 @@ pattern:
   | COLON pattern_body    { (None, $2) }
   | ID COLON pattern_body { (Some($1), $3) }
   | ID                    { (Some($1), Pattern.PType(TAny)) }
+  | error 
+      { raise_parse_error "Invalid Pattern" }
 
 pattern_body:
   | ID LPAREN pattern_list RPAREN { Pattern.PCog($1, $3) }
   | typedef                       { Pattern.PType($1) }
+  | error 
+      { raise_parse_error "Invalid Pattern Body" }
 
 expression_seq:
   | expression EOC expression_seq { mk_block $1 $3 }

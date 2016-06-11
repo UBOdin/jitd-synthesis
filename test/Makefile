@@ -10,3 +10,6 @@ all:
 		echo "--- Running Test:" `echo $$i | sed 's/\\.ml//'` "---"; \
 		./unit_test $$i;\
 	done
+
+clean: 
+	make -C .. clean

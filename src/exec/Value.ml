@@ -79,6 +79,7 @@ let rec string_of_value: value_t -> string = function
 		"[("^(String.concat ", " (List.map string_of_type arg_t))^
 			") -> "^(string_of_type ret_t)^"]"
 	| VHandle(handle) -> 
+		(* print_endline "handle"; *)
 		let cog = 
 			begin match !handle with
 				| (cog_type, body) -> VCog(cog_type, body)
@@ -86,9 +87,12 @@ let rec string_of_value: value_t -> string = function
 		in
 		"{{ "^(string_of_value cog)^" }}"
 	| VCog(cog_type, body) -> 
+		(* print_endline ("cog: "^cog_type); *)
 		cog_type^(string_of_value (VTuple(body)))
 	| VTuple(body) -> 
-		"("^(StringMap.fold (fun field_name field_val rest -> 
+		(* print_endline "tuple"; *)
+		"("^(StringMap.fold (fun field_name field_val rest ->
+			(* print_endline ("    -> "^field_name); *)
 			field_name ^ " -> " ^ (string_of_value field_val) ^
 				(if rest = "" then "" else ", ")
 		) body "")^")"

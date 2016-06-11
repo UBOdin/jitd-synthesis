@@ -1,7 +1,6 @@
 
 open Type
 
-
 type arith_op_t =
   | APlus
   | AMinus
@@ -28,6 +27,7 @@ type expr_t =
   | EIfThenElse of expr_t * expr_t * expr_t
   | EBlock      of expr_t list
   | ELet        of var_t * jf_t * expr_t * expr_t
+  | EAsA        of expr_t * jf_t
   | ECall       of expr_t * (expr_t list)
   | ERewrite    of var_t * expr_t
   | ENeg        of expr_t
@@ -80,6 +80,7 @@ let rec string_of_expr: expr_t -> string =
   | EBlock(l) -> "{ "^(String.concat "; " (List.map rcr l))^" }"
   | ELet(tgt, tgt_t, tgt_val, body) ->
     "let "^tgt^":"^(string_of_type tgt_t)^" = "^(rcr tgt_val)^" in "^(rcr body)
+  | EAsA(e, t) -> "("^(rcr e)^") as "^(string_of_type t)
   | ECall(fn, args) ->
     (rcr fn)^"("^(String.concat "," (List.map rcr args))^")"
   | ERewrite(tgt, tgt_val) ->
@@ -90,10 +91,11 @@ let rec string_of_expr: expr_t -> string =
   | EConst(c) -> string_of_const c
   | EVar(v) -> v
   | EIsA(e, t) -> (rcr e)^" ISA "^(string_of_type t)
-  | ESubscript(base, sub) -> (rcr base)^"["^(rcr sub)^"]"
+  | ESubscript(base, sub) -> "("^(rcr base)^")["^(rcr sub)^"]"
   | ELambda(args, body) -> 
       "/.("^(String.concat "," (List.map string_of_typed_var args))^
         ") -> "^(rcr body)
+  | EList(data) -> "[ "^(String.concat ", " (List.map rcr data))^" ]"
 ;;
 
 let block_list (a:expr_t): expr_t list = 

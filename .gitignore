@@ -23,6 +23,7 @@ setup.log
 jitd
 makefile.dep
 jitd_top
+test/unit_test
 
 # Synthetic data
 src/parser/JFLexer.ml

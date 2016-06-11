@@ -3,7 +3,8 @@ open ListUtils
 open Expression
 
 exception ParseError of string * Lexing.position
-exception TypecheckError of string * (expr_t option)
+                         (*  msg     context           expected  found  *)
+exception TypecheckError of string * (expr_t option) * jf_t    * jf_t
 
 let typeof_const (c:const_t): prim_t =
   match c with
@@ -22,8 +23,10 @@ let escalate ?(ctx:expr_t option = None) (a:jf_t) (b:jf_t): jf_t =
         | (TPrimitive(TFloat|TInt),
             TPrimitive(TFloat|TInt)) -> 
                 TPrimitive(TFloat)
+        | (TCog(None), TCog(Some(_))) -> b
+        | (TCog(Some(_)), TCog(None)) -> a
         | _ when a = b -> a
-        | _ -> raise (TypecheckError("Incompatible types", ctx))
+        | _ -> raise (TypecheckError("Incompatible types", ctx, a, b))
 ;;
 
 let test_compat ?(ctx:expr_t option = None) (a:jf_t) (b:jf_t): unit =
@@ -37,7 +40,7 @@ let rec typeof
   let rcr e = typeof ~validate:validate ~scope:scope e in
   let rcr_f t e = 
   	if validate && ((escalate ~ctx:(Some(root)) t (rcr e)) <> t)
-  	then raise (TypecheckError("Invalid type escalation", Some(root)))
+  	then raise (TypecheckError("Invalid type escalation", Some(root), t, (rcr e)))
   in
   let rcr_s (args:(var_t * jf_t) list) (recur_target:expr_t) =
   	typeof  ~validate:validate 
@@ -60,8 +63,10 @@ let rec typeof
     	List.fold_left (fun _ curr -> rcr curr) TNone elist
 
     | ELet(tgt, tgt_t, defn, body) ->
-
     	rcr_s [tgt, (escalate tgt_t (rcr defn))] body
+
+    | EAsA(e, t) ->
+        escalate t (rcr e)
 
     | ECall(fn, caller_args) ->
     	begin match rcr fn with
@@ -71,7 +76,9 @@ let rec typeof
     		| _ -> 
     			raise (TypecheckError(
     				"Invalid call", 
-    				Some(root)
+    				Some(root),
+                    TFn(List.map rcr caller_args, TAny),
+                    (rcr fn)
     			))
     	end
 
@@ -128,6 +135,8 @@ let rec typeof
         end
 
     | ESubscript(expr, subscript) ->
+        (* print_endline ("SE: "^(string_of_expr expr)); *)
+        (* print_endline ("S: "^(string_of_type (rcr expr))); *)
     	begin match rcr expr with
     		| TCog(Some(ctype)) ->
     			begin match subscript with
@@ -135,10 +144,19 @@ let rec typeof
     			 		Cog.field_type ctype field
     			 	| _ ->
     			 		raise (TypecheckError(
-    			 			"Invalid subscript: Cog",
-    			 			Some(root)
+    			 			"Invalid subscript (Cog): "^(Expression.string_of_expr subscript),
+    			 			Some(root),
+                            TPrimitive(TString),
+                            (rcr subscript)
     			 		))
 			 	end
+            | TCog(None) -> 
+                raise (TypecheckError(
+                    "Subscript of cog of indeterminate type",
+                    Some(expr),
+                    TCog(Some("?")),
+                    TCog(None)
+                ))
 
     		| TList(t) ->
     			rcr_f (TPrimitive(TInt)) subscript;
@@ -154,15 +172,19 @@ let rec typeof
     			 		List.assoc field fields
     			 	| _ ->
     			 		raise (TypecheckError(
-    			 			"Invalid subscript: Tuple",
-    			 			Some(root)
+    			 			"Invalid subscript (Tuple): "^(Expression.string_of_expr subscript),
+    			 			Some(root),
+                            TPrimitive(TString),
+                            (rcr subscript)
     			 		))
 			 	end
 
 			| _ -> 
 				raise (TypecheckError(
 					"Non group being subscripted",
-					Some(root)
+					Some(root),
+                    TAny,
+                    (rcr expr)
 				))
 	    end
 

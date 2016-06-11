@@ -43,11 +43,14 @@ let call_handler (jitd: jitd_t) (event: event_t) (args: expr_t list): unit =
            ["__ROOT", (VHandle(jitd.data))]
   with Not_found -> ()
 
+let root_handle (jitd: jitd_t): value_t = 
+  VHandle(jitd.data)
+;;
 
 let insert (jitd: jitd_t) (buffer: record_t list): unit = (
   call_handler jitd BEFORE_INSERT [];
   jitd.data := 
-    (mk_concat (VHandle(jitd.data)) (VHandle(ref (mk_array buffer))));
+    (mk_concat (VHandle(ref (!(jitd.data)))) (VHandle(ref (mk_array buffer))));
   call_handler jitd AFTER_INSERT []
 );;
 

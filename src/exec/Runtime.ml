@@ -11,6 +11,7 @@ exception EvalError of string * context_t
 
 let cog_constructors (): (var_t * value_t) list =
   List.map (fun cog_name -> 
+    (* print_endline ("COG: "^cog_name); *)
     (cog_name, (VFunction(
       Cog.field_types cog_name,
       TCog(Some(cog_name)),
@@ -19,22 +20,33 @@ let cog_constructors (): (var_t * value_t) list =
   ) (Cog.all_cogs ())
 ;;
 
-let default_scope (): scope_t = 
+let global_scope (): scope_t = 
   ListUtils.mk_map (cog_constructors()) 
 ;;
 
 let make_scope (vars : (string * value_t) list) =
   List.fold_left (fun map (vname, vval) -> StringMap.add vname vval map)
-                 (default_scope()) 
+                 (global_scope()) 
                  vars
+;;
+let string_of_scope (scope: scope_t): string =
+  "{{ \n"^(String.concat "\n" (
+    List.map (fun (var_name, var_value) -> 
+                ("    "^var_name ^ " -> " ^ (string_of_value var_value)))
+             (StringMap.bindings scope)
+  ))^"}}"
 ;;
 
 let construct_type_scope (scope:scope_t): jf_t StringMap.t =
   StringMap.map type_of_value scope
 ;;
 
-let rec eval ?(scope:scope_t = (default_scope ())) 
+let rec eval ?(trace = false) ?(scope:scope_t = (global_scope ())) 
        (eval_expr:expr_t): value_t =
+  if trace then (
+    print_endline ("Enter: "^(string_of_expr eval_expr));
+    print_endline ("Scope: "^(string_of_scope scope));
+  );
   let rcr = eval ~scope:scope in 
   let rcr_s s = eval ~scope:(add_all_to_map s scope) in
   let explode msg = 
@@ -68,6 +80,9 @@ let rec eval ?(scope:scope_t = (default_scope ()))
     let _ = rcr cmd in rcr (EBlock(rest))
   | ELet(var_name, _, var_defn, body) ->
     rcr_s [ var_name, rcr var_defn ] body
+  | EAsA(e, t) ->
+    rcr e
+
   | ECall(defn, args) -> 
     begin match rcr defn with
       | VFunction(_, _, fn) -> fn(List.map rcr args)
@@ -120,7 +135,7 @@ let rec eval ?(scope:scope_t = (default_scope ()))
       Typechecker.typeof ~scope:(ListUtils.mk_map arg_defns) body,
       (fun args -> 
         let fn_scope = 
-          ListUtils.mk_map (
+          make_scope (
             List.map2 (fun (arg_name,_) arg_val -> 
                         (arg_name, arg_val))
                   arg_defns args
