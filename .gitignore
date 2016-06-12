@@ -20,10 +20,11 @@ setup.data
 setup.log
 
 # Synthesis-specific files
-jitd
+jitdc
 makefile.dep
 jitd_top
 test/unit_test
+jitfuel_grammar_table.txt
 
 # Synthetic data
 src/parser/JFLexer.ml

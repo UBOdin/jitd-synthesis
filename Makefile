@@ -8,11 +8,14 @@ FILES = \
 	src/jitfuel/Typechecker \
 	src/jitfuel/Pattern \
 	src/exec/Value\
+	src/exec/FunctionLibrary\
 	src/exec/Runtime\
-	crackersim/SimulationParameters\
-	crackersim/CogTypes\
-	crackersim/Iterators\
-	crackersim/JITD
+	src/rangejit/SimulationParameters\
+	src/rangejit/CogTypes\
+	src/rangejit/Iterators\
+	src/rangejit/JITD\
+	src/rangejit/StdLib\
+	src/rangejit/TestLib
 
 LIBS = str
 
@@ -33,7 +36,7 @@ OCAMLTOP = ocamlmktop -g $(patsubst %, -I %, $(DIRS))
 
 C_FILES = $(patsubst %, %.cmo, $(FILES))
 
-all: jitd jitd_top
+all: jitdc jitd_top
 
 $(patsubst %, %.ml,$(LEXERS)) : %.ml : %.mll
 	@echo Building Lexer $(patsubst src/%,%,$(*))
@@ -53,9 +56,7 @@ $(C_FILES) : %.cmo : %.ml
 
 $(patsubst %, %.cmi, $(PARSERS)) :  
 
-
-
-jitd: $(patsubst %, %.cmo, $(FILES)) src/Driver.ml
+jitdc: $(patsubst %, %.cmo, $(FILES)) src/Driver.ml
 	@echo Building $(patsubst src/%,%,$@)
 	@$(OCAMLC) -o $@ $^
 
@@ -65,7 +66,7 @@ jitd_top: $(patsubst %, %.cmo, $(FILES))
 
 clean: 
 	rm -f $(patsubst %,%.ml,$(AUTOGENFILES)) $(patsubst %,%.mli,$(PARSERS))
-	rm -f jitd jitd_top
+	rm -f jitdc jitd_top
 	rm -f $(patsubst %,%/*.cmo,$(DIRS))
 	rm -f $(patsubst %,%/*.cmx,$(DIRS))
 	rm -f $(patsubst %,%/*.cmi,$(DIRS))
@@ -79,6 +80,14 @@ test/unit_test: Makefile
 test: jitd_top test/unit_test
 	@make -C test
 
+grammar: jitfuel_grammar_table.txt
+
+jitfuel_grammar_table.txt: src/parser/JFParser.mly
+	@echo "Building Jitfuel Grammar Table"
+	@ocamlyacc -v src/parser/JFParser.mly
+	@mv src/parser/JFParser.output jitfuel_grammar_table.txt
+
+
 ##########
 
 dep: makefile.dep
@@ -88,6 +97,7 @@ makefile.dep:
 
 include makefile.dep
 
+
 ##########
 
-.PHONY: all clean test dep
+.PHONY: all clean test dep grammar

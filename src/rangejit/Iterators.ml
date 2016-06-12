@@ -88,13 +88,17 @@ let rec step (iter: iterator_t): (record_t option * iterator_t) =
         | (None, _) -> step rhs
         | (_, None) -> step lhs
         | ((Some(lhs_val)), (Some(rhs_val))) -> 
-          if (compare_records lhs_val rhs_val) >= 0 
-          then 
+          if (compare_records lhs_val rhs_val) <= 0 
+          then begin
+            (* print_endline ((string_of_record lhs_val)^" <= "^(string_of_record rhs_val)); *)
             let (ret, lhs_new_2) = step lhs in
               (ret, (MergeIterator(lhs_new_2, rhs_new_1)))
-          else 
+            end
+          else begin
+            (* print_endline ((string_of_record lhs_val)^" > "^(string_of_record rhs_val)); *)
             let (ret, rhs_new_2) = step rhs in
               (ret, (MergeIterator(lhs_new_1, rhs_new_2)))
+          end
       end
 
     | BufferIterator(head :: tail) -> ((Some(head)), BufferIterator(tail))
@@ -102,21 +106,21 @@ let rec step (iter: iterator_t): (record_t option * iterator_t) =
     | BufferIterator([]) -> (None, (BufferIterator([])))
 ;;
 
-let rec skip (target: key_t) (iter: iterator_t): iterator_t =
+let rec seek (target: key_t) (iter: iterator_t): iterator_t =
   match iter with
-    | LazyIterator(callback, value) -> skip target (get_iterator callback value)
+    | LazyIterator(callback, value) -> seek target (get_iterator callback value)
 
     | SeqIterator(lhs, sep, rhs) when (compare_keys sep target) > 0 ->
-      SeqIterator(skip target lhs, sep, rhs)
+      SeqIterator(seek target lhs, sep, rhs)
 
     | SeqIterator(lhs, sep, rhs) when (compare_keys sep target) = 0 ->
       rhs
 
     | SeqIterator(lhs, sep, rhs) ->
-      SeqIterator(lhs, sep, skip target rhs)
+      SeqIterator(lhs, sep, seek target rhs)
 
     | MergeIterator(lhs, rhs) ->
-      begin match (skip target lhs, skip target rhs) with
+      begin match (seek target lhs, seek target rhs) with
         | ( (BufferIterator([])), new_rhs ) -> new_rhs
         | ( new_lhs, (BufferIterator([])) ) -> new_lhs
         | ( new_lhs, new_rhs ) -> MergeIterator(new_lhs, new_rhs)

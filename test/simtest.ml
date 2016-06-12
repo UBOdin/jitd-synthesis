@@ -2,7 +2,9 @@ open CogTypes
 open Iterators
 open JITD
 open Value
+open Type
 open Expression
+open SimulationParameters
 
 let parse (cmd:string): expr_t = 
   begin try 
@@ -18,36 +20,82 @@ let parse (cmd:string): expr_t =
 ;;
 
 let policy (input: (event_t * string) list): policy_t =
-  List.map (fun (evt, cmd) -> (evt, parse cmd)) input
+  List.map (fun (evt, cmd) -> (evt, parse ("lambda (target_cog: cog) -> {"^cmd^"}"))) input
 ;;
 
 CogTypes.init();;
-Printexc.record_backtrace(true)
+Printexc.record_backtrace(true);;
 (* Parsing.set_trace(true);; *)
 
-
-let sort_all_policy = policy [
+let null_policy = policy [];;
+let naive_sort_all_policy = policy [
   AFTER_INSERT, "
-    lambda (v: cog) -> {
-      match v with 
+      match target_cog with 
         | :CONCAT(lhs, :ARRAY(data)) -> {
-            rewrite v as CONCAT(lhs, SORT(data))
+            rewrite target_cog as CONCAT(lhs, SORTED(SORT(data)))
           }
       else { }
-    }"
+    "
+]
+;;
+let crack_policy = policy [
+  AFTER_INSERT, "
+      match target_cog with 
+        | :CONCAT(lhs, :ARRAY(data)) -> {
+            rewrite v as CONCAT(lhs, SORTED(SORT(data)))
+          }
+      else { }
+    "
 ]
 ;;
 
-let test_object = JITD.init(sort_all_policy);;
+let test_object = JITD.init(null_policy);;
+let test_iterator = ref (BufferIterator([]));;
 let insert = JITD.insert test_object;;
-let get_iterator () = JITD.iterator test_object;;
+let iter_reset () = test_iterator := JITD.iterator test_object;;
+let iter_step () = 
+    let (v, tmp_iter) = (Iterators.step !test_iterator) in
+    begin match v with 
+      | None    -> 
+        print_endline "END_OF_ITER";
+        false
+      | Some(s) -> 
+        test_iterator := tmp_iter;
+        print_endline (string_of_record s);
+        true
+    end
+;;
+let iter_seek k =
+    test_iterator := Iterators.seek k !test_iterator
+;;
+let iter_flush () =
+    while iter_step () do () done
+;;
 let print() = print_endline (string_of_value (JITD.root_handle test_object));;
 
 (*** ACTUAL TEST STARTS HERE ***)
 
 try 
+  print();
   insert [(1,0); (5,0); (3,0); (2,0)];
   print();
+  iter_reset();
+  iter_flush();
+  iter_reset();
+  iter_seek 4;
+  iter_flush();
+  iter_reset();
+  iter_seek 3;
+  iter_flush();
+  insert [(2,1); (20,1); (4,1)];
+  iter_reset();
+  iter_flush();
+  iter_reset();
+  iter_seek 4;
+  iter_flush();
+  iter_reset();
+  iter_seek 3;
+  iter_flush();
   ()
 with 
   | Typechecker.TypecheckError(msg, expr, expected, found) ->

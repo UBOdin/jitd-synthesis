@@ -36,8 +36,9 @@ let test_compat ?(ctx:expr_t option = None) (a:jf_t) (b:jf_t): unit =
 let rec typeof 
 		?(validate=false) 
 		?(scope:jf_t StringMap.t = StringMap.empty) 
+        ?(globals:jf_t StringMap.t = StringMap.empty) 
 		(root:expr_t): jf_t =
-  let rcr e = typeof ~validate:validate ~scope:scope e in
+  let rcr e = typeof ~validate:validate ~scope:scope ~globals:globals e in
   let rcr_f t e = 
   	if validate && ((escalate ~ctx:(Some(root)) t (rcr e)) <> t)
   	then raise (TypecheckError("Invalid type escalation", Some(root), t, (rcr e)))
@@ -48,6 +49,7 @@ let rec typeof
                 (fun old_scope (var_name, var_type) ->
                     StringMap.add var_name var_type old_scope
                 ) scope args)
+            ~globals:globals
             recur_target
   in
   match root with 
@@ -71,6 +73,14 @@ let rec typeof
     | ECall(fn, caller_args) ->
     	begin match rcr fn with
     		| TFn(fn_args, ret_t) -> 
+                if (List.length fn_args) <> (List.length caller_args)
+                then raise (TypecheckError(
+                    "Invalid Call - Argument Mismatch",
+                    Some(root),
+                    TFn(List.map rcr caller_args, TAny),
+                    TNone
+                ))
+                else
                 List.iter2 rcr_f fn_args caller_args;
                 ret_t
     		| _ -> 
@@ -115,7 +125,12 @@ let rec typeof
     	TPrimitive(typeof_const c)
 
     | EVar(v) -> 
-    	StringMap.find v scope 
+        begin try
+        	StringMap.find v scope 
+        with Not_found -> 
+            print_endline ("Vars:"^(String.concat ", " (List.map fst (StringMap.bindings scope))));
+            raise (TypecheckError("Missing Variable", Some(EVar(v)), TAny, TNone))
+        end
 
     | EIsA(expr, t) ->
     	begin

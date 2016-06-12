@@ -3,9 +3,11 @@ open JFParser;;
 
 module StrMap = Map.Make(String);;
 
-let init_line lexbuf =
+
+let init_line ?(file = "") lexbuf =
     let pos = lexbuf.Lexing.lex_curr_p in
         lexbuf.Lexing.lex_curr_p <- { pos with
+            Lexing.pos_fname = file;
             Lexing.pos_lnum = 1;
             Lexing.pos_bol = 0;
         }

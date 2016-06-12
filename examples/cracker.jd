@@ -1,8 +1,0 @@
-
-typedef Key of int
-typedef Record of <key:Key, value:float>
-cog Array(elems:[100,Record], used:int)
-cog SortedArray(elems:[100,Record], used:int)
-cog Delete(source:handle, deleted:handle)
-cog Concat(lhs:handle, rhs:handle)
-cog Tree(lhs:handle, rhs:handle, key:Key)

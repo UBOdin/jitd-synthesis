@@ -15,13 +15,17 @@ let cog_constructors (): (var_t * value_t) list =
     (cog_name, (VFunction(
       Cog.field_types cog_name,
       TCog(Some(cog_name)),
-      Value.mk_cog cog_name
+      Value.mk_handle cog_name
     )))
   ) (Cog.all_cogs ())
 ;;
 
 let global_scope (): scope_t = 
-  ListUtils.mk_map (cog_constructors()) 
+  ListUtils.mk_map (List.flatten [
+      cog_constructors();
+      FunctionLibrary.all_functions();
+    ]
+  )
 ;;
 
 let make_scope (vars : (string * value_t) list) =
@@ -39,6 +43,9 @@ let string_of_scope (scope: scope_t): string =
 
 let construct_type_scope (scope:scope_t): jf_t StringMap.t =
   StringMap.map type_of_value scope
+;;
+let global_type_scope (): jf_t StringMap.t =
+  StringMap.map type_of_value (global_scope())
 ;;
 
 let rec eval ?(trace = false) ?(scope:scope_t = (global_scope ())) 
@@ -95,6 +102,7 @@ let rec eval ?(trace = false) ?(scope:scope_t = (global_scope ()))
     end in
     let replacement_cog = begin match rcr replacement with
       | VCog(ctype, cbody) -> (ctype,cbody)
+      | VHandle(type_body) -> (fst !type_body, snd !type_body)
       | _ -> explode "Invalid rewrite replacement"
     end in
     tgt_handle := replacement_cog;
@@ -124,7 +132,11 @@ let rec eval ?(trace = false) ?(scope:scope_t = (global_scope ()))
         | CmpGte -> ((fun a b -> a >= b), (fun a b -> a >= b))
     ) (rcr a) (rcr b)
   | EConst(c) -> VPrim(c)
-  | EVar(v) -> StringMap.find v scope
+  | EVar(v) -> 
+    begin try
+      StringMap.find v scope
+      with Not_found -> explode ("Missing Variable: "^v)
+    end
   | EIsA(e, t) -> VPrim(CBool(is_a (Value.type_of_value (rcr e)) t))
   | EList(elems) -> VList(List.map rcr elems)
   | ESubscript(value, subscript) -> 
@@ -132,7 +144,13 @@ let rec eval ?(trace = false) ?(scope:scope_t = (global_scope ()))
   | ELambda(arg_defns, body) -> 
     VFunction(
       List.map snd arg_defns, 
-      Typechecker.typeof ~scope:(ListUtils.mk_map arg_defns) body,
+      Typechecker.typeof ~scope:(List.fold_left 
+                            (fun folded_scope (n,t) -> StringMap.add n t folded_scope)
+                            (global_type_scope())
+                            arg_defns
+                          ) 
+                         ~globals:(global_type_scope()) 
+                         body,
       (fun args -> 
         let fn_scope = 
           make_scope (
@@ -144,7 +162,7 @@ let rec eval ?(trace = false) ?(scope:scope_t = (global_scope ()))
       )
     )
   with 
-    | Not_found -> explode "Not Found"
+    | Not_found -> Printexc.print_backtrace stdout; explode "Not Found"
     | Value.CastError(v, t) ->
       explode ("Could not cast "^(string_of_value v)^" to "^(string_of_type t))
 

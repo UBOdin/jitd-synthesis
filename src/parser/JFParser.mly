@@ -4,7 +4,7 @@ open Type;;
 open Expression;;
 
 let raise_parse_error msg =
-  raise (Typechecker.ParseError(msg, Lexing.dummy_pos))
+  raise (Typechecker.ParseError(msg, Parsing.symbol_start_pos()))
 ;;
    
 
@@ -34,19 +34,42 @@ let raise_parse_error msg =
 %token IF THEN ELSE
 %token MATCH WITH LAMBDA
 
+%start policy
 %start expression
 %type <Expression.expr_t> expression
+%type <(string * string list * Expression.expr_t) list> policy
 
 %%
-  
+
+policy :
+  | EOF              { [] }
+  | handler policy   { $1 :: $2 }
+  | error { raise_parse_error "Unable to match handler" }
+
+handler :
+  | ON handler_defn handler_body
+      { (fst $2, snd $2, $3) }
+  | error { raise_parse_error "Bad Handler (Expecting ON name(arg, list) { body })" }
+
+handler_defn : 
+  | ID LPAREN          RPAREN { ($1, []) }
+  | ID LPAREN var_list RPAREN { ($1, $3) }
+  | error { raise_parse_error "Bad Handler Header (Expecting name(arg, list) )"}
+
+handler_body : 
+  | LBRACE expression_seq RBRACE { $2 }
+  | error { raise_parse_error "Bad Handler Body (Expecting { body })" }
+
+
 expression : 
   | bool_expression { $1 }
-  | error { raise_parse_error "Bad Expression" }
+  | error { raise_parse_error "Invalid Expression" }
 
 bool_expression : 
   | NOT cmp_expression { ENeg($2) }
   | cmp_expression bool_op expression { EArithOp($2, $1, $3) }
   | cmp_expression { $1 }
+  | error { raise_parse_error "Invalid Boolean Expression" }
 
 bool_op :
   | AND { AAnd }
@@ -56,6 +79,7 @@ cmp_expression :
   | add_expression cmp_op expression { ECmpOp($2, $1, $3) }
   | add_expression IS typedef { EIsA($1,$3) }
   | add_expression { $1 }
+  | error { raise_parse_error "Invalid Comparison" }
 
 cmp_op : 
   | EQ   { CmpEq  }
@@ -68,6 +92,7 @@ cmp_op :
 add_expression : 
   | mult_expression add_op expression { EArithOp($2, $1, $3) }
   | mult_expression { $1 }
+  | error { raise_parse_error "Invalid Addition" }
 
 add_op : 
   | ADD { APlus }
@@ -76,6 +101,7 @@ add_op :
 mult_expression : 
   | subscript_expression mult_op expression { EArithOp($2, $1, $3) }
   | subscript_expression                    { $1 }
+  | error { raise_parse_error "Invalid Multiplication" }
 
 mult_op : 
   | MULT { ATimes }
@@ -85,6 +111,7 @@ subscript_expression :
   | leaf_expression LBRACK expression RBRACK      { ESubscript($1, $3) }
   | leaf_expression LPAREN expression_list RPAREN { ECall($1, $3) }
   | leaf_expression                               { $1 }
+  | error { raise_parse_error "Invalid Subscript" }
 
 leaf_expression : 
   | IF expression THEN expression ELSE expression 
@@ -110,7 +137,7 @@ leaf_expression :
   | MATCH expression WITH bar_or_not match_list ELSE expression
       { Pattern.mk_match $2 $5 $7 }
   | error 
-      { raise_parse_error "Couldn't match a valid expression" }
+      { raise_parse_error "Invalid Leaf Expression" }
 
 bar_or_not:
   | PIPE { () }
@@ -119,6 +146,11 @@ bar_or_not:
 arg_list: 
   | var COLON typedef COMMA arg_list { ($1, $3) :: $5 }
   | var COLON typedef                { [$1, $3] }
+
+var_list:
+  | var COMMA var_list  { $1 :: $3 }
+  | var                 { [$1] }
+  | error  { raise_parse_error "Bad Var List; Expecting Variable" }
 
 match_list: 
   | pattern_effect PIPE match_list { $1 :: $3 }
@@ -149,6 +181,7 @@ pattern_body:
 
 expression_seq:
   | expression EOC expression_seq { mk_block $1 $3 }
+  | expression EOC                { $1 }
   | expression                    { $1 }
 
 expression_list:

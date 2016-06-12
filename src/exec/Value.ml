@@ -91,11 +91,10 @@ let rec string_of_value: value_t -> string = function
 		cog_type^(string_of_value (VTuple(body)))
 	| VTuple(body) -> 
 		(* print_endline "tuple"; *)
-		"("^(StringMap.fold (fun field_name field_val rest ->
-			(* print_endline ("    -> "^field_name); *)
-			field_name ^ " -> " ^ (string_of_value field_val) ^
-				(if rest = "" then "" else ", ")
-		) body "")^")"
+		"("^(String.concat ", " (List.map 
+					(fun (k, v) -> k^" -> "^(string_of_value v))
+					(StringMap.bindings body)
+		    ))^")"
 	| VList(vals) -> 
 		"[ "^(String.concat ", " (List.map string_of_value vals))^" ]"
 	| VUnit -> "ø"
@@ -103,7 +102,10 @@ let rec string_of_value: value_t -> string = function
 
 let mk_cog_body (t:cog_type_t) (fields:value_t list): tuple_t =
 	ListUtils.mk_map (
-		List.map2 (fun field_name field_value -> (field_name, field_value)) 
+		List.map2 (fun field_name field_value -> 
+								(* print_endline ("  "^field_name);  *)
+								(* print_endline ("     "^(string_of_value field_value)); *)
+								(field_name, field_value)) 
 				  (Cog.field_names t) fields
 	)
 ;;
