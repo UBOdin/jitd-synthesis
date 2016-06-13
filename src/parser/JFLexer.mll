@@ -4,7 +4,7 @@ open JFParser;;
 module StrMap = Map.Make(String);;
 
 
-let init_line ?(file = "") lexbuf =
+let init_line ?(file = "<unknown>") lexbuf =
     let pos = lexbuf.Lexing.lex_curr_p in
         lexbuf.Lexing.lex_curr_p <- { pos with
             Lexing.pos_fname = file;
@@ -16,7 +16,7 @@ let advance_line lexbuf =
     let pos = lexbuf.Lexing.lex_curr_p in
         lexbuf.Lexing.lex_curr_p <- { pos with
             Lexing.pos_lnum = pos.Lexing.pos_lnum + 1;
-            Lexing.pos_bol = 0 (*pos.Lexing.pos_cnum*);
+            Lexing.pos_bol = pos.Lexing.pos_cnum;
         }
 
 
@@ -45,6 +45,8 @@ let keywords = List.fold_left
     ( "AS",       AS );
     ( "NOT",      NOT );
     ( "LAMBDA",   LAMBDA );
+    ( "FUNCTION", FUNCTION );
+    ( "POLICY",   POLICY );
   ];;
 }
 
@@ -91,14 +93,14 @@ rule token = parse
                          { FLOATCONST(float_of_string f) }
   | (['0' - '9']+) as i  { INTCONST(int_of_string i) }
   | eof                  { EOF }
-  | _                    { raise (Typechecker.ParseError("Unexpected character",
-                                                      lexbuf.Lexing.lex_curr_p)) }
+  | _                    { raise (Expression.ParseError("Unexpected character",
+                                                        lexbuf.Lexing.lex_curr_p)) }
 
 and cblock depth = parse
   | '{'                  { "{"^(cblock (depth+1) lexbuf) }
   | '}'                  { (if depth > 1 then "}"^(cblock (depth-1) lexbuf) else "") }
   | [^'}']+ as s         { s^(cblock depth lexbuf) }
-  | eof                  { raise (Typechecker.ParseError("unterminated C block", 
+  | eof                  { raise (Expression.ParseError("unterminated C block", 
                                                       lexbuf.Lexing.lex_curr_p)) }
 and string_literal = parse
   | "\\\'"               { "\'"^(string_literal lexbuf) }

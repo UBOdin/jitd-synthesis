@@ -59,12 +59,11 @@ let mk_match ?(match_base_type:jf_t = TAny)
         in
             ELet(
               name_to_be_assigned, 
-              type_from_pattern,
-              target,
+              (EAsA(target, type_from_pattern)),
               recursive_continuation
             )
   in
-    ELet("__match_target", match_base_type, target, 
+    ELet("__match_target", (EAsA(target, match_base_type)), 
       List.fold_right (fun (pattern,match_body) rest ->
           EIfThenElse(
             pattern_match pattern (EVar("__match_target")),

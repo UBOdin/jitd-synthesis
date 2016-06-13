@@ -13,22 +13,22 @@ type record_t = key_t * data_t
 let cast_to_key = Value.cast_to_int;;
 let cast_to_data = Value.cast_to_int;;
 let cast_to_record (base: Value.value_t): record_t = 
-	( cast_to_key  (Value.subscript base (Value.VPrim(Expression.CString("KEY" )))), 
-		cast_to_data (Value.subscript base (Value.VPrim(Expression.CString("DATA"))))
+	( cast_to_key  (Value.subscript base (Value.VPrimitive(Expression.CString("KEY" )))), 
+		cast_to_data (Value.subscript base (Value.VPrimitive(Expression.CString("DATA"))))
 	);;
 let string_of_record (k,v) = (string_of_int k)^":"^(string_of_int v);;
-let box_key (k: key_t) = Value.VPrim(Expression.CInt(k));;
-let box_data (v: data_t) = Value.VPrim(Expression.CInt(v));;
+let box_key (k: key_t) = Value.VPrimitive(Expression.CInt(k));;
+let box_data (v: data_t) = Value.VPrimitive(Expression.CInt(v));;
 let box_record ((k,v): record_t) = Value.VTuple(ListUtils.mk_map [
     "KEY", box_key k;
     "DATA", box_data v;
   ]);;
 let unbox_key = function 
-  | Value.VPrim(Expression.CInt(k)) -> k
+  | Value.VPrimitive(Expression.CInt(k)) -> k
   | v -> raise (Value.CastError(v, TPrimitive(TInt)))
 ;;
 let unbox_data = function 
-  | Value.VPrim(Expression.CInt(v)) -> v
+  | Value.VPrimitive(Expression.CInt(v)) -> v
   | v -> raise (Value.CastError(v, TPrimitive(TInt)))
 ;;
 let unbox_record = function

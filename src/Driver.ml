@@ -9,38 +9,27 @@ open SimulationParameters
 
 (* Parsing.set_trace true;; *)
 
-let load_policy (file: string): policy_t = 
-  begin try 
-    let input = open_in file in
-    let buffer = Lexing.from_channel input in
-      JFLexer.init_line ~file:file buffer;
-    let base_policy = 
-      try 
-        JFParser.policy JFLexer.token buffer 
-      with 
-        | Parsing.Parse_error -> 
-          print_endline "Unknown Parser Error";
-          exit(-1)
-        | Typechecker.ParseError(message, position) ->
-          print_endline ("Error: "^message);
-          print_endline ("At: "^
-              (position.Lexing.pos_fname)^":"^
-              (string_of_int position.Lexing.pos_lnum)^":"^
-              (string_of_int position.Lexing.pos_bol)
-            );
-          exit(-1)
-
-
-    in
-      List.map JITD.specialize_handler base_policy
-  with 
-    | Typechecker.ParseError(msg, _) ->
-      print_endline ("Parse Error: " ^ msg);
-      raise Parsing.Parse_error
-    | Parsing.Parse_error -> 
-      print_endline "Unknown parse error";
-      raise Parsing.Parse_error
-  end
+let load_policy (file: string): ((string * expr_t) list * policy_t) = 
+  let input = open_in file in
+  let buffer = Lexing.from_channel input in
+    JFLexer.init_line ~file:file buffer;
+  let (globals, base_policy) = 
+    try 
+      JFParser.program JFLexer.token buffer 
+    with 
+      | Parsing.Parse_error -> 
+        print_endline "Unknown Parser Error";
+        exit(-1)
+      | Expression.ParseError(message, position) ->
+        print_endline ("Error: "^message);
+        print_endline ("At: "^
+            (position.Lexing.pos_fname)^":"^
+            (string_of_int position.Lexing.pos_lnum)^":"^
+            (string_of_int (position.Lexing.pos_cnum - position.Lexing.pos_bol))
+          );
+        exit(-1)
+  in
+    (globals, List.map JITD.specialize_handler base_policy)
 ;;
 
 let jitd_files: string list ref = ref [];;
@@ -64,10 +53,23 @@ Arg.parse arg_spec include_file usage_msg;;
 jitd_files := List.rev !jitd_files;;
 
 try 
-  let jitd = 
-    JITD.init
-      (JITD.merge_policies (List.map load_policy !jitd_files))
+  let (global_functions, raw_policies) = 
+    List.split (List.map load_policy !jitd_files) 
   in
+  let jitd = JITD.init (JITD.merge_policies raw_policies)
+  in
+    print_endline "FIZZZZ";
+    List.iter (fun (fn_name, fn_defn) -> 
+      print_endline ("FN: "^fn_name);
+      print_endline (string_of_expr fn_defn);
+      match Runtime.eval fn_defn
+      with 
+        | VFunction(arg_t, ret_t, fn_defn) -> 
+            FunctionLibrary.define_fn fn_name (arg_t, ret_t) fn_defn
+        | _ -> 
+            print_endline ("Invalid Function: "^fn_name);
+            exit(-1)
+    ) (List.flatten global_functions);
     TestLib.init(jitd);
     JITD.call_handler jitd JITD.TEST [];
 with 

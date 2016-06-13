@@ -1,0 +1,25 @@
+
+
+FUNCTION CRACK_OR_SORT(target_cog : cog, threshold : int) { 
+  match target_cog with
+    | :ARRAY(data) -> {
+      if SIZEOF(data) > threshold then
+        let cracked := SPLIT(data[0], data) in
+          rewrite target_cog as 
+            TREE(
+              ARRAY(cracked['LOW']),
+              ARRAY(cracked['HIGH'])
+            )
+      else
+        rewrite target_cog as
+          SORTED(SORT(data))
+    }
+  else {}
+}
+
+
+POLICY { 
+  ON BEFORE_ITERATOR(target) { 
+    CRACK_OR_SORT(target, 3);
+  }
+}

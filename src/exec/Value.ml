@@ -5,7 +5,7 @@ open Expression
 open Cog
 
 type value_t =
-  | VPrim of const_t
+  | VPrimitive of const_t
   | VFunction of (jf_t list * jf_t * (value_t list -> value_t))
   | VHandle of (cog_type_t * tuple_t) ref
   | VCog of cog_type_t * tuple_t
@@ -15,7 +15,7 @@ type value_t =
 and tuple_t = value_t StringMap.t
 
 let rec type_of_value: value_t -> jf_t = function
-	| VPrim(c) -> TPrimitive(Expression.type_of_const c)
+	| VPrimitive(c) -> TPrimitive(Expression.type_of_const c)
 	| VFunction(arg_t, ret_t, defn) -> TFn(arg_t, ret_t)
 	| VHandle(handle) -> 
 		begin match !handle with
@@ -36,15 +36,15 @@ let rec type_of_value: value_t -> jf_t = function
 exception CastError of value_t * jf_t;;
 
 let cast_to_string: value_t -> string = function
-	| VPrim(CString(v)) -> v
+	| VPrimitive(CString(v)) -> v
 	| v -> raise (CastError(v, TPrimitive(TString)))
 ;;
 let cast_to_int: value_t -> int = function
-	| VPrim(CInt(v)) -> v 
+	| VPrimitive(CInt(v)) -> v 
 	| v -> raise (CastError(v, TPrimitive(TInt)))
 ;;
 let cast_to_bool: value_t -> bool = function
-	| VPrim(CBool(v)) -> v 
+	| VPrimitive(CBool(v)) -> v 
 	| v -> raise (CastError(v, TPrimitive(TBool)))
 ;;
 let cast_to_cog (base: value_t): (string * tuple_t) =
@@ -73,19 +73,15 @@ let subscript (base:value_t) (idx: value_t): value_t =
 ;;
 
 let rec string_of_value: value_t -> string = function
-	| VPrim(c) -> 
+	| VPrimitive(c) -> 
 		Expression.string_of_const c
 	| VFunction(arg_t, ret_t, defn) -> 
 		"[("^(String.concat ", " (List.map string_of_type arg_t))^
 			") -> "^(string_of_type ret_t)^"]"
 	| VHandle(handle) -> 
 		(* print_endline "handle"; *)
-		let cog = 
-			begin match !handle with
-				| (cog_type, body) -> VCog(cog_type, body)
-			end
-		in
-		"{{ "^(string_of_value cog)^" }}"
+		let (cog_type, body) = !handle
+		in "{{ "^(string_of_value (VCog(cog_type, body)))^" }}"
 	| VCog(cog_type, body) -> 
 		(* print_endline ("cog: "^cog_type); *)
 		cog_type^(string_of_value (VTuple(body)))

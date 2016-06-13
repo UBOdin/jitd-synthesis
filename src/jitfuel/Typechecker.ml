@@ -2,7 +2,6 @@ open Type
 open ListUtils
 open Expression
 
-exception ParseError of string * Lexing.position
                          (*  msg     context           expected  found  *)
 exception TypecheckError of string * (expr_t option) * jf_t    * jf_t
 
@@ -64,8 +63,8 @@ let rec typeof
     | EBlock(elist) ->
     	List.fold_left (fun _ curr -> rcr curr) TNone elist
 
-    | ELet(tgt, tgt_t, defn, body) ->
-    	rcr_s [tgt, (escalate tgt_t (rcr defn))] body
+    | ELet(tgt, defn, body) ->
+    	rcr_s [tgt, rcr defn] body
 
     | EAsA(e, t) ->
         escalate t (rcr e)
@@ -75,7 +74,7 @@ let rec typeof
     		| TFn(fn_args, ret_t) -> 
                 if (List.length fn_args) <> (List.length caller_args)
                 then raise (TypecheckError(
-                    "Invalid Call - Argument Mismatch",
+                    "Invalid Call - Argument Length Mismatch",
                     Some(root),
                     TFn(List.map rcr caller_args, TAny),
                     TNone

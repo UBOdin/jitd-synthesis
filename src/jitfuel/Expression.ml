@@ -1,6 +1,9 @@
 
 open Type
 
+exception ParseError of string * Lexing.position
+
+
 type arith_op_t =
   | APlus
   | AMinus
@@ -26,7 +29,7 @@ type const_t =
 type expr_t = 
   | EIfThenElse of expr_t * expr_t * expr_t
   | EBlock      of expr_t list
-  | ELet        of var_t * jf_t * expr_t * expr_t
+  | ELet        of var_t * expr_t * expr_t
   | EAsA        of expr_t * jf_t
   | ECall       of expr_t * (expr_t list)
   | ERewrite    of var_t * expr_t
@@ -78,8 +81,8 @@ let rec string_of_expr: expr_t -> string =
   in function
   | EIfThenElse(i, t, e) -> "if "^(rcr i)^" then "^(rcr t)^" else "^(rcr e)
   | EBlock(l) -> "{ "^(String.concat "; " (List.map rcr l))^" }"
-  | ELet(tgt, tgt_t, tgt_val, body) ->
-    "let "^tgt^":"^(string_of_type tgt_t)^" = "^(rcr tgt_val)^" in "^(rcr body)
+  | ELet(tgt, tgt_val, body) ->
+    "let "^tgt^" := "^(rcr tgt_val)^" in "^(rcr body)
   | EAsA(e, t) -> "("^(rcr e)^") as "^(string_of_type t)
   | ECall(fn, args) ->
     (rcr fn)^"("^(String.concat "," (List.map rcr args))^")"
