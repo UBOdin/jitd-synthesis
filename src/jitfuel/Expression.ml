@@ -76,29 +76,100 @@ let string_of_cmp_op = function
   | CmpGte -> ">="
 ;;
 
-let rec string_of_expr: expr_t -> string = 
-  let rcr = string_of_expr 
-  in function
-  | EIfThenElse(i, t, e) -> "if "^(rcr i)^" then "^(rcr t)^" else "^(rcr e)
-  | EBlock(l) -> "{ "^(String.concat "; " (List.map rcr l))^" }"
+let string_of_expr ?(indent = 2) (expr: expr_t): string = 
+  let buffer: Buffer.t = Buffer.create 50 in
+  let formatter = Format.formatter_of_buffer buffer in
+  let put = Format.pp_print_string formatter in
+  let space = Format.pp_print_space formatter in
+  let open_box () = Format.pp_open_box formatter indent in
+  let close_box = Format.pp_close_box formatter in
+  let rec rcr_box (e:expr_t):unit = 
+    open_box();
+    rcr e;
+    close_box();
+  and rcr_list (sep:string) (l: expr_t list): unit =
+    begin match l with 
+      | [] -> ();
+      | hd :: [] -> rcr_box hd;
+      | hd :: rest -> open_box(); rcr hd; put sep; space(); close_box(); rcr_list sep rest;
+    end
+  and rcr:(expr_t -> unit) = function
+  | EIfThenElse(i, t, e) -> 
+    put "if"; space();
+      rcr_box i;
+    space();
+      rcr_box t;
+    space(); put "else"; space();
+      rcr_box e;
+  | EBlock([]) -> 
+    put "{ }";
+  | EBlock(l) -> 
+    put "{"; space(); 
+    rcr_list ";" l; 
+    space(); put "}";
   | ELet(tgt, tgt_val, body) ->
-    "let "^tgt^" := "^(rcr tgt_val)^" in "^(rcr body)
-  | EAsA(e, t) -> "("^(rcr e)^") as "^(string_of_type t)
+    put "let"; space();
+      put tgt;
+    space(); put ":="; space();
+      rcr_box tgt_val;
+    space(); put "in"; space();
+      rcr_box body;
+  | EAsA(e, t) -> 
+    put "(";
+      rcr_box e;
+    put (") as "^(string_of_type t))
   | ECall(fn, args) ->
-    (rcr fn)^"("^(String.concat "," (List.map rcr args))^")"
+    rcr_box fn;
+    put "("; space();
+    rcr_list "," args;
+    space(); put ")";
   | ERewrite(tgt, tgt_val) ->
-    "rewrite "^tgt^" as "^(rcr tgt_val)
-  | ENeg(v) -> "-("^(rcr v)^")"
-  | EArithOp(op, a, b) -> (rcr a)^(string_of_arith_op op)^(rcr b)
-  | ECmpOp(op, a, b) -> (rcr a)^(string_of_cmp_op op)^(rcr b)
-  | EConst(c) -> string_of_const c
-  | EVar(v) -> v
-  | EIsA(e, t) -> (rcr e)^" ISA "^(string_of_type t)
-  | ESubscript(base, sub) -> "("^(rcr base)^")["^(rcr sub)^"]"
+    put ("rewrite "^tgt^" as");
+    space();
+    rcr_box tgt_val;
+  | ENeg(v) -> 
+    put "-("; 
+    rcr_box v; 
+    put ")";
+  | EArithOp(op, a, b) ->
+    rcr_box a;
+    space(); put (string_of_arith_op op); space();
+    rcr_box b;
+  | ECmpOp(op, a, b) -> 
+    rcr_box a;
+    space(); put (string_of_cmp_op op); space();
+    rcr_box b;
+  | EConst(c) -> 
+    put (string_of_const c)
+  | EVar(v) -> 
+    put v
+  | EIsA(e, t) -> 
+    put "(";
+    rcr_box e;
+    put ")";
+    space(); put ("ISA "^(string_of_type t))
+  | ESubscript(base, sub) -> 
+    put "(";
+    rcr_box base;
+    put ")["; space();
+    rcr_box sub;
+    space(); put "]";
   | ELambda(args, body) -> 
-      "/.("^(String.concat "," (List.map string_of_typed_var args))^
-        ") -> "^(rcr body)
-  | EList(data) -> "[ "^(String.concat ", " (List.map rcr data))^" ]"
+    put "LAMBDA("; space();
+    open_box();
+      put (String.concat ", " (List.map string_of_typed_var args));
+    close_box();
+    space(); put ") ->"; space();
+    rcr_box body;
+  | EList(data) -> 
+    put "["; space();
+    rcr_list "," data;
+    space(); put "]";
+  in
+    open_box();
+    rcr expr; 
+    close_box();
+    Buffer.contents buffer
 ;;
 
 let block_list (a:expr_t): expr_t list = 

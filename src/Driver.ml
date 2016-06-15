@@ -58,9 +58,8 @@ try
   in
   let jitd = JITD.init (JITD.merge_policies raw_policies)
   in
-    print_endline "FIZZZZ";
     List.iter (fun (fn_name, fn_defn) -> 
-      print_endline ("FN: "^fn_name);
+      print_endline ("FN: "^fn_name^" is ");
       print_endline (string_of_expr fn_defn);
       match Runtime.eval fn_defn
       with 
