@@ -96,6 +96,25 @@ let idle (jitd: jitd_t): unit = (
 )
 ;;
 
+let string_of_event_type: event_t -> string = function
+  | TEST                 -> "TEST"                
+  | IDLE                 -> "IDLE"                
+  | BEFORE_ITERATOR      -> "BEFORE_ITERATOR"     
+  | BEFORE_ROOT_ITERATOR -> "BEFORE_ROOT_ITERATOR"
+  | AFTER_DELETE         -> "AFTER_DELETE"        
+  | BEFORE_DELETE        -> "BEFORE_DELETE"       
+  | AFTER_INSERT         -> "AFTER_INSERT"        
+  | BEFORE_INSERT        -> "BEFORE_INSERT"       
+;;
+
+let string_of_jitd ({ data = data; handlers = handlers }: jitd_t): string = (
+  String.concat "\n\n" (List.map (fun (event, (args, body)) -> 
+    "ON "^(string_of_event_type event)^"("^(String.concat ", " args)^")\n"^
+    (string_of_expr (EBlock(Expression.block_list body)))
+  ) handlers)
+)
+;;
+
 exception InvalidEvent of string
 type raw_handler_t = string * string list * expr_t
 type raw_policy_t = raw_handler_t list
@@ -158,5 +177,10 @@ let merge_policies (policies: policy_t list): policy_t =
     ) policy_groups
 ;;
 
+let optimize (scope: expr_t StringMap.t) (policy: policy_t): policy_t = 
+  List.map (fun (event, (args, handler)) -> 
+              (event, (args, Optimizer.optimize ~scope:scope handler))
+  ) policy
+;;
 
 

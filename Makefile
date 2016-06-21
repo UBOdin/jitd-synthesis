@@ -10,6 +10,7 @@ FILES = \
 	src/exec/Value\
 	src/exec/FunctionLibrary\
 	src/exec/Runtime\
+	src/optimize/Optimizer\
 	src/rangejit/SimulationParameters\
 	src/rangejit/CogTypes\
 	src/rangejit/Iterators\

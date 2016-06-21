@@ -56,8 +56,6 @@ try
   let (global_functions, raw_policies) = 
     List.split (List.map load_policy !jitd_files) 
   in
-  let jitd = JITD.init (JITD.merge_policies raw_policies)
-  in
     List.iter (fun (fn_name, fn_defn) -> 
       print_endline ("FN: "^fn_name^" is ");
       print_endline (string_of_expr fn_defn);
@@ -69,7 +67,14 @@ try
             print_endline ("Invalid Function: "^fn_name);
             exit(-1)
     ) (List.flatten global_functions);
+  let policy = 
+    JITD.optimize 
+      (ListUtils.mk_map (List.flatten global_functions))
+      (JITD.merge_policies raw_policies)
+  in
+  let jitd = JITD.init policy in
     TestLib.init(jitd);
+    print_endline (JITD.string_of_jitd jitd);
     JITD.call_handler jitd JITD.TEST [];
 with 
   | Typechecker.TypecheckError(msg, ctx, expected, found) -> 

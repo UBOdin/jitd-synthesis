@@ -77,23 +77,25 @@ let string_of_cmp_op = function
 ;;
 
 let string_of_expr ?(indent = 2) (expr: expr_t): string = 
-  let buffer: Buffer.t = Buffer.create 50 in
+  let buffer: Buffer.t = Buffer.create 1000 in
   let formatter = Format.formatter_of_buffer buffer in
-  let put = Format.pp_print_string formatter in
-  let space = Format.pp_print_space formatter in
+  let put x = Format.pp_print_string formatter x in
+  let space () = Format.pp_print_space formatter () in
   let open_box () = Format.pp_open_box formatter indent in
-  let close_box = Format.pp_close_box formatter in
-  let rec rcr_box (e:expr_t):unit = 
+  let close_box () = Format.pp_close_box formatter () in
+  let rec rcr_box (e:expr_t):unit = (
     open_box();
     rcr e;
     close_box();
+  )
   and rcr_list (sep:string) (l: expr_t list): unit =
     begin match l with 
       | [] -> ();
       | hd :: [] -> rcr_box hd;
       | hd :: rest -> open_box(); rcr hd; put sep; space(); close_box(); rcr_list sep rest;
     end
-  and rcr:(expr_t -> unit) = function
+  and rcr (curr_expr:expr_t): unit =
+  match curr_expr with 
   | EIfThenElse(i, t, e) -> 
     put "if"; space();
       rcr_box i;
@@ -102,11 +104,14 @@ let string_of_expr ?(indent = 2) (expr: expr_t): string =
     space(); put "else"; space();
       rcr_box e;
   | EBlock([]) -> 
+    open_box();
     put "{ }";
-  | EBlock(l) -> 
-    put "{"; space(); 
-    rcr_list ";" l; 
+    close_box();
+  | EBlock(l) -> (
+    put "{"; space();
+    rcr_list "; " l;
     space(); put "}";
+  )
   | ELet(tgt, tgt_val, body) ->
     put "let"; space();
       put tgt;
@@ -169,6 +174,7 @@ let string_of_expr ?(indent = 2) (expr: expr_t): string =
     open_box();
     rcr expr; 
     close_box();
+    Format.pp_print_flush formatter ();
     Buffer.contents buffer
 ;;
 
