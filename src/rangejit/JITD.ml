@@ -123,7 +123,7 @@ let specialize_handler ((event_name: string),
                         (args: string list), 
                         (handler_body: expr_t)): (event_t * handler_t) = 
   let event: event_t = 
-    match String.uppercase event_name with 
+    match String.uppercase_ascii event_name with 
       | "BEFORE_INSERT"        -> BEFORE_INSERT
       | "AFTER_INSERT"         -> AFTER_INSERT
       | "BEFORE_DELETE"        -> BEFORE_DELETE

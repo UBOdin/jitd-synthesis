@@ -21,7 +21,7 @@ let advance_line lexbuf =
 
 
 let keywords = List.fold_left 
-  (fun map (a,b) -> StrMap.add (String.uppercase a) b map)
+  (fun map (a,b) -> StrMap.add (String.uppercase_ascii a) b map)
   StrMap.empty
   [
     ( "RULE",     RULE );
@@ -84,8 +84,8 @@ rule token = parse
   | "@{"                 { CBLOCK(cblock 0 lexbuf) }
   | (['a'-'z' 'A'-'Z'] ['a'-'z' 'A'-'Z' '0'-'9' '_']*) as s
                          { 
-                          if StrMap.mem (String.uppercase s) keywords 
-                          then StrMap.find (String.uppercase s) keywords
+                          if StrMap.mem (String.uppercase_ascii s) keywords 
+                          then StrMap.find (String.uppercase_ascii s) keywords
                           else ID(s) 
                          }
   | "'"                  { STRINGCONST(string_literal lexbuf) }
