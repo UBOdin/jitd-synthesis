@@ -16,7 +16,8 @@ FILES = \
 	src/rangejit/Iterators\
 	src/rangejit/JITD\
 	src/rangejit/StdLib\
-	src/rangejit/TestLib
+	src/rangejit/TestLib\
+	src/codegen/Imp
 
 LIBS = str
 

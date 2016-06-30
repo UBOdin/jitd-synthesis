@@ -216,7 +216,7 @@ typedef:
   | LBRACE arg_list RBRACE { TTuple($2) }
   | LBRACK typedef RBRACK  { TList($2) }
   | ID { 
-    match (String.lowercase $1) with
+    match (String.lowercase_ascii $1) with
       | "int" -> TPrimitive(TInt)
       | "float" -> TPrimitive(TFloat)
       | "string" -> TPrimitive(TString)
