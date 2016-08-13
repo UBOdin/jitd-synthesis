@@ -1,25 +1,37 @@
+(**Imparitive Code Generation.*)
+
 open Expression
 open Type
 
 exception ConversionError of string * expr_t
 exception TypeConversionError of string * jf_t
 
+(**Return Value.*)
 type rvalue_t =
-  | UnaryOp of string * rvalue_t * string
-  | BinaryOp of rvalue_t * string * rvalue_t
-  | FunCall of string * (rvalue_t list)
-  | Literal of string
-  | FunctionalIf of rvalue_t * rvalue_t * rvalue_t
+  | UnaryOp of string * rvalue_t * string 			(**lhs, body, rhs.*)
+  | BinaryOp of rvalue_t * string * rvalue_t 		(**lhs, separator, rhs.*)
+  | FunCall of string * (rvalue_t list) 			(**function name, list of Return Value.*)
+  | Literal of string 								(**literal.*)
+  | FunctionalIf of rvalue_t * rvalue_t * rvalue_t 	(**codition, if condition true Return Value, if condition false Return Value.*)
 
+(**Statement.*)
 type stmt_t =
-  | Parens of string * stmt_t list * string
-  | DefineVar of string * string * rvalue_t
-  | AssignVar of string * rvalue_t
-  | Void      of rvalue_t
-  | IfThenElse of rvalue_t * stmt_t list * stmt_t list
+  | Parens of string * stmt_t list * string 			(**lhs, statement list, rhs.*)
+  | DefineVar of string * string * rvalue_t 			(**variable type, variable name, initialization Return Value.*)
+  | AssignVar of string * rvalue_t 						(**variable name, assignment Return Value.*)
+  | Void      of rvalue_t 								(**Return Value.*)
+  | IfThenElse of rvalue_t * stmt_t list * stmt_t list 	(**condition, if condition true Statement, if condition false Statement.*)
 
-type program_t = (string * (string * string) list * string * stmt_t list) list
+(**Function.*)
+type function_t = (string * (string * string) list * string * stmt_t list) (**function name, argument name and type list, function return type, statement list.*)
 
+(**Program.*)
+type program_t =  function_t list 	(**list of Functions.*)
+
+(**Returns string for datatypes.
+	@param t datatype
+	@return string of datatype
+*)
 let rec imp_type_of_jf_type (t:jf_t): string =
   let error msg = raise (TypeConversionError(msg, t)) in
   match t with
@@ -37,6 +49,10 @@ let rec imp_type_of_jf_type (t:jf_t): string =
   | TCustom(ctype) -> ctype
 ;;
 
+(**Returns list of statements for the given expression.
+	@param expr expression to be converted
+	@return list of Statements
+*)
 let rec program_of_jitfuel (expr: expr_t): stmt_t list =
   let error msg = raise (ConversionError(msg, expr)) in
   match expr with 
@@ -61,6 +77,10 @@ let rec program_of_jitfuel (expr: expr_t): stmt_t list =
     | _ ->
         [Void(rvalue_of_jitfuel expr)]
 
+(**Returns the return value for given expression.
+	@param expr expression to be converted
+	@return Return Value of expression
+*)
 and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
   let error msg = raise (ConversionError(msg, expr)) in
   let rcr e = rvalue_of_jitfuel e in
@@ -115,6 +135,11 @@ and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
   | _ -> error "Invalid rvalue"
 ;;
 
+(**Formating return value to imperative syntax.
+	@param formatter Formatting function
+	@param rval Return Value to be formatted
+	@return unit
+*)
 let rec render_rval (formatter: Format.formatter) (rval:rvalue_t): unit =
   let put x = Format.pp_print_string formatter x in
   let space () = Format.pp_print_space formatter () in
@@ -150,6 +175,12 @@ let rec render_rval (formatter: Format.formatter) (rval:rvalue_t): unit =
     rcr_box e;
     put ")";
   end
+
+(**Formating statements to imperative syntax.
+	@param formatter Formatting function
+	@param stmts list of Statements to be formatted
+	@return unit
+*)
 and render_imp (formatter: Format.formatter) (stmts: stmt_t list): unit =
   if List.length stmts <= 0 then () else
   let put x = Format.pp_print_string formatter x in
@@ -192,6 +223,13 @@ and render_imp (formatter: Format.formatter) (stmts: stmt_t list): unit =
   render_imp formatter (List.tl stmts);
 ;;
 
+(**Formating a function to imperative syntax.
+	@param fname name of Function to be rendered
+	@param args list of agumrents (name * type) of Function
+	@param ret return type of Function
+	@param body list of Statements in body of Function
+	@return string of rendered Function in imperative syntax
+*)
 let render_function (((fname:string), (args:((string * string) list)), (ret:string), (body:stmt_t list))): string =
   let buffer: Buffer.t = Buffer.create 1000 in
   let formatter = Format.formatter_of_buffer buffer in
@@ -203,8 +241,10 @@ let render_function (((fname:string), (args:((string * string) list)), (ret:stri
     (Buffer.contents buffer)^"\n}"
 ;;
 
-
+(**Formating a program to imperative syntax.
+	@parm prog Program to be rendered
+	@return string of rendered Program in imperative syntax
+*)
 let render_program (prog: program_t): string =
   String.concat "\n\n" (List.map render_function prog)
 ;;
-
