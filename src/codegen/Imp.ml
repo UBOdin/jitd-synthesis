@@ -8,7 +8,7 @@ exception TypeConversionError of string * jf_t
 
 (**Return Value.*)
 type rvalue_t =
-  | UnaryOp of string * rvalue_t * string 			(**lhs, body, rhs.*)
+  | RValueBlock of string * rvalue_t * string 			(**lhs, body, rhs.*)
   | BinaryOp of rvalue_t * string * rvalue_t 		(**lhs, separator, rhs.*)
   | FunCall of string * (rvalue_t list) 			(**function name, list of Return Value.*)
   | Literal of string 								(**literal.*)
@@ -16,7 +16,7 @@ type rvalue_t =
 
 (**Statement.*)
 type stmt_t =
-  | Parens of string * stmt_t list * string 			(**lhs, statement list, rhs.*)
+  | StatementBlock of string * stmt_t list * string 			(**lhs, statement list, rhs.*)
   | DefineVar of string * string * rvalue_t 			(**variable type, variable name, initialization Return Value.*)
   | AssignVar of string * rvalue_t 						(**variable name, assignment Return Value.*)
   | Void      of rvalue_t 								(**Return Value.*)
@@ -65,7 +65,7 @@ let rec program_of_jitfuel (expr: expr_t): stmt_t list =
     | EBlock(ops) ->
         List.flatten (List.map program_of_jitfuel ops)
     | ELet(var_name, var_val, body) ->
-        [Parens("{", 
+        [StatementBlock("{", 
           (DefineVar("auto", var_name, 
             rvalue_of_jitfuel var_val
           )) :: (program_of_jitfuel body),
@@ -84,17 +84,17 @@ let rec program_of_jitfuel (expr: expr_t): stmt_t list =
 and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
   let error msg = raise (ConversionError(msg, expr)) in
   let rcr e = rvalue_of_jitfuel e in
-  let parens e = UnaryOp("(", rcr e, ")") in
+  let parens e = RValueBlock("(", rcr e, ")") in
   match expr with
   | EIfThenElse(i,t,e) -> 
       FunctionalIf(rcr i, rcr t, rcr e)
   | EBlock([x]) -> rcr x
   | EAsA(body, t) ->
-      UnaryOp("(("^(imp_type_of_jf_type t)^")(", rcr body, "))")
+      RValueBlock("(("^(imp_type_of_jf_type t)^")(", rcr body, "))")
   | ECall(EVar(fname), args) ->
       FunCall(fname, List.map rcr args)
   | ENeg(body) ->
-      UnaryOp("-(", rcr body, ")")
+      RValueBlock("-(", rcr body, ")")
   | EArithOp(op, lhs, rhs) ->
       BinaryOp(
         parens lhs,
@@ -126,11 +126,11 @@ and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
   | EVar(v) -> 
       Literal(v)
   | EIsA(body, TCog(Some(ctype))) ->
-      UnaryOp("(", rcr body, ")->type == COG_"^(String.uppercase_ascii ctype))
+      RValueBlock("(", rcr body, ")->type == COG_"^(String.uppercase_ascii ctype))
   | ESubscript(body, EConst(CString(field))) ->
-      UnaryOp("(", rcr body, ")->body."^field)
+      RValueBlock("(", rcr body, ")->body."^field)
   | ESubscript(body, field) ->
-      UnaryOp("(", BinaryOp(rcr body, ")->body[", rcr field), "]")
+      RValueBlock("(", BinaryOp(rcr body, ")->body[", rcr field), "]")
   | EList(elems) -> error "List Literal Not Supported Yet"
   | _ -> error "Invalid rvalue"
 ;;
@@ -151,7 +151,7 @@ let rec render_rval (formatter: Format.formatter) (rval:rvalue_t): unit =
     close_box();
   ) in
   begin match rval with 
-  | UnaryOp(lhs, body, rhs) -> 
+  | RValueBlock(lhs, body, rhs) -> 
     put lhs; space(); rcr_box body; space(); put rhs;  
   | BinaryOp(lhs, sep, rhs) ->
     rcr_box lhs; space(); put sep; space(); rcr_box rhs;
@@ -193,7 +193,7 @@ and render_imp (formatter: Format.formatter) (stmts: stmt_t list): unit =
     close_box();
   ) in
   begin match List.hd stmts with 
-  | Parens(lhs, body, rhs) -> 
+  | StatementBlock(lhs, body, rhs) -> 
     put lhs; space(); rcr_box body; space(); put rhs;
   | DefineVar(var_type, var_name, var_val) -> 
     put var_type;
