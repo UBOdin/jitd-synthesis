@@ -30,3 +30,4 @@ jitfuel_grammar_table.txt
 src/parser/JFLexer.ml
 src/parser/JFParser.ml
 src/parser/JFParser.mli
+*.sublime-workspace

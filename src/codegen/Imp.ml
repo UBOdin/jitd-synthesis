@@ -13,7 +13,7 @@ type rvalue_t =
   | FunCall of string * (rvalue_t list) 			(**function name, list of Return Value.*)
   | Literal of string 								(**literal.*)
   | FunctionalIf of rvalue_t * rvalue_t * rvalue_t 	(**codition, if condition true Return Value, if condition false Return Value.*)
-
+  
 (**Statement.*)
 type stmt_t =
   | StatementBlock of string * stmt_t list * string 			(**lhs, statement list, rhs.*)
@@ -27,6 +27,29 @@ type function_t = (string * (string * string) list * string * stmt_t list) (**fu
 
 (**Program.*)
 type program_t =  function_t list 	(**list of Functions.*)
+
+
+let rename_field (field:string): string = 
+  begin
+    match field with
+    | "RHS" -> "rhs"
+    | "LHS" -> "lhs"
+    | _ -> field
+  end
+
+let rename_fname (fname:string): string = 
+  begin
+    match fname with
+    | "BEFORE_INSERT" -> "beforeInsert"
+    | "AFTER_INSERT" -> "afterInsert"
+    | "BEFORE_DELETE" -> "beforeDelete"
+    | "AFTER_DELETE" -> "afterDelete"
+    | "BEFORE_ROOT_ITERATOR" -> "beforeRootIterator"
+    | "BEFORE_ITERATOR" -> "beforeIterator"
+    | "IDLE" -> "idle"
+    | _ -> fname
+  end;
+;;
 
 (**Returns string for datatypes.
 	@param t datatype
@@ -71,7 +94,7 @@ let rec program_of_jitfuel (expr: expr_t): stmt_t list =
           )) :: (program_of_jitfuel body),
         "}")]
     | ERewrite(tgt, v) ->
-        [AssignVar(("*"^tgt), rvalue_of_jitfuel v)]
+        [Void(FunCall((tgt^"->put"), [rvalue_of_jitfuel v]))]
     | ELambda _ ->
         error "Direct program translation expects no lambdas"
     | _ ->
@@ -90,7 +113,7 @@ and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
       FunctionalIf(rcr i, rcr t, rcr e)
   | EBlock([x]) -> rcr x
   | EAsA(body, t) ->
-      RValueBlock("(("^(imp_type_of_jf_type t)^")(", rcr body, "))")
+      rcr body
   | ECall(EVar(fname), args) ->
       FunCall(fname, List.map rcr args)
   | ENeg(body) ->
@@ -128,9 +151,9 @@ and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
   | EIsA(body, TCog(Some(ctype))) ->
       RValueBlock("(", rcr body, ")->type == COG_"^(String.uppercase_ascii ctype))
   | ESubscript(body, EConst(CString(field))) ->
-      RValueBlock("(", rcr body, ")->body."^field)
+      RValueBlock("(", rcr body, ")->"^(rename_field field))
   | ESubscript(body, field) ->
-      RValueBlock("(", BinaryOp(rcr body, ")->body[", rcr field), "]")
+      RValueBlock("(", BinaryOp(rcr body, ")->[", rcr field), "]")
   | EList(elems) -> error "List Literal Not Supported Yet"
   | _ -> error "Invalid rvalue"
 ;;
@@ -143,7 +166,7 @@ and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
 let rec render_rval (formatter: Format.formatter) (rval:rvalue_t): unit =
   let put x = Format.pp_print_string formatter x in
   let space () = Format.pp_print_space formatter () in
-  let open_box () = Format.pp_open_box formatter 2 in
+  let open_box () = Format.pp_open_box formatter 1 in
   let close_box () = Format.pp_close_box formatter () in
   let rcr_box (body:rvalue_t):unit = (
     open_box();
@@ -156,10 +179,10 @@ let rec render_rval (formatter: Format.formatter) (rval:rvalue_t): unit =
   | BinaryOp(lhs, sep, rhs) ->
     rcr_box lhs; space(); put sep; space(); rcr_box rhs;
   | FunCall(fname, []) ->
-    put fname;
+    put (rename_fname fname);
     put "()";
   | FunCall(fname, hd :: rest) ->
-    put fname;
+    put (rename_fname fname);
     put "("; space();
     rcr_box hd;
     List.iter (fun arg -> put ","; space(); rcr_box arg) rest;
@@ -185,7 +208,7 @@ and render_imp (formatter: Format.formatter) (stmts: stmt_t list): unit =
   if List.length stmts <= 0 then () else
   let put x = Format.pp_print_string formatter x in
   let space () = Format.pp_print_space formatter () in
-  let open_box () = Format.pp_open_box formatter 2 in
+  let open_box () = Format.pp_open_box formatter 1 in
   let close_box () = Format.pp_close_box formatter () in
   let rcr_box (body:stmt_t list):unit = (
     open_box();
@@ -233,11 +256,11 @@ and render_imp (formatter: Format.formatter) (stmts: stmt_t list): unit =
 let render_function (((fname:string), (args:((string * string) list)), (ret:string), (body:stmt_t list))): string =
   let buffer: Buffer.t = Buffer.create 1000 in
   let formatter = Format.formatter_of_buffer buffer in
-  Format.pp_open_box formatter 3;
+  Format.pp_open_box formatter 2;
   render_imp formatter body;
   Format.pp_close_box formatter ();
   Format.pp_print_flush formatter ();
-  ret^" "^fname^"("^(String.concat ", " (List.map (fun (n,t) -> t^" "^n) args))^") {\n"^
+  ret^" "^(rename_fname fname)^"("^(String.concat ", " (List.map (fun (n,t) -> t^" "^n) args))^") {\n"^
     (Buffer.contents buffer)^"\n}"
 ;;
 
@@ -246,5 +269,8 @@ let render_function (((fname:string), (args:((string * string) list)), (ret:stri
 	@return string of rendered Program in imperative syntax
 *)
 let render_program (prog: program_t): string =
-  String.concat "\n\n" (List.map render_function prog)
+  let functions = String.concat "\n\n" (List.map render_function prog) in
+  "template <class Tuple>
+  class MyPolicy : public RewritePolicyBase <Tuple>
+  { "^functions^"};"
 ;;
