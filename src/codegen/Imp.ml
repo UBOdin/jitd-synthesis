@@ -28,32 +28,9 @@ type function_t = (string * (string * string) list * string * stmt_t list) (**fu
 (**Program.*)
 type program_t =  function_t list 	(**list of Functions.*)
 
-
-let rename_field (field:string): string = 
-  begin
-    match field with
-    | "RHS" -> "rhs"
-    | "LHS" -> "lhs"
-    | _ -> field
-  end
-
-let rename_fname (fname:string): string = 
-  begin
-    match fname with
-    | "BEFORE_INSERT" -> "beforeInsert"
-    | "AFTER_INSERT" -> "afterInsert"
-    | "BEFORE_DELETE" -> "beforeDelete"
-    | "AFTER_DELETE" -> "afterDelete"
-    | "BEFORE_ROOT_ITERATOR" -> "beforeRootIterator"
-    | "BEFORE_ITERATOR" -> "beforeIterator"
-    | "IDLE" -> "idle"
-    | _ -> fname
-  end;
-;;
-
 (**Returns string for datatypes.
-	@param t datatype
-	@return string of datatype
+  @param t datatype
+  @return string of datatype
 *)
 let rec imp_type_of_jf_type (t:jf_t): string =
   let error msg = raise (TypeConversionError(msg, t)) in
@@ -70,6 +47,92 @@ let rec imp_type_of_jf_type (t:jf_t): string =
   | TPrimitive(TBool) -> "char"
   | TFn _ -> error "No type signatures for functions"
   | TCustom(ctype) -> ctype
+;;
+
+
+let rename_constructor (fname:string): string = 
+  begin
+    match fname with
+    | "ARRAY" -> "ArrayCog"
+    | "TREE" -> "BTreeCog"
+    | "CONCAT" -> "ConcatCog"
+    | "DELETE" -> "DeleteCog"
+    | "SORTED" -> "SortedArrayCog"
+    | _ -> fname
+  end
+
+let rename_field (field:string): string = 
+  begin
+    match field with
+    | "RHS" -> "rhs"
+    | "LHS" -> "lhs"
+    | _ -> field
+  end
+;;
+
+let rename_fname (fname:string): string = 
+  begin
+    match fname with
+    | "BEFORE_INSERT" -> "beforeInsert"
+    | "AFTER_INSERT" -> "afterInsert"
+    | "BEFORE_DELETE" -> "beforeDelete"
+    | "AFTER_DELETE" -> "afterDelete"
+    | "BEFORE_ROOT_ITERATOR" -> "beforeRootIterator"
+    | "BEFORE_ITERATOR" -> "beforeIterator"
+    | "IDLE" -> "idle"
+    | _ -> fname
+  end;
+;;
+
+let is_constructor (fname:string): bool = 
+  begin
+    match fname with
+    | "ARRAY" -> true
+    | "TREE" -> true
+    | "CONCAT" -> true
+    | "DELETE" -> true
+    | "SORTED" -> true
+    | _ -> false
+  end
+
+
+let chk_library_constructor (fname:string): string = 
+  let new_fname = rename_fname fname in
+  if (is_constructor new_fname) then (rename_constructor new_fname)
+else new_fname
+;;
+
+let chk_library_constructor_rval (fname:string): string = 
+  let new_fname = rename_fname fname in
+  if (is_constructor new_fname) then "new "^(rename_constructor new_fname)
+else new_fname
+;;
+
+let library_rval (fname:string): string = 
+  let new_fname = chk_library_constructor fname in
+  match new_fname with
+  | "SPLIT" -> rename_constructor "TREE"
+  | _ -> new_fname
+
+let rec returntype_of_expr_t (expr:expr_t): string = 
+  let rcr = returntype_of_expr_t in
+  match expr with
+    (* "RV of "^(string_of_expr expr) *)
+    | EIfThenElse(a,b,c)  -> rcr b
+    | EBlock(a)           -> ""
+    | ELet(a,b,c)         -> rcr c
+    | EAsA(a,b)           -> imp_type_of_jf_type b
+    | ECall(a,b)          -> rcr a
+    | ERewrite(a,b)       -> rcr b
+    | ENeg(a)             -> rcr a
+    | EArithOp(a,b,c)     -> rcr b
+    | ECmpOp(a,b,c)       -> imp_type_of_jf_type (TPrimitive(TBool))
+    | EConst(a)           -> imp_type_of_jf_type (TPrimitive(type_of_const a))
+    | EVar(a)             -> "new "^(library_rval a)
+    | EIsA(a,b)           -> imp_type_of_jf_type b
+    | ESubscript(a,b)     -> rcr a
+    | ELambda(a,b)        -> rcr b(* of (var_t * jf_t) list * expr_t *)
+    | EList(a)            -> ""
 ;;
 
 (**Returns list of statements for the given expression.
@@ -89,7 +152,7 @@ let rec program_of_jitfuel (expr: expr_t): stmt_t list =
         List.flatten (List.map program_of_jitfuel ops)
     | ELet(var_name, var_val, body) ->
         [StatementBlock("{", 
-          (DefineVar("auto", var_name, 
+          (DefineVar((returntype_of_expr_t var_val), var_name, 
             rvalue_of_jitfuel var_val
           )) :: (program_of_jitfuel body),
         "}")]
@@ -115,7 +178,7 @@ and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
   | EAsA(body, t) ->
       rcr body
   | ECall(EVar(fname), args) ->
-      FunCall(fname, List.map rcr args)
+      FunCall((chk_library_constructor_rval fname), List.map rcr args)
   | ENeg(body) ->
       RValueBlock("-(", rcr body, ")")
   | EArithOp(op, lhs, rhs) ->
@@ -149,11 +212,11 @@ and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
   | EVar(v) -> 
       Literal(v)
   | EIsA(body, TCog(Some(ctype))) ->
-      RValueBlock("(", rcr body, ")->type == COG_"^(String.uppercase_ascii ctype))
+      RValueBlock("", rcr body, "->type == COG_"^(String.uppercase_ascii ctype))
   | ESubscript(body, EConst(CString(field))) ->
-      RValueBlock("(", rcr body, ")->"^(rename_field field))
+      RValueBlock("", rcr body, "->"^(rename_field field))
   | ESubscript(body, field) ->
-      RValueBlock("(", BinaryOp(rcr body, ")->[", rcr field), "]")
+      RValueBlock("", BinaryOp(rcr body, "[", rcr field), "]")
   | EList(elems) -> error "List Literal Not Supported Yet"
   | _ -> error "Invalid rvalue"
 ;;
@@ -179,10 +242,10 @@ let rec render_rval (formatter: Format.formatter) (rval:rvalue_t): unit =
   | BinaryOp(lhs, sep, rhs) ->
     rcr_box lhs; space(); put sep; space(); rcr_box rhs;
   | FunCall(fname, []) ->
-    put (rename_fname fname);
+    put (chk_library_constructor fname);
     put "()";
   | FunCall(fname, hd :: rest) ->
-    put (rename_fname fname);
+    put (chk_library_constructor fname);
     put "("; space();
     rcr_box hd;
     List.iter (fun arg -> put ","; space(); rcr_box arg) rest;
@@ -215,7 +278,8 @@ and render_imp (formatter: Format.formatter) (stmts: stmt_t list): unit =
     render_imp formatter body;
     close_box();
   ) in
-  begin match List.hd stmts with 
+  begin 
+  match List.hd stmts with 
   | StatementBlock(lhs, body, rhs) -> 
     put lhs; space(); rcr_box body; space(); put rhs;
   | DefineVar(var_type, var_name, var_val) -> 
@@ -236,11 +300,21 @@ and render_imp (formatter: Format.formatter) (stmts: stmt_t list): unit =
   | IfThenElse(i, t, e) ->
     put "if(";
     render_rval formatter i;
-    put "){";
-    rcr_box t;
-    put "} else {";
-    rcr_box e;
-    put "}";
+    put ")";
+    if (List.length t)>0 then begin
+      rcr_box t;
+    end
+    else 
+    begin
+      put "{";
+      rcr_box t;
+      put "}";
+    end;
+    if (List.length e)>0 then
+    begin
+      put "else";
+      rcr_box e;
+    end
   end;
   Format.pp_force_newline formatter ();
   render_imp formatter (List.tl stmts);
@@ -260,7 +334,7 @@ let render_function (((fname:string), (args:((string * string) list)), (ret:stri
   render_imp formatter body;
   Format.pp_close_box formatter ();
   Format.pp_print_flush formatter ();
-  ret^" "^(rename_fname fname)^"("^(String.concat ", " (List.map (fun (n,t) -> t^" "^n) args))^") {\n"^
+  ret^" "^(chk_library_constructor fname)^"("^(String.concat ", " (List.map (fun (n,t) -> t^" "^n) args))^") {\n"^
     (Buffer.contents buffer)^"\n}"
 ;;
 
