@@ -2,6 +2,8 @@
 
 open Expression
 open Type
+open FunctionLibrary
+open ListUtils
 
 exception ConversionError of string * expr_t
 exception TypeConversionError of string * jf_t
@@ -38,9 +40,9 @@ let rec imp_type_of_jf_type (t:jf_t): string =
   | TAny -> error "No type signature"
   | TNone -> error "No type signature"
   | TCog _ -> "COG_BASE_TYPE"
-  | TList(sub_t) -> "("^(imp_type_of_jf_type sub_t)^") *"
+  | TList(sub_t) -> (imp_type_of_jf_type sub_t)^" *"
   | TMap _ -> error "Unsupported: Map"
-  | TTuple _ -> error "Unsupported: Tuple"
+  | TTuple(args) -> "std::tuple<"^(String.concat "," (List.map (fun (name,jft)->imp_type_of_jf_type jft) args))^">"(* error "Unsupported: Tuple" *)
   | TPrimitive(TString) -> "char *"
   | TPrimitive(TInt) -> "long int"
   | TPrimitive(TFloat) -> "double"
@@ -85,16 +87,10 @@ let rename_fname (fname:string): string =
 ;;
 
 let is_constructor (fname:string): bool = 
-  begin
-    match fname with
-    | "ARRAY" -> true
-    | "TREE" -> true
-    | "CONCAT" -> true
-    | "DELETE" -> true
-    | "SORTED" -> true
-    | _ -> false
-  end
-
+  try let cog = Cog.get fname in
+    match cog with
+    | _-> true
+  with Not_found -> false
 
 let chk_library_constructor (fname:string): string = 
   let new_fname = rename_fname fname in
@@ -110,9 +106,9 @@ else new_fname
 
 let library_rval (fname:string): string = 
   let new_fname = chk_library_constructor fname in
-  match new_fname with
-  | "SPLIT" -> rename_constructor "TREE"
-  | _ -> new_fname
+  try 
+  imp_type_of_jf_type (StringMap.find new_fname (!global_functions)).returns
+with Not_found->new_fname
 
 let rec returntype_of_expr_t (expr:expr_t): string = 
   let rcr = returntype_of_expr_t in
@@ -128,7 +124,7 @@ let rec returntype_of_expr_t (expr:expr_t): string =
     | EArithOp(a,b,c)     -> rcr b
     | ECmpOp(a,b,c)       -> imp_type_of_jf_type (TPrimitive(TBool))
     | EConst(a)           -> imp_type_of_jf_type (TPrimitive(type_of_const a))
-    | EVar(a)             -> "new "^(library_rval a)
+    | EVar(a)             -> library_rval a
     | EIsA(a,b)           -> imp_type_of_jf_type b
     | ESubscript(a,b)     -> rcr a
     | ELambda(a,b)        -> rcr b(* of (var_t * jf_t) list * expr_t *)
@@ -306,14 +302,13 @@ and render_imp (formatter: Format.formatter) (stmts: stmt_t list): unit =
     end
     else 
     begin
-      put "{";
-      rcr_box t;
-      put "}";
+      put "{}";
     end;
     if (List.length e)>0 then
     begin
-      put "else";
+      put "else {";
       rcr_box e;
+      put "}"
     end
   end;
   Format.pp_force_newline formatter ();
