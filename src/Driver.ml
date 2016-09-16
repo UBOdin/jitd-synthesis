@@ -5,6 +5,7 @@ open Value
 open Type
 open Expression
 open SimulationParameters
+open Imp
 ;;
 
 (* Parsing.set_trace true;; *)
@@ -72,6 +73,12 @@ try
       (ListUtils.mk_map (List.flatten global_functions))
       (JITD.merge_policies raw_policies)
   in
+  let imp_program =
+    List.map (fun (event , (str_list , expr))->
+      (JITD.string_of_event_type event , List.map( fun (str)->(str,"CogHandle<Tuple>")) str_list,"void", Imp.program_of_jitfuel expr)
+    ) policy 
+  in
+    print_endline ("CODEGEN:\n"^(Imp.render_program imp_program)^"\nEND OF CODEGEN\n");
   let jitd = JITD.init policy in
     TestLib.init(jitd);
     print_endline (JITD.string_of_jitd jitd);
