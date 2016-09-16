@@ -30,27 +30,13 @@ type function_t = (string * (string * string) list * string * stmt_t list) (**fu
 (**Program.*)
 type program_t =  function_t list 	(**list of Functions.*)
 
-(**Returns string for datatypes.
-  @param t datatype
-  @return string of datatype
-*)
-let rec imp_type_of_jf_type (t:jf_t): string =
-  let error msg = raise (TypeConversionError(msg, t)) in
-  match t with
-  | TAny -> error "No type signature"
-  | TNone -> error "No type signature"
-  | TCog _ -> "COG_BASE_TYPE"
-  | TList(sub_t) -> (imp_type_of_jf_type sub_t)^" *"
-  | TMap _ -> error "Unsupported: Map"
-  | TTuple(args) -> "std::tuple<"^(String.concat "," (List.map (fun (name,jft)->imp_type_of_jf_type jft) args))^">"(* error "Unsupported: Tuple" *)
-  | TPrimitive(TString) -> "char *"
-  | TPrimitive(TInt) -> "long int"
-  | TPrimitive(TFloat) -> "double"
-  | TPrimitive(TBool) -> "char"
-  | TFn _ -> error "No type signatures for functions"
-  | TCustom(ctype) -> ctype
-;;
-
+let caps_of_ctype (ctype:string): string = 
+  begin
+    match ctype with
+    | "TREE" -> "BTREE"
+    | "SORTED" -> "SORTED_ARRAY"
+    | _ -> ctype
+  end
 
 let rename_constructor (fname:string): string = 
   begin
@@ -104,6 +90,30 @@ let chk_library_constructor_rval (fname:string): string =
 else new_fname
 ;;
 
+(**Returns string for datatypes.
+  @param t datatype
+  @return string of datatype
+*)
+let rec imp_type_of_jf_type (t:jf_t): string =
+  let error msg = raise (TypeConversionError(msg, t)) in
+  match t with
+  | TAny -> error "No type signature"
+  | TNone -> error "No type signature"
+  | TCog (Some(ctype)) -> ctype
+  | TCog _ -> "COG_BASE_TYPE"
+  | TList(sub_t) -> chk_library_constructor(imp_type_of_jf_type sub_t)^"*"
+  | TMap _ -> error "Unsupported: Map"
+  | TTuple(args) -> "std::tuple<"^(String.concat "," (List.map (fun (name,jft)->imp_type_of_jf_type jft) args))^">"(* error "Unsupported: Tuple" *)
+  | TPrimitive(TString) -> "char *"
+  | TPrimitive(TInt) -> "long int"
+  | TPrimitive(TFloat) -> "double"
+  | TPrimitive(TBool) -> "char"
+  | TFn _ -> error "No type signatures for functions"
+  | TCustom(ctype) -> ctype
+;;
+
+
+
 let library_rval (fname:string): string = 
   let new_fname = chk_library_constructor fname in
   try 
@@ -147,8 +157,10 @@ let rec program_of_jitfuel (expr: expr_t): stmt_t list =
     | EBlock(ops) ->
         List.flatten (List.map program_of_jitfuel ops)
     | ELet(var_name, var_val, body) ->
+        let ret_t = returntype_of_expr_t var_val in
+        let var_ret_t = if (is_constructor ret_t) then "new "^(rename_constructor ret_t)^" *" else ret_t in
         [StatementBlock("{", 
-          (DefineVar((returntype_of_expr_t var_val), var_name, 
+          (DefineVar(var_ret_t, var_name, 
             rvalue_of_jitfuel var_val
           )) :: (program_of_jitfuel body),
         "}")]
@@ -208,7 +220,7 @@ and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
   | EVar(v) -> 
       Literal(v)
   | EIsA(body, TCog(Some(ctype))) ->
-      RValueBlock("", rcr body, "->type == COG_"^(String.uppercase_ascii ctype))
+      RValueBlock("", rcr body, "->type == COG_"^(caps_of_ctype ctype))
   | ESubscript(body, EConst(CString(field))) ->
       RValueBlock("", rcr body, "->"^(rename_field field))
   | ESubscript(body, field) ->
@@ -341,5 +353,6 @@ let render_program (prog: program_t): string =
   let functions = String.concat "\n\n" (List.map render_function prog) in
   "template <class Tuple>
   class MyPolicy : public RewritePolicyBase <Tuple>
-  { "^functions^"};"
+  { 
+  public:"^functions^"};"
 ;;
