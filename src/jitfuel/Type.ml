@@ -10,7 +10,8 @@ type prim_t =
 type jf_t = 
   | TAny
   | TNone
-  | TCog of string option
+  | TPhyCog of string
+  | TLogCog
   | TList of jf_t
   | TMap of jf_t * jf_t
   | TTuple of (string * jf_t) list
@@ -28,8 +29,8 @@ let string_of_primitive = function
 let rec string_of_type = function
   | TAny -> "_"
   | TNone -> "#"
-  | TCog(None) -> "cog"
-  | TCog(Some(s)) -> "<"^s^">"
+  | TLogCog -> "cog"
+  | TPhyCog(s) -> "<"^s^">"
   | TList(t) -> "["^(string_of_type t)^"]"
   | TMap(k,t) -> "["^(string_of_type k)^"->"^(string_of_type t)^"]"
   | TTuple(kl) -> "{"^(
@@ -55,9 +56,9 @@ let rec is_a (src_t: jf_t) (cmp_t: jf_t): bool =
     | (_, TAny)      -> true
     | (TNone, TNone) -> true
     | (TNone, _)     -> false
-    | (TCog(_), TCog(None)) -> true
-    | (TCog(None), TCog(Some(_))) -> false
-    | (TCog(Some(ct1)), TCog(Some(ct2))) -> ct1 = ct2
+    | (TPhyCog(_), TLogCog) -> true
+    | (TLogCog, TPhyCog(_)) -> false
+    | (TPhyCog(ct1), TPhyCog(ct2)) -> ct1 = ct2
     | (TList(v1), TList(v2)) -> is_a v1 v2
     | (TMap(k1, v1), TMap(k2, v2)) -> (is_a k1 k2) && (is_a v1 v2)
     | (TTuple(kv1), TTuple(kv2)) -> 

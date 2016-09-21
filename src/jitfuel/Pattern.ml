@@ -19,7 +19,7 @@ let mk_match ?(match_base_type:jf_t = TAny)
             mk_and 
               rest
               (pattern_match field_pattern field_subscript)
-          ) (EIsA(target, TCog(Some(cog_name))))
+          ) (EIsA(target, TPhyCog(cog_name)))
             (Cog.all_subscripts cog_name target)
             cog_body
           with Not_found -> (
@@ -31,7 +31,7 @@ let mk_match ?(match_base_type:jf_t = TAny)
   let pattern_cast (expr: expr_t) = function 
     | PType(TAny) -> expr
     | PType t -> EAsA(expr, t)
-    | PCog(cog_name, _) -> EAsA(expr, TCog(Some(cog_name)))
+    | PCog(cog_name, _) -> EAsA(expr, TPhyCog(cog_name))
   in
   let rec pattern_bindings (struct_name, struct_type) target continuation =
     let typed_target = pattern_cast target struct_type in
@@ -54,7 +54,7 @@ let mk_match ?(match_base_type:jf_t = TAny)
         let type_from_pattern =
           begin match struct_type with
             | PType(t) -> t
-            | PCog(cog_name, _) -> TCog(Some(cog_name))
+            | PCog(cog_name, _) -> TPhyCog(cog_name)
           end
         in
             ELet(

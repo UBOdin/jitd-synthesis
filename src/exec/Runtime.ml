@@ -14,7 +14,7 @@ let cog_constructors (): (var_t * value_t) list =
     (* print_endline ("COG: "^cog_name); *)
     (cog_name, (VFunction(
       Cog.field_types cog_name,
-      TCog(Some(cog_name)),
+      TPhyCog(cog_name),
       Value.mk_handle cog_name
     )))
   ) (Cog.all_cogs ())

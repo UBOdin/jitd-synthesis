@@ -99,8 +99,8 @@ let rec imp_type_of_jf_type (t:jf_t): string =
   match t with
   | TAny -> error "No type signature"
   | TNone -> error "No type signature"
-  | TCog (Some(ctype)) -> ctype
-  | TCog _ -> "COG_BASE_TYPE"
+  | TPhyCog (ctype) -> ctype
+  | TLogCog -> "COG_BASE_TYPE"
   | TList(sub_t) -> chk_library_constructor(imp_type_of_jf_type sub_t)^"*"
   | TMap _ -> error "Unsupported: Map"
   | TTuple(args) -> "std::tuple<"^(String.concat "," (List.map (fun (name,jft)->imp_type_of_jf_type jft) args))^">"(* error "Unsupported: Tuple" *)
@@ -219,7 +219,7 @@ and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
       Literal(string_of_const c)
   | EVar(v) -> 
       Literal(v)
-  | EIsA(body, TCog(Some(ctype))) ->
+  | EIsA(body, TPhyCog(ctype)) ->
       RValueBlock("", rcr body, "->type == COG_"^(caps_of_ctype ctype))
   | ESubscript(body, EConst(CString(field))) ->
       RValueBlock("", rcr body, "->"^(rename_field field))

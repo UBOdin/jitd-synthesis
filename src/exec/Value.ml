@@ -19,9 +19,9 @@ let rec type_of_value: value_t -> jf_t = function
 	| VFunction(arg_t, ret_t, defn) -> TFn(arg_t, ret_t)
 	| VHandle(handle) -> 
 		begin match !handle with
-			| (cog_type, body) -> TCog(Some(cog_type))
+			| (cog_type, body) -> TPhyCog(cog_type)
 		end
-	| VCog(cog_type, body)    -> TCog(Some(cog_type))
+	| VCog(cog_type, body)    -> TPhyCog(cog_type)
 	| VTuple(body) -> 
 		TTuple(
 			StringMap.fold (fun field_name field_val rest ->
@@ -51,7 +51,7 @@ let cast_to_cog (base: value_t): (string * tuple_t) =
 	match base with
 		| VHandle(data) -> !data
 		| VCog(cog_type, data) -> (cog_type, data)
-		| _ -> raise (CastError(base, TCog(None)))
+		| _ -> raise (CastError(base, TLogCog))
 ;;
 let cast_to_list (base: value_t): (value_t list) =
 	match base with 

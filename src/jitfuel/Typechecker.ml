@@ -22,8 +22,8 @@ let escalate ?(ctx:expr_t option = None) (a:jf_t) (b:jf_t): jf_t =
         | (TPrimitive(TFloat|TInt),
             TPrimitive(TFloat|TInt)) -> 
                 TPrimitive(TFloat)
-        | (TCog(None), TCog(Some(_))) -> b
-        | (TCog(Some(_)), TCog(None)) -> a
+        | (TLogCog, TPhyCog(_)) -> b
+        | (TPhyCog(_), TLogCog) -> a
         | _ when a = b -> a
         | _ -> raise (TypecheckError("Incompatible types", ctx, a, b))
 ;;
@@ -152,7 +152,7 @@ let rec typeof
         (* print_endline ("SE: "^(string_of_expr expr)); *)
         (* print_endline ("S: "^(string_of_type (rcr expr))); *)
     	begin match rcr expr with
-    		| TCog(Some(ctype)) ->
+    		| TPhyCog(ctype) ->
     			begin match subscript with
     			 	| EConst(CString(field)) ->
     			 		Cog.field_type ctype field
@@ -164,12 +164,12 @@ let rec typeof
                             (rcr subscript)
     			 		))
 			 	end
-            | TCog(None) -> 
+            | TLogCog -> 
                 raise (TypecheckError(
                     "Subscript of cog of indeterminate type",
                     Some(expr),
-                    TCog(Some("?")),
-                    TCog(None)
+                    TPhyCog("?"),
+                    TLogCog
                 ))
 
     		| TList(t) ->

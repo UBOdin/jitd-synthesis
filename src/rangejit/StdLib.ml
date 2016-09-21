@@ -24,7 +24,7 @@ let init () = (
 
   FunctionLibrary.define_fn "SPLIT"
     ([key_type; TList(record_type)], 
-      TList(TCog(Some(CogTypes.tree_cog))))
+      TList(TPhyCog(CogTypes.tree_cog)))
     (function
       | [split_key_boxed; VList(records)] -> 
           let split_key = unbox_key split_key_boxed in
