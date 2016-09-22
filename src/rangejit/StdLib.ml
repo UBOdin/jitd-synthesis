@@ -24,7 +24,7 @@ let init () = (
 
   FunctionLibrary.define_fn "SPLIT"
     ([key_type; TList(record_type)], 
-      TList(TPhyCog(CogTypes.tree_cog)))
+      TPhyCog(CogTypes.tree_cog))
     (function
       | [split_key_boxed; VList(records)] -> 
           let split_key = unbox_key split_key_boxed in
@@ -34,11 +34,11 @@ let init () = (
               records
           in
             (* CogTypes.mk_tree split_key (VList(low)) (VList(high)) *)
-            VList([VCog(CogTypes.tree_cog,ListUtils.mk_map [
+            VCog(CogTypes.tree_cog,ListUtils.mk_map [
                                       "SEP",split_key_boxed;
                                       "LHS", VList(low);
                                       "RHS", VList(high)
-                                    ])])
+                                    ])
 
       | args -> raise (FunctionLibrary.ArgError([key_type; TList(record_type)], args))
     )

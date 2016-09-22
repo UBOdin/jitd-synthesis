@@ -41,11 +41,12 @@ let caps_of_ctype (ctype:string): string =
 let rename_constructor (fname:string): string = 
   begin
     match fname with
-    | "ARRAY" -> "ArrayCog"
-    | "TREE" -> "BTreeCog"
-    | "CONCAT" -> "ConcatCog"
-    | "DELETE" -> "DeleteCog"
-    | "SORTED" -> "SortedArrayCog"
+    | "ARRAY" -> "ArrayCog<Tuple>"
+    | "TREE" -> "BTreeCog<Tuple>"
+    | "CONCAT" -> "ConcatCog<Tuple>"
+    | "DELETE" -> "DeleteCog<Tuple>"
+    | "SORTED" -> "SortedArrayCog<Tuple>"
+    | "COG_BASE_TYPE" -> "CogHandle<Tuple>"
     | _ -> fname
   end
 
@@ -76,17 +77,19 @@ let is_constructor (fname:string): bool =
   try let cog = Cog.get fname in
     match cog with
     | _-> true
-  with Not_found -> false
+  with Not_found -> match fname with
+  | "COG_BASE_TYPE" -> true
+  | _ -> false
 
 let chk_library_constructor (fname:string): string = 
   let new_fname = rename_fname fname in
-  if (is_constructor new_fname) then (rename_constructor new_fname)
+  if (is_constructor new_fname) then "CogPtr<Tuple>"
 else new_fname
 ;;
 
 let chk_library_constructor_rval (fname:string): string = 
   let new_fname = rename_fname fname in
-  if (is_constructor new_fname) then "new "^(rename_constructor new_fname)
+  if (is_constructor new_fname) then "CogPtr<Tuple>(new "^(rename_constructor new_fname)^")"
 else new_fname
 ;;
 
@@ -158,14 +161,15 @@ let rec program_of_jitfuel (expr: expr_t): stmt_t list =
         List.flatten (List.map program_of_jitfuel ops)
     | ELet(var_name, var_val, body) ->
         let ret_t = returntype_of_expr_t var_val in
-        let var_ret_t = if (is_constructor ret_t) then "new "^(rename_constructor ret_t)^" *" else ret_t in
+        let var_ret_t = if (is_constructor ret_t) then chk_library_constructor ret_t else ret_t in
         [StatementBlock("{", 
           (DefineVar(var_ret_t, var_name, 
             rvalue_of_jitfuel var_val
           )) :: (program_of_jitfuel body),
         "}")]
     | ERewrite(tgt, v) ->
-        [Void(FunCall((tgt^"->put"), [rvalue_of_jitfuel v]))]
+        (* [Void( FunCall(tgt^"->put", [rvalue_of_jitfuel v]))] *)
+        [AssignVar(tgt^"*", rvalue_of_jitfuel v)]
     | ELambda _ ->
         error "Direct program translation expects no lambdas"
     | _ ->

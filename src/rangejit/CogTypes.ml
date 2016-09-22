@@ -34,7 +34,6 @@ let mk_sorted (buffer: record_t list) =
 		"DATA", (VList(List.map box_record buffer));
 	])
 ;;
-
 let init() = (
 	(* CONCAT(lhs, rhs) *)
 	Cog.define {
