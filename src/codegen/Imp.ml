@@ -53,8 +53,10 @@ let rename_constructor (fname:string): string =
 let rename_field (field:string): string = 
   begin
     match field with
+    | "SEP" -> "sep"
     | "RHS" -> "rhs"
     | "LHS" -> "lhs"
+    | "DATA" -> "buffer"
     | _ -> field
   end
 ;;
@@ -86,12 +88,13 @@ let chk_library_constructor (fname:string): string =
   if (is_constructor new_fname) then "CogPtr<Tuple>"
 else new_fname
 ;;
-
+(* 
 let chk_library_constructor_rval (fname:string): string = 
   let new_fname = rename_fname fname in
   if (is_constructor new_fname) then "CogPtr<Tuple>(new "^(rename_constructor new_fname)^")"
 else new_fname
 ;;
+ *)
 
 (**Returns string for datatypes.
   @param t datatype
@@ -168,8 +171,8 @@ let rec program_of_jitfuel (expr: expr_t): stmt_t list =
           )) :: (program_of_jitfuel body),
         "}")]
     | ERewrite(tgt, v) ->
-        (* [Void( FunCall(tgt^"->put", [rvalue_of_jitfuel v]))] *)
-        [AssignVar(tgt^"*", rvalue_of_jitfuel v)]
+        [Void( FunCall(tgt^"->put", [rvalue_of_jitfuel v]))]
+        (* [AssignVar(tgt^"*", rvalue_of_jitfuel v)] *)
     | ELambda _ ->
         error "Direct program translation expects no lambdas"
     | _ ->
@@ -190,7 +193,8 @@ and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
   | EAsA(body, t) ->
       rcr body
   | ECall(EVar(fname), args) ->
-      FunCall((chk_library_constructor_rval fname), List.map rcr args)
+      if (is_constructor fname) then FunCall("CogPtr<Tuple>",[FunCall("new "^(rename_constructor fname), List.map rcr args)]) else
+      FunCall( fname , List.map rcr args)
   | ENeg(body) ->
       RValueBlock("-(", rcr body, ")")
   | EArithOp(op, lhs, rhs) ->
@@ -224,7 +228,7 @@ and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
   | EVar(v) -> 
       Literal(v)
   | EIsA(body, TPhyCog(ctype)) ->
-      RValueBlock("", rcr body, "->type == COG_"^(caps_of_ctype ctype))
+      RValueBlock("", rcr body, "->type() == COG_"^(caps_of_ctype ctype))
   | ESubscript(body, EConst(CString(field))) ->
       RValueBlock("", rcr body, "->"^(rename_field field))
   | ESubscript(body, field) ->
