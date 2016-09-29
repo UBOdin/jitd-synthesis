@@ -68,7 +68,8 @@ let rec typeof
 
     | EAsA(e, t) ->
         escalate t (rcr e)
-
+    | EExtract(e, t) ->
+        escalate t (rcr e)
     | ECall(fn, caller_args) ->
     	begin match rcr fn with
     		| TFn(fn_args, ret_t) -> 

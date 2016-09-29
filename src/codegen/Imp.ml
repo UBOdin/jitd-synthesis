@@ -85,7 +85,7 @@ let is_constructor (fname:string): bool =
 
 let chk_library_constructor (fname:string): string = 
   let new_fname = rename_fname fname in
-  if (is_constructor new_fname) then "CogPtr<Tuple>"
+  if (is_constructor new_fname) then "CogPtr<"^(rename_constructor new_fname)^">"
 else new_fname
 ;;
 (* 
@@ -134,6 +134,7 @@ let rec returntype_of_expr_t (expr:expr_t): string =
     | EBlock(a)           -> ""
     | ELet(a,b,c)         -> rcr c
     | EAsA(a,b)           -> imp_type_of_jf_type b
+    | EExtract(a,b)       -> imp_type_of_jf_type b
     | ECall(a,b)          -> rcr a
     | ERewrite(a,b)       -> rcr b
     | ENeg(a)             -> rcr a
@@ -190,6 +191,9 @@ and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
   | EIfThenElse(i,t,e) -> 
       FunctionalIf(rcr i, rcr t, rcr e)
   | EBlock([x]) -> rcr x
+  | EExtract(body,TPhyCog(ctype)) ->
+      RValueBlock("(CogPtr<"^(rename_constructor ctype)^">)(",rcr body,"->get())")
+  | EExtract(body,t) -> rcr body
   | EAsA(body, t) ->
       rcr body
   | ECall(EVar(fname), args) ->

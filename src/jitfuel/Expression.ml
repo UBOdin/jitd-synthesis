@@ -31,6 +31,7 @@ type expr_t =
   | EBlock      of expr_t list
   | ELet        of var_t * expr_t * expr_t
   | EAsA        of expr_t * jf_t
+  | EExtract    of expr_t * jf_t
   | ECall       of expr_t * (expr_t list)
   | ERewrite    of var_t * expr_t
   | ENeg        of expr_t
@@ -123,6 +124,10 @@ let string_of_expr ?(indent = 2) (expr: expr_t): string =
     put "(";
       rcr_box e;
     put (") as "^(string_of_type t))
+  | EExtract(e, t) -> 
+    put "(";
+      rcr_box e;
+    put (") extract "^(string_of_type t))
   | ECall(fn, args) ->
     rcr_box fn;
     put "("; space();

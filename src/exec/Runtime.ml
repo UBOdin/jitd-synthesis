@@ -93,6 +93,8 @@ let rec eval ?(trace = false) ?(scope:scope_t = (global_scope ()))
     rcr_s [ var_name, rcr var_defn ] body
   | EAsA(e, t) ->
     rcr e
+  | EExtract(e, t) ->
+    rcr e
 
   | ECall(defn, args) -> 
     begin match rcr defn with

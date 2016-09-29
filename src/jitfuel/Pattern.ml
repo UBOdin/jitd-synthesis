@@ -1,12 +1,12 @@
 open Type
 open Expression
 
-exception Invalid_pattern of string * pattern_t
-
 type pattern_t = string option * pattern_body_t 
 and pattern_body_t = 
   | PCog of string * pattern_t list
   | PType of jf_t
+
+exception Invalid_pattern of pattern_t
 
 let mk_match ?(match_base_type:jf_t = TAny) 
              (target:expr_t) 
@@ -33,7 +33,7 @@ let mk_match ?(match_base_type:jf_t = TAny)
   let pattern_cast (expr: expr_t) = function 
     | PType(TAny) -> expr
     | PType(TPhyCog(cog_name)) -> EExtract(expr, TPhyCog(cog_name))
-    | PType t -> raise (Invalid_pattern("Must only match with logical->physical translations", PType(t)))
+    | PType t -> raise (Invalid_pattern(Some("Must only match with logical->physical translations"), PType(t)))
     | PCog(cog_name, _) -> EExtract(expr, TPhyCog(cog_name))
   in
   let rec pattern_bindings (struct_name, struct_type) target continuation =
