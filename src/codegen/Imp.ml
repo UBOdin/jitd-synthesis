@@ -192,7 +192,7 @@ and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
       FunctionalIf(rcr i, rcr t, rcr e)
   | EBlock([x]) -> rcr x
   | EExtract(body,TPhyCog(ctype)) ->
-      RValueBlock("(CogPtr<"^(rename_constructor ctype)^">)(",rcr body,"->get())")
+      RValueBlock("(("^(rename_constructor ctype)^" *)(",rcr body,"->get()).get())")
   | EExtract(body,t) -> rcr body
   | EAsA(body, t) ->
       rcr body
