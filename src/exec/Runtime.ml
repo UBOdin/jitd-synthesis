@@ -14,7 +14,7 @@ let cog_constructors (): (var_t * value_t) list =
     (* print_endline ("COG: "^cog_name); *)
     (cog_name, (VFunction(
       Cog.field_types cog_name,
-      TCog(Some(cog_name)),
+      TPhyCog(cog_name),
       Value.mk_handle cog_name
     )))
   ) (Cog.all_cogs ())
@@ -92,6 +92,8 @@ let rec eval ?(trace = false) ?(scope:scope_t = (global_scope ()))
   | ELet(var_name, var_defn, body) ->
     rcr_s [ var_name, rcr var_defn ] body
   | EAsA(e, t) ->
+    rcr e
+  | EExtract(e, t) ->
     rcr e
 
   | ECall(defn, args) -> 

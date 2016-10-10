@@ -211,8 +211,8 @@ constant:
 var: ID { $1 }
 
 typedef: 
-  | LT ID GT               { TCog(Some($2)) }
-  | COG                    { TCog(None) }
+  | LT ID GT               { TPhyCog($2) }
+  | COG                    { TLogCog }
   | LBRACE arg_list RBRACE { TTuple($2) }
   | LBRACK typedef RBRACK  { TList($2) }
   | ID { 

@@ -32,14 +32,14 @@ let init (policy: policy_t): jitd_t =
   }
 
 let arg_types: (event_t -> jf_t list) = function
-  | BEFORE_INSERT        -> [ TCog(None) ]
-  | AFTER_INSERT         -> [ TCog(None) ] 
-  | BEFORE_DELETE        -> [ TCog(None) ] 
-  | AFTER_DELETE         -> [ TCog(None) ] 
-  | BEFORE_ROOT_ITERATOR -> [ TCog(None) ] 
-  | BEFORE_ITERATOR      -> [ TCog(None) ]
-  | IDLE                 -> [ TCog(None) ]
-  | TEST                 -> [ TCog(None) ]
+  | BEFORE_INSERT        -> [ TLogCog ]
+  | AFTER_INSERT         -> [ TLogCog ]
+  | BEFORE_DELETE        -> [ TLogCog ]
+  | AFTER_DELETE         -> [ TLogCog ]
+  | BEFORE_ROOT_ITERATOR -> [ TLogCog ]
+  | BEFORE_ITERATOR      -> [ TLogCog ]
+  | IDLE                 -> [ TLogCog ]
+  | TEST                 -> [ TLogCog ]
 ;;
 
 let get_handler (jitd: jitd_t) (event: event_t) =

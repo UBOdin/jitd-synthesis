@@ -34,14 +34,13 @@ let mk_sorted (buffer: record_t list) =
 		"DATA", (VList(List.map box_record buffer));
 	])
 ;;
-
 let init() = (
 	(* CONCAT(lhs, rhs) *)
 	Cog.define {
 		Cog.name = concat_cog;
 		Cog.body = [ 
-			"LHS", TCog(None);
-			"RHS", TCog(None)
+			"LHS", TLogCog;
+			"RHS", TLogCog
 		];
 	};
 
@@ -51,8 +50,8 @@ let init() = (
 		Cog.name = tree_cog;
 		Cog.body = [ 
 			"SEP", key_type;
-			"LHS", TCog(None);
-			"RHS", TCog(None)
+			"LHS", TLogCog;
+			"RHS", TLogCog
 		];
 	};
 

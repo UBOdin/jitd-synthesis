@@ -41,22 +41,33 @@ let caps_of_ctype (ctype:string): string =
 let rename_constructor (fname:string): string = 
   begin
     match fname with
-    | "ARRAY" -> "ArrayCog"
-    | "TREE" -> "BTreeCog"
-    | "CONCAT" -> "ConcatCog"
-    | "DELETE" -> "DeleteCog"
-    | "SORTED" -> "SortedArrayCog"
+    | "ARRAY" -> "ArrayCog<Tuple>"
+    | "TREE" -> "BTreeCog<Tuple>"
+    | "CONCAT" -> "ConcatCog<Tuple>"
+    | "DELETE" -> "DeleteCog<Tuple>"
+    | "SORTED" -> "SortedArrayCog<Tuple>"
+    | "COG_BASE_TYPE" -> "CogHandle<Tuple>"
     | _ -> fname
   end
 
 let rename_field (field:string): string = 
   begin
     match field with
+    | "SEP" -> "sep"
     | "RHS" -> "rhs"
     | "LHS" -> "lhs"
+    | "DATA" -> "buffer"
     | _ -> field
   end
 ;;
+
+let rename_library_fname (fname:string): string =
+  begin
+    match fname with
+    | "SPLIT" -> "splitBuffer"
+    | "SORT" -> "sort"
+    | _ -> fname
+  end
 
 let rename_fname (fname:string): string = 
   begin
@@ -68,7 +79,7 @@ let rename_fname (fname:string): string =
     | "BEFORE_ROOT_ITERATOR" -> "beforeRootIterator"
     | "BEFORE_ITERATOR" -> "beforeIterator"
     | "IDLE" -> "idle"
-    | _ -> fname
+    | _ -> rename_library_fname fname
   end;
 ;;
 
@@ -76,19 +87,23 @@ let is_constructor (fname:string): bool =
   try let cog = Cog.get fname in
     match cog with
     | _-> true
-  with Not_found -> false
+  with Not_found -> match fname with
+  | "COG_BASE_TYPE" -> true
+  | _ -> false
 
 let chk_library_constructor (fname:string): string = 
   let new_fname = rename_fname fname in
-  if (is_constructor new_fname) then (rename_constructor new_fname)
+  if new_fname = "COG_BASE_TYPE" then "CogHandle<Tuple>" else
+  if (is_constructor new_fname) then "CogPtr<"^(rename_constructor new_fname)^">"
 else new_fname
 ;;
-
+(* 
 let chk_library_constructor_rval (fname:string): string = 
   let new_fname = rename_fname fname in
-  if (is_constructor new_fname) then "new "^(rename_constructor new_fname)
+  if (is_constructor new_fname) then "CogPtr<Tuple>(new "^(rename_constructor new_fname)^")"
 else new_fname
 ;;
+ *)
 
 (**Returns string for datatypes.
   @param t datatype
@@ -99,8 +114,8 @@ let rec imp_type_of_jf_type (t:jf_t): string =
   match t with
   | TAny -> error "No type signature"
   | TNone -> error "No type signature"
-  | TCog (Some(ctype)) -> ctype
-  | TCog _ -> "COG_BASE_TYPE"
+  | TPhyCog (ctype) -> ctype
+  | TLogCog -> "COG_BASE_TYPE"
   | TList(sub_t) -> chk_library_constructor(imp_type_of_jf_type sub_t)^"*"
   | TMap _ -> error "Unsupported: Map"
   | TTuple(args) -> "std::tuple<"^(String.concat "," (List.map (fun (name,jft)->imp_type_of_jf_type jft) args))^">"(* error "Unsupported: Tuple" *)
@@ -128,6 +143,7 @@ let rec returntype_of_expr_t (expr:expr_t): string =
     | EBlock(a)           -> ""
     | ELet(a,b,c)         -> rcr c
     | EAsA(a,b)           -> imp_type_of_jf_type b
+    | EExtract(a,b)       -> imp_type_of_jf_type b
     | ECall(a,b)          -> rcr a
     | ERewrite(a,b)       -> rcr b
     | ENeg(a)             -> rcr a
@@ -158,14 +174,15 @@ let rec program_of_jitfuel (expr: expr_t): stmt_t list =
         List.flatten (List.map program_of_jitfuel ops)
     | ELet(var_name, var_val, body) ->
         let ret_t = returntype_of_expr_t var_val in
-        let var_ret_t = if (is_constructor ret_t) then "new "^(rename_constructor ret_t)^" *" else ret_t in
+        let var_ret_t = if (is_constructor ret_t) then chk_library_constructor ret_t else ret_t in
         [StatementBlock("{", 
           (DefineVar(var_ret_t, var_name, 
             rvalue_of_jitfuel var_val
           )) :: (program_of_jitfuel body),
         "}")]
     | ERewrite(tgt, v) ->
-        [Void(FunCall((tgt^"->put"), [rvalue_of_jitfuel v]))]
+        [Void( FunCall(tgt^"->put", [rvalue_of_jitfuel v]))]
+        (* [AssignVar(tgt^"*", rvalue_of_jitfuel v)] *)
     | ELambda _ ->
         error "Direct program translation expects no lambdas"
     | _ ->
@@ -183,10 +200,14 @@ and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
   | EIfThenElse(i,t,e) -> 
       FunctionalIf(rcr i, rcr t, rcr e)
   | EBlock([x]) -> rcr x
+  | EExtract(body,TPhyCog(ctype)) ->
+      RValueBlock("(("^(rename_constructor ctype)^" *)(",rcr body,"->get()).get())")
+  | EExtract(body,t) -> rcr body
   | EAsA(body, t) ->
       rcr body
   | ECall(EVar(fname), args) ->
-      FunCall((chk_library_constructor_rval fname), List.map rcr args)
+      if (is_constructor fname) then FunCall("CogPtr<Tuple>",[FunCall("new "^(rename_constructor fname), List.map rcr args)]) else
+      FunCall( fname , List.map rcr args)
   | ENeg(body) ->
       RValueBlock("-(", rcr body, ")")
   | EArithOp(op, lhs, rhs) ->
@@ -219,12 +240,14 @@ and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
       Literal(string_of_const c)
   | EVar(v) -> 
       Literal(v)
-  | EIsA(body, TCog(Some(ctype))) ->
-      RValueBlock("", rcr body, "->type == COG_"^(caps_of_ctype ctype))
+  | EIsA(body, TPhyCog(ctype)) ->
+      RValueBlock("", rcr body, "->type() == COG_"^(caps_of_ctype ctype))
   | ESubscript(body, EConst(CString(field))) ->
       RValueBlock("", rcr body, "->"^(rename_field field))
   | ESubscript(body, field) ->
-      RValueBlock("", BinaryOp(rcr body, "[", rcr field), "]")
+      BinaryOp(rcr body,"->",FunCall("at",[rcr field]))
+  (* | ESubscript(body, field) ->
+      RValueBlock("", BinaryOp(rcr body, "[", rcr field), "]") *)
   | EList(elems) -> error "List Literal Not Supported Yet"
   | _ -> error "Invalid rvalue"
 ;;
@@ -249,6 +272,8 @@ let rec render_rval (formatter: Format.formatter) (rval:rvalue_t): unit =
     put lhs; space(); rcr_box body; space(); put rhs;  
   | BinaryOp(lhs, sep, rhs) ->
     rcr_box lhs; space(); put sep; space(); rcr_box rhs;
+  | FunCall("SIZEOF", [arr]) ->
+    rcr_box (RValueBlock("",arr,"->size()"))
   | FunCall(fname, []) ->
     put (chk_library_constructor fname);
     put "()";
@@ -351,8 +376,14 @@ let render_function (((fname:string), (args:((string * string) list)), (ret:stri
 *)
 let render_program (prog: program_t): string =
   let functions = String.concat "\n\n" (List.map render_function prog) in
-  "template <class Tuple>
+  "
+  #ifndef _POLICY_MYPOLICY_H_SHIELD
+  #define _POLICY_MYPOLICY_H_SHIELD
+
+  template <class Tuple>
   class MyPolicy : public RewritePolicyBase <Tuple>
   { 
-  public:"^functions^"};"
+  public:"^functions^"};
+  #endif
+  "
 ;;

@@ -10,6 +10,7 @@ let rec recur (op:expr_t -> expr_t) =
   | EBlock(l)                     -> EBlock(List.map rcr l)
   | ELet(var_name, var_val, body) -> ELet(var_name, rcr var_val, rcr body) 
   | EAsA(body, body_type)         -> EAsA(rcr body, body_type)
+  | EExtract(body, body_type)     -> EExtract(rcr body, body_type)
   | ECall(func_name, args)        -> ECall(rcr func_name, List.map rcr args)
   | ERewrite(target, new_cog)     -> ERewrite(target, rcr new_cog)
   | ENeg(target)                  -> ENeg(rcr target)
@@ -28,6 +29,7 @@ let all_children = function
   | EBlock(l)                     -> l
   | ELet(var_name, var_val, body) -> [var_val; body]
   | EAsA(body, body_type)         -> [body]
+  | EExtract(body, body_type)         -> [body]
   | ECall(func_name, args)        -> func_name :: args
   | ERewrite(target, new_cog)     -> [new_cog]
   | ENeg(target)                  -> [target]
@@ -91,6 +93,7 @@ let rec inline_lets (expr:expr_t): expr_t =
 let rec strip_no_ops (expr: expr_t): expr_t =
   match expr with 
   | EAsA(body, TAny) -> body
+  | EExtract(body, TAny) -> body
   | EIsA(body, TAny) -> EConst(CBool(true))
   | EIsA(body, TNone) -> EConst(CBool(false))
   | EArithOp(AAnd, EConst(CBool(true)), x) -> x

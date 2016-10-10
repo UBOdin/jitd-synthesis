@@ -37,7 +37,7 @@ let get_iterator (callback: (value_t -> unit)) (cog:value_t): iterator_t =
       let data = cast_to_buffer (StringMap.find "DATA" fields) in
         BufferIterator(data)
 
-    | (c, _) -> raise (CastError(cog, (TCog(Some(c)))))
+    | (c, _) -> raise (CastError(cog, (TPhyCog(c))))
 ;;
 
 let rec peek (iter: iterator_t): (record_t option * iterator_t) =

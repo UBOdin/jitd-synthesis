@@ -14,6 +14,6 @@ let init(jitd: JITD.jitd_t) = (
           JITD.insert jitd new_data;
           VUnit
       | args -> 
-        raise (FunctionLibrary.ArgError([TCog(None); data_type; TList(key_type)], args))
+        raise (FunctionLibrary.ArgError([TLogCog; data_type; TList(key_type)], args))
     )
 )
