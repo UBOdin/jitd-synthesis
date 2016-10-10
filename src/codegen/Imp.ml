@@ -61,6 +61,14 @@ let rename_field (field:string): string =
   end
 ;;
 
+let rename_library_fname (fname:string): string =
+  begin
+    match fname with
+    | "SPLIT" -> "splitBuffer"
+    | "SORT" -> "sort"
+    | _ -> fname
+  end
+
 let rename_fname (fname:string): string = 
   begin
     match fname with
@@ -71,7 +79,7 @@ let rename_fname (fname:string): string =
     | "BEFORE_ROOT_ITERATOR" -> "beforeRootIterator"
     | "BEFORE_ITERATOR" -> "beforeIterator"
     | "IDLE" -> "idle"
-    | _ -> fname
+    | _ -> rename_library_fname fname
   end;
 ;;
 
@@ -85,6 +93,7 @@ let is_constructor (fname:string): bool =
 
 let chk_library_constructor (fname:string): string = 
   let new_fname = rename_fname fname in
+  if new_fname = "COG_BASE_TYPE" then "CogHandle<Tuple>" else
   if (is_constructor new_fname) then "CogPtr<"^(rename_constructor new_fname)^">"
 else new_fname
 ;;
@@ -236,7 +245,9 @@ and rvalue_of_jitfuel (expr: expr_t): rvalue_t =
   | ESubscript(body, EConst(CString(field))) ->
       RValueBlock("", rcr body, "->"^(rename_field field))
   | ESubscript(body, field) ->
-      RValueBlock("", BinaryOp(rcr body, "[", rcr field), "]")
+      BinaryOp(rcr body,"->",FunCall("at",[rcr field]))
+  (* | ESubscript(body, field) ->
+      RValueBlock("", BinaryOp(rcr body, "[", rcr field), "]") *)
   | EList(elems) -> error "List Literal Not Supported Yet"
   | _ -> error "Invalid rvalue"
 ;;
@@ -261,6 +272,8 @@ let rec render_rval (formatter: Format.formatter) (rval:rvalue_t): unit =
     put lhs; space(); rcr_box body; space(); put rhs;  
   | BinaryOp(lhs, sep, rhs) ->
     rcr_box lhs; space(); put sep; space(); rcr_box rhs;
+  | FunCall("SIZEOF", [arr]) ->
+    rcr_box (RValueBlock("",arr,"->size()"))
   | FunCall(fname, []) ->
     put (chk_library_constructor fname);
     put "()";
@@ -363,8 +376,14 @@ let render_function (((fname:string), (args:((string * string) list)), (ret:stri
 *)
 let render_program (prog: program_t): string =
   let functions = String.concat "\n\n" (List.map render_function prog) in
-  "template <class Tuple>
+  "
+  #ifndef _POLICY_MYPOLICY_H_SHIELD
+  #define _POLICY_MYPOLICY_H_SHIELD
+
+  template <class Tuple>
   class MyPolicy : public RewritePolicyBase <Tuple>
   { 
-  public:"^functions^"};"
+  public:"^functions^"};
+  #endif
+  "
 ;;
