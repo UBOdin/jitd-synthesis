@@ -334,19 +334,12 @@ and render_imp (formatter: Format.formatter) (stmts: stmt_t list): unit =
     put "if(";
     render_rval formatter i;
     put ")";
-    if (List.length t)>0 then begin
-      rcr_box t;
-    end
-    else 
-    begin
-      put "{}";
-    end;
-    if (List.length e)>0 then
-    begin
-      put "else {";
-      rcr_box e;
-      put "}"
-    end
+    put "{";
+    rcr_box t;
+    put "}";
+    put "else {";
+    rcr_box e;
+    put "}";
   end;
   Format.pp_force_newline formatter ();
   render_imp formatter (List.tl stmts);
