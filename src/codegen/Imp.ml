@@ -95,7 +95,7 @@ let chk_library_constructor (fname:string): string =
   let new_fname = rename_fname fname in
   if new_fname = "COG_BASE_TYPE" then "CogHandle<Tuple>" else
   if (is_constructor new_fname) then "CogPtr<"^(rename_constructor new_fname)^">"
-else new_fname
+else fname
 ;;
 (* 
 let chk_library_constructor_rval (fname:string): string = 
@@ -334,19 +334,12 @@ and render_imp (formatter: Format.formatter) (stmts: stmt_t list): unit =
     put "if(";
     render_rval formatter i;
     put ")";
-    if (List.length t)>0 then begin
-      rcr_box t;
-    end
-    else 
-    begin
-      put "{}";
-    end;
-    if (List.length e)>0 then
-    begin
-      put "else {";
-      rcr_box e;
-      put "}"
-    end
+    put "{";
+    rcr_box t;
+    put "}";
+    put "else {";
+    rcr_box e;
+    put "}";
   end;
   Format.pp_force_newline formatter ();
   render_imp formatter (List.tl stmts);
