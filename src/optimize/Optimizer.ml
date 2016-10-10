@@ -51,6 +51,22 @@ let rec inline_vars ?(scope: expr_t StringMap.t = StringMap.empty) (expr:expr_t)
     if StringMap.mem var_name scope 
       then StringMap.find var_name scope
       else EVar(var_name)
+  | ERewrite(var_name, subexp) ->
+    let subexp_new = rcr subexp in
+    if StringMap.mem var_name scope 
+      then 
+        begin match StringMap.find var_name scope with
+          | EVar(new_name) -> ERewrite(new_name, subexp_new)
+          | x -> 
+            (* Unusual corner case where we're replacing a rewrite variable by a 
+               non-variable value.  This really shouldn't be happening, but we
+               can get around it by binding the variable to a new temporary *)
+            ELet(
+              "TEMP_REWRITE_VAR_TARGET", x, 
+              ERewrite("TEMP_REWRITE_VAR_TARGET", subexp_new)
+            )
+        end
+      else ERewrite(var_name, subexp_new)
   | _ -> recur rcr expr
 ;;
 
