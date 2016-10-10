@@ -26,8 +26,8 @@ FUNCTION CRACK_OR_SORT(target_cog : cog, threshold : int) {
 
 
 POLICY { 
-  ON BEFORE_ITERATOR(target_cog) { 
-    PUSHDOWN(target_cog);
-    CRACK_OR_SORT(target_cog, 3);
+  ON BEFORE_ITERATOR(target) { 
+    PUSHDOWN(target);
+    CRACK_OR_SORT(target, 3);
   }
 }

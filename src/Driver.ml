@@ -73,12 +73,20 @@ try
       (ListUtils.mk_map (List.flatten global_functions))
       (JITD.merge_policies raw_policies)
   in
+  (* CODEGEN CODE *)
   let imp_program =
     List.map (fun (event , (str_list , expr))->
       (JITD.string_of_event_type event , List.map( fun (str)->(str,"CogHandle<Tuple>")) str_list,"void", Imp.program_of_jitfuel expr)
     ) policy 
   in
-    print_endline ("CODEGEN:\n"^(Imp.render_program imp_program)^"\nEND OF CODEGEN\n");
+  let print_to_file (file_name:string) = 
+    let oc = open_out file_name in
+    output_string oc (Imp.render_program imp_program);
+    close_out oc;
+  in
+    print_to_file "MyPolicy.hpp" ;
+    (* print_endline ("CODEGEN:\n"^(Imp.render_program imp_program)^"\nEND OF CODEGEN\n"); *)
+  (* END OF CODEGEN CODE *)
   let jitd = JITD.init policy in
     TestLib.init(jitd);
     print_endline (JITD.string_of_jitd jitd);
