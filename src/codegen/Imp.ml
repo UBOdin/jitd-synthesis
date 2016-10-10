@@ -95,7 +95,7 @@ let chk_library_constructor (fname:string): string =
   let new_fname = rename_fname fname in
   if new_fname = "COG_BASE_TYPE" then "CogHandle<Tuple>" else
   if (is_constructor new_fname) then "CogPtr<"^(rename_constructor new_fname)^">"
-else new_fname
+else fname
 ;;
 (* 
 let chk_library_constructor_rval (fname:string): string = 
