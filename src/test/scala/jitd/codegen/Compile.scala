@@ -9,7 +9,7 @@ object Compile {
 
   def apply(render: Render): String =
   {
-    val file = File.createTempFile("jitd-test-",".cpp");
+    val file = new File("jitd_test.cpp")//File.createTempFile("jitd-test-",".cpp");
     val out = new FileWriter(file)
     out.write(render())
     out.write("\n\nint main(int argc, char **argv){ \n  std::cout << \"TEST SUCCESSFUL!\";\n  return 0;\n }")
@@ -23,12 +23,13 @@ object Compile {
 
     val command = Seq(
       "g++", 
+      "-o", "jitd_test",
       "-I", "src/cpp/include",
       file.toString
     )
 
     if((command ! logger) == 0) {
-      Seq("./a.out") ! logger
+      Seq("./jitd_test") ! logger
     }
     return gccOutput.mkString("\n")
   }

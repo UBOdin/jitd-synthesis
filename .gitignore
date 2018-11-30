@@ -1,4 +1,5 @@
 /project/project
 /project/target
 /target
-a.out
+/jitd_test
+/jitd.cpp
