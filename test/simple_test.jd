@@ -1,4 +1,0 @@
-ON TEST(root) { 
-  INSERT(0, [5, 2, 10, 23, 19, 15, 12]);
-  PRINT(root);
-}

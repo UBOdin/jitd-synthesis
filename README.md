@@ -1,1 +1,0 @@
-# jitd-synthesis
