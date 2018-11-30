@@ -33,6 +33,9 @@ libraryDependencies ++= Seq(
   "com.github.nscala-time"        %%  "nscala-time"              % "1.2.0",
 )
 
+// Support for templates through scala play twirl
+// https://github.com/playframework/twirl
+lazy val root = (project in file(".")).enablePlugins(SbtTwirl)
 
 
 ////// Publishing Metadata //////
