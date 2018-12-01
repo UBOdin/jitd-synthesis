@@ -7,13 +7,14 @@ import scala.collection.mutable.ListBuffer
 
 object Compile {
 
-  def apply(render: Render): String =
+  def apply(render: Render, main: String = "src/cpp/source/compile_test.cpp"): String =
   {
-    val file = new File("jitd_test.cpp")//File.createTempFile("jitd-test-",".cpp");
-    val out = new FileWriter(file)
-    out.write(render())
-    out.write("\n\nint main(int argc, char **argv){ \n  std::cout << \"TEST SUCCESSFUL!\";\n  return 0;\n }")
-    out.close()
+    val headerFile = new File("target/jitd_test.hpp")//File.createTempFile("jitd-test-",".cpp");
+    val header = new FileWriter(headerFile)
+    header.write(render.header())
+    header.close()
+
+
 
     val gccOutput = ListBuffer[String]()
     val logger = ProcessLogger(
@@ -25,7 +26,8 @@ object Compile {
       "g++", 
       "-o", "jitd_test",
       "-I", "src/cpp/include",
-      file.toString
+      "-I", "target",
+      main
     )
 
     if((command ! logger) == 0) {

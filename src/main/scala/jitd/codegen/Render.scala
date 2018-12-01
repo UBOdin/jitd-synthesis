@@ -2,7 +2,7 @@ package jitd.codegen
 
 import scala.collection.mutable
 
-import jitd.parser._
+import jitd.spec._
 import jitd.structure._
 import jitd.codegen.txt.{NodeTemplate, StructTemplate, HeaderTemplate}
 
@@ -77,7 +77,7 @@ class Render(val definition: Definition) {
     return renderedNodes.mkString("\n")
   }
 
-  def apply(): String =
+  def header(): String =
   {
     return Seq[String](
       headers,

@@ -17,7 +17,7 @@ class KVBuildSpec extends Specification {
     }
 
     "Generate a file that compiles and runs" >> {
-      render() must contain("#include <vector>")
+      render.header() must contain("#include <vector>")
       Compile(render) must contain("TEST SUCCESSFUL!")
     }
 

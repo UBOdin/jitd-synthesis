@@ -10,7 +10,7 @@ object FieldConversions {
 
 
 
-abstract sealed class Type {}
+sealed abstract class Type {}
 
 case class TKey() extends Type
 case class TRecord() extends Type
@@ -20,3 +20,4 @@ case class TFloat() extends Type
 case class TVector(t:Type) extends Type
 case class TStruct(fields:Seq[Field]) extends Type
 case class TNode() extends Type
+case class TIterator(forward:Boolean = false, backward: Boolean = false, t:Type = TRecord()) extends Type

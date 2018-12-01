@@ -2,10 +2,14 @@ package jitd.example;
 
 import jitd.structure._
 import jitd.structure.FieldConversions._
-import jitd.parser.Definition
+import jitd.spec._
+import jitd.spec.CmpTypes._
 
 object KeyValueJITD {
   
+  val SingletonNode = Node("Singleton", Seq(
+    "value" -> TRecord()
+  ))
   val ArrayNode = Node("Array", Seq(
     "data" -> TVector(TRecord())
   ))
@@ -22,12 +26,35 @@ object KeyValueJITD {
     "rhs" -> TNode()
   ))
 
+  //////////////////////////////////////////////
+
+  val GetOne = new AccessPath(
+    Seq( ("target", TKey()) ),
+    Map(
+      ArrayNode.name -> Block(Seq(
+        ForEach("x", Var("data"),
+          IfThenElse(
+            Cmp(Eq, Dereference(Var("x")), Var("target")),
+            Return(Var("x"))
+          )
+        ),
+        Abort()
+      ))
+    )
+  )
+
+  //////////////////////////////////////////////
+
+
   val definition = Definition(
     nodeTypes = Seq(
       ArrayNode,
       SortedArrayNode,
       ConcatNode,
       BTreeNode
+    ),
+    accessPaths = Map(
+      "get" -> GetOne
     ),
     includes = Seq("int_record.hpp")
   )
