@@ -1,9 +1,0 @@
-
-POLICY {
-  ON AFTER_INSERT(target_cog) {
-    match target_cog with 
-      | :CONCAT(lhs, :ARRAY(data)) -> 
-          rewrite target_cog as CONCAT(lhs, SORTED(SORT(data)))
-    else { }
-  }
-}

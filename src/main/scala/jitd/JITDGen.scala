@@ -1,0 +1,5 @@
+package jitd
+
+object JITDGen {
+  
+}

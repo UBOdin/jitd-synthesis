@@ -1,0 +1,14 @@
+@import jitd.codegen._
+@import jitd.structure._
+@(node:Node, ctx:Render)
+
+class @{node.renderName} : public JITDNode { 
+  public:
+  @{node.renderName}( @{ node.fields.map { ctx.getFieldDefn(_) }.mkString(", " )} ) : 
+    JITDNode(@{node.enumName})@for(field <- node.fields){,
+    @{field.name}(@{field.name})}
+  {}
+
+  public: @for(field <- node.fields){ 
+    @{ctx.getFieldDefn(field)}; }
+};
