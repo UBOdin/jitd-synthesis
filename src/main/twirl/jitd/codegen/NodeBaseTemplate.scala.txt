@@ -1,8 +1,10 @@
 @import jitd.codegen._
 @(ctx:Render)
 
-typedef enum { @for(node <- ctx.definition.nodeTypes) {
-  @node.enumName, }
+typedef enum { 
+  @for(node <- ctx.definition.nodes) {
+    @node.enumName, 
+  }
 } JITDNodeType;
 
 class JITDNode {

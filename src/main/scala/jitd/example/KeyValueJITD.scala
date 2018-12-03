@@ -1,20 +1,24 @@
 package jitd.example;
 
-import jitd.structure._
-import jitd.structure.FieldConversions._
+import jitd.typecheck.FunctionDefinition
 import jitd.spec._
+import jitd.spec.FieldConversions._
+import jitd.spec.StatementConversions._
 import jitd.spec.CmpTypes._
 
 object KeyValueJITD {
-  
-  val SingletonNode = Node("Singleton", Seq(
-    "value" -> TRecord()
-  ))
+
+  val functions = Seq(
+    FunctionDefinition("record_scan", Seq(TArray(TRecord()), TKey(), TRecord()), TBool()),
+    FunctionDefinition("record_binary_search", Seq(TArray(TRecord()), TKey(), TRecord()), TBool())
+  ).map { f => f.name -> f }.toMap
+
+
   val ArrayNode = Node("Array", Seq(
-    "data" -> TVector(TRecord())
+    "data" -> TArray(TRecord())
   ))
   val SortedArrayNode = Node("Sorted", Seq(
-    "data" -> TVector(TRecord())
+    "data" -> TArray(TRecord())
   ))
   val ConcatNode = Node("Concat", Seq(
     "lhs" -> TNode(),
@@ -28,18 +32,34 @@ object KeyValueJITD {
 
   //////////////////////////////////////////////
 
-  val GetOne = new AccessPath(
-    Seq( ("target", TKey()) ),
+  def Begin(t:Expression=Var("data")) = FunctionCall("std::begin", Seq(t))
+  def End(t:Expression=Var("data")) = FunctionCall("std::end", Seq(t))
+
+  val GetByKey = new Accessor(
+    Seq( "target" -> TKey() ),
+    Seq( "result" -> TRecord() ),
     Map(
-      ArrayNode.name -> Block(Seq(
-        ForEach("x", Var("data"),
-          IfThenElse(
-            Cmp(Eq, Dereference(Var("x")), Var("target")),
-            Return(Var("x"))
-          )
-        ),
-        Abort()
-      ))
+      ArrayNode.name -> Return( 
+        FunctionCall("record_scan", Seq(Var("data"), Var("target"), Var("result"))) 
+      ),
+      ////////
+      SortedArrayNode.name -> Return( 
+        FunctionCall("record_binary_search", Seq(Var("data"), Var("target"), Var("result"))) 
+      ),
+      ////////
+      ConcatNode.name -> IfThenElse(
+        Delegate(Var("lhs")),
+        Return(BoolConstant(true)),
+        Return(Delegate(Var("rhs")))
+      ),
+      ////////
+      BTreeNode.name -> Seq(
+        IfThenElse(
+          Var("target").lt(Var("sep")),
+          Return(Delegate(Var("lhs"))),
+          Return(Delegate(Var("rhs")))
+        )
+      )
     )
   )
 
@@ -47,14 +67,14 @@ object KeyValueJITD {
 
 
   val definition = Definition(
-    nodeTypes = Seq(
+    nodes = Seq(
       ArrayNode,
       SortedArrayNode,
       ConcatNode,
       BTreeNode
     ),
-    accessPaths = Map(
-      "get" -> GetOne
+    accessors = Map(
+      "get" -> GetByKey
     ),
     includes = Seq("int_record.hpp")
   )

@@ -1,0 +1,16 @@
+@import jitd.codegen._
+@import jitd.spec._
+@(definition: Definition, ctx:Render)
+
+class JITD {
+
+  JITD(JITDNode *root) : root(root) {}
+
+  @for( (name, accessor) <- definition.accessors ) {
+    @{RenderAccessor.declaration( name, accessor, ctx )};
+  }
+
+  private:
+    JITDNode *root;
+
+};

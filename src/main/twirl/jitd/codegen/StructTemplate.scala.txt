@@ -1,7 +1,9 @@
-@import jitd.structure._
+@import jitd.spec._
 @import jitd.codegen._
 @(fields:Seq[Field], name:String, ctx:Render)
 
-typedef struct @{name} { @for(field <- fields){
-  @{ctx.getFieldDefn(field)}; }
+typedef struct @{name} { 
+  @for(field <- fields){
+    @{ctx.fieldDefn(field)}; 
+  }
 } @{name};

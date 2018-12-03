@@ -3,8 +3,7 @@ package jitd.codegen
 import scala.collection.mutable
 
 import jitd.spec._
-import jitd.structure._
-import jitd.codegen.txt.{NodeTemplate, StructTemplate, HeaderTemplate}
+import jitd.codegen.txt._
 
 class Render(val definition: Definition) {
   def keyType = definition.keyType
@@ -16,7 +15,7 @@ class Render(val definition: Definition) {
 
   val required_structs = mutable.ListBuffer[Seq[Field]]()
 
-  def getStructID(fields:Seq[Field]):Int =
+  def structID(fields:Seq[Field]):Int =
   {
     val ret = required_structs.indexOf(fields)
     if(ret < 0){
@@ -26,39 +25,42 @@ class Render(val definition: Definition) {
     return ret
   }
 
-  def getStructName(fields:Seq[Field]): String =
+  def structName(fields:Seq[Field]): String =
   {
-    s"jitd_struct_${getStructID(fields)}"
+    s"jitd_struct_${structID(fields)}"
   }
 
-  def getBufferName(t:Type): String =
+  def bufferName(t:Type): String =
   {
-    val nestedType = getCType(t)
+    val nestedType = cType(t)
     s"std::vector<$nestedType>"
   }
 
-  def getCType(t:Type): String =
+  def cType(t:Type): String =
   {
     t match {
       case TInt()          => "int"
       case TFloat()        => "double"
+      case TBool()         => "boolean"
       case TKey()          => keyType
       case TNode()         => "JITDNode *"
       case TRecord()       => recordType
-      case TStruct(fields) => getStructName(fields)
-      case TVector(nested) => getBufferName(nested)
+      case TStruct(fields) => structName(fields)
+      case TArray(nested)  => bufferName(nested)
+      case TIterator()     => s"std::vector<$recordType>::const_iterator"
     }
   }
 
-  def getFieldDefn(f:Field): String = 
-    s"${getCType(f.t)} ${f.name}"
+  def fieldDefn(f:Field, passByRef:Boolean = false): String = {
+    val pbr = if(passByRef){ "&" } else { "" }
+    s"${cType(f.t)} $pbr${f.name}"
+  }
 
-
-  def headers: String = 
+  def headers(extras: Seq[String] = Seq()): String = 
   {
     (
       includes.map { i => s"#include <${i}>" }++
-      definition.includes.map { i => "#include \""+i+"\"" }
+      (definition.includes++extras).map { i => "#include \""+i+"\"" }
     ).mkString("\n")
   }
 
@@ -72,21 +74,39 @@ class Render(val definition: Definition) {
 
   def nodes: String =
   {
-    val renderedNodes = definition.nodeTypes.map { NodeTemplate(_, this) }
+    val renderedNodes = definition.nodes.map { NodeTemplate(_, this) }
 
     return renderedNodes.mkString("\n")
   }
 
-  def header(): String =
-  {
-    return Seq[String](
-      headers,
-      HeaderTemplate(this).toString,
-      structTypedefs,
-      nodes
-    ).filter( _.length > 0 )
-     .mkString("\n\n/*****************************/\n\n")
+  def renderSections(sections:(String,String)*): String = {
+    sections
+      .filter( _._2.length > 0 )
+      .map { case (section, content) => 
+        "////////////////////////////////////////////////////\n"+
+        "///////////////     \n"+
+        "///////////////     "+section+"\n"+
+        "///////////////     \n"+
+        "////////////////////////////////////////////////////\n\n"+
+        content
+      }
+      .mkString("\n\n")
   }
+
+  def header(): String =
+    renderSections(
+      "Headers"          -> headers(),
+      "Structures"       -> structTypedefs,
+      "Base Node Type"   -> NodeBaseTemplate(this).toString,
+      "Node Definitions" -> nodes,
+      "JITD Root"        -> JITDHeaderTemplate(definition, this).toString
+    )
+
+  def body(headerFile: String): String =
+    renderSections(
+      "Headers"          -> ("#include \""+headerFile+"\""),
+      "JITD Root"        -> JITDBodyTemplate(definition, this).toString
+    )
 
 }
 

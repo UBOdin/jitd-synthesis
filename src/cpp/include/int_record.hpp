@@ -1,4 +1,5 @@
 
+#include <algorithm>
 
 typedef long int Key;
 typedef void *Value;
@@ -43,3 +44,13 @@ inline bool operator <(const Key &a, const Record &b) {
 
 std::ostream &operator<<(std::ostream &o, const Record &r);
 
+inline bool record_scan(std::vector<Record> data, Key key, Record &result){
+  auto it = std::find(std::begin(data), std::end(data), key);
+  if(it == std::end(data)){ return false; }
+  else { result = *it; return true; }
+}
+inline bool record_binary_search(std::vector<Record> data, Key key, Record &result){
+  auto it = std::lower_bound(std::begin(data), std::end(data), key);
+  if(it == std::end(data) || !(*it == key)){ return false; }
+  else { result = *it; return true; }
+}

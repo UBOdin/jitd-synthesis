@@ -9,6 +9,11 @@ object Compile {
 
   def apply(render: Render, main: String = "src/cpp/source/compile_test.cpp"): String =
   {
+    val bodyFile = new File("target/jitd_test.cpp")
+    val body = new FileWriter(bodyFile)
+    body.write(render.body("jitd_test.hpp"))
+    body.close()
+
     val headerFile = new File("target/jitd_test.hpp")//File.createTempFile("jitd-test-",".cpp");
     val header = new FileWriter(headerFile)
     header.write(render.header())
@@ -27,7 +32,7 @@ object Compile {
       "-o", "jitd_test",
       "-I", "src/cpp/include",
       "-I", "target",
-      main
+      bodyFile.toString, main
     )
 
     if((command ! logger) == 0) {
