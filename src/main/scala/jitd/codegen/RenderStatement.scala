@@ -14,6 +14,12 @@ class RenderStatement(
     val recur = (nested:Statement) => apply(nested, indent+"  ")
 
     target match {
+      case IfThenElse(condition, ifTrue, ifFalse:IfThenElse) => {
+          indent+"if("+renderExpression(condition)+")\n"+
+            recur(ifTrue)+
+          indent+"else\n"+
+            apply(ifFalse, indent)
+        }
       case IfThenElse(condition, ifTrue, ifFalse) => {
           indent+"if("+renderExpression(condition)+")\n"+
             recur(ifTrue)+

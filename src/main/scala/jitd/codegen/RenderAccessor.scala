@@ -1,6 +1,7 @@
 package jitd.codegen
 
 import jitd.spec._
+import jitd.rewrite.Inline
 
 object RenderAccessor
 {
@@ -30,12 +31,13 @@ object RenderAccessor
     def render = new RenderStatement(ctx, renderDelegate)
     "\n"+accessor.lookups.map { case (nodeName, statement) => {
       val node = ctx.definition.nodesByName(nodeName)
+      val fieldMap = node.fields.map { f => f.name -> StructSubscript(Var("(*jitd_node_real)"), f.name) }.toMap
       s"    /////////////////// $nodeName Node ///////////////////\n"+
       s"    if(jitd_node->type == ${node.enumName}){\n"+
       s"      ${node.renderName} *jitd_node_real = (${node.renderName} *)jitd_node;\n"+
-              render(statement, "      ")+
+              render(Inline(statement, fieldMap), "      ")+
        "    }\n"
-    }}.mkString("\n")
+    }}.mkString("    else\n")
   }
 
 }

@@ -53,12 +53,10 @@ object KeyValueJITD {
         Return(Delegate(Var("rhs")))
       ),
       ////////
-      BTreeNode.name -> Seq(
-        IfThenElse(
-          Var("target").lt(Var("sep")),
-          Return(Delegate(Var("lhs"))),
-          Return(Delegate(Var("rhs")))
-        )
+      BTreeNode.name -> IfThenElse(
+        Var("target").lt(Var("sep")),
+        Return(Delegate(Var("lhs"))),
+        Return(Delegate(Var("rhs")))
       )
     )
   )

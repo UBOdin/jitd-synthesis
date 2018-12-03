@@ -12,7 +12,10 @@ class RenderExpression(renderDelegate: (Expression, RenderExpression) => String)
       case Var(n) => n
       case FunctionCall(name, args) => s"${name}(${args.map{apply(_)}.mkString(", ")})"
       case Delegate(to) => renderDelegate(to, this)
-      case Cmp(op, lhs, rhs) => s"(${apply(lhs)}) $op (${apply(rhs)})"
+      case Cmp(op, lhs, rhs) => s"(${apply(lhs)}) ${CmpTypes.opString(op)} (${apply(rhs)})"
+      case StructSubscript(target, field) => s"${apply(target)}.${field}"
+      case ArraySubscript(target, index) => s"${apply(target)}[${index}]"
+      case FunctionalIfThenElse(condition, thenCase, elseCase) => s"(${apply(condition)}) ? (${apply(thenCase)}) : (${elseCase})"
     }
   }
 }

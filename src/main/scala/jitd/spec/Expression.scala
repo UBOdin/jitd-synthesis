@@ -4,6 +4,18 @@ package jitd.spec
 object CmpTypes extends Enumeration {
   type T = Value
   val Eq, Neq, Lt, Lte, Gt, Gte = Value
+
+  def opString(op:T):String = 
+  {
+    op match {
+      case Eq  => "=="
+      case Neq => "!="
+      case Lt  => "<"
+      case Lte => "<="
+      case Gt  => ">"
+      case Gte => ">="
+    }
+  }
 }
 
 sealed abstract class Expression

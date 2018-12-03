@@ -45,7 +45,7 @@ case class Assign(name:String, v:Expression) extends Statement
 case class Block(statements:Seq[Statement]) extends Statement
 {
   def disasssembleStatement: Seq[Statement] = statements
-  def reassembleStatement(in: Seq[Statement]): Statement = Block(statements)
+  def reassembleStatement(in: Seq[Statement]): Statement = Block(in)
   def disasssembleExpression: Seq[Expression] = Seq()
   def reassembleExpression(in: Seq[Expression]): Statement = this
 }

@@ -3,10 +3,7 @@
 @(definition: Definition, ctx:Render)
 
 @for( (name, accessor) <- definition.accessors ) {
-  
   @{RenderAccessor.declaration("JITD::"+name, accessor, ctx)} {
     @{RenderAccessor.body(name, accessor, ctx)}
   }
-
-
 }
