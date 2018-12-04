@@ -10,7 +10,8 @@ class Render(val definition: Definition) {
   def recordType = definition.recordType
   def includes = Seq(
     "iostream",
-    "vector"
+    "vector",
+    "memory"
   )
 
   val required_structs = mutable.ListBuffer[Seq[Field]]()
@@ -43,7 +44,7 @@ class Render(val definition: Definition) {
       case TFloat()        => "double"
       case TBool()         => "boolean"
       case TKey()          => keyType
-      case TNode()         => "JITDNode *"
+      case TNode()         => "std::shared_ptr<JITDNode>"
       case TRecord()       => recordType
       case TStruct(fields) => structName(fields)
       case TArray(nested)  => bufferName(nested)

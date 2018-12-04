@@ -7,10 +7,17 @@ class JITD {
   JITD(JITDNode *root) : root(root) {}
 
   @for( (name, accessor) <- definition.accessors ) {
+    @{RenderAccessor.declaration( name, accessor, ctx, true )} {
+      return @RenderAccessor.renderCall( name, accessor, ctx, "root" );
+    }
+  }
+
+
+  private:
+  @for( (name, accessor) <- definition.accessors ) {
     @{RenderAccessor.declaration( name, accessor, ctx )};
   }
 
-  private:
-    JITDNode *root;
+    std::shared_ptr<JITDNode> root;
 
 };
