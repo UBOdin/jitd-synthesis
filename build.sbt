@@ -17,6 +17,7 @@ fork := true
 resolvers += "MimirDB" at "http://maven.mimirdb.info/"
 resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)
 
+watchSources ++= Seq((baseDirectory in ThisBuild).value / "src/main/twirl")
 
 libraryDependencies ++= Seq(
   ////////////////////// Command-Line Interface Utilities //////////////////////

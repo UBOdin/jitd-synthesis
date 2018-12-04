@@ -10,11 +10,14 @@ import jitd.example.KeyValueJITD
 
 class KVTypecheckSpec extends Specification {
 
-  val typechecker = new Typechecker(CppStdLib.functions++KeyValueJITD.functions)
+  val accessorTypechecker = 
+    new Typechecker(CppStdLib.functions++KeyValueJITD.functions++
+      Map(Accessor.delegate)
+    )
 
   def check(a:Accessor, n:Node)
   { 
-    typechecker.check(a.lookups(n.name), a.scope ++ n.scope, TNode(), TBool())
+    accessorTypechecker.check(a.lookups(n.name), a.scope ++ n.scope, TBool())
   }
 
   sequential 

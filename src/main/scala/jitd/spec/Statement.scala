@@ -56,6 +56,13 @@ case class ForEach(loopvar:String, over:Expression, body:Statement) extends Stat
   def disasssembleExpression: Seq[Expression] = Seq(over)
   def reassembleExpression(in: Seq[Expression]): Statement = ForEach(loopvar, in(0), body)
 }
+case class Void(v:Expression) extends Statement
+{
+  def disasssembleStatement: Seq[Statement] = Seq()
+  def reassembleStatement(in: Seq[Statement]): Statement = this
+  def disasssembleExpression: Seq[Expression] = Seq(v)
+  def reassembleExpression(in: Seq[Expression]): Statement = Void(in(0))
+}
 case class Return(v:Expression) extends Statement
 {
   def disasssembleStatement: Seq[Statement] = Seq()

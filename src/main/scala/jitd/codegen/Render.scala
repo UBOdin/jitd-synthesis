@@ -11,8 +11,12 @@ class Render(val definition: Definition) {
   def includes = Seq(
     "iostream",
     "vector",
-    "memory"
+    "memory",
+    "algorithm"
   )
+
+  def statement = new RenderStatement(this)
+  def expression = statement.renderExpression
 
   val required_structs = mutable.ListBuffer[Seq[Field]]()
 
@@ -57,14 +61,6 @@ class Render(val definition: Definition) {
     s"${cType(f.t)} $pbr${f.name}"
   }
 
-  def headers(extras: Seq[String] = Seq()): String = 
-  {
-    (
-      includes.map { i => s"#include <${i}>" }++
-      (definition.includes++extras).map { i => "#include \""+i+"\"" }
-    ).mkString("\n")
-  }
-
   def structTypedefs: String = 
   {
     required_structs.zipWithIndex.map {
@@ -73,41 +69,11 @@ class Render(val definition: Definition) {
     }.mkString("\n")
   }
 
-  def nodes: String =
-  {
-    val renderedNodes = definition.nodes.map { NodeTemplate(_, this) }
-
-    return renderedNodes.mkString("\n")
-  }
-
-  def renderSections(sections:(String,String)*): String = {
-    sections
-      .filter( _._2.length > 0 )
-      .map { case (section, content) => 
-        "////////////////////////////////////////////////////\n"+
-        "///////////////     \n"+
-        "///////////////     "+section+"\n"+
-        "///////////////     \n"+
-        "////////////////////////////////////////////////////\n\n"+
-        content
-      }
-      .mkString("\n\n")
-  }
-
   def header(): String =
-    renderSections(
-      "Headers"          -> headers(),
-      "Structures"       -> structTypedefs,
-      "Base Node Type"   -> NodeBaseTemplate(this).toString,
-      "Node Definitions" -> nodes,
-      "JITD Root"        -> JITDHeaderTemplate(definition, this).toString
-    )
+    JITDHeader(this).toString
 
   def body(headerFile: String): String =
-    renderSections(
-      "Headers"          -> ("#include \""+headerFile+"\""),
-      "JITD Root"        -> JITDBodyTemplate(definition, this).toString
-    )
+    JITDBody(this, headerFile).toString
 
 }
 

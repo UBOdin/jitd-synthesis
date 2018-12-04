@@ -1,0 +1,77 @@
+@import jitd.codegen._
+@import jitd.spec._
+@(ctx:Render)
+
+///////////////////// Headers ///////////////////// 
+
+@for(include <- ctx.includes) { 
+#include <@include>
+}
+@for(include <- ctx.definition.includes) { 
+#include "@include"
+}
+
+///////////////////// Structures ///////////////////// 
+
+@ctx.structTypedefs
+
+///////////////////// Base Node Meta ///////////////////// 
+
+typedef enum { 
+  @for(node <- ctx.definition.nodes) {
+    @node.enumName, 
+  }
+} JITDNodeType;
+
+class JITDNode {
+  public: 
+  JITDNode(JITDNodeType type) : type(type) {}
+
+  JITDNodeType type;
+};
+
+///////////////////// Node Type Definitions ///////////////////// 
+
+@for(node <- ctx.definition.nodes){
+class @{node.renderName} : public JITDNode { 
+  public:
+  @{node.renderName}( @{ node.fields.map { ctx.fieldDefn(_) }.mkString(", " )} ) : 
+    JITDNode(@{node.enumName})
+    @for(field <- node.fields){,
+      @{field.name}(@{field.name})
+    }
+  {}
+
+  public: @for(field <- node.fields){ 
+    @{ctx.fieldDefn(field)}; 
+  }
+};
+}
+
+///////////////////// Transform Definitions ///////////////////// 
+
+@for(transform <- ctx.definition.transforms){
+  void @{transform.name}(std::shared_ptr<JITDNode> &target);
+}
+
+///////////////////// JITD Definition ///////////////////// 
+
+class JITD {
+
+  JITD(JITDNode *root) : root(root) {}
+
+  @for( accessor <- ctx.definition.accessors ) {
+    @{RenderAccessor.declaration( accessor, ctx, root = true )} {
+      return @RenderAccessor.renderCall( accessor, ctx, "root" );
+    }
+  }
+
+
+  private:
+  @for( accessor <- ctx.definition.accessors ) {
+    @{RenderAccessor.declaration( accessor, ctx )};
+  }
+
+    std::shared_ptr<JITDNode> root;
+
+};

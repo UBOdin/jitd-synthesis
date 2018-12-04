@@ -82,8 +82,3 @@ case class FunctionCall(name:String, args:Seq[Expression]) extends Expression
   def disassemble = args
   def reassemble(in: Seq[Expression]): Expression = FunctionCall(name, in)
 }
-case class Delegate(to:Expression) extends Expression
-{
-  def disassemble = Seq[Expression](to)
-  def reassemble(in: Seq[Expression]): Expression = Delegate(in(0))
-}

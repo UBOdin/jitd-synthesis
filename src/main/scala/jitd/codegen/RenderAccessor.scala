@@ -6,7 +6,7 @@ import jitd.rewrite.Inline
 object RenderAccessor
 {
 
-  def declaration(name:String, accessor:Accessor, ctx:Render, root: Boolean = false): String =
+  def declaration(accessor:Accessor, ctx:Render, prefix: String = "", root: Boolean = false): String =
   {
     val fields = (
       (if(root){ Seq[String]() } else {
@@ -17,25 +17,25 @@ object RenderAccessor
       accessor.args.map { ctx.fieldDefn(_) } ++ 
       accessor.ret.map  { ctx.fieldDefn(_, passByRef = true) }
     )
-    s"bool $name(${fields.mkString(", ")})"
+    s"bool ${prefix}${accessor.name}(${fields.mkString(", ")})"
   }
 
-  def renderCall(name: String, accessor: Accessor, ctx: Render, target: String): String = 
+  def renderCall(accessor: Accessor, ctx: Render, target: String): String = 
   {
     val args = (
       Seq(target)++
       accessor.args.map { _.name }++
       accessor.ret.map { _.name }
     )
-    s"${name}(${args.mkString(", ")})"    
+    s"${accessor.name}(${args.mkString(", ")})"    
   }
 
-  def body(name: String, accessor: Accessor, ctx:Render): String = 
+  def body(accessor: Accessor, ctx:Render): String = 
   {
-    def renderDelegate = (to: Expression, renderExpression: RenderExpression) => { 
-      renderCall(name, accessor, ctx, renderExpression(to))
+    def renderDelegate = (to: Seq[Expression], renderExpression: RenderExpression) => { 
+      renderCall( accessor, ctx, renderExpression(to(0)))
     }
-    def render = new RenderStatement(ctx, renderDelegate)
+    def render = new RenderStatement(ctx, Map("delegate" -> renderDelegate))
     s"\n    switch(jitd_node->type){\n"+
     accessor.lookups.map { case (nodeName, statement) => {
       val node = ctx.definition.nodesByName(nodeName)

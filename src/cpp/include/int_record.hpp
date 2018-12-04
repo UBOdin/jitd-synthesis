@@ -54,3 +54,7 @@ inline bool record_binary_search(const std::vector<Record> &data, Key key, Recor
   if(it == std::end(data) || !(*it == key)){ return false; }
   else { result = *it; return true; }
 }
+
+inline void append(std::vector<Record> &to, std::vector<Record> &from){
+  to.insert(std::end(to), std::begin(from), std::end(from));
+}

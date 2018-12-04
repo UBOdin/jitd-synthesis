@@ -4,10 +4,10 @@ import jitd.spec._
 
 class RenderStatement(
   ctx: Render, 
-  renderDelegate: (Expression, RenderExpression) => String
+  renderFunction: Map[String, (Seq[Expression], RenderExpression) => String] = Map()
 ){
 
-  def renderExpression = new RenderExpression(renderDelegate)
+  def renderExpression = new RenderExpression(renderFunction)
 
   def apply(target: Statement, indent:String = ""): String = 
   {
@@ -31,6 +31,9 @@ class RenderStatement(
         }
       case Declare(name, None, v) => {
           indent+"auto name"+" = "+renderExpression(v)+";\n"
+        }
+      case Void(v) => {
+          indent + renderExpression(v)+";\n"
         }
       case Assign(name, v) => {
           indent+name+" = "+renderExpression(v)+";\n"

@@ -2,7 +2,8 @@ package jitd.spec;
 
 case class Definition(
   nodes:Seq[Node],
-  accessors:Map[String,Accessor],
+  accessors:Seq[Accessor],
+  transforms:Seq[Transform],
   keyType: String = "int",
   recordType: String = "Record",
   includes:Seq[String] = Seq()

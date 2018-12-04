@@ -36,6 +36,7 @@ object KeyValueJITD {
   def End(t:Expression=Var("data")) = FunctionCall("std::end", Seq(t))
 
   val GetByKey = new Accessor(
+    "get",
     Seq( "target" -> TKey() ),
     Seq( "result" -> TRecord() ),
     Map(
@@ -48,17 +49,71 @@ object KeyValueJITD {
       ),
       ////////
       ConcatNode.name -> IfThenElse(
-        Delegate(Var("lhs")),
+        FunctionCall("delegate", Seq(Var("lhs"))),
         Return(BoolConstant(true)),
-        Return(Delegate(Var("rhs")))
+        Return(FunctionCall("delegate", Seq(Var("rhs"))))
       ),
       ////////
       BTreeNode.name -> IfThenElse(
         Var("target").lt(Var("sep")),
-        Return(Delegate(Var("lhs"))),
-        Return(Delegate(Var("rhs")))
+        Return(FunctionCall("delegate", Seq(Var("lhs")))),
+        Return(FunctionCall("delegate", Seq(Var("rhs"))))
       )
     )
+  )
+
+  //////////////////////////////////////////////
+
+  val SortArray = Transform(
+    "SortArray",
+    MatchNode(ArrayNode.name, Seq(
+      MatchAny(Some("data"))
+    )),
+    MatchNode(SortedArrayNode.name, Seq(
+      MatchAny(Some("sorted"))
+    )),
+    Map("sorted" -> Var("data")),
+    Void(FunctionCall("std::sort", Seq(Begin(Var("sorted")), End(Var("sorted")))))
+  )
+
+  val MergeBTrees = Transform(
+    "MergeSortedBTrees",
+    MatchNode(BTreeNode.name, Seq(
+      MatchAny(),
+      MatchNode(SortedArrayNode.name, Seq(
+        MatchAny(Some("lhs"))
+      )),
+      MatchNode(SortedArrayNode.name, Seq(
+        MatchAny(Some("rhs"))
+      ))
+    )),
+    MatchNode(SortedArrayNode.name, Seq(
+      MatchAny(Some("merged"))
+    )), 
+    Map("merged" -> Var("lhs")),
+    Void(FunctionCall("append", Seq(Var("merged"), Var("rhs"))))
+  )
+
+  val PivotLeft = Transform(
+    "PivotLeft",
+    MatchNode(BTreeNode.name, Seq(
+      MatchAny(Some("sep1")),
+      MatchAny(Some("a")),
+      MatchNode(BTreeNode.name, Seq(
+        MatchAny(Some("sep2")),
+        MatchAny(Some("b")),
+        MatchAny(Some("c"))
+      ))
+    )),
+    MatchNode(BTreeNode.name, Seq(
+      MatchAny(Some("sep2")),
+      MatchNode(BTreeNode.name, Seq(
+        MatchAny(Some("sep1")),
+        MatchAny(Some("a")),
+        MatchAny(Some("b"))
+      )),
+      MatchAny(Some("c"))
+    )) 
   )
 
   //////////////////////////////////////////////
@@ -71,8 +126,13 @@ object KeyValueJITD {
       ConcatNode,
       BTreeNode
     ),
-    accessors = Map(
-      "get" -> GetByKey
+    accessors = Seq(
+      GetByKey
+    ),
+    transforms = Seq(
+      SortArray,
+      MergeBTrees,
+      PivotLeft
     ),
     includes = Seq("int_record.hpp")
   )

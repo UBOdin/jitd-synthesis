@@ -25,10 +25,10 @@ class Typechecker(functions: Map[String, FunctionDefinition]) {
     }
   }
   
-  def typeOf(e: Expression, scope: Map[String, Type], delegateType: Type, delegateReturn: Type): Type = 
+  def typeOf(e: Expression, scope: Map[String, Type]): Type = 
   {
     val error = (msg:String) => throw new TypeError(msg, e, scope)
-    val recur = (r:Expression) => typeOf(r, scope, delegateType, delegateReturn)
+    val recur = (r:Expression) => typeOf(r, scope)
     e match {
       case c:Constant => c.t
       case ArraySubscript(arr, _) => {
@@ -72,20 +72,14 @@ class Typechecker(functions: Map[String, FunctionDefinition]) {
           case None => error("Variable not in scope")
         }
       }
-      case Delegate(expr) => {
-        if(recur(expr) != delegateType){
-          error(s"Incompatible Delegate Type (Found: ${recur(expr)}; Expected: $delegateType)")
-        }
-        delegateReturn
-      }
     }
   }
 
-  def check(stmt: Statement, scope: Map[String, Type], delegateType:Type, returnType:Type): Map[String, Type] =
+  def check(stmt: Statement, scope: Map[String, Type], returnType:Type): Map[String, Type] =
   {
-    val exprType = (e:Expression) => typeOf(e, scope, delegateType, returnType)
+    val exprType = (e:Expression) => typeOf(e, scope)
     val error = (e:Expression, msg:String) => throw new TypeError(msg, e, scope)
-    val recur = (rstmt: Statement, rscope: Map[String, Type]) => check(rstmt, rscope, delegateType, returnType)
+    val recur = (rstmt: Statement, rscope: Map[String, Type]) => check(rstmt, rscope, returnType)
     stmt match { 
       case Block(elems) => {
         elems.foldLeft(scope) { (currScope, currStmt) => 
