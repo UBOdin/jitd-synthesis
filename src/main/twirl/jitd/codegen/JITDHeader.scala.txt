@@ -4,9 +4,12 @@
 
 ///////////////////// Headers ///////////////////// 
 
-@for(include <- ctx.includes) { 
-#include <@include>
-}
+#include <iostream>
+#include <vector>
+#include <memory>
+#include <algorithm>
+#include <ios>
+
 @for(include <- ctx.definition.includes) { 
 #include "@include"
 }
@@ -75,3 +78,8 @@ class JITD {
     std::shared_ptr<JITDNode> root;
 
 };
+
+
+///////////////////// JITD Constructors ///////////////////// 
+
+std::shared_ptr<JITD> assemble_jitd(const std::basic_istream<char> &in);

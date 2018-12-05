@@ -7,7 +7,7 @@ import scala.collection.mutable.ListBuffer
 
 object Compile {
 
-  def apply(render: Render, main: String = "src/cpp/source/compile_test.cpp"): String =
+  def apply(render: Render, main: String = "src/main/cpp/source/compile_test.cpp"): String =
   {
     val bodyFile = new File("target/jitd_test.cpp")
     val body = new FileWriter(bodyFile)
@@ -30,7 +30,7 @@ object Compile {
     val command = Seq(
       "g++", 
       "-o", "jitd_test",
-      "-I", "src/cpp/include",
+      "-I", "src/main/cpp/include",
       "-I", "target",
       bodyFile.toString, main
     )

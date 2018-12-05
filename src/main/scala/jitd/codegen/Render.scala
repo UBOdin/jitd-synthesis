@@ -8,12 +8,6 @@ import jitd.codegen.txt._
 class Render(val definition: Definition) {
   def keyType = definition.keyType
   def recordType = definition.recordType
-  def includes = Seq(
-    "iostream",
-    "vector",
-    "memory",
-    "algorithm"
-  )
 
   def statement = new RenderStatement(this)
   def expression = statement.renderExpression

@@ -42,3 +42,8 @@
     @{RenderAccessor.body(accessor, ctx)}
   }
 }
+
+std::shared_ptr<JITD> assemble_jitd(const std::basic_istream<char> &in)
+{
+  
+}

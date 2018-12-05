@@ -112,6 +112,10 @@ class Typechecker(functions: Map[String, FunctionDefinition]) {
         }
         scope
       }
+      case Void(expr) => {
+        exprType(expr)
+        scope
+      }
       case ForEach(loopvar, expr, body) => {
         if(scope contains loopvar) {
           error(expr, "Overriding existing variable")

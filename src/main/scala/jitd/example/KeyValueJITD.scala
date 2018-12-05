@@ -17,7 +17,7 @@ object KeyValueJITD {
   val ArrayNode = Node("Array", Seq(
     "data" -> TArray(TRecord())
   ))
-  val SortedArrayNode = Node("Sorted", Seq(
+  val SortedArrayNode = Node("SortedArray", Seq(
     "data" -> TArray(TRecord())
   ))
   val ConcatNode = Node("Concat", Seq(
