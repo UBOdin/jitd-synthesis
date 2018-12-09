@@ -60,14 +60,16 @@ class @{node.renderName} : public JITDNode {
 ///////////////////// JITD Definition ///////////////////// 
 
 class JITD {
+  
+  public:
+    JITD(JITDNode *root) : root(root) {}
+    JITD(std::shared_ptr<JITDNode> root) : root(root) {}
 
-  JITD(JITDNode *root) : root(root) {}
-
-  @for( accessor <- ctx.definition.accessors ) {
-    @{RenderAccessor.declaration( accessor, ctx, root = true )} {
-      return @RenderAccessor.renderCall( accessor, ctx, "root" );
+    @for( accessor <- ctx.definition.accessors ) {
+      @{RenderAccessor.declaration( accessor, ctx, root = true )} {
+        return @RenderAccessor.renderCall( accessor, ctx, "root" );
+      }
     }
-  }
 
 
   private:
@@ -82,4 +84,4 @@ class JITD {
 
 ///////////////////// JITD Constructors ///////////////////// 
 
-std::shared_ptr<JITD> assemble_jitd(const std::basic_istream<char> &in);
+std::shared_ptr<JITD> assemble_jitd(std::istream &in);

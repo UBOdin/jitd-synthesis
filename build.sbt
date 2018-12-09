@@ -18,6 +18,7 @@ resolvers += "MimirDB" at "http://maven.mimirdb.info/"
 resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)
 
 watchSources ++= Seq((baseDirectory in ThisBuild).value / "src/main/twirl")
+watchSources ++= Seq((baseDirectory in ThisBuild).value / "src/main/cpp")
 
 libraryDependencies ++= Seq(
   ////////////////////// Command-Line Interface Utilities //////////////////////

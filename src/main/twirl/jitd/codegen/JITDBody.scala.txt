@@ -3,6 +3,8 @@
 @import jitd.rewrite._
 @(ctx:Render, headerFile:String)
 
+#include <stack>
+#include <sstream>
 #include "@headerFile"
 
 
@@ -43,7 +45,43 @@
   }
 }
 
-std::shared_ptr<JITD> assemble_jitd(const std::basic_istream<char> &in)
+std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 {
-  
+  std::string op, line;
+
+  std::stack<std::shared_ptr<JITDNode>> node_stack;
+  while(getline(in, line)){
+    std::basic_istringstream<char> toks(line);
+    toks >> op;
+
+    @for(node <- ctx.definition.nodes){
+      if(op == "@node.name"){
+        @for(field <- node.fields){
+
+          // Construct a @field.name
+          @ctx.cType(field.t) @field.name;
+          @{ field.t match {
+            
+            case TArray(TRecord()) => s"load_records(${field.name}, toks);"
+            
+            case TNode() => s"${field.name} = node_stack.top(); node_stack.pop();"
+
+            case TKey() => s"${field.name} = load_key(toks);"
+
+            case _ => "std::cout << \"Unsupported generator field type: "+field.t.toString+"\" << std::endl; exit(-1);"
+          }}
+        }
+
+        // Assemble everything into a @node.name
+        node_stack.emplace(new @{node.renderName}(@{node.fields.map { _.name }.mkString(", ")}));
+
+      } else 
+    }
+    if(op == "Return"){
+      return std::shared_ptr<JITD>(new JITD(node_stack.top()));
+    } else {
+      std::cout << "Invalid command '"<<op<<"'" << std::endl; 
+      exit(-1); 
+    }
+  }
 }

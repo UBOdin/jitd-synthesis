@@ -58,3 +58,43 @@ inline bool record_binary_search(const std::vector<Record> &data, Key key, Recor
 inline void append(std::vector<Record> &to, std::vector<Record> &from){
   to.insert(std::end(to), std::begin(from), std::end(from));
 }
+
+inline void build_buffer(std::vector<Record> &to, int count, int min, int max)
+{
+  int max_minus_min = max - min;
+
+  for(int i = 0; i < count; i++){
+    to[i].key = (rand() % max_minus_min)+min;
+    to[i].value = (Value)0xDEADBEEF;
+  }
+}
+
+inline void load_records(std::vector<Record> &to, std::istream &input)
+{
+  std::string op;
+  input >> op;
+  if(op == "random"){
+    int count, min, max;
+    input >> count >> min >> max;
+    build_buffer(to, count, min, max);
+  } else if(op == "explicit"){
+    Record r;
+    r.value = (Value)0xDEADBEEF;
+    while(!input.eof()){
+      input >> r.key;
+      to.push_back(r);
+    }
+  } else if(op == "sorted"){
+    int count, min, max;
+    input >> count >> min >> max;
+    build_buffer(to, count, min, max);
+    std::sort(std::begin(to), std::end(to));
+  }
+}
+
+inline Key load_key(std::istream &input)
+{
+  int ret;
+  input >> ret;
+  return ret;
+}
