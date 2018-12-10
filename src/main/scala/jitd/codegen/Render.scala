@@ -5,7 +5,7 @@ import scala.collection.mutable
 import jitd.spec._
 import jitd.codegen.txt._
 
-class Render(val definition: Definition) {
+case class Render(val definition: Definition, val debug:Boolean = false) {
   def keyType = definition.keyType
   def recordType = definition.recordType
 
@@ -40,7 +40,7 @@ class Render(val definition: Definition) {
     t match {
       case TInt()          => "int"
       case TFloat()        => "double"
-      case TBool()         => "boolean"
+      case TBool()         => "bool"
       case TKey()          => keyType
       case TNode()         => "std::shared_ptr<JITDNode>"
       case TRecord()       => recordType
@@ -53,6 +53,17 @@ class Render(val definition: Definition) {
   def fieldDefn(f:Field, passByRef:Boolean = false): String = {
     val pbr = if(passByRef){ "&" } else { "" }
     s"${cType(f.t)} $pbr${f.name}"
+  }
+
+  def printableValue(name:String, t:Type): String = 
+  {
+    t match { 
+      case TArray(_) => name + ".size() << \" elements\""
+      case TInt() | TFloat() | TBool() | TKey() | TRecord() => name
+      case TIterator() => ???
+      case TStruct(_) => ???
+      case TNode() => ???
+    }
   }
 
   def structTypedefs: String = 
@@ -69,9 +80,4 @@ class Render(val definition: Definition) {
   def body(headerFile: String): String =
     JITDBody(this, headerFile).toString
 
-}
-
-object Render 
-{
-  def apply(definition: Definition) = new Render(definition)
 }

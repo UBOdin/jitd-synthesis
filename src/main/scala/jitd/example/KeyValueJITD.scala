@@ -25,8 +25,8 @@ object KeyValueJITD {
     "rhs" -> TNode()
   ))
   val BTreeNode = Node("BTree", Seq(
-    "sep" -> TKey(),
     "lhs" -> TNode(),
+    "sep" -> TKey(),
     "rhs" -> TNode()
   ))
 
@@ -61,6 +61,48 @@ object KeyValueJITD {
       )
     )
   )
+  val Size = new Accessor(
+    "size",
+    Seq( ),
+    Seq( ),
+    Map(
+      ArrayNode.name -> Return( 
+        StructSubscript(Var("data"), "size()") 
+      ),
+      ////////
+      SortedArrayNode.name -> Return( 
+        StructSubscript(Var("data"), "size()") 
+      ),
+      ////////
+      ConcatNode.name -> Return(
+        Arith(ArithTypes.Add,
+          FunctionCall("delegate", Seq(Var("lhs"))),
+          FunctionCall("delegate", Seq(Var("rhs")))
+        )
+      ),
+      ////////
+      BTreeNode.name -> Return(
+        Arith(ArithTypes.Add,
+          FunctionCall("delegate", Seq(Var("lhs"))),
+          FunctionCall("delegate", Seq(Var("rhs")))
+        )
+      )
+    ),
+    returnType = TInt()
+  )
+
+  //////////////////////////////////////////////
+
+  val Insert = Mutator(
+    "insert",
+    Seq("data" -> TArray(TRecord())),
+    MatchNode(ConcatNode.name, Seq(
+      MatchAny(Some("root")),
+      MatchNode(ArrayNode.name, Seq(
+        MatchAny(Some("data"))
+      ))
+    ))
+  )
 
   //////////////////////////////////////////////
 
@@ -79,10 +121,10 @@ object KeyValueJITD {
   val MergeBTrees = Transform(
     "MergeSortedBTrees",
     MatchNode(BTreeNode.name, Seq(
-      MatchAny(),
       MatchNode(SortedArrayNode.name, Seq(
         MatchAny(Some("lhs"))
       )),
+      MatchAny(),
       MatchNode(SortedArrayNode.name, Seq(
         MatchAny(Some("rhs"))
       ))
@@ -97,24 +139,26 @@ object KeyValueJITD {
   val PivotLeft = Transform(
     "PivotLeft",
     MatchNode(BTreeNode.name, Seq(
-      MatchAny(Some("sep1")),
       MatchAny(Some("a")),
+      MatchAny(Some("sep1")),
       MatchNode(BTreeNode.name, Seq(
-        MatchAny(Some("sep2")),
         MatchAny(Some("b")),
+        MatchAny(Some("sep2")),
         MatchAny(Some("c"))
       ))
     )),
     MatchNode(BTreeNode.name, Seq(
-      MatchAny(Some("sep2")),
       MatchNode(BTreeNode.name, Seq(
-        MatchAny(Some("sep1")),
         MatchAny(Some("a")),
+        MatchAny(Some("sep1")),
         MatchAny(Some("b"))
       )),
+      MatchAny(Some("sep2")),
       MatchAny(Some("c"))
     )) 
   )
+
+  val PivotRight = PivotLeft.invertAs("PivotRight")
 
   //////////////////////////////////////////////
 
@@ -127,12 +171,17 @@ object KeyValueJITD {
       BTreeNode
     ),
     accessors = Seq(
-      GetByKey
+      GetByKey,
+      Size
+    ),
+    mutators = Seq(
+      Insert
     ),
     transforms = Seq(
       SortArray,
       MergeBTrees,
-      PivotLeft
+      PivotLeft,
+      PivotRight
     ),
     includes = Seq("int_record.hpp")
   )

@@ -54,6 +54,15 @@ class Typechecker(functions: Map[String, FunctionDefinition]) {
           error("Invalid Comparison")
         }
       }
+      case Arith(_, a, b) => {
+        (recur(a), recur(b)) match {
+          case (TInt(), TInt()) => return TInt()
+          case (TInt(), TFloat())
+             | (TFloat(), TInt())
+             | (TFloat(), TFloat()) => return TFloat()
+          case _ => error("Invalid Arithmetic")
+        }
+      }
       case FunctionCall(name, args) => {
         functions.getOrElse(name, {
           error("Undefined function")

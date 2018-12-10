@@ -44,12 +44,14 @@ inline bool operator <(const Key &a, const Record &b) {
 
 std::ostream &operator<<(std::ostream &o, const Record &r);
 
-inline bool record_scan(const std::vector<Record> &data, Key key, Record &result){
-  auto it = std::find(std::begin(data), std::end(data), key);
-  if(it == std::end(data)){ return false; }
-  else { result = *it; return true; }
+inline bool record_scan(const std::vector<Record> &data, const Key &key, Record &result){
+  auto last = std::end(data);
+  for(auto curr = std::begin(data); curr != last; ++curr){
+    if(*curr == key){ result = *curr; return true; }
+  }
+  return false;
 }
-inline bool record_binary_search(const std::vector<Record> &data, Key key, Record &result){
+inline bool record_binary_search(const std::vector<Record> &data, const Key &key, Record &result){
   auto it = std::lower_bound(std::begin(data), std::end(data), key);
   if(it == std::end(data) || !(*it == key)){ return false; }
   else { result = *it; return true; }
@@ -89,6 +91,9 @@ inline void load_records(std::vector<Record> &to, std::istream &input)
     input >> count >> min >> max;
     build_buffer(to, count, min, max);
     std::sort(std::begin(to), std::end(to));
+  } else {
+    std::cerr << "Invalid array build command: " << op << std::endl;
+    exit(-1);
   }
 }
 

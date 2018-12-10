@@ -18,6 +18,21 @@ object CmpTypes extends Enumeration {
   }
 }
 
+object ArithTypes extends Enumeration {
+  type T = Value
+  val Add, Sub, Mul, Div = Value
+
+  def opString(op:T):String = 
+  {
+    op match {
+      case Add => "+"
+      case Sub => "-"
+      case Mul => "*"
+      case Div => "/"
+    }
+  }
+}
+
 sealed abstract class Expression
 {
   def eq(other:Expression)  = Cmp(CmpTypes.Eq,  this, other)
@@ -61,6 +76,11 @@ case class Cmp(t: CmpTypes.T, lhs:Expression, rhs:Expression) extends Expression
 {
   def disassemble = Seq[Expression](lhs, rhs)
   def reassemble(in: Seq[Expression]): Expression = Cmp(t, in(0), in(1))
+}
+case class Arith(t: ArithTypes.T, lhs:Expression, rhs:Expression) extends Expression
+{
+  def disassemble = Seq[Expression](lhs, rhs)
+  def reassemble(in: Seq[Expression]): Expression = Arith(t, in(0), in(1))
 }
 case class FunctionalIfThenElse(condition:Expression, ifTrue:Expression, ifFalse:Expression) extends Expression
 {

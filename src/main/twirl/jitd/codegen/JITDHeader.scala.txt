@@ -14,6 +14,12 @@
 #include "@include"
 }
 
+@if(ctx.debug){
+  #define JITD_DEBUG(cmd) std::cerr << cmd;
+} else {
+  #define JITD_DEBUG(cmd)
+}
+
 ///////////////////// Structures ///////////////////// 
 
 @ctx.structTypedefs
@@ -30,6 +36,9 @@ class JITDNode {
   public: 
   JITDNode(JITDNodeType type) : type(type) {}
 
+  virtual void printDebug(const std::string &prefix) = 0;
+  void printDebug(){ this-> printDebug(std::string("  ")); }
+
   JITDNodeType type;
 };
 
@@ -44,6 +53,18 @@ class @{node.renderName} : public JITDNode {
       @{field.name}(@{field.name})
     }
   {}
+
+  virtual void printDebug(const std::string &prefix){ 
+    std::cout << prefix << "@{node.name}[ "
+      @{ node.fields.filter { _.t != TNode() }.map { f => "<< " + ctx.printableValue("this->"+f.name, f.t) }.mkString(" << \", \"") };
+      @{  val children = node.fields.filter { _.t == TNode() }
+          if(children.size > 0){
+            "std::cout << std::endl;\n"+children.map { f => "this->"+f.name+"->printDebug(prefix+string(\"  \"));\n"}
+            "std::cout << prefix;"
+          } else { "" }
+      } 
+      std::cout << " ]" << std::endl;
+  }
 
   public: @for(field <- node.fields){ 
     @{ctx.fieldDefn(field)}; 
@@ -71,11 +92,18 @@ class JITD {
       }
     }
 
+    @for( mutator <- ctx.definition.mutators ) {
+      @{RenderMutator.declaration( mutator, ctx )};
+    }
+
+    void printDebug() {
+      this->root->printDebug();
+    }
 
   private:
-  @for( accessor <- ctx.definition.accessors ) {
-    @{RenderAccessor.declaration( accessor, ctx )};
-  }
+    @for( accessor <- ctx.definition.accessors ) {
+      @{RenderAccessor.declaration( accessor, ctx )};
+    }
 
     std::shared_ptr<JITDNode> root;
 

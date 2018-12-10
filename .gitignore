@@ -2,4 +2,5 @@
 /project/target
 /target
 /jitd_test
+/test_accessor
 /jitd.cpp

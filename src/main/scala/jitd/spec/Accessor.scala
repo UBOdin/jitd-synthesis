@@ -6,7 +6,8 @@ class Accessor(
   val name:String,
   val args:Seq[Field],
   val ret:Seq[Field],
-  val lookups: Map[String, Statement]
+  val lookups: Map[String, Statement],
+  val returnType:Type = TBool()
 ) {
 
   def scope = (args ++ ret).map { f => f.name -> f.t }.toMap

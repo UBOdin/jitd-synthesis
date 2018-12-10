@@ -45,6 +45,21 @@
   }
 }
 
+///////////////////// Mutator Definitions ///////////////////// 
+
+@for( mutator <- ctx.definition.mutators ) {
+  @{RenderMutator.declaration(mutator, ctx, prefix = "JITD::")} {
+    @{RenderPattern.build(ctx, mutator.rewrite, "new_root", 
+        mutator.initializers ++ Map(
+          "root" -> StructSubscript(Var("(*this)"), "root")
+        ) ++ mutator.args.map { f => f.name -> Var(f.name) }.toMap
+      )}
+  }
+}
+
+
+///////////////////// Assemble JITD for Testing ///////////////////// 
+
 std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 {
   std::string op, line;
@@ -80,7 +95,7 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
     if(op == "Return"){
       return std::shared_ptr<JITD>(new JITD(node_stack.top()));
     } else {
-      std::cout << "Invalid command '"<<op<<"'" << std::endl; 
+      std::cout << "Invalid assembly instruction '"<<op<<"'" << std::endl; 
       exit(-1); 
     }
   }

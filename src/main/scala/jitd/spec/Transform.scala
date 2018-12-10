@@ -15,4 +15,6 @@ case class Transform(
     initializers.map { case (v, r) => v -> Inline(r, varMapping) } ++ varMapping
   }
 
+  def invertAs(newName: String): Transform =
+    Transform(newName, to, from, initializers, body)
 }
