@@ -71,7 +71,7 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 
     @for(node <- ctx.definition.nodes){
       if(op == "@node.name"){
-        @for(field <- node.fields){
+        @for(field <- node.fields.reverse){
 
           // Construct a @field.name
           @ctx.cType(field.t) @field.name;
