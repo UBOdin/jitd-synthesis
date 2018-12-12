@@ -1,6 +1,7 @@
 package jitd.codegen
 
 import jitd.spec._
+import jitd.rewrite.Inline
 
 object RenderPattern
 {
@@ -45,36 +46,62 @@ object RenderPattern
       case MatchAny(name) => name.map { _ -> Var(s"(${target})") }.toMap
     }    
   }
+  def varMapping(ctx:Render, pattern:ConstructorPattern, target:String): Map[String,Var] =
+    varMapping(ctx, pattern.toMatchPattern, target)
 
-  def build(ctx:Render, pattern:MatchPattern, target:String, initializers:Map[String,Expression]): String =
+  def buildField(ctx:Render, pattern:ConstructorPattern, field:Field, target:String, varMappings: Map[String, Expression]): (String, Seq[String], Seq[String]) =
   {
     pattern match {
-      case MatchNode(nodeName, fields, name) => {
-        val node = ctx.definition.nodesByName(nodeName)
-        val targetReal = target+"_real"
-
-        val (init, body) = fields.zip(node.fields).map {
-          case (fieldPattern:MatchNode, fieldDefinition) =>
-            (
-              s"${targetReal}_${fieldDefinition.name}",
-              Some(build(ctx, fieldPattern, s"${targetReal}_${fieldDefinition.name}", initializers))
-            )
-          case (MatchAny(Some(name)), fieldDefinition) =>
-            (
-              ctx.expression(initializers(name)),
-              None
-            )
-          case _ => throw new Exception("Erroneous Pattern Build")
-        }.unzip
-
-        body.flatten.mkString+
-        s"${node.renderName} *${targetReal} = new ${node.renderName}(${init.mkString(", ")});\n"+
-        s"std::shared_ptr<JITDNode> ${target}(${targetReal});\n"
-      }
-
-      // MatchAny should never happen.  The match root needs to be a node, 
-      // and the MatchNode case only recurs on MatchNodes
-      case MatchAny(name) => throw new Exception("Erroneous Pattern Build")
+      case constructor: ConstructNode =>
+        ( target,
+          Seq(build(ctx, constructor, target, varMappings)),
+          Seq()
+        )
+      case ConstructExpression(expression, _) => 
+        ( ctx.expression(Inline(expression, varMappings)),
+          Seq(), Seq()
+        )
+      case BeforeConstruct(newBefore, child) => {
+          val (fieldInitializer, oldBefore, oldAfter) = buildField(ctx, child, field, target, varMappings)
+          ( fieldInitializer, 
+            Seq(ctx.statement(Inline(newBefore, varMappings))) ++ oldBefore,
+            oldAfter
+          )
+        }
+      case AfterConstruct(child, newAfter) => {
+          val (fieldInitializer, oldBefore, oldAfter) = buildField(ctx, child, field, target, varMappings)
+          ( fieldInitializer, 
+            oldBefore,
+            oldAfter ++ Seq(ctx.statement(Inline(newAfter, varMappings)))
+          )
+        }
     }
   }
+
+  def build(ctx:Render, pattern:ConstructNode, target:String, varMappings: Map[String, Expression]): String =
+  {
+    val node = ctx.definition.nodesByName(pattern.node)
+    val targetReal = target+"_real"
+
+    val (fieldInitializers, before, after) = 
+      pattern.fields.zip(node.fields)
+            .map { case (fieldPattern, fieldDefinition) => 
+                      buildField(ctx, fieldPattern, fieldDefinition, s"${targetReal}_${fieldDefinition.name}", varMappings) }
+            .unzip3
+
+    before.flatten.mkString+
+    s"${node.renderName} *${targetReal} = new ${node.renderName}(${fieldInitializers.mkString(", ")});\n"+
+    s"std::shared_ptr<JITDNode> ${target}(${targetReal});\n"+
+    after.flatten.mkString
+  }
+
+  def build(ctx:Render, pattern:ConstructNode, target:String): String =
+    build(ctx, pattern, target, varMapping(ctx, pattern, target))
+
+
+  def buildWithFromPattern(ctx:Render, pattern:ConstructNode, target:String, fromPattern: MatchNode, fromName: String): String =
+    build(ctx, pattern, target, varMapping(ctx, pattern, target) ++ varMapping(ctx, fromPattern, fromName))
+
+  def buildWithMappings(ctx:Render, pattern:ConstructNode, target:String, varMappings: Map[String, Expression]) =
+    build(ctx, pattern, target, varMapping(ctx, pattern, target) ++ varMappings)
 }

@@ -40,6 +40,7 @@ class JITDNode {
   void printDebug(){ this-> printDebug(std::string("  ")); }
 
   JITDNodeType type;
+  std::shared_ptr<JITDNode> *parent;
 };
 
 ///////////////////// Node Type Definitions ///////////////////// 

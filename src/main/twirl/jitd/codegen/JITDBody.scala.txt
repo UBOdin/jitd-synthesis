@@ -20,17 +20,7 @@
     @{RenderPattern.test(ctx, transform.from, "from", "return;")}
 
     // Build the new root
-    @{RenderPattern.build(ctx, transform.to, "to", 
-      transform.unifiedInitializers(RenderPattern.varMapping(ctx, transform.from, "from")))}
-
-    // (if relevant) any follow-up code
-    @{ctx.statement(
-        Inline(
-          transform.body, 
-          RenderPattern.varMapping(ctx, transform.from, "from")++
-          RenderPattern.varMapping(ctx, transform.to, "to")
-        )
-      )}
+    @{RenderPattern.buildWithFromPattern(ctx, transform.to, "to", transform.from, "from")}
 
     // and link the rewritten node back into the tree
     target = to;
@@ -49,8 +39,7 @@
 
 @for( mutator <- ctx.definition.mutators ) {
   @{RenderMutator.declaration(mutator, ctx, prefix = "JITD::")} {
-    @{RenderPattern.build(ctx, mutator.rewrite, "new_root", 
-        mutator.initializers ++ Map(
+    @{RenderPattern.build(ctx, mutator.rewrite, "new_root", Map(
           "root" -> StructSubscript(Var("(*this)"), "root")
         ) ++ mutator.args.map { f => f.name -> Var(f.name) }.toMap
       )}

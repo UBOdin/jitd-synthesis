@@ -34,6 +34,8 @@ object KeyValueJITD {
 
   def Begin(t:Expression=Var("data")) = FunctionCall("std::begin", Seq(t))
   def End(t:Expression=Var("data")) = FunctionCall("std::end", Seq(t))
+  def ArraySize(t:Expression=Var("data")) = StructSubscript(Var("data"), "size()")
+  def BlankArrayOfSize(t:Expression) = FunctionCall("std::vector", Seq(t))
 
   val GetByKey = new Accessor(
     "get",
@@ -66,13 +68,9 @@ object KeyValueJITD {
     Seq( ),
     Seq( ),
     Map(
-      ArrayNode.name -> Return( 
-        StructSubscript(Var("data"), "size()") 
-      ),
+      ArrayNode.name -> Return( ArraySize(Var("data")) ),
       ////////
-      SortedArrayNode.name -> Return( 
-        StructSubscript(Var("data"), "size()") 
-      ),
+      SortedArrayNode.name -> Return( ArraySize(Var("data")) ),
       ////////
       ConcatNode.name -> Return(
         Arith(ArithTypes.Add,
@@ -96,10 +94,10 @@ object KeyValueJITD {
   val Insert = Mutator(
     "insert",
     Seq("data" -> TArray(TRecord())),
-    MatchNode(ConcatNode.name, Seq(
-      MatchAny(Some("root")),
-      MatchNode(ArrayNode.name, Seq(
-        MatchAny(Some("data"))
+    ConstructNode(ConcatNode.name, Seq(
+      ConstructExpression(Var("root")),
+      ConstructNode(ArrayNode.name, Seq(
+        ConstructExpression(Var("data"))
       ))
     ))
   )
@@ -111,11 +109,29 @@ object KeyValueJITD {
     MatchNode(ArrayNode.name, Seq(
       MatchAny(Some("data"))
     )),
-    MatchNode(SortedArrayNode.name, Seq(
-      MatchAny(Some("sorted"))
+    ConstructNode(SortedArrayNode.name, Seq(
+      ConstructExpression(Var("data"), Some("sorted")).andAfter { 
+          Void(FunctionCall("std::sort", Seq(Begin(Var("sorted")), End(Var("sorted")))))
+        }
+    ))
+  )
+
+  val CrackArray = Transform(
+    "CrackArray",
+    MatchNode(ArrayNode.name, Seq(
+      MatchAny(Some("data"))
     )),
-    Map("sorted" -> Var("data")),
-    Void(FunctionCall("std::sort", Seq(Begin(Var("sorted")), End(Var("sorted")))))
+    ConstructNode(BTreeNode.name, Seq(
+      ConstructNode(ArrayNode.name, Seq(
+        ConstructExpression(BlankArrayOfSize(ArraySize(Var("data"))), Some("lhs_partition"))
+      )),
+      ConstructExpression(FunctionCall("pick_separator", Seq(Var("data"))), Some("separator")),
+      ConstructNode(ArrayNode.name, Seq(
+        ConstructExpression(BlankArrayOfSize(ArraySize(Var("data"))), Some("rhs_partition"))
+      )).andAfter {
+        Void(FunctionCall("do_crack", Seq(Var("data"), Var("separator"), Var("lhs_partition"), Var("rhs_partition"))))
+      }
+    ))
   )
 
   val MergeBTrees = Transform(
@@ -129,11 +145,11 @@ object KeyValueJITD {
         MatchAny(Some("rhs"))
       ))
     )),
-    MatchNode(SortedArrayNode.name, Seq(
-      MatchAny(Some("merged"))
-    )), 
-    Map("merged" -> Var("lhs")),
-    Void(FunctionCall("append", Seq(Var("merged"), Var("rhs"))))
+    ConstructNode(SortedArrayNode.name, Seq(
+      ConstructExpression(Var("lhs"), Some("merged")).andAfter {
+        Void(FunctionCall("append", Seq(Var("merged"), Var("rhs"))))
+      }
+    ))
   )
 
   val PivotLeft = Transform(
@@ -147,18 +163,49 @@ object KeyValueJITD {
         MatchAny(Some("c"))
       ))
     )),
-    MatchNode(BTreeNode.name, Seq(
-      MatchNode(BTreeNode.name, Seq(
-        MatchAny(Some("a")),
-        MatchAny(Some("sep1")),
-        MatchAny(Some("b"))
+    ConstructNode(BTreeNode.name, Seq(
+      ConstructNode(BTreeNode.name, Seq(
+        ConstructExpression(Var("a")),
+        ConstructExpression(Var("sep1")),
+        ConstructExpression(Var("b"))
       )),
-      MatchAny(Some("sep2")),
-      MatchAny(Some("c"))
+      ConstructExpression(Var("sep2")),
+      ConstructExpression(Var("c"))
     )) 
   )
 
   val PivotRight = PivotLeft.invertAs("PivotRight")
+
+  val PushDownAndCrack = Transform(
+    "PushDownAndCrack",
+    MatchNode(ConcatNode.name, Seq(
+      MatchNode(BTreeNode.name, Seq(
+        MatchAny(Some("a")),
+        MatchAny(Some("separator")),
+        MatchAny(Some("b"))
+      )),
+      MatchNode(ArrayNode.name, Seq(
+        MatchAny(Some("data"))
+      ))
+    )),
+    ConstructNode(BTreeNode.name, Seq(
+      ConstructNode(ConcatNode.name, Seq(
+        ConstructExpression(Var("a")),
+        ConstructNode(ArrayNode.name, Seq(
+          ConstructExpression(BlankArrayOfSize(ArraySize(Var("data"))), Some("lhs_partition"))
+        ))
+      )),
+      ConstructExpression(Var("separator")),
+      ConstructNode(ConcatNode.name, Seq(
+        ConstructExpression(Var("a")),
+        ConstructNode(ArrayNode.name, Seq(
+          ConstructExpression(BlankArrayOfSize(ArraySize(Var("data"))), Some("rhs_partition"))
+        ))
+      )).andAfter {
+        Void(FunctionCall("do_crack", Seq(Var("data"), Var("separator"), Var("lhs_partition"), Var("rhs_partition"))))
+      }
+    ))
+  )
 
   //////////////////////////////////////////////
 
@@ -179,9 +226,11 @@ object KeyValueJITD {
     ),
     transforms = Seq(
       SortArray,
+      CrackArray,
       MergeBTrees,
       PivotLeft,
-      PivotRight
+      PivotRight,
+      PushDownAndCrack
     ),
     includes = Seq("int_record.hpp")
   )
