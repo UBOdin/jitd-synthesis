@@ -22,7 +22,7 @@ class AccessorSpec extends Specification with BeforeAll {
     ))
   }
 
-  def test_spec(build: Seq[String], gets:Seq[(Int, Boolean)]) =
+  def test_get(build: Seq[String], gets:Seq[(Int, Boolean)]) =
   {
     val lines = Seq("build")++build++Seq("Return")++gets.map { i => s"get ${i._1}" }
     val ops = new ByteArrayInputStream((lines.mkString("\n")+"\n").getBytes("UTF-8")) 
@@ -48,7 +48,7 @@ class AccessorSpec extends Specification with BeforeAll {
   "The Key Value JITD should" >> {
 
     "Allow access to Arrays" >> {
-      test_spec(Seq(
+      test_get(Seq(
         "Array explicit 1 2 3 4 5"
       ), Seq(
         4 -> true, 
@@ -59,7 +59,7 @@ class AccessorSpec extends Specification with BeforeAll {
       ))
     }
     "Allow access to Sorted Arrays" >> {
-      test_spec(Seq(
+      test_get(Seq(
         "SortedArray explicit 1 2 3 4 5"
       ), Seq(
         4 -> true, 
@@ -70,7 +70,7 @@ class AccessorSpec extends Specification with BeforeAll {
       ))
     }
     "Allow access to Concat Nodes" >> {
-      test_spec(Seq(
+      test_get(Seq(
         "Array explicit 1 2 3",
         "Array explicit 4 5 6",
         "Concat"
@@ -85,7 +85,7 @@ class AccessorSpec extends Specification with BeforeAll {
       ))
     }
     "Allow access to BTree Nodes" >> {
-      test_spec(Seq(
+      test_get(Seq(
         "Array explicit 1 2 3",
         "Array explicit 4 5 6",
         "BTree 4"

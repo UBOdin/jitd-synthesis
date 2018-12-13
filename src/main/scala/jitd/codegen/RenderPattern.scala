@@ -95,13 +95,31 @@ object RenderPattern
     after.flatten.mkString
   }
 
-  def build(ctx:Render, pattern:ConstructNode, target:String): String =
-    build(ctx, pattern, target, varMapping(ctx, pattern, target))
+  def buildForTransform(
+    ctx:Render, 
+    toPattern:ConstructNode, 
+    toTarget:String, 
+    fromPattern: MatchNode, 
+    fromTarget:String
+  ): String = {
+    val (before, after) = 
+      ctx.policyImplementation.onRewrite(ctx, fromPattern, toPattern, fromTarget, toTarget)
+    return (
+      before+
+      build(ctx, toPattern, toTarget, varMapping(ctx, toPattern, toTarget) ++ varMapping(ctx, fromPattern, fromTarget))+
+      after
+    )
+  }
 
-
-  def buildWithFromPattern(ctx:Render, pattern:ConstructNode, target:String, fromPattern: MatchNode, fromName: String): String =
-    build(ctx, pattern, target, varMapping(ctx, pattern, target) ++ varMapping(ctx, fromPattern, fromName))
-
-  def buildWithMappings(ctx:Render, pattern:ConstructNode, target:String, varMappings: Map[String, Expression]) =
+  def buildForMutator(
+    ctx:Render, 
+    pattern:ConstructNode, 
+    target:String, 
+    varMappings: Map[String, Expression]
+  ) =
+  {
+    val (before, after) = 
+      ctx.policyImplementation.onRewrite(ctx, MatchAny(), pattern, "ERROR_IN_RenderPattern", target)
     build(ctx, pattern, target, varMapping(ctx, pattern, target) ++ varMappings)
+  }
 }

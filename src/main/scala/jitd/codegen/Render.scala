@@ -4,10 +4,21 @@ import scala.collection.mutable
 
 import jitd.spec._
 import jitd.codegen.txt._
+import jitd.codegen.policy._
 
-case class Render(val definition: Definition, val debug:Boolean = false) {
+case class Render(
+  val definition: Definition, 
+  policyName: String = "",
+  val policyImplementation:PolicyImplementation = NaivePolicyImplementation,
+  val debug:Boolean = false
+) {
   def keyType = definition.keyType
   def recordType = definition.recordType
+
+  lazy val policy = policyName match {
+    case "" => definition.policies(0)
+    case _ => definition.policies.find { _.name == policyName }.get
+  }
 
   def statement = new RenderStatement(this)
   def expression = statement.renderExpression

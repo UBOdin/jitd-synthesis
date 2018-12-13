@@ -103,3 +103,22 @@ inline Key load_key(std::istream &input)
   input >> ret;
   return ret;
 }
+
+inline void do_crack(
+  const std::vector<Record> &source, 
+  Key sep, 
+  std::vector<Record> &lhs, 
+  std::vector<Record> &rhs
+){
+  for(auto curr = std::begin(source); curr < std::end(source); ++curr)
+  {
+    if(*curr < sep){ lhs.push_back(*curr); }
+    else           { rhs.push_back(*curr); }
+  }
+}
+
+inline Key pick_separator(const std::vector<Record> &source)
+{
+  if(source.empty()) { return 0; }
+  else { return source[(source.size() / 2)].key; }
+}

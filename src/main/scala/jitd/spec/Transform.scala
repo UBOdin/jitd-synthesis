@@ -10,4 +10,6 @@ case class Transform(
 
   def invertAs(newName: String): Transform = 
     Transform(newName, to.toMatchPattern, from.toConstructorPattern)
+
+  def enumName = "JITD_TRANSFORM_"+name
 }

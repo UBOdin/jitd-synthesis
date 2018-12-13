@@ -9,6 +9,7 @@
 #include <memory>
 #include <algorithm>
 #include <ios>
+#include <functional>
 
 @for(include <- ctx.definition.includes) { 
 #include "@include"
@@ -36,12 +37,12 @@ class JITDNode {
   public: 
   JITDNode(JITDNodeType type) : type(type) {}
 
-  virtual void printDebug(const std::string &prefix) = 0;
-  void printDebug(){ this-> printDebug(std::string("  ")); }
-
   JITDNodeType type;
   std::shared_ptr<JITDNode> *parent;
+  @{ctx.policyImplementation.state(ctx)}
 };
+
+typedef std::function<void(std::shared_ptr<JITDNode> &new_node)> UpdateHandle;
 
 ///////////////////// Node Type Definitions ///////////////////// 
 
@@ -55,16 +56,10 @@ class @{node.renderName} : public JITDNode {
     }
   {}
 
-  virtual void printDebug(const std::string &prefix){ 
-    std::cout << prefix << "@{node.name}[ "
-      @{ node.fields.filter { _.t != TNode() }.map { f => "<< " + ctx.printableValue("this->"+f.name, f.t) }.mkString(" << \", \"") };
-      @{  val children = node.fields.filter { _.t == TNode() }
-          if(children.size > 0){
-            "std::cout << std::endl;\n"+children.map { f => "this->"+f.name+"->printDebug(prefix+string(\"  \"));\n"}
-            "std::cout << prefix;"
-          } else { "" }
-      } 
-      std::cout << " ]" << std::endl;
+  @for(field <- node.fields.filter { _.t == TNode() }){
+    void update_@{field.name}_handle(std::shared_ptr<JITDNode> &new_value){
+      @{field.name} = new_value;
+    }
   }
 
   public: @for(field <- node.fields){ 
@@ -75,17 +70,35 @@ class @{node.renderName} : public JITDNode {
 
 ///////////////////// Transform Definitions ///////////////////// 
 
+typedef enum { 
+  @for(transform <- ctx.definition.transforms) {
+    @transform.enumName,
+  }
+} JITDTransformType;
+
 @for(transform <- ctx.definition.transforms){
   void @{transform.name}(std::shared_ptr<JITDNode> &target);
 }
+
+///////////////////// JITD Debug Methods ///////////////////// 
+
+class JITD;
+std::shared_ptr<JITD> assemble_jitd(std::istream &in);
+void printJITDNodeStructure(std::shared_ptr<JITDNode> node, const std::string &prefix);
 
 ///////////////////// JITD Definition ///////////////////// 
 
 class JITD {
   
   public:
-    JITD(JITDNode *root) : root(root) {}
-    JITD(std::shared_ptr<JITDNode> root) : root(root) {}
+    JITD(JITDNode *root) : root(root) 
+    {
+      @ctx.policyImplementation.init(ctx, "(this->root)")
+    }
+    JITD(std::shared_ptr<JITDNode> root) : root(root) 
+    {
+      @ctx.policyImplementation.init(ctx, "(this->root)")
+    }
 
     @for( accessor <- ctx.definition.accessors ) {
       @{RenderAccessor.declaration( accessor, ctx, root = true )} {
@@ -97,9 +110,8 @@ class JITD {
       @{RenderMutator.declaration( mutator, ctx )};
     }
 
-    void printDebug() {
-      this->root->printDebug();
-    }
+    void printDebug() { printJITDNodeStructure(root, std::string("")); }
+    void doOrganize();
 
   private:
     @for( accessor <- ctx.definition.accessors ) {
@@ -111,6 +123,3 @@ class JITD {
 };
 
 
-///////////////////// JITD Constructors ///////////////////// 
-
-std::shared_ptr<JITD> assemble_jitd(std::istream &in);

@@ -20,11 +20,20 @@
     @{RenderPattern.test(ctx, transform.from, "from", "return;")}
 
     // Build the new root
-    @{RenderPattern.buildWithFromPattern(ctx, transform.to, "to", transform.from, "from")}
+    @{RenderPattern.buildForTransform(ctx, transform.to, "to", transform.from, "from")}
 
     // and link the rewritten node back into the tree
     target = to;
   }
+}
+
+///////////////////// Policy Implementation ///////////////////// 
+
+@ctx.policyImplementation.utilityFunctions(ctx)
+
+void JITD::doOrganize()
+{
+  @ctx.policyImplementation.doOrganize(ctx, "(this->root)")
 }
 
 ///////////////////// Accessor Definitions ///////////////////// 
@@ -39,7 +48,7 @@
 
 @for( mutator <- ctx.definition.mutators ) {
   @{RenderMutator.declaration(mutator, ctx, prefix = "JITD::")} {
-    @{RenderPattern.build(ctx, mutator.rewrite, "new_root", Map(
+    @{RenderPattern.buildForMutator(ctx, mutator.rewrite, "new_root", Map(
           "root" -> StructSubscript(Var("(*this)"), "root")
         ) ++ mutator.args.map { f => f.name -> Var(f.name) }.toMap
       )}
@@ -47,7 +56,7 @@
 }
 
 
-///////////////////// Assemble JITD for Testing ///////////////////// 
+///////////////////// Debugging Utilities ///////////////////// 
 
 std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 {
@@ -86,6 +95,33 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
     } else {
       std::cout << "Invalid assembly instruction '"<<op<<"'" << std::endl; 
       exit(-1); 
+    }
+  }
+}
+
+
+void printJITDNodeStructure(std::shared_ptr<JITDNode> node, const std::string &prefix){ 
+  switch(node->type){
+    @for(node <- ctx.definition.nodes) {
+      case @node.enumName : {
+        @node.renderName *node_real = (@node.renderName *)node.get();
+        std::cout << prefix << "@{node.name}[ "
+        @{ node.fields.filter { _.t != TNode() }
+            .map { f => 
+                "<< \"" + f.name + "=\" << " +
+                ctx.printableValue("node_real->"+f.name, f.t) 
+            }.mkString(" << \", \"") };
+        @{  val children = node.fields.filter { _.t == TNode() }
+            if(children.size > 0){
+              "std::cout << std::endl;\n"+
+              children.map { f => 
+                "printJITDNodeStructure(node_real->"+f.name+", prefix+std::string(\"  \"));\n"
+              }.mkString+
+              "std::cout << prefix;"
+            } else { "" }
+        } 
+        std::cout << " ]" << std::endl;
+      }
     }
   }
 }

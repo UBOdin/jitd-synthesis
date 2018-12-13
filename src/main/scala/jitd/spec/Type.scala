@@ -1,6 +1,8 @@
 package jitd.spec
 
-sealed abstract class Type {}
+sealed abstract class Type {
+  def array = TArray(this)
+}
 
 case class TKey() extends Type
 case class TRecord() extends Type

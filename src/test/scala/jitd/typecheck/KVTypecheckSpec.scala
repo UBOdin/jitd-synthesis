@@ -25,10 +25,10 @@ class KVTypecheckSpec extends Specification {
 
     "Have correct get methods" >> {
 
-      check(KeyValueJITD.GetByKey, KeyValueJITD.ArrayNode)
-      check(KeyValueJITD.GetByKey, KeyValueJITD.SortedArrayNode)
-      check(KeyValueJITD.GetByKey, KeyValueJITD.ConcatNode)
-      check(KeyValueJITD.GetByKey, KeyValueJITD.BTreeNode)
+      check(KeyValueJITD.accessor("get"), KeyValueJITD.node("Array"))
+      check(KeyValueJITD.accessor("get"), KeyValueJITD.node("SortedArray"))
+      check(KeyValueJITD.accessor("get"), KeyValueJITD.node("Concat"))
+      check(KeyValueJITD.accessor("get"), KeyValueJITD.node("BTree"))
       ok
 
 

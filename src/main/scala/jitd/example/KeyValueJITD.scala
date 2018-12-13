@@ -6,235 +6,121 @@ import jitd.spec.FieldConversions._
 import jitd.spec.StatementConversions._
 import jitd.spec.CmpTypes._
 
-object KeyValueJITD {
+object KeyValueJITD extends HardcodedDefinition {
 
-  val functions = Seq(
-    FunctionDefinition("record_scan", Seq(TArray(TRecord()), TKey(), TRecord()), TBool()),
-    FunctionDefinition("record_binary_search", Seq(TArray(TRecord()), TKey(), TRecord()), TBool())
-  ).map { f => f.name -> f }.toMap
-
-
-  val ArrayNode = Node("Array", Seq(
-    "data" -> TArray(TRecord())
-  ))
-  val SortedArrayNode = Node("SortedArray", Seq(
-    "data" -> TArray(TRecord())
-  ))
-  val ConcatNode = Node("Concat", Seq(
-    "lhs" -> TNode(),
-    "rhs" -> TNode()
-  ))
-  val BTreeNode = Node("BTree", Seq(
-    "lhs" -> TNode(),
-    "sep" -> TKey(),
-    "rhs" -> TNode()
-  ))
+  Def(bool, "record_scan",          record.array, key, record)
+  Def(bool, "record_binary_search", record.array, key, record)
 
   //////////////////////////////////////////////
 
-  def Begin(t:Expression=Var("data")) = FunctionCall("std::begin", Seq(t))
-  def End(t:Expression=Var("data")) = FunctionCall("std::end", Seq(t))
-  def ArraySize(t:Expression=Var("data")) = StructSubscript(Var("data"), "size()")
-  def BlankArrayOfSize(t:Expression) = FunctionCall("std::vector", Seq(t))
+  Node( "Array",       "data" -> record.array )
+  Node( "SortedArray", "data" -> record.array )
+  Node( "Concat",      "lhs"  -> node, "rhs" -> node )
+  Node( "BTree",       "lhs"  -> node, "sep" -> key, "rhs" -> node )
 
-  val GetByKey = new Accessor(
-    "get",
-    Seq( "target" -> TKey() ),
-    Seq( "result" -> TRecord() ),
-    Map(
-      ArrayNode.name -> Return( 
-        FunctionCall("record_scan", Seq(Var("data"), Var("target"), Var("result"))) 
+  //////////////////////////////////////////////
+
+  def Begin(t:Expression)            = "std::begin".call(t)
+  def End(t:Expression)              = "std::end".call(t)
+  def ArraySize(t:Expression)        = "data".get("size()")
+  def BlankArrayOfSize(t:Expression) = "std::vector<Record>".call(t)
+
+  //////////////////////////////////////////////
+
+  Accessor("get")( "target"  -> key )( "result"  -> record )(
+    "Array"        -> Return { "record_scan".call("data", "target", "result") },
+    "SortedArray"  -> Return { "record_binary_search".call("data", "target", "result") }, 
+    "Concat"       -> If( Delegate("lhs") ) { Return(true) } { Return { Delegate("rhs") } },
+    "BTree"        -> If( "target" lt "sep" ) { Return { Delegate("lhs") } } { Return { Delegate("rhs") } } 
+  )
+
+  Accessor("size", int)()()(
+    "Array"       -> Return { ArraySize("data") },
+    "SortedArray" -> Return { ArraySize("data") },
+    "Concat"      -> Return { Delegate( "lhs" ) plus Delegate("rhs") },
+    "BTree"       -> Return { Delegate( "lhs" ) plus Delegate("rhs") }
+  )
+
+  //////////////////////////////////////////////
+
+  Mutator("insert")("data" -> record.array ) {
+    "Concat".fromFields( "root", "Array".fromFields("data") )
+  }
+
+  //////////////////////////////////////////////
+
+  Transform("SortArray") {
+    "Array" withFields( "data" )
+  } {
+    "SortedArray" fromFields( "data" as "sorted" andAfter (
+      "std::sort".call( Begin("sorted"), End("sorted") )
+    ))
+  }
+
+  Transform("CrackArray") {
+    "Array" withFields( "data" )
+  } {
+    "BTree" fromFields(
+      "Array" fromFields(
+        BlankArrayOfSize(ArraySize("data")) as "lhs_partition"
       ),
-      ////////
-      SortedArrayNode.name -> Return( 
-        FunctionCall("record_binary_search", Seq(Var("data"), Var("target"), Var("result"))) 
-      ),
-      ////////
-      ConcatNode.name -> IfThenElse(
-        FunctionCall("delegate", Seq(Var("lhs"))),
-        Return(BoolConstant(true)),
-        Return(FunctionCall("delegate", Seq(Var("rhs"))))
-      ),
-      ////////
-      BTreeNode.name -> IfThenElse(
-        Var("target").lt(Var("sep")),
-        Return(FunctionCall("delegate", Seq(Var("lhs")))),
-        Return(FunctionCall("delegate", Seq(Var("rhs"))))
+      "pick_separator".call("data") as "separator",
+      "Array" fromFields(
+        BlankArrayOfSize(ArraySize("data")) as "rhs_partition"
+      ) andAfter(
+        "do_crack".call("data", "separator", "lhs_partition", "rhs_partition")
       )
     )
-  )
-  val Size = new Accessor(
-    "size",
-    Seq( ),
-    Seq( ),
-    Map(
-      ArrayNode.name -> Return( ArraySize(Var("data")) ),
-      ////////
-      SortedArrayNode.name -> Return( ArraySize(Var("data")) ),
-      ////////
-      ConcatNode.name -> Return(
-        Arith(ArithTypes.Add,
-          FunctionCall("delegate", Seq(Var("lhs"))),
-          FunctionCall("delegate", Seq(Var("rhs")))
-        )
-      ),
-      ////////
-      BTreeNode.name -> Return(
-        Arith(ArithTypes.Add,
-          FunctionCall("delegate", Seq(Var("lhs"))),
-          FunctionCall("delegate", Seq(Var("rhs")))
-        )
+  }
+
+  Transform("MergeSortedBTrees") {
+    "BTree" withFields( 
+      "SortedArray".withFields( "lhs" ),
+      Any,
+      "SortedArray".withFields( "rhs" )
+    )
+  } {
+    "SortedArray" fromFields("lhs" as "merged" andAfter (
+      "append".call("merged", "rhs")
+    ))
+  }
+
+  Transform("PivotLeft") {
+    "BTree" withFields( "a", "sep1", 
+      "BTree" withFields( "b", "sep2", "c" ) 
+    )
+  } {
+    "BTree" fromFields( 
+      "BTree" fromFields( "a", "sep1", "b" ),
+      "sep2", "c"
+    )
+  }
+  InvertedTransform("PivotLeft", "PivotRight")
+
+  Transform("PushDownAndCrack") {
+    "Concat" withFields(
+      "BTree" withFields( "a", "separator", "b" ),
+      "Array" withFields( "data" )
+    )
+  } {
+    "BTree" fromFields(
+      "Concat" fromFields( "a", "Array" fromFields(
+        BlankArrayOfSize(ArraySize("data")) as "lhs_partition"
+      )),
+      "separator",
+      "Concat" fromFields( "b", "Array" fromFields(
+          BlankArrayOfSize(ArraySize("data")) as "rhs_partition"
+      )) andAfter(
+        "do_crack".call("data", "separator", "lhs_partition", "rhs_partition")
       )
-    ),
-    returnType = TInt()
+    )
+  }
+
+  Policy("CrackSortMerge")("crackAt" -> IntConstant(100000)) (
+    "CrackArray" onlyIf { ArraySize("data") gte "crackAt" } 
+                 scoreBy { ArraySize("data") }
+      andThen "SortArray"
+      andThen "MergeSortedBTrees"
   )
-
-  //////////////////////////////////////////////
-
-  val Insert = Mutator(
-    "insert",
-    Seq("data" -> TArray(TRecord())),
-    ConstructNode(ConcatNode.name, Seq(
-      ConstructExpression(Var("root")),
-      ConstructNode(ArrayNode.name, Seq(
-        ConstructExpression(Var("data"))
-      ))
-    ))
-  )
-
-  //////////////////////////////////////////////
-
-  val SortArray = Transform(
-    "SortArray",
-    MatchNode(ArrayNode.name, Seq(
-      MatchAny(Some("data"))
-    )),
-    ConstructNode(SortedArrayNode.name, Seq(
-      ConstructExpression(Var("data"), Some("sorted")).andAfter { 
-          Void(FunctionCall("std::sort", Seq(Begin(Var("sorted")), End(Var("sorted")))))
-        }
-    ))
-  )
-
-  val CrackArray = Transform(
-    "CrackArray",
-    MatchNode(ArrayNode.name, Seq(
-      MatchAny(Some("data"))
-    )),
-    ConstructNode(BTreeNode.name, Seq(
-      ConstructNode(ArrayNode.name, Seq(
-        ConstructExpression(BlankArrayOfSize(ArraySize(Var("data"))), Some("lhs_partition"))
-      )),
-      ConstructExpression(FunctionCall("pick_separator", Seq(Var("data"))), Some("separator")),
-      ConstructNode(ArrayNode.name, Seq(
-        ConstructExpression(BlankArrayOfSize(ArraySize(Var("data"))), Some("rhs_partition"))
-      )).andAfter {
-        Void(FunctionCall("do_crack", Seq(Var("data"), Var("separator"), Var("lhs_partition"), Var("rhs_partition"))))
-      }
-    ))
-  )
-
-  val MergeBTrees = Transform(
-    "MergeSortedBTrees",
-    MatchNode(BTreeNode.name, Seq(
-      MatchNode(SortedArrayNode.name, Seq(
-        MatchAny(Some("lhs"))
-      )),
-      MatchAny(),
-      MatchNode(SortedArrayNode.name, Seq(
-        MatchAny(Some("rhs"))
-      ))
-    )),
-    ConstructNode(SortedArrayNode.name, Seq(
-      ConstructExpression(Var("lhs"), Some("merged")).andAfter {
-        Void(FunctionCall("append", Seq(Var("merged"), Var("rhs"))))
-      }
-    ))
-  )
-
-  val PivotLeft = Transform(
-    "PivotLeft",
-    MatchNode(BTreeNode.name, Seq(
-      MatchAny(Some("a")),
-      MatchAny(Some("sep1")),
-      MatchNode(BTreeNode.name, Seq(
-        MatchAny(Some("b")),
-        MatchAny(Some("sep2")),
-        MatchAny(Some("c"))
-      ))
-    )),
-    ConstructNode(BTreeNode.name, Seq(
-      ConstructNode(BTreeNode.name, Seq(
-        ConstructExpression(Var("a")),
-        ConstructExpression(Var("sep1")),
-        ConstructExpression(Var("b"))
-      )),
-      ConstructExpression(Var("sep2")),
-      ConstructExpression(Var("c"))
-    )) 
-  )
-
-  val PivotRight = PivotLeft.invertAs("PivotRight")
-
-  val PushDownAndCrack = Transform(
-    "PushDownAndCrack",
-    MatchNode(ConcatNode.name, Seq(
-      MatchNode(BTreeNode.name, Seq(
-        MatchAny(Some("a")),
-        MatchAny(Some("separator")),
-        MatchAny(Some("b"))
-      )),
-      MatchNode(ArrayNode.name, Seq(
-        MatchAny(Some("data"))
-      ))
-    )),
-    ConstructNode(BTreeNode.name, Seq(
-      ConstructNode(ConcatNode.name, Seq(
-        ConstructExpression(Var("a")),
-        ConstructNode(ArrayNode.name, Seq(
-          ConstructExpression(BlankArrayOfSize(ArraySize(Var("data"))), Some("lhs_partition"))
-        ))
-      )),
-      ConstructExpression(Var("separator")),
-      ConstructNode(ConcatNode.name, Seq(
-        ConstructExpression(Var("a")),
-        ConstructNode(ArrayNode.name, Seq(
-          ConstructExpression(BlankArrayOfSize(ArraySize(Var("data"))), Some("rhs_partition"))
-        ))
-      )).andAfter {
-        Void(FunctionCall("do_crack", Seq(Var("data"), Var("separator"), Var("lhs_partition"), Var("rhs_partition"))))
-      }
-    ))
-  )
-
-  //////////////////////////////////////////////
-
-
-  val definition = Definition(
-    nodes = Seq(
-      ArrayNode,
-      SortedArrayNode,
-      ConcatNode,
-      BTreeNode
-    ),
-    accessors = Seq(
-      GetByKey,
-      Size
-    ),
-    mutators = Seq(
-      Insert
-    ),
-    transforms = Seq(
-      SortArray,
-      CrackArray,
-      MergeBTrees,
-      PivotLeft,
-      PivotRight,
-      PushDownAndCrack
-    ),
-    includes = Seq("int_record.hpp")
-  )
-
-
 
 }

@@ -20,7 +20,7 @@ object CmpTypes extends Enumeration {
 
 object ArithTypes extends Enumeration {
   type T = Value
-  val Add, Sub, Mul, Div = Value
+  val Add, Sub, Mul, Div, And, Or = Value
 
   def opString(op:T):String = 
   {
@@ -29,6 +29,8 @@ object ArithTypes extends Enumeration {
       case Sub => "-"
       case Mul => "*"
       case Div => "/"
+      case And => "&&"
+      case Or  => "||"
     }
   }
 }
@@ -42,6 +44,34 @@ sealed abstract class Expression
   def gt(other:Expression)  = Cmp(CmpTypes.Gt,  this, other)
   def gte(other:Expression) = Cmp(CmpTypes.Gte, this, other)
 
+  def and(other:Expression) = 
+  {
+    (this, other) match { 
+      case (BoolConstant(true), _)  => other
+      case (BoolConstant(false), _) => this
+      case (_, BoolConstant(true))  => this
+      case (_, BoolConstant(false)) => other
+      case _ => Arith(ArithTypes.And, this, other)
+    }
+  }
+  def or(other:Expression) = 
+  {
+    (this, other) match { 
+      case (BoolConstant(false), _)  => other
+      case (BoolConstant(true), _) => this
+      case (_, BoolConstant(false))  => this
+      case (_, BoolConstant(true)) => other
+      case _ => Arith(ArithTypes.Or, this, other)
+    }
+  }
+
+  def plus(other:Expression)      = Arith(ArithTypes.Add, this, other)
+  def minus(other:Expression)     = Arith(ArithTypes.Sub, this, other)
+  def times(other:Expression)     = Arith(ArithTypes.Mul, this, other)
+  def dividedBy(other:Expression) = Arith(ArithTypes.Div, this, other)
+
+  def get(field:String) = StructSubscript(this, field)
+  def get(index:Int)    = ArraySubscript(this, index)
 
   def disassemble: Seq[Expression]
   def reassemble(in: Seq[Expression]): Expression

@@ -25,23 +25,29 @@ case class MatchAny(name: Option[String] = None) extends MatchPattern
 
 sealed abstract class ConstructorPattern
 {
-  def andAfter(after: Statement)   = AfterConstruct(this, after)
-  def butBefore(before: Statement) = BeforeConstruct(before, this)
+  def andAfter(after: Statement):ConstructorPattern    = AfterConstruct(this, after)
+  def andAfter(after: Expression):ConstructorPattern   = andAfter(Void(after))
+  def butBefore(before: Statement):ConstructorPattern  = BeforeConstruct(before, this)
+  def butBefore(before: Expression):ConstructorPattern = butBefore(Void(before))
 
   def toMatchPattern: MatchPattern
+  def as(newName:String): ConstructorPattern
 }
 
 case class ConstructNode(node: String, fields: Seq[ConstructorPattern], name: Option[String] = None) extends ConstructorPattern
 {
   def toMatchPattern = MatchNode(node, fields.map { _.toMatchPattern }, name)
+  def as(newName:String) = ConstructNode(node, fields, Some(newName))
 }
 case class BeforeConstruct(block: Statement, child: ConstructorPattern) extends ConstructorPattern
 {
   def toMatchPattern = child.toMatchPattern
+  def as(newName:String) = BeforeConstruct(block, child.as(newName))
 }
 case class AfterConstruct(child: ConstructorPattern, block: Statement) extends ConstructorPattern
 {
   def toMatchPattern = child.toMatchPattern
+  def as(newName:String) = AfterConstruct(child.as(newName), block)
 }
 case class ConstructExpression(expression: Expression, name: Option[String] = None) extends ConstructorPattern
 {
@@ -51,6 +57,7 @@ case class ConstructExpression(expression: Expression, name: Option[String] = No
       case (Var(v), _)  => MatchAny(Some(v))
       case _            => MatchAny(None)
     }
+  def as(newName:String) = ConstructExpression(expression, Some(newName))
 }
 
 /////////// Pattern Overlap //////////
