@@ -2,21 +2,30 @@ package jitd.codegen
 
 import scala.collection.mutable
 
-import jitd.parser._
-import jitd.structure._
-import jitd.codegen.txt.{NodeTemplate, StructTemplate, HeaderTemplate}
+import jitd.spec._
+import jitd.codegen.txt._
+import jitd.codegen.policy._
 
-class Render(val definition: Definition) {
+case class Render(
+  val definition: Definition, 
+  policyName: String = "",
+  val policyImplementation:PolicyImplementation = NaivePolicyImplementation,
+  val debug:Boolean = false
+) {
   def keyType = definition.keyType
   def recordType = definition.recordType
-  def includes = Seq(
-    "iostream",
-    "vector"
-  )
+
+  lazy val policy = policyName match {
+    case "" => definition.policies(0)
+    case _ => definition.policies.find { _.name == policyName }.get
+  }
+
+  def statement = new RenderStatement(this)
+  def expression = statement.renderExpression
 
   val required_structs = mutable.ListBuffer[Seq[Field]]()
 
-  def getStructID(fields:Seq[Field]):Int =
+  def structID(fields:Seq[Field]):Int =
   {
     val ret = required_structs.indexOf(fields)
     if(ret < 0){
@@ -26,40 +35,46 @@ class Render(val definition: Definition) {
     return ret
   }
 
-  def getStructName(fields:Seq[Field]): String =
+  def structName(fields:Seq[Field]): String =
   {
-    s"jitd_struct_${getStructID(fields)}"
+    s"jitd_struct_${structID(fields)}"
   }
 
-  def getBufferName(t:Type): String =
+  def bufferName(t:Type): String =
   {
-    val nestedType = getCType(t)
+    val nestedType = cType(t)
     s"std::vector<$nestedType>"
   }
 
-  def getCType(t:Type): String =
+  def cType(t:Type): String =
   {
     t match {
       case TInt()          => "int"
       case TFloat()        => "double"
+      case TBool()         => "bool"
       case TKey()          => keyType
-      case TNode()         => "JITDNode *"
+      case TNode()         => "std::shared_ptr<JITDNode>"
       case TRecord()       => recordType
-      case TStruct(fields) => getStructName(fields)
-      case TVector(nested) => getBufferName(nested)
+      case TStruct(fields) => structName(fields)
+      case TArray(nested)  => bufferName(nested)
+      case TIterator()     => s"std::vector<$recordType>::const_iterator"
     }
   }
 
-  def getFieldDefn(f:Field): String = 
-    s"${getCType(f.t)} ${f.name}"
+  def fieldDefn(f:Field, passByRef:Boolean = false): String = {
+    val pbr = if(passByRef){ "&" } else { "" }
+    s"${cType(f.t)} $pbr${f.name}"
+  }
 
-
-  def headers: String = 
+  def printableValue(name:String, t:Type): String = 
   {
-    (
-      includes.map { i => s"#include <${i}>" }++
-      definition.includes.map { i => "#include \""+i+"\"" }
-    ).mkString("\n")
+    t match { 
+      case TArray(_) => name + ".size() << \" elements\""
+      case TInt() | TFloat() | TBool() | TKey() | TRecord() => name
+      case TIterator() => ???
+      case TStruct(_) => ???
+      case TNode() => ???
+    }
   }
 
   def structTypedefs: String = 
@@ -70,27 +85,10 @@ class Render(val definition: Definition) {
     }.mkString("\n")
   }
 
-  def nodes: String =
-  {
-    val renderedNodes = definition.nodeTypes.map { NodeTemplate(_, this) }
+  def header(): String =
+    JITDHeader(this).toString
 
-    return renderedNodes.mkString("\n")
-  }
+  def body(headerFile: String): String =
+    JITDBody(this, headerFile).toString
 
-  def apply(): String =
-  {
-    return Seq[String](
-      headers,
-      HeaderTemplate(this).toString,
-      structTypedefs,
-      nodes
-    ).filter( _.length > 0 )
-     .mkString("\n\n/*****************************/\n\n")
-  }
-
-}
-
-object Render 
-{
-  def apply(definition: Definition) = new Render(definition)
 }

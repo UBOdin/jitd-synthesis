@@ -1,0 +1,64 @@
+@import jitd.spec._
+@import jitd.codegen._
+@import jitd.rewrite.Inline
+@(ctx:Render, transform:Transform, constraint:Expression, scoreFn:Expression)
+
+  long searchFor@{transform.name}(
+    const std::shared_ptr<JITDNode> &node,
+    std::shared_ptr<JITDNode> &target,
+    const UpdateHandle &in_updater,
+    UpdateHandle &out_updater
+  ) {
+    std::shared_ptr<JITDNode> lock = node;
+    JITDNode *lock_raw = lock.get();
+
+    long best_score = -1;
+    long child_score = -1;
+    std::shared_ptr<JITDNode> child_target;
+    UpdateHandle child_updater;
+
+
+    do {
+      @{RenderPattern.test(ctx, transform.from, "lock_raw", "break;")}
+
+      if(@{ctx.expression(Inline(constraint, 
+            RenderPattern.varMapping(ctx, transform.from, "lock_raw")++
+            ctx.policy.varMapping
+          ))}){
+        best_score = @{ctx.expression(Inline(scoreFn, 
+            RenderPattern.varMapping(ctx, transform.from, "lock_raw")++
+            ctx.policy.varMapping
+          ))};
+        target = node;
+        out_updater = in_updater;
+
+      }
+    } while(false);
+
+    switch(lock_raw->type){
+      @for(node <- ctx.definition.nodes){
+        case @{node.enumName}: {
+          @{node.renderName} *real_node = (@{node.renderName} *)lock_raw;
+          @for(field <- node.fields.filter { _.t == TNode() }){
+            child_score = searchFor@{transform.name}(
+              real_node->@{field.name}, 
+              child_target,
+              std::bind(
+                &@{node.renderName}::update_@{field.name}_handle,
+                real_node,
+                std::placeholders::_1
+              ),
+              child_updater
+            );
+            if(child_score > best_score) { 
+              target = child_target; 
+              out_updater = child_updater; 
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    return best_score;
+  }

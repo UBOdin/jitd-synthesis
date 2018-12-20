@@ -13,12 +13,15 @@ class KVBuildSpec extends Specification {
   "The Key Value JITD should" >> {
 
     "Generate sensible node definitions" >> {
-      render.nodes must contain("class BTreeNode")
+      render.header() must contain("class BTreeNode")
     }
 
     "Generate a file that compiles and runs" >> {
-      render() must contain("#include <vector>")
-      Compile(render) must contain("TEST SUCCESSFUL!")
+      render.header() must contain("#include <vector>")
+      Compile(
+        render, 
+        run_args = Some(Seq())
+      ) must contain("TEST SUCCESSFUL!")
     }
 
   }

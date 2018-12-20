@@ -1,0 +1,130 @@
+@import jitd.codegen._
+@import jitd.spec._
+@import jitd.rewrite._
+@(ctx:Render, headerFile:String)
+
+#include <stack>
+#include <sstream>
+#include "@headerFile"
+
+
+///////////////////// Transform Definitions ///////////////////// 
+
+@for(transform <- ctx.definition.transforms){
+  void @{transform.name}(std::shared_ptr<JITDNode> &target){
+    // Make sure that we hold a reference to the physical pointer
+    std::shared_ptr<JITDNode> physicalLock = target;
+    const JITDNode *from = physicalLock.get();
+
+    // Check that the transform is valid (and extract fields)
+    @{RenderPattern.test(ctx, transform.from, "from", "return;")}
+
+    // Build the new root
+    @{RenderPattern.buildForTransform(ctx, transform.to, "to", transform.from, "from")}
+
+    // and link the rewritten node back into the tree
+    target = to;
+  }
+}
+
+///////////////////// Policy Implementation ///////////////////// 
+
+@ctx.policyImplementation.utilityFunctions(ctx)
+
+void JITD::doOrganize()
+{
+  @ctx.policyImplementation.doOrganize(ctx, "(this->root)")
+}
+
+///////////////////// Accessor Definitions ///////////////////// 
+
+@for( accessor <- ctx.definition.accessors ) {
+  @{RenderAccessor.declaration(accessor, ctx, prefix = "JITD::")} {
+    @{RenderAccessor.body(accessor, ctx)}
+  }
+}
+
+///////////////////// Mutator Definitions ///////////////////// 
+
+@for( mutator <- ctx.definition.mutators ) {
+  @{RenderMutator.declaration(mutator, ctx, prefix = "JITD::")} {
+    @{RenderPattern.buildForMutator(ctx, mutator.rewrite, "new_root", Map(
+          "root" -> StructSubscript(Var("(*this)"), "root")
+        ) ++ mutator.args.map { f => f.name -> Var(f.name) }.toMap
+      )}
+  }
+}
+
+
+///////////////////// Debugging Utilities ///////////////////// 
+
+std::shared_ptr<JITD> assemble_jitd(std::istream &in)
+{
+  std::string op, line;
+
+  std::stack<std::shared_ptr<JITDNode>> node_stack;
+  while(getline(in, line)){
+    std::basic_istringstream<char> toks(line);
+    toks >> op;
+
+    @for(node <- ctx.definition.nodes){
+      if(op == "@node.name"){
+        @for(field <- node.fields.reverse){
+
+          // Construct a @field.name
+          @ctx.cType(field.t) @field.name;
+          @{ field.t match {
+            
+            case TArray(TRecord()) => s"load_records(${field.name}, toks);"
+            
+            case TNode() => s"${field.name} = node_stack.top(); node_stack.pop();"
+
+            case TKey() => s"${field.name} = load_key(toks);"
+
+            case _ => "std::cout << \"Unsupported generator field type: "+field.t.toString+"\" << std::endl; exit(-1);"
+          }}
+        }
+
+        // Assemble everything into a @node.name
+        node_stack.emplace(new @{node.renderName}(@{node.fields.map { _.name }.mkString(", ")}));
+        //std::cout << "Creating @node.name" << std::endl;
+        //printJITDNodeStructure(node_stack.top(), std::string(""));
+
+      } else 
+    }
+    if(op == "Return"){
+      return std::shared_ptr<JITD>(new JITD(node_stack.top()));
+    } else {
+      std::cout << "Invalid assembly instruction '"<<op<<"'" << std::endl; 
+      exit(-1); 
+    }
+  }
+}
+
+
+void printJITDNodeStructure(std::shared_ptr<JITDNode> node, const std::string &prefix){ 
+  switch(node->type){
+    @for(node <- ctx.definition.nodes) {
+      case @node.enumName : {
+        @node.renderName *node_real = (@node.renderName *)node.get();
+        std::cout << prefix << "@{node.name}[ "
+        @{ node.fields.filter { _.t != TNode() }
+            .map { f => 
+                "<< \"" + f.name + "=\" << " +
+                ctx.printableValue("node_real->"+f.name, f.t) 
+            }.mkString(" << \", \"") };
+        @{  val children = node.fields.filter { _.t == TNode() }
+            if(children.size > 0){
+              "std::cout << std::endl;\n"+
+              children.map { f => 
+                "printJITDNodeStructure(node_real->"+f.name+", prefix+std::string(\"  \"));\n"
+              }.mkString+
+              "std::cout << prefix;"
+            } else { "" }
+        } 
+        std::cout << " ]" << std::endl;
+        break;
+      }
+    }
+  }
+}

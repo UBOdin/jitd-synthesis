@@ -17,10 +17,12 @@ fork := true
 resolvers += "MimirDB" at "http://maven.mimirdb.info/"
 resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)
 
+watchSources ++= Seq((baseDirectory in ThisBuild).value / "src/main/twirl")
+watchSources ++= Seq((baseDirectory in ThisBuild).value / "src/main/cpp")
 
 libraryDependencies ++= Seq(
   ////////////////////// Command-Line Interface Utilities //////////////////////
-  "org.rogach"                    %%  "scallop"                  % "0.9.5",
+  "org.rogach"                    %%  "scallop"                  % "3.1.5",
 
   ////////////////////// Dev Tools -- Logging, Testing, etc... //////////////////////
   "com.typesafe.scala-logging"    %%  "scala-logging-slf4j"      % "2.1.2",
