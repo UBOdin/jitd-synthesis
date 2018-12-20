@@ -359,7 +359,7 @@ int main(int argc, char **argv)
 {
   std::istream *src;
   int i, t = 0;
-  bool interactive = true;
+  bool interactive = false;
   
   srand(time(NULL));
   for(i = 1; i < argc; i++){

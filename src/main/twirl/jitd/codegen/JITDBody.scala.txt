@@ -87,6 +87,8 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 
         // Assemble everything into a @node.name
         node_stack.emplace(new @{node.renderName}(@{node.fields.map { _.name }.mkString(", ")}));
+        //std::cout << "Creating @node.name" << std::endl;
+        //printJITDNodeStructure(node_stack.top(), std::string(""));
 
       } else 
     }
@@ -121,6 +123,7 @@ void printJITDNodeStructure(std::shared_ptr<JITDNode> node, const std::string &p
             } else { "" }
         } 
         std::cout << " ]" << std::endl;
+        break;
       }
     }
   }
