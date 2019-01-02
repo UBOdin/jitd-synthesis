@@ -84,7 +84,7 @@ typedef enum {
 
 class JITD;
 std::shared_ptr<JITD> assemble_jitd(std::istream &in);
-void printJITDNodeStructure(std::shared_ptr<JITDNode> node, const std::string &prefix);
+void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix);
 
 ///////////////////// JITD Definition ///////////////////// 
 
@@ -110,8 +110,8 @@ class JITD {
       @{RenderMutator.declaration( mutator, ctx )};
     }
 
-    void printDebug() { printJITDNodeStructure(root, std::string("")); }
-    void doOrganize();
+    void print_debug() { print_JITD_node_structure(root, std::string("")); }
+    bool do_organize();
 
   private:
     @for( accessor <- ctx.definition.accessors ) {
@@ -120,6 +120,7 @@ class JITD {
 
     std::shared_ptr<JITDNode> root;
 
+    void update_root(std::shared_ptr<JITDNode> &newRoot){ root = newRoot; }
 };
 
 

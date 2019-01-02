@@ -31,7 +31,7 @@
 
 @ctx.policyImplementation.utilityFunctions(ctx)
 
-void JITD::doOrganize()
+bool JITD::do_organize()
 {
   @ctx.policyImplementation.doOrganize(ctx, "(this->root)")
 }
@@ -102,7 +102,7 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 }
 
 
-void printJITDNodeStructure(std::shared_ptr<JITDNode> node, const std::string &prefix){ 
+void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix){ 
   switch(node->type){
     @for(node <- ctx.definition.nodes) {
       case @node.enumName : {
@@ -117,7 +117,7 @@ void printJITDNodeStructure(std::shared_ptr<JITDNode> node, const std::string &p
             if(children.size > 0){
               "std::cout << std::endl;\n"+
               children.map { f => 
-                "printJITDNodeStructure(node_real->"+f.name+", prefix+std::string(\"  \"));\n"
+                "print_JITD_node_structure(node_real->"+f.name+", prefix+std::string(\"  \"));\n"
               }.mkString+
               "std::cout << prefix;"
             } else { "" }

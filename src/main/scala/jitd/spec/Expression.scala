@@ -101,34 +101,41 @@ case class Var(v:String) extends Expression
 {
   def disassemble = Seq[Expression]()
   def reassemble(in: Seq[Expression]): Expression = this
+  override def toString = v.toString
 }
 case class Cmp(t: CmpTypes.T, lhs:Expression, rhs:Expression) extends Expression
 {
   def disassemble = Seq[Expression](lhs, rhs)
   def reassemble(in: Seq[Expression]): Expression = Cmp(t, in(0), in(1))
+  override def toString = s"($lhs) ${CmpTypes.opString(t)} ($rhs)"
 }
 case class Arith(t: ArithTypes.T, lhs:Expression, rhs:Expression) extends Expression
 {
   def disassemble = Seq[Expression](lhs, rhs)
   def reassemble(in: Seq[Expression]): Expression = Arith(t, in(0), in(1))
+  override def toString = s"($lhs) ${ArithTypes.opString(t)} ($rhs)"
 }
 case class FunctionalIfThenElse(condition:Expression, ifTrue:Expression, ifFalse:Expression) extends Expression
 {
   def disassemble = Seq[Expression](condition, ifTrue, ifFalse)
   def reassemble(in: Seq[Expression]): Expression = FunctionalIfThenElse(in(0), in(1), in(2))
+  override def toString = s"($condition) ? ($ifTrue) : ($ifFalse)"
 }
 case class ArraySubscript(target:Expression, index:Integer) extends Expression
 {
   def disassemble = Seq[Expression](target)
   def reassemble(in: Seq[Expression]): Expression = ArraySubscript(in(0), index)
+  override def toString = s"$target[$index]"
 }
 case class StructSubscript(target:Expression, field:String) extends Expression
 {
   def disassemble = Seq[Expression](target)
   def reassemble(in: Seq[Expression]): Expression = StructSubscript(in(0), field)
+  override def toString = s"$target.$field"
 }
 case class FunctionCall(name:String, args:Seq[Expression]) extends Expression
 {
   def disassemble = args
   def reassemble(in: Seq[Expression]): Expression = FunctionCall(name, in)
+  override def toString = s"$name(${args.mkString(", ")})"
 }

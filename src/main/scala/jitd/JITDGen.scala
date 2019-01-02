@@ -32,6 +32,8 @@ object JITDGen {
     val spec = 
       jitd.example.KeyValueJITD.definition
 
+    if(conf.dump()){ System.out.println(spec.toString); }
+
     // Render is the root of the C++ code generation 
     // process. 
     val render = new jitd.codegen.Render(spec)
@@ -96,6 +98,11 @@ class JITDGenConfig(arguments: Seq[String]) extends ScallopConf(arguments)
   val outputFile = opt[String]("out",
     descr = "Base name used to generate the JITD .hpp and .cpp files",
     default = Some("jitd_test")
+  )
+
+  val dump = toggle("dump",
+    descrYes = "Echo out the selected policy",
+    default = Some(false)
   )
 
   val compile = toggle("compile",

@@ -144,46 +144,31 @@ int jitd_test(
     //   std::cout << "Delete from JITD: " << total_time(start, end) << " us" << std::endl;
 
     ///////////////// POLICY OPERATIONS /////////////////    
-    // } CASE("policy_set") {
-      
-    //   CASE_1("cracksort"){
-    //     int threshold;
-    //     toks >> threshold;
-    //     std::cout << "Switching to Crack/Sort Policy with Threshold of " << threshold << std::endl;
-    //     jitd.getPolicy()->setScoreFunction(
-    //       std::bind(CrackOrSortArraysBigFirst<Record>, threshold, std::placeholders::_1)
-    //     );
-    //     jitd.reinitPolicy();
-    //   } else {
-    //     std::cerr << "Invalid Policy " << op << std::endl;
-    //     exit(-1);
-    //   }
 
-    // } CASE("policy_act_once") {
-    //   timeval start, end;
-    //   jitd.getPolicy()->describeNext();
-    //   JITD_TEST_POLICY *policy = jitd.getPolicy();
-    //   gettimeofday(&start, NULL);
-    //   policy->act();
-    //   gettimeofday(&end, NULL);
-    //   std::cout << "Policy Action: " << total_time(start, end) << " us" << std::endl;
+    } CASE("policy_act_once") {
+      timeval start, end;
+      gettimeofday(&start, NULL);
+      bool not_done = jitd->do_organize();
+      gettimeofday(&end, NULL);
+      std::cout << "Policy Action: " << total_time(start, end) << " us" << (not_done ? "" : " [done]") << std::endl;
 
-    // } CASE("policy_act_for") {
-    //   int target_steps;
-    //   double used_microseconds = 0;
-    //   timeval start, end;
-    //   JITD_TEST_POLICY *policy = jitd.getPolicy();
+    } CASE("policy_act_for") {
+      int target_steps;
+      double used_microseconds = 0;
+      timeval start, end;
+      bool not_done = true;
+      int steps_taken = 0;
 
-    //   toks >> target_steps;
+      toks >> target_steps;
 
-    //   for(int x = 0; x < target_steps; x++){
-    //     gettimeofday(&start, NULL);
-    //     policy->act();
-    //     gettimeofday(&end, NULL);
-    //     used_microseconds += total_time(start, end);
-    //   }
+      for(; steps_taken < target_steps && not_done; steps_taken++){
+        gettimeofday(&start, NULL);
+        not_done = jitd->do_organize();
+        gettimeofday(&end, NULL);
+        used_microseconds += total_time(start, end);
+      }
 
-    //   std::cout << "Policy " << target_steps << " Actions: " << used_microseconds << " us" << std::endl;
+      std::cout << "Policy " << steps_taken << " Actions: " << used_microseconds << (not_done ? "" : " [done]") << " us" <<  std::endl;
 
     // } CASE("policy_act_until_done") {
     //   bool more_work_to_do = true;
@@ -331,7 +316,7 @@ int jitd_test(
     } CASE("size") {
       std::cout << jitd->size() << " records" << std::endl;
     } CASE("dump") {
-      jitd->printDebug();
+      jitd->print_debug();
       
     ///////////////// OOOPS /////////////////
     } else {

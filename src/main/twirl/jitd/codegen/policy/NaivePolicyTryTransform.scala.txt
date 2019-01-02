@@ -1,0 +1,28 @@
+@import jitd.spec._
+@import jitd.codegen._
+@(ctx:Render, root:String, transform:String, onSuccess:String, onFail:String)
+
+{
+  std::shared_ptr<JITDNode> target;
+  UpdateHandle doUpdate;
+
+  std::cout << "Policy trying to find opportunities for @{transform}" << std::endl;
+  long bestScore = searchFor@{transform}(
+    root, 
+    target,
+    std::bind(&JITD::update_root, this, std::placeholders::_1),
+    doUpdate
+  );
+
+  if(bestScore >= 0) {
+    std::cout << "  Policy found opportunity on: " << std::endl;
+    print_JITD_node_structure(target, std::string("    ")); std::cout << std::endl;
+    @{transform}(target);
+    doUpdate(target);
+    @onSuccess
+  } else { 
+    @onFail 
+  }
+}
+
+
