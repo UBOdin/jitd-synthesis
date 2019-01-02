@@ -3,11 +3,11 @@
 @import jitd.rewrite.Inline
 @(ctx:Render, transform:Transform, constraint:Expression, scoreFn:Expression)
 
-  long searchFor@{transform.name}(
-    const std::shared_ptr<JITDNode> &node,
-    std::shared_ptr<JITDNode> &target,
-    const UpdateHandle &in_updater,
-    UpdateHandle &out_updater
+  long searchFor@{transform.name}(          // Return the "best" score available
+    const std::shared_ptr<JITDNode> &node,  // Pointer to the node we're currently examining
+    std::shared_ptr<JITDNode> &target,      // Return value: The pointer with the "best" score
+    const UpdateHandle &in_updater,         // Function to call to update the current node
+    UpdateHandle &out_updater               // Return value: Function to call to update the best node
   ) {
     std::shared_ptr<JITDNode> lock = node;
     JITDNode *lock_raw = lock.get();
@@ -19,7 +19,12 @@
 
 
     do {
+      std::cout << "  Testing @{transform.name} on: " << std::endl;
+      print_JITD_node_structure(node, std::string("    ")); std::cout << std::endl;
+
       @{RenderPattern.test(ctx, transform.from, "lock_raw", "break;")}
+
+      std::cout << "  Matched!" << std::endl << "  Checking constraint @constraint";
 
       if(@{ctx.expression(Inline(constraint, 
             RenderPattern.varMapping(ctx, transform.from, "lock_raw")++

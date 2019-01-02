@@ -19,6 +19,16 @@ case class Definition(
   def transform(name:String):Transform = transforms.find { _.name.equals(name) }.get
   def policy(name:String):Policy = policies.find { _.name.equals(name) }.get
 
+  override def toString =
+    Seq(
+      Seq(s"key $keyType", s"record $recordType"),
+      includes.map { include => "include \""+include+"\"" },
+      nodes.map { _.toString },
+      accessors.map { _.toString },
+      mutators.map { _.toString },
+      transforms.map { _.toString },
+      policies.map { _.toString }
+    ).map { _.mkString("\n") }.mkString("\n\n////////////////\n\n")
 }
 
 class HardcodedDefinition

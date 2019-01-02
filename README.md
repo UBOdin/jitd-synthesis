@@ -10,7 +10,7 @@ Requirements
 
 - [Scala](https://www.scala-lang.org/download/)
 - [Scala Build Tool](https://www.scala-sbt.org/download.html)
-- G++ (or compatible)
+- G++/Clang++ (or compatible)
 
 
 Usage

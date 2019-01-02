@@ -12,4 +12,7 @@ case class Transform(
     Transform(newName, to.toMatchPattern, from.toConstructorPattern)
 
   def enumName = "JITD_TRANSFORM_"+name
+
+  override def toString =
+    s"transform $name matches $from\n{\n${to.toString("  ")}\n}"
 }
