@@ -1,6 +1,7 @@
 @import jitd.spec._
 @import jitd.codegen._
 @import jitd.rewrite.Inline
+@import jitd.Debug
 @(ctx:Render, transform:Transform, constraint:Expression, scoreFn:Expression)
 
   long searchFor@{transform.name}(          // Return the "best" score available
@@ -19,12 +20,13 @@
 
 
     do {
-      // std::cout << "  Testing @{transform.name} on: " << std::endl;
-      // print_JITD_node_structure(node, std::string("    ")); std::cout << std::endl;
+      @{ Debug.println(Debug.PolicyDetail){ s"  Testing ${transform.name} on " } }
+      @{ Debug.dump(Debug.PolicyDetail)("node", "    ") }
 
       @{RenderPattern.test(ctx, transform.from, "lock_raw", "break;")}
 
-      // std::cout << "  Matched!" << std::endl << "  Checking constraint @constraint" << std::endl;
+      
+      @{ Debug.println(Debug.PolicyDetail){ "  Matched!" } }
 
       if(@{ctx.expression(Inline(constraint, 
             RenderPattern.varMapping(ctx, transform.from, "lock_raw")++
@@ -40,7 +42,7 @@
       }
     } while(false);
 
-    // std::cout << "  Best Score: " << best_score << "; Checking children..." << std::endl;
+    @{ Debug.println(Debug.PolicyDetail){ "  Best Score\" << best_score << \".  Checking Children..." } }
 
     switch(lock_raw->type){
       @for(node <- ctx.definition.nodes){
@@ -68,7 +70,7 @@
       }
     }
 
-    // std::cout << "  Overall Best Score: " << best_score << std::endl;
+    @{ Debug.println(Debug.PolicyDetail){ "  Best Overall Score\" << best_score << \"." } }
 
     return best_score;
   }

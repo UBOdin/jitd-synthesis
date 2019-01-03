@@ -58,6 +58,13 @@ object JITDGen {
       "-o", conf.target()
     ) ++ (
       if(conf.debugSymbols()) { Seq("-g") } else { Seq() } 
+    )++(
+      conf.debugModes.get.toSeq.flatten.map { mode =>
+        Debug.fromString(mode) match {
+          case None => throw new RuntimeException("Invalid Debug Mode "+mode); 
+          case Some(x) => "-D "+Debug.aspectMacro(x)
+        }
+      }
     )++
     Seq(
       "-I", "src/main/cpp/include",
@@ -123,6 +130,11 @@ class JITDGenConfig(arguments: Seq[String]) extends ScallopConf(arguments)
   val target = opt[String]("bin",
     descr = "Specify the binary target for compilation (requires --compile)",
     default = Some("jitd_test")
+  )
+
+  val debugModes = opt[List[String]]("DEBUG", 
+    descr = "Enable the specified debug modes ("+Debug.values.mkString(", ")+")",
+    default = Some(List[String]())
   )
 
   val run = toggle("run",

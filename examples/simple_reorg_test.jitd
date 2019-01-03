@@ -8,3 +8,5 @@ policy_act_once
 dump
 policy_act_for 10
 dump
+policy_act_for 10
+dump

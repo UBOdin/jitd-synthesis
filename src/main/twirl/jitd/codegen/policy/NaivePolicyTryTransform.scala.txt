@@ -1,6 +1,10 @@
 @import jitd.spec._
 @import jitd.codegen._
+@import jitd.Debug
 @(ctx:Render, root:String, transform:String, onSuccess:String, onFail:String)
+
+@debug(msg:String) = { @{Debug.println(Debug.Policy, "  ")(msg)} }
+@dump = { @{Debug.dump(Debug.Policy, "  ")("target", "    ")} }
 
 {
   std::shared_ptr<JITDNode> target;
@@ -15,9 +19,14 @@
   );
 
   if(bestScore >= 0) {
-    // std::cout << "  Policy found opportunity on: " << std::endl;
-    // print_JITD_node_structure(target, std::string("    ")); std::cout << std::endl;
+    @debug(s"  Applying $transform to")
+    @dump
+
     @{transform}(target);
+    
+    @debug(s"   ... and got")
+    @dump
+
     doUpdate(target);
     @onSuccess
   } else { 
