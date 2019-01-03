@@ -19,12 +19,12 @@
 
 
     do {
-      std::cout << "  Testing @{transform.name} on: " << std::endl;
-      print_JITD_node_structure(node, std::string("    ")); std::cout << std::endl;
+      // std::cout << "  Testing @{transform.name} on: " << std::endl;
+      // print_JITD_node_structure(node, std::string("    ")); std::cout << std::endl;
 
       @{RenderPattern.test(ctx, transform.from, "lock_raw", "break;")}
 
-      std::cout << "  Matched!" << std::endl << "  Checking constraint @constraint";
+      // std::cout << "  Matched!" << std::endl << "  Checking constraint @constraint" << std::endl;
 
       if(@{ctx.expression(Inline(constraint, 
             RenderPattern.varMapping(ctx, transform.from, "lock_raw")++
@@ -39,6 +39,8 @@
 
       }
     } while(false);
+
+    // std::cout << "  Best Score: " << best_score << "; Checking children..." << std::endl;
 
     switch(lock_raw->type){
       @for(node <- ctx.definition.nodes){
@@ -58,12 +60,15 @@
             if(child_score > best_score) { 
               target = child_target; 
               out_updater = child_updater; 
+              best_score = child_score;
             }
           }
           break;
         }
       }
     }
+
+    // std::cout << "  Overall Best Score: " << best_score << std::endl;
 
     return best_score;
   }

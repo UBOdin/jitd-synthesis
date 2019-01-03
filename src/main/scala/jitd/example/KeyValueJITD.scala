@@ -23,7 +23,7 @@ object KeyValueJITD extends HardcodedDefinition {
   def Begin(t:Expression)            = "std::begin".call(t)
   def End(t:Expression)              = "std::end".call(t)
   def ArraySize(t:Expression)        = "data".get("size()")
-  def BlankArrayOfSize(t:Expression) = "std::vector<Record>".call(t)
+  def BlankArray                     = "std::vector<Record>".call()
 
   //////////////////////////////////////////////
 
@@ -62,11 +62,11 @@ object KeyValueJITD extends HardcodedDefinition {
   } {
     "BTree" fromFields(
       "Array" fromFields(
-        BlankArrayOfSize(ArraySize("data")) as "lhs_partition"
+        BlankArray as "lhs_partition"
       ),
       "pick_separator".call("data") as "separator",
       "Array" fromFields(
-        BlankArrayOfSize(ArraySize("data")) as "rhs_partition"
+        BlankArray as "rhs_partition"
       ) andAfter(
         "do_crack".call("data", "separator", "lhs_partition", "rhs_partition")
       )
@@ -105,22 +105,22 @@ object KeyValueJITD extends HardcodedDefinition {
   } {
     "BTree" fromFields(
       "Concat" fromFields( "a", "Array" fromFields(
-        BlankArrayOfSize(ArraySize("data")) as "lhs_partition"
+        BlankArray as "lhs_partition"
       )),
       "separator",
       "Concat" fromFields( "b", "Array" fromFields(
-          BlankArrayOfSize(ArraySize("data")) as "rhs_partition"
+          BlankArray as "rhs_partition"
       )) andAfter(
         "do_crack".call("data", "separator", "lhs_partition", "rhs_partition")
       )
     )
   }
 
-  Policy("CrackSortMerge")("crackAt" -> IntConstant(100000)) (
-    "PushDownAndCrack"            onlyIf { ArraySize("data") gte "crackAt" } 
-                                  scoreBy { ArraySize("data") }
-      andThen ("CrackArray"       scoreBy { ArraySize("data") })
-      andThen "SortArray"
+  Policy("CrackSortMerge")("crackAt" -> IntConstant(10)) (
+    "PushDownAndCrack"            scoreBy { ArraySize("data") }
+      andThen ("CrackArray"       onlyIf { ArraySize("data") gte "crackAt" } 
+                                  scoreBy { ArraySize("data") })
+      andThen ("SortArray"        scoreBy { ArraySize("data") })
       andThen "MergeSortedBTrees"
   )
 

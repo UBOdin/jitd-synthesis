@@ -6,7 +6,7 @@
   std::shared_ptr<JITDNode> target;
   UpdateHandle doUpdate;
 
-  std::cout << "Policy trying to find opportunities for @{transform}" << std::endl;
+  // std::cout << "Policy trying to find opportunities for @{transform}" << std::endl;
   long bestScore = searchFor@{transform}(
     root, 
     target,
@@ -15,8 +15,8 @@
   );
 
   if(bestScore >= 0) {
-    std::cout << "  Policy found opportunity on: " << std::endl;
-    print_JITD_node_structure(target, std::string("    ")); std::cout << std::endl;
+    // std::cout << "  Policy found opportunity on: " << std::endl;
+    // print_JITD_node_structure(target, std::string("    ")); std::cout << std::endl;
     @{transform}(target);
     doUpdate(target);
     @onSuccess

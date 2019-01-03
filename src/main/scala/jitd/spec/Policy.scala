@@ -37,10 +37,8 @@ case class TransformPolicy(
   scoreFn:Expression = IntConstant(0)
 ) extends PolicyRule
 {
-  def onlyIf(newConstraint:Expression) = {
-    println(s"$constraint && $newConstraint -> ${constraint and newConstraint}")
+  def onlyIf(newConstraint:Expression) = 
     TransformPolicy(transform, constraint and newConstraint, scoreFn)
-  }
   def scoreBy(newScoreFn:Expression) = TransformPolicy(transform, constraint, newScoreFn)
 
   override def toString = 

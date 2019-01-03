@@ -41,3 +41,7 @@ sbt:jitd-synthesis> run --help
 sbt:jitd-synthesis> run --run examples/simple_btree.jitd
 ```
 
+See some example policy behavior with
+```
+sbt:jitd-synthesis> run -r examples/simple_reorg_test.jitd
+```

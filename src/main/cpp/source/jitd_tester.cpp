@@ -154,21 +154,19 @@ int jitd_test(
 
     } CASE("policy_act_for") {
       int target_steps;
-      double used_microseconds = 0;
       timeval start, end;
       bool not_done = true;
       int steps_taken = 0;
 
       toks >> target_steps;
 
+      gettimeofday(&start, NULL);
       for(; steps_taken < target_steps && not_done; steps_taken++){
-        gettimeofday(&start, NULL);
         not_done = jitd->do_organize();
-        gettimeofday(&end, NULL);
-        used_microseconds += total_time(start, end);
       }
+      gettimeofday(&end, NULL);
 
-      std::cout << "Policy " << steps_taken << " Actions: " << used_microseconds << (not_done ? "" : " [done]") << " us" <<  std::endl;
+      std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end) << (not_done ? "" : " [done]") << " us" <<  std::endl;
 
     // } CASE("policy_act_until_done") {
     //   bool more_work_to_do = true;
