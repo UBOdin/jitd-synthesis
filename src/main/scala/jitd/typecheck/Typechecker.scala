@@ -133,7 +133,7 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
   def check(stmt: Statement, scope: Map[String, Type], returnType:Type): Map[String, Type] =
   {
     val exprType = (e:Expression) => try { typeOf(e, scope) } catch { case e:TypeError => throw e.rebind(stmt) }
-    val error = (e:Expression, msg:String) => throw new StatementError(msg, Seq(stmt), scope)
+    val error = (msg:String) => throw new StatementError(msg, Seq(stmt), scope)
     val recur = (rstmt: Statement, rscope: Map[String, Type]) => try { check(rstmt, rscope, returnType) } catch { case e:StatementError => throw e.trace(stmt) }
     stmt match { 
       case Block(elems) => {
@@ -142,20 +142,23 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
         }
         scope
       }
-      case Assign(tgt, expr, _) => {
-        val tgtType = scope.getOrElse(tgt, { error(expr, "Assignment to undefined variable: "+tgt) })
+      case Assign(tgt, expr, isAtomic) => {
+        val tgtType = scope.getOrElse(tgt, { error("Assignment to undefined variable: "+tgt) })
         if(exprType(expr) != tgtType){
-          error(expr, "Assignment to "+tgt+" of incorrect type")
+          error("Assignment to "+tgt+" of incorrect type")
+        }
+        if(tgtType == TNodeRef() && !isAtomic){
+          error("Non-atomic assignment to a NodeRef")
         }
         scope
       }
       case Declare(tgt, tOption, expr) => {
         if(scope contains tgt) {
-          error(expr, "Overriding existing variable")
+          error("Overriding existing variable")
         }
         val tRet = tOption match {
           case Some(t) => if(t != exprType(expr)){ 
-            error(expr, "Declaring expression of incorrect type") 
+            error("Declaring expression of incorrect type") 
           } else { t } 
           case None => exprType(expr)
         }
@@ -163,13 +166,13 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
       }
       case ExtractNode(name, expr, nodeType, onSuccess, onFail) => {
         if(scope contains name) { 
-          error(expr, "Overriding existing variable")
+          error("Overriding existing variable")
         }
         if(!(nodeTypes contains nodeType)) {
-          error(expr, s"Invalid Node Type: '$nodeType'")
+          error(s"Invalid Node Type: '$nodeType'")
         }
         if(exprType(expr) != TNodeRef()) {
-          error(expr, "Doesn't evaluate to an (extractable) node reference")
+          error("Doesn't evaluate to an (extractable) node reference")
         }
         recur(onSuccess, scope + (name -> TNode(nodeType)))
         recur(onFail, scope)
@@ -177,17 +180,17 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
       }
       case Return(expr) => {
         if(exprType(expr) != returnType) { 
-          error(expr, s"Invalid Return Type (Found: ${exprType(expr)}; Expected: $returnType)")
+          error(s"Invalid Return Type (Found: ${exprType(expr)}; Expected: $returnType)")
         }
         scope
       }
       case Void(expr @ FunctionCall(name, args)) => {
         try {
           functions.getOrElse(name, {
-            error(expr, "Undefined function")
+            error("Undefined function")
           })(args.map { exprType(_) })
         } catch { 
-          case e:FunctionArgError => error(expr, e.toString)
+          case e:FunctionArgError => error(e.toString)
         }
         scope
       }
@@ -197,13 +200,13 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
       }
       case ForEach(loopvar, expr, body) => {
         if(scope contains loopvar) {
-          error(expr, "Overriding existing variable")
+          error("Overriding existing variable")
         }
         exprType(expr) match {
           case TArray(nested) => 
             recur(body, scope + (loopvar -> nested))
           case _ => 
-            error(expr, "Invalid loop target")
+            error("Invalid loop target")
         }
         scope
       }

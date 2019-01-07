@@ -38,20 +38,3 @@ object TransformToFunction
     }
   }
 }
-
-
-
-//  void @{transform.name}(std::shared_ptr<JITDNode> &target){
-//    // Make sure that we hold a reference to the physical pointer
-//    std::shared_ptr<JITDNode> physicalLock = target;
-//    const JITDNode *from = physicalLock.get();
-//
-//    // Check that the transform is valid (and extract fields)
-//    @{RenderPattern.test(ctx, transform.from, "from", "return;")}
-//
-//    // Build the new root
-//    @{RenderPattern.buildForTransform(ctx, transform.to, "to", transform.from, "from")}
-//
-//    // and link the rewritten node back into the tree
-//    target = to;
-//  }

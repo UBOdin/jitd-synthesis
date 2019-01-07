@@ -4,12 +4,14 @@ sealed abstract class Type {
   def array = TArray(this)
 }
 
-case class TKey() extends Type { override def toString = "key" }
+sealed abstract class PrimType extends Type
+
+case class TKey() extends PrimType { override def toString = "key" }
 case class TRecord() extends Type
 
-case class TInt() extends Type
-case class TFloat() extends Type
-case class TBool() extends Type
+case class TInt() extends PrimType
+case class TFloat() extends PrimType
+case class TBool() extends PrimType
 case class TArray(t:Type) extends Type
 case class TStruct(fields:Seq[Field]) extends Type
 case class TNodeRef() extends Type

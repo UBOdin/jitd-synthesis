@@ -50,13 +50,15 @@ case class Assign(name:String, v:Expression, atomic:Boolean = false) extends Sta
   def reassembleExpression(in: Seq[Expression]): Statement = Assign(name, in(0), atomic)
   def toString(prefix: String) = s"${prefix}$name = $v"
 }
-case class ExtractNode(name:String, v:Expression, nodeType: String, onSuccess: Statement, onFail: Statement) extends Statement
+case class ExtractNode(name:String, v:Expression, nodeHandlers: Seq[(String, Statement)], onFail: Statement) extends Statement
 {
-  def disasssembleStatement: Seq[Statement] = Seq(onSuccess, onFail)
-  def reassembleStatement(in: Seq[Statement]): Statement = ExtractNode(name, v, nodeType, in(0), in(1))
+  def disasssembleStatement: Seq[Statement] = Seq(onFail) ++ nodeHandlers.map { _._2 }
+  def reassembleStatement(in: Seq[Statement]): Statement = ExtractNode(name, v, nodeType, nodeHandlers.zip(in.tail).map { case ((name, _), handler) => (name, handler) }, in(0))
   def disasssembleExpression: Seq[Expression] = Seq(v)
-  def reassembleExpression(in: Seq[Expression]): Statement = ExtractNode(name, in(0), nodeType, onSuccess, onFail)
-  def toString(prefix: String) = s"${prefix}extract $v into $name as $nodeType and\n${onSuccess.toString(prefix+"  ")}\n${prefix}} else {\n${onFail.toString(prefix+"  ")}\n${prefix}}"
+  def reassembleExpression(in: Seq[Expression]): Statement = ExtractNode(name, in(0), nodeType, nodeHandlers, onFail)
+  def toString(prefix: String) = s"${prefix}extract $v into $name { "+nodeHandlers.map { 
+                                                              case (nodeType, onMatch) => s"${prefix}  case $nodeType -> \n${onSuccess.toString(prefix+"    ")}"
+                                                            }+s"${prefix}  else -> \nn${onFail.toString(prefix+"     ")}\n${prefix}}"
 }
 case class Block(statements:Seq[Statement]) extends Statement
 {

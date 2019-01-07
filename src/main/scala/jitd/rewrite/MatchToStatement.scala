@@ -78,7 +78,7 @@ object MatchToStatement
       }}
   }
 
-  def apply(
+  def constructorWithoutVarMapping(
     definition: Definition,
     pattern: ConstructorPattern,
     target: VarName
@@ -98,12 +98,7 @@ object MatchToStatement
               Seq(
                 Declare( nodeName+"_real", Some(TNode(node)), MakeNode(node, fieldExpressions) ),
                 Declare( nodeName, Some(TNodeRef()), WrapNode(Var(target+"_real")))
-              ) ++ 
-              fields.zip(nodeDefinition.fields).map {
-                case (ConstructExpression(_, Some(name)), fieldDefinition:Field) => 
-                  Some( Declare(name, None, NodeSubscript(Var(nodeName+"_real"), fieldDefinition.name)) )
-                case _ => None
-              }.flatten
+              )
             ),
             Var(nodeName)
           )
@@ -119,6 +114,18 @@ object MatchToStatement
       case ConstructExpression(expression, _) =>
         (Block(Seq()), expression)
     }
+  }
 
+  def apply(
+    definition: Definition,
+    pattern: ConstructorPattern,
+    target: VarName
+  ): (Statement, Expression) =
+  {
+    val (constructor, accessor) = constructorWithoutVarMapping(definition, pattern, target)
+    (
+      Inline(constructor, varMapping(defintion, pattern, target)),
+      accessor
+    )
   }
 }

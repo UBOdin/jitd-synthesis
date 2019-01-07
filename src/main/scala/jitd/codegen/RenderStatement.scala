@@ -12,6 +12,7 @@ class RenderStatement(
   def apply(target: Statement, indent:String = ""): String = 
   {
     val recur = (nested:Statement) => apply(nested, indent+"  ")
+    val recurWithIndent = (nested:Statement, addendum:String) => apply(nested, indent+addendum)
 
     target match {
       case IfThenElse(condition, ifTrue, ifFalse:IfThenElse) => {
@@ -32,14 +33,19 @@ class RenderStatement(
       case Declare(name, None, v) => {
           indent+"auto "+name+" = "+renderExpression(v)+";\n"
         }
-      case ExtractNode(name, v, nodeType, onSuccess, onFail) => {
-          val node = ctx.definition.nodesByName(nodeType)
+      case ExtractNode(name, v, matchers, onFail) => {
           indent+s"${ctx.cType(TNodeRef())} "+name+"_lock = std::atomic_load(&("+renderExpression(v)+"));\n"+
-          indent+"if( ("+renderExpression(v)+")->type == "+node.enumName+"){\n"+
-            indent+"  "+node.renderName+" *"+name+" = ("+node.renderName+" *)("+name+"_lock).get();\n"+
-            recur(onSuccess)+
-          indent+s"} else { //${name} is **not** a ${nodeType}\n"+
-            recur(onFail)+
+          indent+"switch(("+renderExpression(v)+")->type){ \n"+
+            matchers.map { case (nodeType, handler) => 
+              val node = ctx.definition.nodesByName(nodeType)
+              indent+"  case "+node.renderName+":{\n"
+              indent+"    "+node.renderName+" *"+name+" = ("+node.renderName+" *)("+name+"_lock).get();\n"+
+              recurWithIndent(handler, "    ")+
+              indent+"  }; break;"
+            }+
+            indent+s"  default: { //${name} is not ${matchers.map { "a " + _._1 }.mkString(" or ")}\n"+
+              recurWithIndent(onFail, "    ")+
+            indent+"  }\n; break;"
           indent+"}\n"
 
         }
