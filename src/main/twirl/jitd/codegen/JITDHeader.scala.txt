@@ -56,7 +56,7 @@ class @{node.renderName} : public JITDNode {
     }
   {}
 
-  @for(field <- node.fields.filter { _.t == TNode() }){
+  @for(field <- node.fields.filter { _.t == TNodeRef() }){
     void update_@{field.name}_handle(std::shared_ptr<JITDNode> &new_value){
       @{field.name} = new_value;
     }
@@ -77,7 +77,7 @@ typedef enum {
 } JITDTransformType;
 
 @for(transform <- ctx.definition.transforms){
-  void @{transform.name}(std::shared_ptr<JITDNode> &target);
+  bool @{transform.name}(std::shared_ptr<JITDNode> &target);
 }
 
 ///////////////////// JITD Debug Methods ///////////////////// 

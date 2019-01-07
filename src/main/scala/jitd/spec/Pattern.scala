@@ -6,18 +6,19 @@ package jitd.spec
 sealed abstract class MatchPattern
 {
   def toConstructorPattern: ConstructorPattern
+  def name: Option[String]
 }
 
-case class MatchNode(node: String, fields: Seq[MatchPattern], name: Option[String] = None) extends MatchPattern
+case class MatchNode(node: String, fields: Seq[MatchPattern], val name: Option[String] = None) extends MatchPattern
 {
   def toConstructorPattern: ConstructNode = 
     ConstructNode(node, fields.map { _.toConstructorPattern }, name)
   override def toString = s"$node(${fields.map { _.toString}.mkString(", ")})"
 }
-case class MatchAny(name: Option[String] = None) extends MatchPattern
+case class MatchAny(val name: Option[String] = None) extends MatchPattern
 {
   def toConstructorPattern =
-    ConstructExpression(Var(name.get), name)
+    ConstructExpression(Var(name.get), None)
   override def toString = name.getOrElse("_")
 }
 

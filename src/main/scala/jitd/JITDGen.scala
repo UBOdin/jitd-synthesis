@@ -4,6 +4,8 @@ import java.io._
 import org.rogach.scallop._
 import scala.sys.process._
 
+import jitd.typecheck._
+
 object JITDGen {
 
   def write(path: File, content: String)
@@ -40,8 +42,14 @@ object JITDGen {
 
     // Actually generate and write out the C++ files.
     System.out.println("Rendering...")
-    write(headerFile, render.header())
-    write(bodyFile,   render.body(headerFilename))
+    try { 
+      write(headerFile, render.header())
+      write(bodyFile,   render.body(headerFilename))
+    } catch { 
+      case e:Exception => 
+        System.err.println(e.toString)
+        System.exit(-1)
+    }
     System.out.println("         ...done")
 
     // If we don't want to compile, we're done
@@ -109,6 +117,11 @@ class JITDGenConfig(arguments: Seq[String]) extends ScallopConf(arguments)
 
   val dump = toggle("dump",
     descrYes = "Echo out the selected policy",
+    default = Some(false)
+  )
+
+  val typecheck = toggle("typecheck",
+    descrYes = "Typecheck everything before dumping out",
     default = Some(false)
   )
 

@@ -7,7 +7,7 @@ class RenderStatement(
   renderFunction: Map[String, (Seq[Expression], RenderExpression) => String] = Map()
 ){
 
-  def renderExpression = new RenderExpression(renderFunction)
+  def renderExpression = new RenderExpression(ctx, renderFunction)
 
   def apply(target: Statement, indent:String = ""): String = 
   {
@@ -27,16 +27,30 @@ class RenderStatement(
             recur(ifFalse)
         }
       case Declare(name, Some(t), v) => {
-          indent+ctx.cType(t)+" name"+" = "+renderExpression(v)+";\n"
+          indent+ctx.cType(t)+" "+name+" = "+renderExpression(v)+";\n"
         }
       case Declare(name, None, v) => {
-          indent+"auto name"+" = "+renderExpression(v)+";\n"
+          indent+"auto "+name+" = "+renderExpression(v)+";\n"
+        }
+      case ExtractNode(name, v, nodeType, onSuccess, onFail) => {
+          val node = ctx.definition.nodesByName(nodeType)
+          indent+s"${ctx.cType(TNodeRef())} "+name+"_lock = std::atomic_load(&("+renderExpression(v)+"));\n"+
+          indent+"if( ("+renderExpression(v)+")->type == "+node.enumName+"){\n"+
+            indent+"  "+node.renderName+" *"+name+" = ("+node.renderName+" *)("+name+"_lock).get();\n"+
+            recur(onSuccess)+
+          indent+s"} else { //${name} is **not** a ${nodeType}\n"+
+            recur(onFail)+
+          indent+"}\n"
+
         }
       case Void(v) => {
           indent + renderExpression(v)+";\n"
         }
-      case Assign(name, v) => {
+      case Assign(name, v, false) => {
           indent+name+" = "+renderExpression(v)+";\n"
+        }
+      case Assign(name, v, true) => {
+          indent+"std::atomic_store(&("+name+"), "+renderExpression(v)+");\n"
         }
       case Block(nested) => {
           indent+"{\n"+

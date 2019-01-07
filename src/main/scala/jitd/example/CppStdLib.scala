@@ -1,15 +1,16 @@
 package jitd.example
 
 import jitd.spec._
-import jitd.typecheck.FunctionDefinition
+import jitd.typecheck.FunctionSignature
 
 object CppStdLib
 {
   val functions = Seq(
-    FunctionDefinition("std::begin", Seq(TArray(TRecord())), TIterator()),
-    FunctionDefinition("std::end", Seq(TArray(TRecord())), TIterator()),
-    FunctionDefinition("std::find", Seq(TIterator(), TIterator(), TKey()), TIterator()),
-    FunctionDefinition("std::lower_bound", Seq(TIterator(), TIterator(), TKey()), TIterator())
-
-  ).map { f => f.name -> f }.toMap
+    FunctionSignature("std::begin", Seq(TArray(TRecord())), TIterator()),
+    FunctionSignature("std::end", Seq(TArray(TRecord())), TIterator()),
+    FunctionSignature("std::find", Seq(TIterator(), TIterator(), TKey()), TIterator()),
+    FunctionSignature("std::lower_bound", Seq(TIterator(), TIterator(), TKey()), TIterator()),
+    FunctionSignature("std::vector<Record>", Seq(), TArray(TRecord())),
+    FunctionSignature("std::sort", Seq(TIterator(), TIterator()))
+  )
 }

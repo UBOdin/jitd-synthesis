@@ -11,7 +11,7 @@ object RenderAccessor
     val fields = (
       (if(root){ Seq[String]() } else {
         Seq(
-          ctx.fieldDefn(Field("jitd_node", TNode()))
+          ctx.fieldDefn(Field("jitd_node", TNodeRef()))
         )
       })++
       accessor.args.map { ctx.fieldDefn(_) } ++ 

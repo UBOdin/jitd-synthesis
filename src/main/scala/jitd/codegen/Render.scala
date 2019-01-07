@@ -53,7 +53,8 @@ case class Render(
       case TFloat()        => "double"
       case TBool()         => "bool"
       case TKey()          => keyType
-      case TNode()         => "std::shared_ptr<JITDNode>"
+      case TNodeRef()      => "std::shared_ptr<JITDNode>"
+      case TNode(t)        => s"${definition.node(t).renderName} *"
       case TRecord()       => recordType
       case TStruct(fields) => structName(fields)
       case TArray(nested)  => bufferName(nested)
@@ -73,7 +74,8 @@ case class Render(
       case TInt() | TFloat() | TBool() | TKey() | TRecord() => name
       case TIterator() => ???
       case TStruct(_) => ???
-      case TNode() => ???
+      case TNodeRef() => ???
+      case TNode(t) => ???
     }
   }
 

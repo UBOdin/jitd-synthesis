@@ -18,12 +18,12 @@ object Inline
                 case Assign(v, e) if replacements contains v =>
                   replacements(v) match {
                     case Var(r) => Assign(r, e)
-                    case _ => throw new Exception("Invalid Inline")
+                    case _ => throw new Exception(s"Invalid Inline (replacing assign of '$v' with $e)")
                   }
                 case Declare(v, t, e) if replacements contains v =>
                   replacements(v) match {
                     case Var(r) => Declare(r, t, e)
-                    case _ => throw new Exception("Invalid Inline")
+                    case _ => throw new Exception(s"Invalid Inline (replacing declare of '$v' with $e)")
                   }
                 case x => x
               }

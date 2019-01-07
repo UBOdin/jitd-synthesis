@@ -48,7 +48,7 @@
       @for(node <- ctx.definition.nodes){
         case @{node.enumName}: {
           @{node.renderName} *real_node = (@{node.renderName} *)lock_raw;
-          @for(field <- node.fields.filter { _.t == TNode() }){
+          @for(field <- node.fields.filter { _.t == TNodeRef() }){
             child_score = searchFor@{transform.name}(
               real_node->@{field.name}, 
               child_target,
