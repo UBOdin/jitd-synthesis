@@ -52,7 +52,7 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
       case ArraySubscript(arr, _) => {
         recur(arr) match { 
           case TArray(nested) => nested
-          case _ => error("Subscript of Non-Array")
+          case _ => error("Subscript of Non-Array: "+arr)
         }
       }
       case StructSubscript(struct, subscript) => {
@@ -62,17 +62,17 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
               case Some(field) => field.t
               case None => error("Invalid Struct Subscript: "+subscript)
             }
-          case _ => error("Subscript of Non-Struct")
+          case _ => error("Subscript of Non-Struct: "+struct)
         }
       }
-      case NodeSubscript(struct, subscript) => {
-        recur(struct) match {
+      case NodeSubscript(node, subscript) => {
+        recur(node) match {
           case TNode(nodeType) => 
             nodeTypes(nodeType).fields.find { _.name.equals(subscript) } match {
               case Some(field) => field.t
               case None => error("Invalid Node Subscript: "+subscript)
             }
-          case _ => error("Subscript of Non-Node")
+          case _ => error("Subscript of Non-Node: "+node)
         }
       }
       case Cmp(op, a, b) => {
@@ -164,17 +164,19 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
         }
         scope + (tgt -> tRet)
       }
-      case ExtractNode(name, expr, nodeType, onSuccess, onFail) => {
+      case ExtractNode(name, expr, matchers, onFail) => {
         if(scope contains name) { 
           error("Overriding existing variable")
-        }
-        if(!(nodeTypes contains nodeType)) {
-          error(s"Invalid Node Type: '$nodeType'")
         }
         if(exprType(expr) != TNodeRef()) {
           error("Doesn't evaluate to an (extractable) node reference")
         }
-        recur(onSuccess, scope + (name -> TNode(nodeType)))
+        for( (nodeType, handler) <- matchers ){
+          if(!(nodeTypes contains nodeType)) {
+            error(s"Invalid Node Type: '$nodeType'")
+          }
+          recur(handler, scope + (name -> TNode(nodeType)))
+        }
         recur(onFail, scope)
         scope
       }
@@ -212,12 +214,14 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
       }
       case IfThenElse(c, t, e) => {
         if(exprType(c) != TBool()){
-          error(c, "Invalid if-then-else condition")
+          error("Invalid if-then-else condition")
         }
         recur(t, scope)
         recur(e, scope)
         scope
       }
+      case Error(_) => scope
+      case Comment(_) => scope
 
     }
   }

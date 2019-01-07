@@ -1,6 +1,6 @@
 @import jitd.spec._
 @import jitd.codegen._
-@import jitd.rewrite.Inline
+@import jitd.rewrite.InlineVars
 @import jitd.Debug
 @(ctx:Render, transform:Transform, constraint:Expression, scoreFn:Expression)
 
@@ -28,11 +28,11 @@
       
       @{ Debug.println(Debug.PolicyDetail){ "  Matched!" } }
 
-      if(@{ctx.expression(Inline(constraint, 
+      if(@{ctx.expression(InlineVars(constraint, 
             RenderPattern.varMapping(ctx, transform.from, "lock_raw")++
             ctx.policy.varMapping
           ))}){
-        best_score = @{ctx.expression(Inline(scoreFn, 
+        best_score = @{ctx.expression(InlineVars(scoreFn, 
             RenderPattern.varMapping(ctx, transform.from, "lock_raw")++
             ctx.policy.varMapping
           ))};

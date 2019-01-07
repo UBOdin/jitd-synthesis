@@ -56,8 +56,43 @@ object MatchToStatement
     return myMapping ++ childMappings
   }
 
-  def varMappings(definition: Definition, pattern: ConstructorPattern, targetName: String): Map[String, Expression] =
-    varMappings(definition, pattern.toMatchPattern, targetName)
+  def varMappings(
+    definition: Definition, 
+    pattern: ConstructorPattern, 
+    targetName: String,
+    directFieldRef: Option[Expression] = None
+  ): Map[String, Expression] =
+  {
+    pattern match {
+      case ConstructExpression(_, None) => Map()
+      
+      case ConstructExpression(_, Some(name)) => 
+        Map( name -> 
+              directFieldRef.getOrElse { Var(targetName) }
+        )
+
+      case ConstructNode(nodeType, fields, name) => {
+          val me = Var(targetName)
+          val myMapping:Map[String, Expression] = 
+            name match { 
+              case Some(x) => Map(x -> Var(targetName+"_ref"))
+              case None => Map()
+            }
+          fields.zip(definition.node(nodeType).fields).map { 
+            case (fieldPattern, fieldDefinition) => 
+              varMappings(
+                definition, 
+                fieldPattern, 
+                targetName+"_"+fieldDefinition.name, 
+                Some(NodeSubscript(me, fieldDefinition.name))
+              )
+          }.fold(myMapping) { _ ++ _ }
+        }
+      
+      case BeforeConstruct(_, target) => varMappings(definition, target, targetName)
+      case AfterConstruct(target, _) => varMappings(definition, target, targetName)
+    }
+  }
 
   def apply(
     definition: Definition,
@@ -72,9 +107,9 @@ object MatchToStatement
     val extractionSteps = unroll(definition, pattern, target+"_root", Var(target))
 
     return extractionSteps
-      .foldRight(Inline(onMatch, fromMappings)) { (check, accumulator) => {
+      .foldRight(InlineVars(onMatch, fromMappings)) { (check, accumulator) => {
         val (nodeVarName, nodeType, nodeSourceExpression) = check
-        ExtractNode(nodeVarName, nodeSourceExpression, nodeType, accumulator, onFail)
+        ExtractNode(nodeVarName, nodeSourceExpression, Seq(nodeType -> accumulator), onFail)
       }}
   }
 
@@ -86,30 +121,32 @@ object MatchToStatement
   {
     pattern match {
       case ConstructNode(node, fields, nameOption) => {
+          // println("Construct: "+node)
           val nodeDefinition = definition.node(node)
           val nodeName = nameOption.getOrElse(target)
           val (fieldConstructors, fieldExpressions) = 
             fields.zip(nodeDefinition.fields).map { case (fieldPattern, fieldDefinition) =>
-              apply(definition, fieldPattern, nodeName+"_"+fieldDefinition.name)
+              constructorWithoutVarMapping(definition, fieldPattern, nodeName+"_"+fieldDefinition.name)
             }.unzip
           (
             fieldConstructors.fold(Block(Seq())){ _ ++ _ } ++ 
             Block(
               Seq(
-                Declare( nodeName+"_real", Some(TNode(node)), MakeNode(node, fieldExpressions) ),
-                Declare( nodeName, Some(TNodeRef()), WrapNode(Var(target+"_real")))
+                Comment(s"Assemble $target as a $node"),
+                Declare( nodeName, Some(TNode(node)), MakeNode(node, fieldExpressions) ),
+                Declare( nodeName+"_ref", Some(TNodeRef()), WrapNode(Var(target)))
               )
             ),
-            Var(nodeName)
+            Var(nodeName+"_ref")
           )
         }
       case AfterConstruct(child, code) => {
-        val (constructor, accessor) = apply(definition, child, target) 
-        (constructor ++ code, accessor)
+        val (constructor, accessor) = constructorWithoutVarMapping(definition, child, target) 
+        (constructor ++ Comment(s"Handle post-processing for $target") ++ code, accessor)
       }
       case BeforeConstruct(code, child) => {
-        val (constructor, accessor) = apply(definition, child, target) 
-        (code ++ constructor, accessor)
+        val (constructor, accessor) = constructorWithoutVarMapping(definition, child, target) 
+        (Comment(s"Handle pre-processing for $target") ++ code ++ constructor, accessor)
       }
       case ConstructExpression(expression, _) =>
         (Block(Seq()), expression)
@@ -122,9 +159,18 @@ object MatchToStatement
     target: VarName
   ): (Statement, Expression) =
   {
+    // println(pattern)
+    // println(varMappings(definition, pattern, target))
     val (constructor, accessor) = constructorWithoutVarMapping(definition, pattern, target)
+    // println(constructor)
+    // println(InlineVars(constructor, varMappings(definition, pattern, target)))
     (
-      Inline(constructor, varMapping(defintion, pattern, target)),
+      InlineVars(
+        Comment(s"BEGIN ASSEMBLING $target") ++ 
+          constructor ++ 
+          Comment(s"END ASSEMBLING $target as $accessor"), 
+        varMappings(definition, pattern, target)),
+      // constructor,
       accessor
     )
   }

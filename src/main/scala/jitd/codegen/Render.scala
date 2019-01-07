@@ -62,9 +62,10 @@ case class Render(
     }
   }
 
-  def fieldDefn(f:Field, passByRef:Boolean = false): String = {
+  def fieldDefn(f:Field, passByRef:Boolean = false, isConst:Boolean = false): String = {
     val pbr = if(passByRef){ "&" } else { "" }
-    s"${cType(f.t)} $pbr${f.name}"
+    val const = if(isConst){ "const " } else { "" } 
+    s"${const}${cType(f.t)} $pbr${f.name}"
   }
 
   def printableValue(name:String, t:Type): String = 

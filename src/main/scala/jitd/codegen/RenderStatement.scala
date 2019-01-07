@@ -34,18 +34,19 @@ class RenderStatement(
           indent+"auto "+name+" = "+renderExpression(v)+";\n"
         }
       case ExtractNode(name, v, matchers, onFail) => {
+          indent+s"// Extract ${renderExpression(v)} into ${matchers.map { _._1 }.mkString(" or ")}\n"+
           indent+s"${ctx.cType(TNodeRef())} "+name+"_lock = std::atomic_load(&("+renderExpression(v)+"));\n"+
           indent+"switch(("+renderExpression(v)+")->type){ \n"+
             matchers.map { case (nodeType, handler) => 
               val node = ctx.definition.nodesByName(nodeType)
-              indent+"  case "+node.renderName+":{\n"
+              indent+"  case "+node.enumName+":{\n"+
               indent+"    "+node.renderName+" *"+name+" = ("+node.renderName+" *)("+name+"_lock).get();\n"+
               recurWithIndent(handler, "    ")+
-              indent+"  }; break;"
-            }+
+              indent+"  }; break;\n"
+            }.mkString+
             indent+s"  default: { //${name} is not ${matchers.map { "a " + _._1 }.mkString(" or ")}\n"+
               recurWithIndent(onFail, "    ")+
-            indent+"  }\n; break;"
+            indent+"  }; break;\n"+
           indent+"}\n"
 
         }
@@ -66,6 +67,12 @@ class RenderStatement(
       case ForEach(loopvar, over, body) => ???
       case Return(v) => {
           indent+"return "+renderExpression(v)+";\n"
+        }
+      case Error(msg) => {
+          indent+"std::cerr << \""+msg+"\" << std::endl;\n"+indent+"exit(-1);\n"
+        }
+      case Comment(msg) => {
+          indent+"/*** "+msg+" ***/\n"
         }
 
     }

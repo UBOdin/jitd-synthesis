@@ -27,9 +27,7 @@ bool JITD::do_organize()
 ///////////////////// Accessor Definitions ///////////////////// 
 
 @for( accessor <- ctx.definition.accessors ) {
-  @{RenderAccessor.declaration(accessor, ctx, prefix = "JITD::")} {
-    @{RenderAccessor.body(accessor, ctx)}
-  }
+@{RenderFunction.body(ctx, AccessorToFunction(ctx.definition, accessor, "jitd_accessor_"))}
 }
 
 ///////////////////// Mutator Definitions ///////////////////// 

@@ -114,9 +114,9 @@ object KeyValueJITD extends HardcodedDefinition {
       "separator",
       "Concat" fromFields( "b", "Array" fromFields(
           BlankArray as "rhs_partition"
-      )) andAfter(
-        "do_crack".call("data", "separator", "lhs_partition", "rhs_partition")
-      )
+      ))
+    ) andAfter(
+      "do_crack".call("data", "separator", "lhs_partition", "rhs_partition")
     )
   }
 

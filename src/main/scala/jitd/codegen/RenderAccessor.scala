@@ -1,7 +1,7 @@
 package jitd.codegen
 
 import jitd.spec._
-import jitd.rewrite.Inline
+import jitd.rewrite.InlineVars
 
 object RenderAccessor
 {
@@ -11,7 +11,7 @@ object RenderAccessor
     val fields = (
       (if(root){ Seq[String]() } else {
         Seq(
-          ctx.fieldDefn(Field("jitd_node", TNodeRef()))
+          ctx.fieldDefn(Field("jitd_node", TNodeRef()), passByRef = true, isConst = true)
         )
       })++
       accessor.args.map { ctx.fieldDefn(_) } ++ 
@@ -20,14 +20,14 @@ object RenderAccessor
     s"${ctx.cType(accessor.returnType)} ${prefix}${accessor.name}(${fields.mkString(", ")})"
   }
 
-  def renderCall(accessor: Accessor, ctx: Render, target: String): String = 
+  def renderCall(accessor: Accessor, ctx: Render, target: String, prefix:String = ""): String = 
   {
     val args = (
       Seq(target)++
       accessor.args.map { _.name }++
       accessor.ret.map { _.name }
     )
-    s"${accessor.name}(${args.mkString(", ")})"    
+    s"${prefix+accessor.name}(${args.mkString(", ")})"    
   }
 
   def body(accessor: Accessor, ctx:Render): String = 
@@ -46,7 +46,7 @@ object RenderAccessor
        "        std::cerr << \""+node.enumName+"->"+accessor.name+"\" << std::endl;\n"
               } else { "" })+
       s"        ${node.renderName} *jitd_node_real = (${node.renderName} *)jitd_node.get();\n"+
-                render(Inline(statement, fieldMap), "        ")+
+                render(InlineVars(statement, fieldMap), "        ")+
        "      } break;\n"
     }}.mkString("\n")+
     s"    }"

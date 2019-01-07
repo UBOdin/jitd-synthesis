@@ -86,6 +86,13 @@ class JITD;
 std::shared_ptr<JITD> assemble_jitd(std::istream &in);
 void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix);
 
+///////////////////// JITD Accessors ///////////////////// 
+
+@for( accessor <- ctx.definition.accessors ) {
+  @{RenderAccessor.declaration( accessor, ctx, prefix="jitd_accessor_" )};
+}
+
+
 ///////////////////// JITD Definition ///////////////////// 
 
 class JITD {
@@ -102,7 +109,7 @@ class JITD {
 
     @for( accessor <- ctx.definition.accessors ) {
       @{RenderAccessor.declaration( accessor, ctx, root = true )} {
-        return @RenderAccessor.renderCall( accessor, ctx, "root" );
+        return @RenderAccessor.renderCall( accessor, ctx, "root", "jitd_accessor_" );
       }
     }
 
@@ -114,9 +121,6 @@ class JITD {
     bool do_organize();
 
   private:
-    @for( accessor <- ctx.definition.accessors ) {
-      @{RenderAccessor.declaration( accessor, ctx )};
-    }
 
     std::shared_ptr<JITDNode> root;
 

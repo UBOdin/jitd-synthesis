@@ -1,7 +1,5 @@
 package jitd.spec
 
-import jitd.rewrite.Inline
-
 case class Transform(
   name: String, 
   from: MatchNode, 

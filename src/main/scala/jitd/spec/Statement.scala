@@ -53,12 +53,12 @@ case class Assign(name:String, v:Expression, atomic:Boolean = false) extends Sta
 case class ExtractNode(name:String, v:Expression, nodeHandlers: Seq[(String, Statement)], onFail: Statement) extends Statement
 {
   def disasssembleStatement: Seq[Statement] = Seq(onFail) ++ nodeHandlers.map { _._2 }
-  def reassembleStatement(in: Seq[Statement]): Statement = ExtractNode(name, v, nodeType, nodeHandlers.zip(in.tail).map { case ((name, _), handler) => (name, handler) }, in(0))
+  def reassembleStatement(in: Seq[Statement]): Statement = ExtractNode(name, v, nodeHandlers.zip(in.tail).map { case ((name, _), handler) => (name, handler) }, in(0))
   def disasssembleExpression: Seq[Expression] = Seq(v)
-  def reassembleExpression(in: Seq[Expression]): Statement = ExtractNode(name, in(0), nodeType, nodeHandlers, onFail)
-  def toString(prefix: String) = s"${prefix}extract $v into $name { "+nodeHandlers.map { 
-                                                              case (nodeType, onMatch) => s"${prefix}  case $nodeType -> \n${onSuccess.toString(prefix+"    ")}"
-                                                            }+s"${prefix}  else -> \nn${onFail.toString(prefix+"     ")}\n${prefix}}"
+  def reassembleExpression(in: Seq[Expression]): Statement = ExtractNode(name, in(0), nodeHandlers, onFail)
+  def toString(prefix: String) = s"${prefix}extract $v into $name { \n"+nodeHandlers.map { 
+                                                              case (nodeType, onMatch) => s"${prefix}  case $nodeType -> \n${onMatch.toString(prefix+"    ")}"
+                                                            }.mkString+s"\n${prefix}  else -> \n${onFail.toString(prefix+"     ")}\n${prefix}}"
 }
 case class Block(statements:Seq[Statement]) extends Statement
 {
@@ -93,4 +93,19 @@ case class Return(v:Expression) extends Statement
   def reassembleExpression(in: Seq[Expression]): Statement = Return(in(0))
   def toString(prefix: String) = s"${prefix}return $v"
 }
-
+case class Error(msg:String) extends Statement
+{
+  def disasssembleStatement: Seq[Statement] = Seq()
+  def reassembleStatement(in: Seq[Statement]): Statement = this
+  def disasssembleExpression: Seq[Expression] = Seq()
+  def reassembleExpression(in: Seq[Expression]): Statement = this
+  def toString(prefix: String) = prefix+"error: "+msg
+}
+case class Comment(msg:String) extends Statement
+{
+  def disasssembleStatement: Seq[Statement] = Seq()
+  def reassembleStatement(in: Seq[Statement]): Statement = this
+  def disasssembleExpression: Seq[Expression] = Seq()
+  def reassembleExpression(in: Seq[Expression]): Statement = this
+  def toString(prefix: String) = prefix+"rem: "+msg
+}
