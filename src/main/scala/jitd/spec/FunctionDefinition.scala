@@ -1,5 +1,6 @@
 package jitd.spec
 
+import jitd.typecheck.FunctionSignature
 
 object FunctionArgType extends Enumeration 
 {
@@ -23,4 +24,7 @@ case class FunctionDefinition(
     ret: Type, 
     args: Seq[(String, Type, FunctionArgType.T)], 
     body:Statement
-)
+) {
+  def signature =
+    FunctionSignature(name, args.map { _._2 }, ret)
+}

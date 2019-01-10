@@ -1,5 +1,6 @@
 package jitd.spec;
 
+import jitd.JITDRuntime
 import jitd.typecheck._
 
 case class Definition(
@@ -39,7 +40,7 @@ case class Definition(
 
 class HardcodedDefinition
 {
-  var functionSignatures = List[jitd.typecheck.FunctionSignature]()
+  var functionSignatures:List[FunctionSignature] = JITDRuntime.functions.toList
   var nodes = List[jitd.spec.Node]()
   var accessors = List[jitd.spec.Accessor]()
   var mutators = List[jitd.spec.Mutator]()
@@ -134,7 +135,7 @@ class HardcodedDefinition
     transforms = transforms,
     policies   = policies,
     functions  = functionSignatures,
-    includes = Seq("int_record.hpp")
+    includes = Seq("int_record.hpp", "runtime.hpp")
   )
 
   def functions = functionSignatures.map { f => f.name -> f }.toMap

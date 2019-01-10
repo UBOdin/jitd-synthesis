@@ -57,7 +57,7 @@ case class ExtractNode(name:String, v:Expression, nodeHandlers: Seq[(String, Sta
   def disasssembleExpression: Seq[Expression] = Seq(v)
   def reassembleExpression(in: Seq[Expression]): Statement = ExtractNode(name, in(0), nodeHandlers, onFail)
   def toString(prefix: String) = s"${prefix}extract $v into $name { \n"+nodeHandlers.map { 
-                                                              case (nodeType, onMatch) => s"${prefix}  case $nodeType -> \n${onMatch.toString(prefix+"    ")}"
+                                                              case (nodeType, onMatch) => s"${prefix}  case $nodeType -> \n${onMatch.toString(prefix+"    ")}\n"
                                                             }.mkString+s"\n${prefix}  else -> \n${onFail.toString(prefix+"     ")}\n${prefix}}"
 }
 case class Block(statements:Seq[Statement]) extends Statement

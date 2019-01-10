@@ -232,4 +232,10 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
     return fn
   }
 
+  def withFunctions(newFuncs: Map[String, FunctionSignature]): Typechecker =
+    new Typechecker(functions ++ newFuncs, nodeTypes)
+
+  def withFunctions(newFuncs: (String, FunctionSignature)*): Typechecker =
+    withFunctions(newFuncs.toMap)
+
 }

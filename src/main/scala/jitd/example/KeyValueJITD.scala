@@ -26,7 +26,7 @@ object KeyValueJITD extends HardcodedDefinition {
 
   def Begin(t:Expression)            = "std::begin".call(t)
   def End(t:Expression)              = "std::end".call(t)
-  def ArraySize(t:Expression)        = "data".get("size()")
+  def ArraySize(t:Expression)        = "array_size".call(t)
   def BlankArray                     = "std::vector<Record>".call()
 
   //////////////////////////////////////////////
