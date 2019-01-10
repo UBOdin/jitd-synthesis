@@ -1,7 +1,7 @@
 package jitd.codegen
 
 import jitd.spec._
-import jitd.rewrite.Inline
+import jitd.rewrite.InlineVars
 
 object RenderPattern
 {
@@ -58,13 +58,13 @@ object RenderPattern
           Seq()
         )
       case ConstructExpression(expression, _) => 
-        ( ctx.expression(Inline(expression, varMappings)),
+        ( ctx.expression(InlineVars(expression, varMappings)),
           Seq(), Seq()
         )
       case BeforeConstruct(newBefore, child) => {
           val (fieldInitializer, oldBefore, oldAfter) = buildField(ctx, child, field, target, varMappings)
           ( fieldInitializer, 
-            Seq(ctx.statement(Inline(newBefore, varMappings))) ++ oldBefore,
+            Seq(ctx.statement(InlineVars(newBefore, varMappings))) ++ oldBefore,
             oldAfter
           )
         }
@@ -72,7 +72,7 @@ object RenderPattern
           val (fieldInitializer, oldBefore, oldAfter) = buildField(ctx, child, field, target, varMappings)
           ( fieldInitializer, 
             oldBefore,
-            oldAfter ++ Seq(ctx.statement(Inline(newAfter, varMappings)))
+            oldAfter ++ Seq(ctx.statement(InlineVars(newAfter, varMappings)))
           )
         }
     }

@@ -1,6 +1,6 @@
 package jitd.spec
 
-import jitd.typecheck.FunctionDefinition
+import jitd.typecheck.FunctionSignature
 
 class Accessor(
   val name:String,
@@ -24,5 +24,5 @@ class Accessor(
 object Accessor
 {
   def delegate = 
-    "delegate" -> FunctionDefinition("delegate", Seq(TNode()), TBool())
+    "delegate" -> FunctionSignature("delegate", Seq(TNodeRef()), TBool())
 }

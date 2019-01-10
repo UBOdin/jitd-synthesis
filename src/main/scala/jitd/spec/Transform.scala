@@ -1,15 +1,13 @@
 package jitd.spec
 
-import jitd.rewrite.Inline
-
 case class Transform(
   name: String, 
   from: MatchNode, 
-  to: ConstructNode
+  to: ConstructorPattern
 ) {
 
   def invertAs(newName: String): Transform = 
-    Transform(newName, to.toMatchPattern, from.toConstructorPattern)
+    Transform(newName, to.asInstanceOf[ConstructNode].toMatchPattern, from.toConstructorPattern)
 
   def enumName = "JITD_TRANSFORM_"+name
 

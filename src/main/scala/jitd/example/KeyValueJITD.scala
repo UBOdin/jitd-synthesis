@@ -1,6 +1,6 @@
 package jitd.example;
 
-import jitd.typecheck.FunctionDefinition
+import jitd.typecheck.FunctionSignature
 import jitd.spec._
 import jitd.spec.FieldConversions._
 import jitd.spec.StatementConversions._
@@ -8,8 +8,12 @@ import jitd.spec.CmpTypes._
 
 object KeyValueJITD extends HardcodedDefinition {
 
+  Import(CppStdLib.functions)
   Def(bool, "record_scan",          record.array, key, record)
   Def(bool, "record_binary_search", record.array, key, record)
+  Def("do_crack", record.array, key, record.array, record.array)
+  Def("append", record.array, record.array)
+  Def(key, "pick_separator", record.array)
 
   //////////////////////////////////////////////
 
@@ -22,7 +26,7 @@ object KeyValueJITD extends HardcodedDefinition {
 
   def Begin(t:Expression)            = "std::begin".call(t)
   def End(t:Expression)              = "std::end".call(t)
-  def ArraySize(t:Expression)        = "data".get("size()")
+  def ArraySize(t:Expression)        = "array_size".call(t)
   def BlankArray                     = "std::vector<Record>".call()
 
   //////////////////////////////////////////////
@@ -52,9 +56,9 @@ object KeyValueJITD extends HardcodedDefinition {
   Transform("SortArray") {
     "Array" withFields( "data" )
   } {
-    "SortedArray" fromFields( "data" as "sorted" andAfter (
+    "SortedArray" fromFields( "data" as "sorted") andAfter (
       "std::sort".call( Begin("sorted"), End("sorted") )
-    ))
+    )
   }
 
   Transform("CrackArray") {
@@ -67,9 +71,9 @@ object KeyValueJITD extends HardcodedDefinition {
       "pick_separator".call("data") as "separator",
       "Array" fromFields(
         BlankArray as "rhs_partition"
-      ) andAfter(
-        "do_crack".call("data", "separator", "lhs_partition", "rhs_partition")
       )
+    ) andAfter(
+      "do_crack".call("data", "separator", "lhs_partition", "rhs_partition")
     )
   }
 
@@ -80,9 +84,9 @@ object KeyValueJITD extends HardcodedDefinition {
       "SortedArray".withFields( "rhs" )
     )
   } {
-    "SortedArray" fromFields("lhs" as "merged" andAfter (
+    "SortedArray" fromFields("lhs" as "merged") andAfter (
       "append".call("merged", "rhs")
-    ))
+    )
   }
 
   Transform("PivotLeft") {
@@ -110,9 +114,9 @@ object KeyValueJITD extends HardcodedDefinition {
       "separator",
       "Concat" fromFields( "b", "Array" fromFields(
           BlankArray as "rhs_partition"
-      )) andAfter(
-        "do_crack".call("data", "separator", "lhs_partition", "rhs_partition")
-      )
+      ))
+    ) andAfter(
+      "do_crack".call("data", "separator", "lhs_partition", "rhs_partition")
     )
   }
 
