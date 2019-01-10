@@ -130,7 +130,7 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
     }
   }
 
-  def check(stmt: Statement, scope: Map[String, Type], returnType:Type): Map[String, Type] =
+  def check(stmt: Statement, scope: Map[String, Type], returnType:Option[Type]): Map[String, Type] =
   {
     val exprType = (e:Expression) => try { typeOf(e, scope) } catch { case e:TypeError => throw e.rebind(stmt) }
     val error = (msg:String) => throw new StatementError(msg, Seq(stmt), scope)
@@ -181,7 +181,9 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
         scope
       }
       case Return(expr) => {
-        if(exprType(expr) != returnType) { 
+        if(exprType(expr) != returnType.getOrElse { 
+          error(s"Invalid Return Type (Found: ${exprType(expr)}; Void Function)")
+        }) { 
           error(s"Invalid Return Type (Found: ${exprType(expr)}; Expected: $returnType)")
         }
         scope
@@ -225,6 +227,14 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
 
     }
   }
+
+  def check(globals: Map[String,Type])(fn: FunctionDefinition): FunctionDefinition =
+  {
+    check(fn.body, globals ++ fn.args.map { case (name, t, _) => name -> t }.toMap, fn.ret)
+    return fn
+  }
+  def check(globals: (String,Type)*)(fn: FunctionDefinition): FunctionDefinition =
+    check(globals.toMap)(fn)
 
   def check(fn: FunctionDefinition): FunctionDefinition =
   {

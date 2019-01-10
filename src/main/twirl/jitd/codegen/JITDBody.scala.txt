@@ -15,15 +15,6 @@
 @RenderFunction.body(ctx, TransformToFunction(ctx.definition, transform))
 }
 
-///////////////////// Policy Implementation ///////////////////// 
-
-@ctx.policyImplementation.utilityFunctions(ctx)
-
-bool JITD::do_organize()
-{
-  @ctx.policyImplementation.doOrganize(ctx, "(this->root)")
-}
-
 ///////////////////// Accessor Definitions ///////////////////// 
 
 @for( accessor <- ctx.definition.accessors ) {
@@ -33,12 +24,16 @@ bool JITD::do_organize()
 ///////////////////// Mutator Definitions ///////////////////// 
 
 @for( mutator <- ctx.definition.mutators ) {
-  @{RenderMutator.declaration(mutator, ctx, prefix = "JITD::")} {
-    @{RenderPattern.buildForMutator(ctx, mutator.rewrite, "new_root", Map(
-          "root" -> StructSubscript(Var("(*this)"), "root")
-        ) ++ mutator.args.map { f => f.name -> Var(f.name) }.toMap
-      )}
-  }
+@{RenderFunction.body(ctx, MutatorToFunction(ctx.definition, mutator, "JITD::"))}
+}
+
+///////////////////// Policy Implementation ///////////////////// 
+
+@ctx.policyImplementation.utilityFunctions(ctx)
+
+bool JITD::do_organize()
+{
+  @ctx.policyImplementation.doOrganize(ctx, "(this->root)")
 }
 
 

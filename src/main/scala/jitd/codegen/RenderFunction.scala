@@ -7,7 +7,7 @@ object RenderFunction
 
   def body(ctx: Render, fn: FunctionDefinition, indent: String = ""): String =
   {
-    indent+s"${ctx.cType(fn.ret)} ${fn.name}("+
+    indent+s"${fn.ret.map { ctx.cType(_) }.getOrElse("void")} ${fn.name}("+
       fn.args.map { case (name, t, inout) => 
         val const = FunctionArgType.isConst(inout)
         val byRef = FunctionArgType.isByRef(inout)

@@ -124,7 +124,7 @@ class JITD {
 
     std::shared_ptr<JITDNode> root;
 
-    void update_root(std::shared_ptr<JITDNode> &newRoot){ root = newRoot; }
+    void update_root(std::shared_ptr<JITDNode> &newRoot){ atomic_store(&root, newRoot); }
 };
 
 

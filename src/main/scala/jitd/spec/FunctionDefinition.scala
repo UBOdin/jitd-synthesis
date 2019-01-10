@@ -21,10 +21,16 @@ object FunctionArgType extends Enumeration
 
 case class FunctionDefinition(
     name: String, 
-    ret: Type, 
+    ret: Option[Type], 
     args: Seq[(String, Type, FunctionArgType.T)], 
-    body:Statement
-) {
+    body: Statement
+) 
+{
   def signature =
-    FunctionSignature(name, args.map { _._2 }, ret)
+    ret match { 
+      case Some(t) =>
+        FunctionSignature(name, args.map { _._2 }, t)
+      case None => 
+        FunctionSignature(name, args.map { _._2 })
+    }
 }

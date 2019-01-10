@@ -29,7 +29,7 @@ object TransformToFunction
     definition.typechecker.check {
       FunctionDefinition(
         transform.name, 
-        TBool(),
+        Some(TBool()),
         Seq(
           ("target", TNodeRef(), OutputRef)
         ),

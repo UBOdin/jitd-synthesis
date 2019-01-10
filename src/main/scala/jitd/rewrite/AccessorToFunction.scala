@@ -18,7 +18,7 @@ object AccessorToFunction
     val function = 
       FunctionDefinition(
         renderName,
-        accessor.returnType,
+        Some(accessor.returnType),
         args,
         ExtractNode(
           "jitd_node",
