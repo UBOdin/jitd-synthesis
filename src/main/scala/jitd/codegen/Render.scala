@@ -53,7 +53,8 @@ case class Render(
       case TFloat()        => "double"
       case TBool()         => "bool"
       case TKey()          => keyType
-      case TNode()         => "std::shared_ptr<JITDNode>"
+      case TNodeRef()      => "std::shared_ptr<JITDNode>"
+      case TNode(t)        => s"${definition.node(t).renderName} *"
       case TRecord()       => recordType
       case TStruct(fields) => structName(fields)
       case TArray(nested)  => bufferName(nested)
@@ -61,9 +62,10 @@ case class Render(
     }
   }
 
-  def fieldDefn(f:Field, passByRef:Boolean = false): String = {
+  def fieldDefn(f:Field, passByRef:Boolean = false, isConst:Boolean = false): String = {
     val pbr = if(passByRef){ "&" } else { "" }
-    s"${cType(f.t)} $pbr${f.name}"
+    val const = if(isConst){ "const " } else { "" } 
+    s"${const}${cType(f.t)} $pbr${f.name}"
   }
 
   def printableValue(name:String, t:Type): String = 
@@ -73,7 +75,8 @@ case class Render(
       case TInt() | TFloat() | TBool() | TKey() | TRecord() => name
       case TIterator() => ???
       case TStruct(_) => ???
-      case TNode() => ???
+      case TNodeRef() => ???
+      case TNode(t) => ???
     }
   }
 

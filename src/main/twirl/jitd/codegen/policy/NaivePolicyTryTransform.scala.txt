@@ -1,0 +1,37 @@
+@import jitd.spec._
+@import jitd.codegen._
+@import jitd.Debug
+@(ctx:Render, root:String, transform:String, onSuccess:String, onFail:String)
+
+@debug(msg:String) = { @{Debug.println(Debug.Policy, "  ")(msg)} }
+@dump = { @{Debug.dump(Debug.Policy, "  ")("target", "    ")} }
+
+{
+  std::shared_ptr<JITDNode> target;
+  UpdateHandle doUpdate;
+
+  // std::cout << "Policy trying to find opportunities for @{transform}" << std::endl;
+  long bestScore = searchFor@{transform}(
+    root, 
+    target,
+    std::bind(&JITD::update_root, this, std::placeholders::_1),
+    doUpdate
+  );
+
+  if(bestScore >= 0) {
+    @debug(s"  Applying $transform to")
+    @dump
+
+    @{transform}(target);
+    
+    @debug(s"   ... and got")
+    @dump
+
+    doUpdate(target);
+    @onSuccess
+  } else { 
+    @onFail 
+  }
+}
+
+

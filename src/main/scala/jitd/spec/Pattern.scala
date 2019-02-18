@@ -6,18 +6,19 @@ package jitd.spec
 sealed abstract class MatchPattern
 {
   def toConstructorPattern: ConstructorPattern
+  def name: Option[String]
 }
 
-case class MatchNode(node: String, fields: Seq[MatchPattern], name: Option[String] = None) extends MatchPattern
+case class MatchNode(node: String, fields: Seq[MatchPattern], val name: Option[String] = None) extends MatchPattern
 {
   def toConstructorPattern: ConstructNode = 
     ConstructNode(node, fields.map { _.toConstructorPattern }, name)
   override def toString = s"$node(${fields.map { _.toString}.mkString(", ")})"
 }
-case class MatchAny(name: Option[String] = None) extends MatchPattern
+case class MatchAny(val name: Option[String] = None) extends MatchPattern
 {
   def toConstructorPattern =
-    ConstructExpression(Var(name.get), name)
+    ConstructExpression(Var(name.get), None)
   override def toString = name.getOrElse("_")
 }
 
@@ -32,22 +33,30 @@ sealed abstract class ConstructorPattern
 
   def toMatchPattern: MatchPattern
   def as(newName:String): ConstructorPattern
+  
+  override def toString = toString("")
+  def toString(prefix: String): String
 }
 
 case class ConstructNode(node: String, fields: Seq[ConstructorPattern], name: Option[String] = None) extends ConstructorPattern
 {
   def toMatchPattern = MatchNode(node, fields.map { _.toMatchPattern }, name)
   def as(newName:String) = ConstructNode(node, fields, Some(newName))
+  def toString(prefix: String) = s"${prefix}$node${name.map { " @ "+_ }.getOrElse("")}["+fields.map { _.toString("\n"+prefix+"  ") }.mkString(",")+"\n"+prefix+"]"
 }
 case class BeforeConstruct(block: Statement, child: ConstructorPattern) extends ConstructorPattern
 {
   def toMatchPattern = child.toMatchPattern
   def as(newName:String) = BeforeConstruct(block, child.as(newName))
+  def toString(prefix: String) = 
+    s"${prefix}{\n${block.toString(prefix+"  ")}\n${prefix}}\n${child.toString(prefix)}"
 }
 case class AfterConstruct(child: ConstructorPattern, block: Statement) extends ConstructorPattern
 {
   def toMatchPattern = child.toMatchPattern
   def as(newName:String) = AfterConstruct(child.as(newName), block)
+  def toString(prefix:String) = 
+    s"${child.toString(prefix)}\n${prefix}{\n${block.toString(prefix+"  ")}\n${prefix}}"
 }
 case class ConstructExpression(expression: Expression, name: Option[String] = None) extends ConstructorPattern
 {
@@ -58,6 +67,7 @@ case class ConstructExpression(expression: Expression, name: Option[String] = No
       case _            => MatchAny(None)
     }
   def as(newName:String) = ConstructExpression(expression, Some(newName))
+  def toString(prefix:String) = prefix + expression + name.map { " @ "+_ }.getOrElse("")
 }
 
 /////////// Pattern Overlap //////////

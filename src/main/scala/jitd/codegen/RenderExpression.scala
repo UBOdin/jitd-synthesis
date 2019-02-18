@@ -2,7 +2,7 @@ package jitd.codegen
 
 import jitd.spec._
 
-class RenderExpression(renderFunction: Map[String, (Seq[Expression], RenderExpression) => String])
+class RenderExpression(ctx: Render, renderFunction: Map[String, (Seq[Expression], RenderExpression) => String])
 {
 
   def apply(expression: Expression): String = 
@@ -16,7 +16,10 @@ class RenderExpression(renderFunction: Map[String, (Seq[Expression], RenderExpre
       case Arith(op, lhs, rhs) => s"(${apply(lhs)}) ${ArithTypes.opString(op)} (${apply(rhs)})"
       case StructSubscript(target, field) => s"${apply(target)}.${field}"
       case ArraySubscript(target, index) => s"${apply(target)}[${index}]"
-      case FunctionalIfThenElse(condition, thenCase, elseCase) => s"(${apply(condition)}) ? (${apply(thenCase)}) : (${elseCase})"        
+      case NodeSubscript(target, field) => s"${apply(target)}->${field}"
+      case FunctionalIfThenElse(condition, thenCase, elseCase) => s"(${apply(condition)}) ? (${apply(thenCase)}) : (${elseCase})"       
+      case MakeNode(nodeType, fields) => "new "+ctx.definition.node(nodeType).renderName+"("+fields.map { apply(_) }.mkString(", ")+")"
+      case WrapNode(target) => "std::shared_ptr<JITDNode>("+apply(target)+")"
     }
   }
 }

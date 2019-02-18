@@ -5,12 +5,30 @@ import jitd.spec._
 class TypeError(msg: String, ctx: Expression, scope:Map[String, Type]) extends Exception(msg+" in "+ctx.toString)
 {
   override def toString:String = {
-    msg + " in " + ctx + "\n\n"+scope
+    val scopeLen = scope.map { case (k, _ ) => k.length }.max
+    "-----------------------\n"+msg + " in " + ctx + "\n\n"+"---- Current Scope ----\n"+
+      scope.map { case (k, t) => "   " + k.padTo(scopeLen, " ").mkString + "  <- " + t }.mkString("\n")+
+      "\n-----------------------"
   }
+
+  def rebind(newCtx:Expression) = new TypeError(msg, newCtx, scope)
+  def rebind(newCtx:Statement) = new StatementError(msg, Seq(newCtx), scope)
+}
+
+class StatementError(msg: String, ctx: Seq[Statement], scope:Map[String, Type]) extends Exception(msg+" in "+ctx(0).toString)
+{
+  override def toString:String = {
+    val scopeLen = scope.map { case (k, _ ) => k.length }.max
+    "-----------------------\n"+msg + " in " + ctx.head + "\n\n"+"---- Current Scope ----\n"+
+      scope.map { case (k, t) => "   " + k.padTo(scopeLen, " ").mkString + "  <- " + t }.mkString("\n")+
+      "\n-----------------------"+
+      (if(ctx.length > 1) { "\n -- in -- \n"+ctx.tail.map { _.toString }.mkString("\n -- in -- \n")} else { "" })
+  }
+  def trace(stmt: Statement) = new StatementError(msg, ctx :+ stmt, scope)
 }
 
 
-class Typechecker(functions: Map[String, FunctionDefinition]) {
+class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[String, Node]) {
 
   def comparisonCompatible(t1:Type, t2:Type): Boolean =
   {
@@ -28,13 +46,13 @@ class Typechecker(functions: Map[String, FunctionDefinition]) {
   def typeOf(e: Expression, scope: Map[String, Type]): Type = 
   {
     val error = (msg:String) => throw new TypeError(msg, e, scope)
-    val recur = (r:Expression) => typeOf(r, scope)
+    val recur = (r:Expression) => try { typeOf(r, scope) } catch { case t: TypeError => throw t.rebind(e) }
     e match {
       case c:Constant => c.t
       case ArraySubscript(arr, _) => {
         recur(arr) match { 
           case TArray(nested) => nested
-          case _ => error("Subscript of Non-Array")
+          case _ => error("Subscript of Non-Array: "+arr)
         }
       }
       case StructSubscript(struct, subscript) => {
@@ -44,7 +62,17 @@ class Typechecker(functions: Map[String, FunctionDefinition]) {
               case Some(field) => field.t
               case None => error("Invalid Struct Subscript: "+subscript)
             }
-          case _ => error("Subscript of Non-Struct")
+          case _ => error("Subscript of Non-Struct: "+struct)
+        }
+      }
+      case NodeSubscript(node, subscript) => {
+        recur(node) match {
+          case TNode(nodeType) => 
+            nodeTypes(nodeType).fields.find { _.name.equals(subscript) } match {
+              case Some(field) => field.t
+              case None => error("Invalid Node Subscript: "+subscript)
+            }
+          case _ => error("Subscript of Non-Node: "+node)
         }
       }
       case Cmp(op, a, b) => {
@@ -64,9 +92,13 @@ class Typechecker(functions: Map[String, FunctionDefinition]) {
         }
       }
       case FunctionCall(name, args) => {
-        functions.getOrElse(name, {
-          error("Undefined function")
-        })(args.map { recur })
+        try {
+          functions.getOrElse(name, {
+            error("Undefined function")
+          })(args.map { recur }).getOrElse { error("Using return value from void function") }
+        } catch { 
+          case e:FunctionArgError => error(e.toString)
+        }
       }
       case FunctionalIfThenElse(c, t, e) => {
         (recur(c), recur(t), recur(e)) match {
@@ -78,17 +110,31 @@ class Typechecker(functions: Map[String, FunctionDefinition]) {
       case Var(name) => {
         scope.get(name) match {
           case Some(t) => t
-          case None => error("Variable not in scope")
+          case None => error(s"Variable '$name' not in scope")
         }
+      }
+      case WrapNode(target) => {
+        recur(target) match {
+          case TNode(_) => TNodeRef()
+          case _ => error("Can't wrap a non-node")
+        }
+      }
+      case MakeNode(nodeType, fields) => {
+        for( (field, expr) <- nodeTypes(nodeType).fields.zip(fields)){
+          if(recur(expr) != field.t) { 
+            error("Invalid node constructor")
+          }
+        }
+        TNode(nodeType)
       }
     }
   }
 
-  def check(stmt: Statement, scope: Map[String, Type], returnType:Type): Map[String, Type] =
+  def check(stmt: Statement, scope: Map[String, Type], returnType:Option[Type]): Map[String, Type] =
   {
-    val exprType = (e:Expression) => typeOf(e, scope)
-    val error = (e:Expression, msg:String) => throw new TypeError(msg, e, scope)
-    val recur = (rstmt: Statement, rscope: Map[String, Type]) => check(rstmt, rscope, returnType)
+    val exprType = (e:Expression) => try { typeOf(e, scope) } catch { case e:TypeError => throw e.rebind(stmt) }
+    val error = (msg:String) => throw new StatementError(msg, Seq(stmt), scope)
+    val recur = (rstmt: Statement, rscope: Map[String, Type]) => try { check(rstmt, rscope, returnType) } catch { case e:StatementError => throw e.trace(stmt) }
     stmt match { 
       case Block(elems) => {
         elems.foldLeft(scope) { (currScope, currStmt) => 
@@ -96,28 +142,59 @@ class Typechecker(functions: Map[String, FunctionDefinition]) {
         }
         scope
       }
-      case Assign(tgt, expr) => {
-        val tgtType = scope.getOrElse(tgt, { error(expr, "Assignment to undefined variable: "+tgt) })
+      case Assign(tgt, expr, isAtomic) => {
+        val tgtType = scope.getOrElse(tgt, { error("Assignment to undefined variable: "+tgt) })
         if(exprType(expr) != tgtType){
-          error(expr, "Assignment to "+tgt+" of incorrect type")
+          error("Assignment to "+tgt+" of incorrect type")
+        }
+        if(tgtType == TNodeRef() && !isAtomic){
+          error("Non-atomic assignment to a NodeRef")
         }
         scope
       }
       case Declare(tgt, tOption, expr) => {
         if(scope contains tgt) {
-          error(expr, "Overriding existing variable")
+          error("Overriding existing variable")
         }
         val tRet = tOption match {
           case Some(t) => if(t != exprType(expr)){ 
-            error(expr, "Declaring expression of incorrect type") 
+            error("Declaring expression of incorrect type") 
           } else { t } 
           case None => exprType(expr)
         }
         scope + (tgt -> tRet)
       }
+      case ExtractNode(name, expr, matchers, onFail) => {
+        if(scope contains name) { 
+          error("Overriding existing variable")
+        }
+        if(exprType(expr) != TNodeRef()) {
+          error("Doesn't evaluate to an (extractable) node reference")
+        }
+        for( (nodeType, handler) <- matchers ){
+          if(!(nodeTypes contains nodeType)) {
+            error(s"Invalid Node Type: '$nodeType'")
+          }
+          recur(handler, scope + (name -> TNode(nodeType)))
+        }
+        recur(onFail, scope)
+        scope
+      }
       case Return(expr) => {
-        if(exprType(expr) != returnType) { 
-          error(expr, s"Invalid Return Type (Found: ${exprType(expr)}; Expected: $returnType)")
+        if(exprType(expr) != returnType.getOrElse { 
+          error(s"Invalid Return Type (Found: ${exprType(expr)}; Void Function)")
+        }) { 
+          error(s"Invalid Return Type (Found: ${exprType(expr)}; Expected: $returnType)")
+        }
+        scope
+      }
+      case Void(expr @ FunctionCall(name, args)) => {
+        try {
+          functions.getOrElse(name, {
+            error("Undefined function")
+          })(args.map { exprType(_) })
+        } catch { 
+          case e:FunctionArgError => error(e.toString)
         }
         scope
       }
@@ -127,26 +204,48 @@ class Typechecker(functions: Map[String, FunctionDefinition]) {
       }
       case ForEach(loopvar, expr, body) => {
         if(scope contains loopvar) {
-          error(expr, "Overriding existing variable")
+          error("Overriding existing variable")
         }
         exprType(expr) match {
           case TArray(nested) => 
             recur(body, scope + (loopvar -> nested))
           case _ => 
-            error(expr, "Invalid loop target")
+            error("Invalid loop target")
         }
         scope
       }
       case IfThenElse(c, t, e) => {
         if(exprType(c) != TBool()){
-          error(c, "Invalid if-then-else condition")
+          error("Invalid if-then-else condition")
         }
         recur(t, scope)
         recur(e, scope)
         scope
       }
+      case Error(_) => scope
+      case Comment(_) => scope
 
     }
   }
+
+  def check(globals: Map[String,Type])(fn: FunctionDefinition): FunctionDefinition =
+  {
+    check(fn.body, globals ++ fn.args.map { case (name, t, _) => name -> t }.toMap, fn.ret)
+    return fn
+  }
+  def check(globals: (String,Type)*)(fn: FunctionDefinition): FunctionDefinition =
+    check(globals.toMap)(fn)
+
+  def check(fn: FunctionDefinition): FunctionDefinition =
+  {
+    check(fn.body, fn.args.map { case (name, t, _) => name -> t }.toMap, fn.ret)
+    return fn
+  }
+
+  def withFunctions(newFuncs: Map[String, FunctionSignature]): Typechecker =
+    new Typechecker(functions ++ newFuncs, nodeTypes)
+
+  def withFunctions(newFuncs: (String, FunctionSignature)*): Typechecker =
+    withFunctions(newFuncs.toMap)
 
 }

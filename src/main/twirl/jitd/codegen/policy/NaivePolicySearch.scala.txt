@@ -1,13 +1,14 @@
 @import jitd.spec._
 @import jitd.codegen._
-@import jitd.rewrite.Inline
+@import jitd.rewrite.InlineVars
+@import jitd.Debug
 @(ctx:Render, transform:Transform, constraint:Expression, scoreFn:Expression)
 
-  long searchFor@{transform.name}(
-    const std::shared_ptr<JITDNode> &node,
-    std::shared_ptr<JITDNode> &target,
-    const UpdateHandle &in_updater,
-    UpdateHandle &out_updater
+  long searchFor@{transform.name}(          // Return the "best" score available
+    const std::shared_ptr<JITDNode> &node,  // Pointer to the node we're currently examining
+    std::shared_ptr<JITDNode> &target,      // Return value: The pointer with the "best" score
+    const UpdateHandle &in_updater,         // Function to call to update the current node
+    UpdateHandle &out_updater               // Return value: Function to call to update the best node
   ) {
     std::shared_ptr<JITDNode> lock = node;
     JITDNode *lock_raw = lock.get();
@@ -19,13 +20,19 @@
 
 
     do {
+      @{ Debug.println(Debug.PolicyDetail){ s"  Testing ${transform.name} on " } }
+      @{ Debug.dump(Debug.PolicyDetail)("node", "    ") }
+
       @{RenderPattern.test(ctx, transform.from, "lock_raw", "break;")}
 
-      if(@{ctx.expression(Inline(constraint, 
+      
+      @{ Debug.println(Debug.PolicyDetail){ "  Matched!" } }
+
+      if(@{ctx.expression(InlineVars(constraint, 
             RenderPattern.varMapping(ctx, transform.from, "lock_raw")++
             ctx.policy.varMapping
           ))}){
-        best_score = @{ctx.expression(Inline(scoreFn, 
+        best_score = @{ctx.expression(InlineVars(scoreFn, 
             RenderPattern.varMapping(ctx, transform.from, "lock_raw")++
             ctx.policy.varMapping
           ))};
@@ -35,11 +42,13 @@
       }
     } while(false);
 
+    @{ Debug.println(Debug.PolicyDetail){ "  Best Score\" << best_score << \".  Checking Children..." } }
+
     switch(lock_raw->type){
       @for(node <- ctx.definition.nodes){
         case @{node.enumName}: {
           @{node.renderName} *real_node = (@{node.renderName} *)lock_raw;
-          @for(field <- node.fields.filter { _.t == TNode() }){
+          @for(field <- node.fields.filter { _.t == TNodeRef() }){
             child_score = searchFor@{transform.name}(
               real_node->@{field.name}, 
               child_target,
@@ -53,12 +62,15 @@
             if(child_score > best_score) { 
               target = child_target; 
               out_updater = child_updater; 
+              best_score = child_score;
             }
           }
           break;
         }
       }
     }
+
+    @{ Debug.println(Debug.PolicyDetail){ "  Best Overall Score\" << best_score << \"." } }
 
     return best_score;
   }

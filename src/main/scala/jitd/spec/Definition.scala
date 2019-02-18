@@ -1,29 +1,46 @@
 package jitd.spec;
 
+import jitd.JITDRuntime
+import jitd.typecheck._
+
 case class Definition(
   nodes:Seq[Node],
   accessors:Seq[Accessor],
   mutators:Seq[Mutator],
   transforms:Seq[Transform],
   policies:Seq[Policy],
+  functions:Seq[FunctionSignature],
   keyType: String = "int",
   recordType: String = "Record",
   includes:Seq[String] = Seq()
 ) {
 
   val nodesByName = nodes.map { n => n.name -> n }.toMap
+  val functionsByName = functions.map { n => n.name -> n }.toMap
+  val typechecker = new Typechecker(functionsByName, nodesByName)
 
-  def node(name:String):Node = nodes.find { _.name.equals(name) }.get
+  def node(name:String):Node = nodesByName(name)
   def accessor(name:String):Accessor = accessors.find { _.name.equals(name) }.get
   def mutator(name:String):Mutator = mutators.find { _.name.equals(name) }.get
   def transform(name:String):Transform = transforms.find { _.name.equals(name) }.get
   def policy(name:String):Policy = policies.find { _.name.equals(name) }.get
+  def function(name:String):FunctionSignature = functionsByName(name)
 
+  override def toString =
+    Seq(
+      Seq(s"key $keyType", s"record $recordType"),
+      includes.map { include => "include \""+include+"\"" },
+      nodes.map { _.toString },
+      accessors.map { _.toString },
+      mutators.map { _.toString },
+      transforms.map { _.toString },
+      policies.map { _.toString }
+    ).map { _.mkString("\n") }.mkString("\n\n////////////////\n\n")
 }
 
 class HardcodedDefinition
 {
-  var functionDefinitions = List[jitd.typecheck.FunctionDefinition]()
+  var functionSignatures:List[FunctionSignature] = JITDRuntime.functions.toList
   var nodes = List[jitd.spec.Node]()
   var accessors = List[jitd.spec.Accessor]()
   var mutators = List[jitd.spec.Mutator]()
@@ -32,9 +49,16 @@ class HardcodedDefinition
 
   def Def(ret: Type, name: String, args:Type*) 
   {
-    functionDefinitions = jitd.typecheck.FunctionDefinition(name, args, ret) :: functionDefinitions
+    functionSignatures = jitd.typecheck.FunctionSignature(name, args, ret) :: functionSignatures
   }
-
+  def Def(name: String, args:Type*) 
+  {
+    functionSignatures = jitd.typecheck.FunctionSignature(name, args) :: functionSignatures
+  }
+  def Import(newFunctions: Seq[FunctionSignature])
+  {
+    functionSignatures = functionSignatures ++ newFunctions
+  }
 
   def Node(name:String, fields:Field*) 
   {
@@ -51,7 +75,7 @@ class HardcodedDefinition
     mutators = jitd.spec.Mutator(name, args, constructor) :: mutators
   }
 
-  def Transform(name: String)(from: MatchNode)(to: ConstructNode)
+  def Transform(name: String)(from: MatchNode)(to: ConstructorPattern)
   {
     transforms = jitd.spec.Transform(name, from, to) :: transforms
   }
@@ -83,7 +107,8 @@ class HardcodedDefinition
   def int               = TInt()
   def float             = TFloat()
   def bool              = TBool()
-  def node              = TNode()
+  def node              = TNodeRef()
+  def iterator          = TIterator()
 
   def Delegate(args:Expression*) = Call("delegate")(args:_*)
 
@@ -109,10 +134,11 @@ class HardcodedDefinition
     mutators   = mutators,
     transforms = transforms,
     policies   = policies,
-    includes = Seq("int_record.hpp")
+    functions  = functionSignatures,
+    includes = Seq("int_record.hpp", "runtime.hpp")
   )
 
-  def functions = functionDefinitions.map { f => f.name -> f }.toMap
+  def functions = functionSignatures.map { f => f.name -> f }.toMap
   def node(name:String):Node = nodes.find { _.name.equals(name) }.get
   def accessor(name:String):Accessor = accessors.find { _.name.equals(name) }.get
   def mutator(name:String):Mutator = mutators.find { _.name.equals(name) }.get

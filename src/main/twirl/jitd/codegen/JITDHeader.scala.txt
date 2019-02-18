@@ -56,7 +56,7 @@ class @{node.renderName} : public JITDNode {
     }
   {}
 
-  @for(field <- node.fields.filter { _.t == TNode() }){
+  @for(field <- node.fields.filter { _.t == TNodeRef() }){
     void update_@{field.name}_handle(std::shared_ptr<JITDNode> &new_value){
       @{field.name} = new_value;
     }
@@ -77,14 +77,21 @@ typedef enum {
 } JITDTransformType;
 
 @for(transform <- ctx.definition.transforms){
-  void @{transform.name}(std::shared_ptr<JITDNode> &target);
+  bool @{transform.name}(std::shared_ptr<JITDNode> &target);
 }
 
 ///////////////////// JITD Debug Methods ///////////////////// 
 
 class JITD;
 std::shared_ptr<JITD> assemble_jitd(std::istream &in);
-void printJITDNodeStructure(std::shared_ptr<JITDNode> node, const std::string &prefix);
+void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix);
+
+///////////////////// JITD Accessors ///////////////////// 
+
+@for( accessor <- ctx.definition.accessors ) {
+  @{RenderAccessor.declaration( accessor, ctx, prefix="jitd_accessor_" )};
+}
+
 
 ///////////////////// JITD Definition ///////////////////// 
 
@@ -102,7 +109,7 @@ class JITD {
 
     @for( accessor <- ctx.definition.accessors ) {
       @{RenderAccessor.declaration( accessor, ctx, root = true )} {
-        return @RenderAccessor.renderCall( accessor, ctx, "root" );
+        return @RenderAccessor.renderCall( accessor, ctx, "root", "jitd_accessor_" );
       }
     }
 
@@ -110,16 +117,14 @@ class JITD {
       @{RenderMutator.declaration( mutator, ctx )};
     }
 
-    void printDebug() { printJITDNodeStructure(root, std::string("")); }
-    void doOrganize();
+    void print_debug() { print_JITD_node_structure(root, std::string("")); }
+    bool do_organize();
 
   private:
-    @for( accessor <- ctx.definition.accessors ) {
-      @{RenderAccessor.declaration( accessor, ctx )};
-    }
 
     std::shared_ptr<JITDNode> root;
 
+    void update_root(std::shared_ptr<JITDNode> &newRoot){ atomic_store(&root, newRoot); }
 };
 
 

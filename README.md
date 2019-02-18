@@ -10,7 +10,7 @@ Requirements
 
 - [Scala](https://www.scala-lang.org/download/)
 - [Scala Build Tool](https://www.scala-sbt.org/download.html)
-- G++ (or compatible)
+- G++/Clang++ (or compatible)
 
 
 Usage
@@ -41,3 +41,8 @@ sbt:jitd-synthesis> run --help
 sbt:jitd-synthesis> run --run examples/simple_btree.jitd
 ```
 
+See some example policy behavior with
+```
+sbt:jitd-synthesis> run -r examples/simple_reorg_test.jitd
+sbt:jitd-synthesis> run -r -DPolicy -- examples/simple_reorg_test.jitd
+```

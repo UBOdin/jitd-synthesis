@@ -110,10 +110,12 @@ inline void do_crack(
   std::vector<Record> &lhs, 
   std::vector<Record> &rhs
 ){
+  // std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
   for(auto curr = std::begin(source); curr < std::end(source); ++curr)
   {
-    if(*curr < sep){ lhs.push_back(*curr); }
-    else           { rhs.push_back(*curr); }
+    // std::cout << "  Check: " << curr->key << std::endl;
+    if(*curr < sep){ lhs.emplace_back(*curr); }
+    else           { rhs.emplace_back(*curr); }
   }
 }
 

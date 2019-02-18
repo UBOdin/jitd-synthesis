@@ -4,6 +4,8 @@ import java.io._
 import org.rogach.scallop._
 import scala.sys.process._
 
+import jitd.typecheck._
+
 object JITDGen {
 
   def write(path: File, content: String)
@@ -32,14 +34,22 @@ object JITDGen {
     val spec = 
       jitd.example.KeyValueJITD.definition
 
+    if(conf.dump()){ System.out.println(spec.toString); }
+
     // Render is the root of the C++ code generation 
     // process. 
     val render = new jitd.codegen.Render(spec)
 
     // Actually generate and write out the C++ files.
     System.out.println("Rendering...")
-    write(headerFile, render.header())
-    write(bodyFile,   render.body(headerFilename))
+    try { 
+      write(headerFile, render.header())
+      write(bodyFile,   render.body(headerFilename))
+    } catch { 
+      case e:Exception => 
+        System.err.println(e.toString)
+        System.exit(-1)
+    }
     System.out.println("         ...done")
 
     // If we don't want to compile, we're done
@@ -53,10 +63,20 @@ object JITDGen {
 
     val compile = Seq(
       "g++", 
-      "-std=c++11", 
+ 
+
+      "-std=c++11",
+
       "-o", conf.target()
     ) ++ (
       if(conf.debugSymbols()) { Seq("-g") } else { Seq() } 
+    )++(
+      conf.debugModes.get.toSeq.flatten.map { mode =>
+        Debug.fromString(mode) match {
+          case None => throw new RuntimeException("Invalid Debug Mode "+mode); 
+          case Some(x) => "-D "+Debug.aspectMacro(x)
+        }
+      }
     )++
     Seq(
       "-I", "src/main/cpp/include",
@@ -99,6 +119,16 @@ class JITDGenConfig(arguments: Seq[String]) extends ScallopConf(arguments)
     default = Some("jitd_test")
   )
 
+  val dump = toggle("dump",
+    descrYes = "Echo out the selected policy",
+    default = Some(false)
+  )
+
+  val typecheck = toggle("typecheck",
+    descrYes = "Typecheck everything before dumping out",
+    default = Some(false)
+  )
+
   val compile = toggle("compile",
     descrYes = "Also compile the generated code",
     default = Some(true)
@@ -117,6 +147,11 @@ class JITDGenConfig(arguments: Seq[String]) extends ScallopConf(arguments)
   val target = opt[String]("bin",
     descr = "Specify the binary target for compilation (requires --compile)",
     default = Some("jitd_test")
+  )
+
+  val debugModes = opt[List[String]]("DEBUG", 
+    descr = "Enable the specified debug modes ("+Debug.values.mkString(", ")+")",
+    default = Some(List[String]())
   )
 
   val run = toggle("run",
