@@ -95,10 +95,13 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
     if(op == "Return"){
       return std::shared_ptr<JITD>(new JITD(node_stack.top()));
     } else {
-      std::cout << "Invalid assembly instruction '"<<op<<"'" << std::endl; 
+      std::cerr << "Invalid assembly instruction '"<<op<<"'" << std::endl; 
       exit(-1); 
+      return std::shared_ptr<JITD>();
     }
   }
+  std::cerr << "Reached end of build with no Return" << std::endl; 
+  exit(-1); 
 }
 
 

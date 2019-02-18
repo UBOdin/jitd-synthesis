@@ -34,6 +34,7 @@ object Compile {
 
     val command = Seq(
       "g++", 
+      "--std", "c++1y",
       "-o", compile_target,
       "-I", "src/main/cpp/include",
       "-I", "target",

@@ -53,6 +53,7 @@ object JITDGen {
 
     val compile = Seq(
       "g++", 
+      "-std=c++11", 
       "-o", conf.target()
     ) ++ (
       if(conf.debugSymbols()) { Seq("-g") } else { Seq() } 
