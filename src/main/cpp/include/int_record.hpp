@@ -60,7 +60,17 @@ inline bool record_binary_search(const std::vector<Record> &data, const Key &key
 inline void append(std::vector<Record> &to, std::vector<Record> &from){
   to.insert(std::end(to), std::begin(from), std::end(from));
 }
-
+inline void remove(std::vector<Record> &to_delete, std::vector<Record> &from_delete)
+{
+  for(int i = 0; i < from_delete.size(); i++)
+  {
+    auto iter = std::find(to_delete.begin(),to_delete.end(),from_delete[i]);
+    if(iter != to_delete.end())
+    {
+      to_delete.erase(iter);
+    }
+  } 
+}
 inline void build_buffer(std::vector<Record> &to, int count, int min, int max)
 {
   int max_minus_min = max - min;
@@ -118,7 +128,19 @@ inline void do_crack(
     else           { rhs.emplace_back(*curr); }
   }
 }
-
+inline void copy_delete_array(
+  const std::vector<Record> &source,  
+  std::vector<Record> &lhs, 
+  std::vector<Record> &rhs
+){
+  // std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
+  for(auto curr = std::begin(source); curr < std::end(source); ++curr)
+  {
+    // std::cout << "  Check: " << curr->key << std::endl;
+    lhs.emplace_back(*curr); 
+    rhs.emplace_back(*curr); 
+  }
+} 
 inline Key pick_separator(const std::vector<Record> &source)
 {
   if(source.empty()) { return 0; }

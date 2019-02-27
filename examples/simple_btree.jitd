@@ -6,6 +6,7 @@ Array explicit 7 8 9
 Array explicit 10 11 12
 BTree 10
 BTree 7
+insert 1 2
 Return
 dump
 size
