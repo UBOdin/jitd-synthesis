@@ -13,8 +13,11 @@ object KeyValueJITD extends HardcodedDefinition {
   Def(bool, "record_binary_search", record.array, key, record)
   Def("do_crack", record.array, key, record.array, record.array)
   Def("copy_delete_array",record.array, record.array, record.array)
+  Def("copy_delete_array_btree",record.array, key, record.array, record.array)
   Def("append", record.array, record.array)
+  Def("appendConcat",record.array,record.array)
   Def("remove",record.array,record.array)
+  Def("delete_from_sorted_array",record.array,record.array)
   Def(key, "pick_separator", record.array)
 
   //////////////////////////////////////////////
@@ -24,8 +27,7 @@ object KeyValueJITD extends HardcodedDefinition {
   Node( "Concat",      "lhs"  -> node, "rhs" -> node )
   Node( "Delete",      "lhs"  -> node, "rhs" -> node )
   Node( "BTree",       "lhs"  -> node, "sep" -> key, "rhs" -> node )
-  
-  //Node( "Delete",      "listptr"  -> node, "data" -> record.array )
+  //Node( "DeleteElements",      "listptr"  -> node, "data" -> key.array )
 
   //////////////////////////////////////////////
 
@@ -40,8 +42,9 @@ object KeyValueJITD extends HardcodedDefinition {
     "Array"        -> Return { "record_scan".call("data", "target", "result") },
     "SortedArray"  -> Return { "record_binary_search".call("data", "target", "result") }, 
     "Concat"       -> If( Delegate("lhs") ) { Return(true) } { Return { Delegate("rhs") } },
-    "BTree"        -> If( "target" lt "sep" ) { Return { Delegate("lhs") } } { Return { Delegate("rhs") } }, 
-    "Delete"       -> If( Delegate("rhs") ) { Return(true) } { Return { Delegate("lhs") } }
+    "BTree"        -> If( "target" lt "sep" ) { Return { Delegate("lhs") } } { Return { Delegate("rhs") } },
+    "Delete"       -> If( Delegate("rhs") ) { Return(false) } { Return { Delegate("rhs") } }
+    //"DeleteElements"       -> If( Delegate("data") ) { Return(false) }{Return{Delegate("data")}}
     //if it returns true from rhs the element is a part of delete list so dont check lhs and get should return false as it is not a part of the structure.
   )
 
@@ -50,7 +53,8 @@ object KeyValueJITD extends HardcodedDefinition {
     "SortedArray" -> Return { ArraySize("data") },
     "Concat"      -> Return { Delegate( "lhs" ) plus Delegate("rhs") },
     "BTree"       -> Return { Delegate( "lhs" ) plus Delegate("rhs") },
-    "Delete"      -> Return { Delegate( "lhs" ) minus Delegate("rhs") }//check logic doesnt return a neg value.
+    "Delete"      -> Return { Delegate( "lhs" ) minus Delegate("rhs") }
+    //"DeleteElements"      -> Return { Delegate( "listptr" ) minus Delegate("data") }//check logic doesnt return a neg value.
   )
 
   //////////////////////////////////////////////
@@ -58,7 +62,7 @@ object KeyValueJITD extends HardcodedDefinition {
   Mutator("insert")("data" -> record.array ) {
     "Concat".fromFields( "root", "Array".fromFields("data") )
   }
-  Mutator("Delete")("data" -> record.array ) {
+  Mutator("remove")("data" -> record.array ) {
     "Delete".fromFields("root","Array".fromFields("data") )
   }
 
@@ -97,6 +101,17 @@ object KeyValueJITD extends HardcodedDefinition {
   } {
     "SortedArray" fromFields("lhs" as "merged") andAfter (
       "append".call("merged", "rhs")
+    )
+  }
+  Transform("MergeSortedConcat") {
+    "Concat" withFields( 
+      "SortedArray".withFields( "lhs" ),
+      
+      "SortedArray".withFields( "rhs" )
+    )
+  } {
+    "SortedArray" fromFields("lhs" as "merged") andAfter (
+      "appendConcat".call("merged", "rhs")
     )
   }
   // Transform("MergeDeleteNodes") {
@@ -140,7 +155,7 @@ object KeyValueJITD extends HardcodedDefinition {
       "do_crack".call("data", "separator", "lhs_partition", "rhs_partition")
     )
   }
-  Transform("PushDownAndDelete")
+  Transform("PushDownDontDeleteBtree")
   {
     "Delete" withFields(
       "BTree" withFields( "a", "separator", "b" ),
@@ -156,15 +171,46 @@ object KeyValueJITD extends HardcodedDefinition {
           BlankArray as "rhs_partition"
       ))
     ) andAfter(
+      "copy_delete_array_btree".call("data","separator", "lhs_partition", "rhs_partition")
+    ) 
+  }
+  Transform("PushDownDontDeleteConcat")
+  {
+    "Delete" withFields(
+      "Concat" withFields( "a", "b" ),
+      "Array" withFields( "data" )
+    )
+  } {
+    "Concat" fromFields(
+      "Delete" fromFields( "a", "Array" fromFields(
+        BlankArray as "lhs_partition"
+      )),
+      "Delete" fromFields( "b", "Array" fromFields(
+          BlankArray as "rhs_partition"
+      ))
+    ) andAfter(
       "copy_delete_array".call("data", "lhs_partition", "rhs_partition")
     ) 
   }
-  Policy("CrackSortMerge")("crackAt" -> IntConstant(10)) (
+  Transform("DeleteFromSortedArray")
+  {
+    "Delete" withFields("SortedArray" withFields( "data1" ),"SortedArray" withFields( "data2" ))
+  } {
+    "SortedArray" fromFields( "data1" as "new_sorted_array_after_delete") andAfter(
+      "delete_from_sorted_array".call("new_sorted_array_after_delete", "data2")) 
+  }
+  Policy("CrackSortMerge")("crackAt" -> IntConstant(10),"null_data"-> IntConstant(0)) (
     "PushDownAndCrack"            scoreBy { ArraySize("data") }
       andThen ("CrackArray"       onlyIf { ArraySize("data") gte "crackAt" } 
                                   scoreBy { ArraySize("data") })
+      andThen ("PushDownDontDeleteBtree"          scoreBy { ArraySize("data") })
+      andThen ("PushDownDontDeleteConcat"            scoreBy { ArraySize("data") })
       andThen ("SortArray"        scoreBy { ArraySize("data") })
-      andThen "MergeSortedBTrees"
+      //andThen "MergeSortedBTrees"
+      //andThen "MergeSortedConcat"
+      
+     // andThen "MergeDeleteNodes"
+     andThen ("DeleteFromSortedArray" scoreBy{ArraySize("data2")})
   )
 
 }

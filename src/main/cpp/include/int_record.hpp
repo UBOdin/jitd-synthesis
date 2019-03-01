@@ -1,5 +1,6 @@
 
 #include <algorithm>
+#include <vector>
 
 typedef long int Key;
 typedef void *Value;
@@ -60,17 +61,22 @@ inline bool record_binary_search(const std::vector<Record> &data, const Key &key
 inline void append(std::vector<Record> &to, std::vector<Record> &from){
   to.insert(std::end(to), std::begin(from), std::end(from));
 }
-inline void remove(std::vector<Record> &to_delete, std::vector<Record> &from_delete)
-{
-  for(int i = 0; i < from_delete.size(); i++)
-  {
-    auto iter = std::find(to_delete.begin(),to_delete.end(),from_delete[i]);
-    if(iter != to_delete.end())
-    {
-      to_delete.erase(iter);
-    }
-  } 
+inline void appendConcat(std::vector<Record> &to, std::vector<Record> &from)
+{ 
+  to.insert(std::end(to), std::begin(from), std::end(from));
+  std::sort(std::begin(to),std::end(to));
 }
+// inline void remove(std::vector<Record> &to_delete, std::vector<Record> &from_delete)
+// {
+//   for(int i = 0; i < from_delete.size(); i++)
+//   {
+//     auto iter = std::find(to_delete.begin(),to_delete.end(),from_delete[i]);
+//     if(iter != to_delete.end())
+//     {
+//       to_delete.erase(iter);
+//     }
+//   } 
+// }
 inline void build_buffer(std::vector<Record> &to, int count, int min, int max)
 {
   int max_minus_min = max - min;
@@ -129,18 +135,71 @@ inline void do_crack(
   }
 }
 inline void copy_delete_array(
+
   const std::vector<Record> &source,  
   std::vector<Record> &lhs, 
   std::vector<Record> &rhs
 ){
+  //std::cout<<"Doing copy"<<std::endl;
   // std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
+
+
   for(auto curr = std::begin(source); curr < std::end(source); ++curr)
   {
     // std::cout << "  Check: " << curr->key << std::endl;
     lhs.emplace_back(*curr); 
     rhs.emplace_back(*curr); 
   }
+
 } 
+inline void copy_delete_array_btree(
+
+  const std::vector<Record> &source, 
+  Key sep, 
+  std::vector<Record> &lhs, 
+  std::vector<Record> &rhs
+){
+  //std::cout<<"Doing copy"<<std::endl;
+  // std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
+  
+  for(auto curr = std::begin(source); curr < std::end(source); ++curr)
+  {
+    // std::cout << "  Check: " << curr->key << std::endl;
+    if(*curr<sep)
+    {
+      lhs.emplace_back(*curr);
+    }
+    else
+    {
+      rhs.emplace_back(*curr); 
+    }
+  
+  }
+
+} 
+inline void delete_from_sorted_array(std::vector<Record> &to_delete,std::vector<Record> &from_delete)
+{
+  //std::cout<<"in deleting";
+  if(to_delete.size()!=0 && from_delete.size()!=0)
+  {
+    for(int i = 0; i < from_delete.size(); i++)
+    {
+      auto iter = std::find(std::begin(to_delete),std::end(to_delete),from_delete[i]);
+      if(iter != std::end(to_delete))
+      {
+        to_delete.erase(iter);
+     
+      }
+    } 
+
+  }
+  else
+  {
+    std::cout<<"size 0 encountered"<<std::endl;
+  }
+  
+
+}
 inline Key pick_separator(const std::vector<Record> &source)
 {
   if(source.empty()) { return 0; }
