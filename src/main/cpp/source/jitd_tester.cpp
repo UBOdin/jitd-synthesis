@@ -134,7 +134,17 @@ int jitd_test(
       jitd->insert(data);
       gettimeofday(&end, NULL);
       std::cout << "Insert into JITD: " << total_time(start, end) << " us" << std::endl;
-    } CASE("remove") {
+    } CASE("remove_elements")
+    {
+      timeval start, end;
+      RecordBuffer data;
+      load_records(data, toks);
+      gettimeofday(&start, NULL);
+      jitd->remove_elements(data);
+      gettimeofday(&end, NULL);
+      std::cout << "Delete from JITD: " << total_time(start, end) << " us" << std::endl;
+    }
+      CASE("remove") {
       timeval start, end;
       RecordBuffer data;
       load_records(data, toks);

@@ -9,13 +9,15 @@ BTree 7
 Return
 dump
 insert explicit 13 14
-dump
 policy_act_for 11
 dump
-remove explicit 1 2
+size
+remove_elements explicit 1 2
 dump
-policy_act_for 15
+size
+policy_act_for 3
 dump
-policy_act_for 4
+size
+policy_act_for 12
 dump
 size

@@ -200,6 +200,29 @@ inline void delete_from_sorted_array(std::vector<Record> &to_delete,std::vector<
   
 
 }
+inline void delete_from_array(std::vector<Record> &to_delete,std::vector<Record> &from_delete)
+{
+  //std::cout<<"in deleting";
+  if(to_delete.size()!=0 && from_delete.size()!=0)
+  {
+    for(int i = 0; i < from_delete.size(); i++)
+    {
+      auto iter = std::find(std::begin(to_delete),std::end(to_delete),from_delete[i]);
+      if(iter != std::end(to_delete))
+      {
+        to_delete.erase(iter);
+     
+      }
+    } 
+
+  }
+  else
+  {
+    std::cout<<"size 0 encountered"<<std::endl;
+  }
+  
+
+}
 inline Key pick_separator(const std::vector<Record> &source)
 {
   if(source.empty()) { return 0; }
