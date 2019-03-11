@@ -15,7 +15,7 @@
 
 #include "test.hpp"
 #include "jitd_test.hpp"
-
+#define SEED_MAX 111111
 double total_time(timeval &start, timeval &end)
 {
   return (end.tv_sec - start.tv_sec) * 1000000.0 +
@@ -327,7 +327,12 @@ int jitd_test(
       jitd->print_debug();
       
     ///////////////// OOOPS /////////////////
-    } else {
+    }
+    CASE("print_time_log")
+    {
+      jitd->print_time_vec();
+    } 
+    else {
       std::cerr << "Invalid Test Operation: " << op << std::endl;
       exit(-1);
     }
@@ -353,8 +358,8 @@ int main(int argc, char **argv)
   std::istream *src;
   int i, t = 0;
   bool interactive = false;
-  
-  srand(time(NULL));
+  srand(SEED_MAX);
+  //srand(time(NULL));
   for(i = 1; i < argc; i++){
     std::ifstream srcF;
     if((strlen(argv[i]) > 1) && (argv[i][0] == '-')){

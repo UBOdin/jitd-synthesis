@@ -80,10 +80,27 @@ inline void appendConcat(std::vector<Record> &to, std::vector<Record> &from)
 inline void build_buffer(std::vector<Record> &to, int count, int min, int max)
 {
   int max_minus_min = max - min;
-
+  int temp = 0;
+  int i=0;
+ 
+  Record r;
+  // while(temp <= max)
+  // {
+   
+  //   r.key = temp;
+    
+  //   r.value = (Value)0xDEADBEEF;
+    
+  //   temp++;
+  //   to.push_back(r);
+    
+  // }
+  
   for(int i = 0; i < count; i++){
-    to[i].key = (rand() % max_minus_min)+min;
-    to[i].value = (Value)0xDEADBEEF;
+     
+    r.key = (rand() % max_minus_min)+min;
+    r.value = (Value)0xDEADBEEF;
+    to.push_back(r);
   }
 }
 
@@ -93,8 +110,11 @@ inline void load_records(std::vector<Record> &to, std::istream &input)
   input >> op;
   if(op == "random"){
     int count, min, max;
+    //std::cout<<"in random"<<std::endl;
     input >> count >> min >> max;
+    //std::cout<<"got all prams"<<std::endl;
     build_buffer(to, count, min, max);
+    //std::cout<<"built buffer"<<std::endl;
   } else if(op == "explicit"){
     Record r;
     r.value = (Value)0xDEADBEEF;
@@ -102,7 +122,8 @@ inline void load_records(std::vector<Record> &to, std::istream &input)
       input >> r.key;
       to.push_back(r);
     }
-  } else if(op == "sorted"){
+  }
+  else if(op == "sorted"){
     int count, min, max;
     input >> count >> min >> max;
     build_buffer(to, count, min, max);

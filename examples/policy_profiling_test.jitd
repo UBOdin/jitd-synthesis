@@ -1,0 +1,7 @@
+build
+Array random 100 1 200
+Return
+dump
+policy_act_for 6
+dump
+print_time_log

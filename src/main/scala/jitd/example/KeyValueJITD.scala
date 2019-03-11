@@ -248,16 +248,16 @@ object KeyValueJITD extends HardcodedDefinition {
       andThen ("CrackArray"       onlyIf { ArraySize("data") gte "crackAt" } 
                                   scoreBy { ArraySize("data") })
       //andThen ("PushDownDontDeleteBtree"          scoreBy { ArraySize("data") })
-      andThen ("PushDownDontDeleteElemBtree"          scoreBy { ArraySize("data") })
+      //andThen ("PushDownDontDeleteElemBtree"          scoreBy { ArraySize("data") })
       //andThen ("PushDownDontDeleteConcat"            scoreBy { ArraySize("data") })
-      andThen ("PushDownDontDeleteElemConcat"          scoreBy { ArraySize("data") })
+      //andThen ("PushDownDontDeleteElemConcat"          scoreBy { ArraySize("data") })
       andThen ("SortArray"        scoreBy { ArraySize("data") })
       //andThen "MergeSortedBTrees"
       //andThen "MergeSortedConcat"
       
      // andThen "MergeDeleteNodes"
      //andThen ("DeleteFromSortedArray" scoreBy{ArraySize("data2")})
-     andThen ("DeleteElemFromSortedArray" scoreBy{ArraySize("data2")})
+     //andThen ("DeleteElemFromSortedArray" scoreBy{ArraySize("data2")})
   )
 
 }

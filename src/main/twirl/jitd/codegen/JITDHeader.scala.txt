@@ -10,7 +10,8 @@
 #include <algorithm>
 #include <ios>
 #include <functional>
-
+#include <sys/time.h>
+//std::vector<float> time_vec;
 @for(include <- ctx.definition.includes) { 
 #include "@include"
 }
@@ -85,6 +86,8 @@ typedef enum {
 class JITD;
 std::shared_ptr<JITD> assemble_jitd(std::istream &in);
 void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix);
+void print_time_vector_sum();
+
 
 ///////////////////// JITD Accessors ///////////////////// 
 
@@ -119,7 +122,7 @@ class JITD {
 
     void print_debug() { print_JITD_node_structure(root, std::string("")); }
     bool do_organize();
-
+    void print_time_vec() {print_time_vector_sum();}
   private:
 
     std::shared_ptr<JITDNode> root;

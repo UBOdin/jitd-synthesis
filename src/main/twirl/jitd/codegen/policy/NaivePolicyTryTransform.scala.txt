@@ -9,15 +9,19 @@
 {
   std::shared_ptr<JITDNode> target;
   UpdateHandle doUpdate;
-
+  timeval start, end;
   // std::cout << "Policy trying to find opportunities for @{transform}" << std::endl;
+  gettimeofday(&start,NULL);
   long bestScore = searchFor@{transform}(
     root, 
     target,
     std::bind(&JITD::update_root, this, std::placeholders::_1),
     doUpdate
   );
-
+  gettimeofday(&end,NULL);
+  float totalTime = (end.tv_sec - start.tv_sec) * 1000000.0 + (end.tv_usec - start.tv_usec);
+  time_vec_@{transform}.push_back(totalTime);
+  std::cout<<"total time taken for seraching for candidate to apply @{transform}:"<< totalTime<<"us"<<std::endl;
   if(bestScore >= 0) {
     @debug(s"  Applying $transform to")
     @dump
