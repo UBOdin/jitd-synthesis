@@ -194,7 +194,23 @@ int jitd_test(
 
 
     // ///////////////// ACCESS OPERATIONS ///////////////// 
-    } CASE("get") {
+    } 
+    CASE("policy_act_until_done")
+    {
+      int target_steps;
+      timeval start, end;
+      bool not_done = true;
+      int steps_taken = 0;
+      gettimeofday(&start, NULL);
+      while(not_done)
+      {
+       not_done = jitd->do_organize(); 
+       steps_taken++;
+      }
+      gettimeofday(&end, NULL);
+      std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end) << (not_done ? "" : " [done]") << " us" <<  std::endl;
+    }
+    CASE("get") {
       Key key;
       Record ret;
       toks >> key;

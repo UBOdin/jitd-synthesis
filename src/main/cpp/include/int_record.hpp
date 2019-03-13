@@ -147,10 +147,10 @@ inline void do_crack(
   std::vector<Record> &lhs, 
   std::vector<Record> &rhs
 ){
-  // std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
+  //std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
   for(auto curr = std::begin(source); curr < std::end(source); ++curr)
   {
-    // std::cout << "  Check: " << curr->key << std::endl;
+    //std::cout << "  Check: " << curr->key;
     if(*curr < sep){ lhs.emplace_back(*curr); }
     else           { rhs.emplace_back(*curr); }
   }
@@ -247,5 +247,9 @@ inline void delete_from_array(std::vector<Record> &to_delete,std::vector<Record>
 inline Key pick_separator(const std::vector<Record> &source)
 {
   if(source.empty()) { return 0; }
-  else { return source[(source.size() / 2)].key; }
+  else { 
+    //std::cout<<"SIZE"<<source.size();
+    int index_to_pick = rand()%source.size();
+    //std::cout<<"INDEXX_TO_PICK"<<index_to_pick;
+    return source[index_to_pick].key; }
 }

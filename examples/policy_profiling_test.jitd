@@ -1,7 +1,6 @@
 build
-Array random 100 1 200
+Array random 10000 1 20000
 Return
 dump
-policy_act_for 6
-dump
+policy_act_for 1619
 print_time_log
