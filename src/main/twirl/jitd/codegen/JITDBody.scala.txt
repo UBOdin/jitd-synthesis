@@ -1,6 +1,7 @@
 @import jitd.codegen._
 @import jitd.spec._
 @import jitd.rewrite._
+@import jitd.Debug
 @(ctx:Render, headerFile:String)
 
 #include <stack>
@@ -13,6 +14,12 @@ std::vector<float> time_vec_PushDownDontDeleteElemBtree;
 std::vector<float> time_vec_PushDownDontDeleteElemConcat;
 std::vector<float> time_vec_SortArray;
 std::vector<float> time_vec_DeleteElemFromSortedArray;
+std::set<std::shared_ptr<JITDNode> > JITD_NODE_Array_set;
+std::set<std::shared_ptr<JITDNode> > JITD_NODE_SortedArray_set;
+std::set<std::shared_ptr<JITDNode> > JITD_NODE_BTree_set;
+std::set<std::shared_ptr<JITDNode> > JITD_NODE_Concat_set;
+std::set<std::shared_ptr<JITDNode> > JITD_NODE_Delete_set;
+std::set<std::shared_ptr<JITDNode> > JITD_NODE_DeleteElements_set;
 ///////////////////// Transform Definitions ///////////////////// 
 
 @for(transform <- ctx.definition.transforms){
@@ -37,10 +44,38 @@ std::vector<float> time_vec_DeleteElemFromSortedArray;
 
 bool JITD::do_organize()
 {
+  //std::cout<<"calling do organize"<<std::endl;
   @ctx.policyImplementation.doOrganize(ctx, "(this->root)")
 }
+///////////////////// Set creation ///////////////////// 
 
 
+void setInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
+{
+  //Init code when jitd is first populated
+  std::shared_ptr<JITDNode> set_node = std::atomic_load((root_handle));
+   JITDNode *lock_raw = set_node.get();
+  switch(set_node->type)
+  {
+    @for(node <- ctx.definition.nodes){
+      case @node.enumName : 
+      {
+        //std::cout<<"FOUND: "<<set_node->type<<std::endl;
+        @{node.enumName}_set.emplace(*root_handle);
+        std::cout<<"the ptrtoshrdptr of the root is"<<&root_handle<<std::endl;
+        //std::cout<<"JITD_@{node.renderName}_set:" << JITD_@{node.renderName}_set.size()<<std::endl;
+        @{node.renderName} *updated_node = (@{node.renderName} *)lock_raw;
+          std::shared_ptr<JITDNode> * child_nodeHandleRef;
+        @for(field <- node.fields.filter { _.t == TNodeRef() }){
+            child_nodeHandleRef = &(updated_node->@{field.name}); 
+            setInit(child_nodeHandleRef,false);
+          }
+        break;
+      }
+      
+    }
+  }
+}
 ///////////////////// Debugging Utilities ///////////////////// 
 
 std::shared_ptr<JITD> assemble_jitd(std::istream &in)
@@ -48,6 +83,7 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
   std::string op, line;
 
   std::stack<std::shared_ptr<JITDNode>> node_stack;
+  std::shared_ptr<JITDNode> jitd_root_handle;
   while(getline(in, line)){
     std::basic_istringstream<char> toks(line);
     toks >> op;
@@ -72,14 +108,19 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 
         // Assemble everything into a @node.name
         node_stack.emplace(new @{node.renderName}(@{node.fields.map { _.name }.mkString(", ")}));
+        //JITD_@{node.renderName}_set.emplace(node_stack.top());
         //std::cout << "Creating @node.name" << std::endl;
         //printJITDNodeStructure(node_stack.top(), std::string(""));
 
       } else 
     }
     if(op == "Return"){
+    
+      
       return std::shared_ptr<JITD>(new JITD(node_stack.top()));
-    } else {
+
+    }
+    else {
       std::cerr << "Invalid assembly instruction '"<<op<<"'" << std::endl; 
       exit(-1); 
       return std::shared_ptr<JITD>();
@@ -116,6 +157,20 @@ void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string
     }
   }
 }
+void print_set()
+{
+//std::cout<<"calling print_set"<<std::endl;
+
+  @for(node <- ctx.definition.nodes){
+  if(!@{node.enumName}_set.empty())
+  {
+    std::cout<<"@{node.enumName}_set:" << @{node.enumName}_set.size()<<std::endl;
+  }
+  
+  }
+}
+
+
 void print_time_vector_sum()
 {
   
@@ -123,43 +178,67 @@ void print_time_vector_sum()
   if(time_vec_PushDownAndCrack.size()!=0)
   {
     float sum_of_elems=0.0; 
+    //std::cout<<"The SearchForPushDownCrack Vec:";
     for (auto& n : time_vec_PushDownAndCrack)
+    {
       sum_of_elems += n;
-    std::cout<<"Time for PushDownAndCrack "<<sum_of_elems<<"us"<<std::endl;
+      //std::cout<<n<<",";
+    }
+    //std::cout<<"\nTime for PushDownAndCrack "<<sum_of_elems<<"us"<<std::endl;
   }
   if(time_vec_CrackArray.size()!=0)
   {
     float sum_of_elems=0.0; 
+    //std::cout<<"The SearchForCrack Vec:";
     for (auto& n : time_vec_CrackArray)
+    {
       sum_of_elems += n;
-    std::cout<<"Time for CrackArray "<<sum_of_elems<<"us"<<std::endl;
+      //std::cout<<n<<",";
+    }
+    //std::cout<<"\nTime for CrackArray "<<sum_of_elems<<"us"<<std::endl;
   }
   if(time_vec_PushDownDontDeleteElemBtree.size()!=0)
   {
     float sum_of_elems=0.0; 
+    //std::cout<<"The SearchForPushDownDeleteBtree Vec:";
     for (auto& n : time_vec_PushDownDontDeleteElemBtree)
+    {
       sum_of_elems += n;
-    std::cout<<"Time for PushDownDontDeleteElemBtree "<<sum_of_elems<<"us"<<std::endl;
+      //std::cout<<n<<",";
+    }
+    //std::cout<<"\nTime for PushDownDontDeleteElemBtree "<<sum_of_elems<<"us"<<std::endl;
   }
   if(time_vec_PushDownDontDeleteElemConcat.size()!=0)
   {
     float sum_of_elems=0.0; 
+    //std::cout<<"The SearchForPushDownDeleteConcat Vec:";
     for (auto& n : time_vec_PushDownDontDeleteElemConcat)
+    {
       sum_of_elems += n;
-    std::cout<<"Time for PushDownDontDeleteElemConcat "<<sum_of_elems<<"us"<<std::endl;
+      //std::cout<<n<<",";
+    }
+    //std::cout<<"\nTime for PushDownDontDeleteElemConcat "<<sum_of_elems<<"us"<<std::endl;
   }
   if(time_vec_SortArray.size()!=0)
   {
     float sum_of_elems=0.0;  
+    //std::cout<<"The SearchForSortArray Vec:";
     for (auto& n : time_vec_SortArray)
+    {
       sum_of_elems += n;
-    std::cout<<"Time for SortArray "<<sum_of_elems<<"us"<<std::endl;
+      //std::cout<<n<<",";
+    }
+    //std::cout<<"\nTime for SortArray "<<sum_of_elems<<"us"<<std::endl;
   }
   if(time_vec_DeleteElemFromSortedArray.size()!=0)
   {
     float sum_of_elems=0.0; 
+    //std::cout<<"The SearchForPushDownDeleteSortedArray Vec:";
     for (auto& n : time_vec_DeleteElemFromSortedArray)
+    {
       sum_of_elems += n;
-    std::cout<<"Time for DeleteElemFromSortedArray "<<sum_of_elems<<"us"<<std::endl;
+     //std::cout<<n<<",";
+    }
+    //std::cout<<"\nTime for DeleteElemFromSortedArray "<<sum_of_elems<<"us"<<std::endl;
   }
 }

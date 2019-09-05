@@ -22,7 +22,7 @@ object AccessorToFunction
         args,
         ExtractNode(
           "jitd_node",
-          Var("jitd_node_ref"),
+          WrapNodeRef(Var("jitd_node_ref")),
           accessor.lookups.toSeq.map { case (nodeType, handler) =>
             val fieldMap = definition.node(nodeType).fields.map { field => 
                               field.name -> NodeSubscript(Var("jitd_node"), field.name)

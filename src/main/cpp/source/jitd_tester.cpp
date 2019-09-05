@@ -167,11 +167,11 @@ int jitd_test(
       timeval start, end;
       bool not_done = true;
       int steps_taken = 0;
-
       toks >> target_steps;
 
       gettimeofday(&start, NULL);
       for(; steps_taken < target_steps && not_done; steps_taken++){
+        //std::cout<<"calling do organize"<<std::endl;
         not_done = jitd->do_organize();
       }
       gettimeofday(&end, NULL);
@@ -348,6 +348,22 @@ int jitd_test(
     {
       jitd->print_time_vec();
     } 
+    CASE("print_set")
+    {
+      std::cout<<"Printing Set:-"<<std::endl;
+      jitd->print_set_size();
+    }
+    CASE("make_set")
+    {
+      //std::cout<<"calling make_set"<<std::endl;
+      jitd->make_set();
+
+    }
+    CASE("remove_set")
+    {
+      //std::cout<<"In Remove Set";
+      jitd->remove_set();
+    }
     else {
       std::cerr << "Invalid Test Operation: " << op << std::endl;
       exit(-1);

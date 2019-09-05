@@ -45,7 +45,7 @@ class PatternOverlapSpec extends Specification {
         "PushDownAndCrack@."
       ))
     }
-
+//Do a match deletes correctly!!
     "Match Overlap Correctly" >> {
       val PivotRightPattern = definition.transforms.find { _.name.equals("PivotRight") }
                                                    .get

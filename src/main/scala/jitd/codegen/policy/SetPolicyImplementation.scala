@@ -3,8 +3,8 @@ package jitd.codegen.policy
 import jitd.codegen.Render
 import jitd.spec._
 import jitd.codegen.policy.txt._
-
-object NaivePolicyImplementation extends PolicyImplementation
+import jitd.rewrite._
+object SetPolicyImplementation extends PolicyImplementation
 {
   // Render field definitions for the JITD object
   def state(ctx:Render): String = ""
@@ -14,15 +14,36 @@ object NaivePolicyImplementation extends PolicyImplementation
 
   // Render two blocks of code to be run just before/after a JITD rewrite
   // happens.  [from] is replaced by [to].  
-  def onRewrite(ctx:Render,
-    definition:Definition, 
+  def onRewrite(ctx:Render, 
+    definition:Definition,
     handlerefbool:Boolean,
     from:MatchPattern, 
     to:ConstructorPattern, 
     fromTarget:String, 
-    toTarget:String
+    toTarget:String): (Statement, Statement) =(setRemove(definition,handlerefbool,from,to,fromTarget), Comment(s" "))
+  def setRemove(definition:Definition,handlerefbool:Boolean,fromNode:MatchPattern,to:ConstructorPattern,fromNodeVar:String):Statement = 
+  {
+    val (constructor, accessor) = MatchToStatement.constructorWithoutVarMapping(definition,to,"to_ptr")
+    //println("SRA"+constructor)
+    val fromMapping = MatchToStatement.varMappings(definition, fromNode, fromNodeVar+"_root") 
+    val extract = 
+      if(handlerefbool == true)
+        {MatchToStatement.unroll(definition,fromNode,fromNodeVar+"_root",(Var("target")))}
+      else
+        {MatchToStatement.unroll(definition,fromNode,fromNodeVar+"_root",WrapNodeRef(Var("target")))}
     
-  ): (Statement, Statement) = (Comment(s"onRewrite1"), Comment(s"onRewrite2"))
+    //println("IN UNROLL SET"+extract)
+    //ExtractNodeNameForSet(s"setRemovalCode")
+    return extract
+      .foldRight(InlineVars(Comment(s"setRemovalDone"), fromMapping)) { (check, accumulator) => {
+        val (nodeVarName, nodeType, nodeSourceExpression) = check
+        //println("SPI "+nodeVarName+"||"+nodeType+"||"+nodeSourceExpression)
+        ExtractNodeNameSetRemove(nodeVarName, nodeSourceExpression, Seq(nodeType -> accumulator), Return(BoolConstant(false)))
+      }}
+    
+
+  }
+
 
   def onRewrite(ctx:Render,
     from:MatchPattern, 
@@ -31,13 +52,14 @@ object NaivePolicyImplementation extends PolicyImplementation
     toTarget:String
     
   ): (Statement, Statement) = (Comment(s"onRewrite1"), Comment(s"onRewrite2"))
+
 
   def utilityFunctions(ctx:Render, rule:PolicyRule): String = 
   {
     rule match {
       case TieredPolicy(policies) => policies.map { utilityFunctions(ctx, _) }.mkString
       case TransformPolicy(name, constraint, scoreFn) =>
-        NaivePolicySearch(  // Generated via Twirl template
+        SetPolicySearch(  // Generated via Twirl template
           ctx, 
           ctx.definition.transform(name), 
           constraint, 
@@ -57,10 +79,16 @@ object NaivePolicyImplementation extends PolicyImplementation
         doOrganize(ctx, root, policies.head, onSuccess, "")+"  "+
           doOrganize(ctx, root, TieredPolicy(policies.tail), onSuccess, onFail)
       case TransformPolicy(name, _, _) => 
-        NaivePolicyTryTransform(ctx, root, name, onSuccess, onFail).toString
+        SetPolicyTryTransform(ctx, root, name, onSuccess, onFail).toString
     }
 
   // Render a block of code to be run when an idle cycle is available.
   def doOrganize(ctx:Render, root:String): String = 
+  {
+    //println(ctx.definition.transforms.to)
     doOrganize(ctx, root, ctx.policy.rule, "return true;\n", "return false;\n")+"\n"
+    
+    
+  }
+    
 }

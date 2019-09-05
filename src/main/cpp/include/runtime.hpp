@@ -4,6 +4,6 @@
 #include <vector>
 
 template<class Element>
-inline size_t array_size(std::vector<Element> elems) { return elems.size(); }
+inline size_t array_size(const std::vector<Element> &elems) { return elems.size(); }
 
 #endif

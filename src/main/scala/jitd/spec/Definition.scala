@@ -2,13 +2,14 @@ package jitd.spec;
 
 import jitd.JITDRuntime
 import jitd.typecheck._
-
+import jitd.codegen.policy._
 case class Definition(
   nodes:Seq[Node],
   accessors:Seq[Accessor],
   mutators:Seq[Mutator],
   transforms:Seq[Transform],
   policies:Seq[Policy],
+  policyImplementations: PolicyImplementation,
   functions:Seq[FunctionSignature],
   keyType: String = "int",
   recordType: String = "Record",
@@ -46,7 +47,7 @@ class HardcodedDefinition
   var mutators = List[jitd.spec.Mutator]()
   var transforms = List[jitd.spec.Transform]()
   var policies = List[jitd.spec.Policy]()
-
+  var policyImplementations = jitd.codegen.policy.SetPolicyImplementation
   def Def(ret: Type, name: String, args:Type*) 
   {
     functionSignatures = jitd.typecheck.FunctionSignature(name, args, ret) :: functionSignatures
@@ -109,6 +110,7 @@ class HardcodedDefinition
   def bool              = TBool()
   def node              = TNodeRef()
   def iterator          = TIterator()
+  def handlepref = THandleRef()
 
   def Delegate(args:Expression*) = Call("delegate")(args:_*)
 
@@ -133,7 +135,8 @@ class HardcodedDefinition
     accessors  = accessors,
     mutators   = mutators,
     transforms = transforms,
-    policies   = policies,
+    policies   = policies, 
+    policyImplementations = policyImplementations,
     functions  = functionSignatures,
     includes = Seq("int_record.hpp", "runtime.hpp")
   )

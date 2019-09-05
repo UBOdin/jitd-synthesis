@@ -9,32 +9,29 @@
 {
   std::shared_ptr<JITDNode> * targetHandleRef;
   std::shared_ptr<JITDNode> target;
-  std::shared_ptr<JITDNode> nodeToChange;
-  UpdateHandle doUpdate;
   timeval start, end;
   //std::cout << "Policy trying to find opportunities for @{transform}" << std::endl;
   std::shared_ptr<JITDNode> * rootHandleRef = &root;
+  
   gettimeofday(&start,NULL);
   long bestScore = searchFor@{transform}(
-    rootHandleRef,targetHandleRef,
-    std::bind(&JITD::update_root, this, std::placeholders::_1),
-    doUpdate
+    rootHandleRef,targetHandleRef
   );
   gettimeofday(&end,NULL);
+  //set_creation(rootHandleRef);
   float totalTime = (end.tv_sec - start.tv_sec) * 1000000.0 + (end.tv_usec - start.tv_usec);
   time_vec_@{transform}.push_back(totalTime);
   //std::cout<<"total time taken for seraching for candidate to apply @{transform}:"<<totalTime<<"us"<<std::endl;
   if(bestScore >= 0) {
     @debug(s"  Applying $transform to")
     @dump
-
+    //nodeToChange = *targetHandleRef;
+    //std::cout<<"type of node to change here:"<<nodeToChange->type<<std::endl;
     @{transform}(targetHandleRef);
-    nodeToChange = *targetHandleRef;
+    
     @debug(s"   ... and got")
     @dump
-    //DoUpdate in transforms
-    //doUpdate(target);
-    doUpdate(nodeToChange);
+    
     @onSuccess
   } else { 
     @onFail 

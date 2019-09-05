@@ -151,6 +151,19 @@ case class WrapNode(target: Expression) extends Expression
   def reassemble(in: Seq[Expression]): Expression = WrapNode(in(0))
   override def toString = s"wrap ${target.toString}"
 }
+case class UnWrapHandle(target: Expression) extends Expression
+{
+  def disassemble = Seq(target)
+  def reassemble(in: Seq[Expression]): Expression = UnWrapHandle(in(0))
+  override def toString = s"unwraphandleref ${target.toString}"
+}
+case class WrapNodeRef(target: Expression) extends Expression
+{
+  def disassemble = Seq(target)
+  def reassemble(in: Seq[Expression]): Expression = WrapNodeRef(in(0))
+  override def toString = s"wrapnoderef ${target.toString}"
+}
+
 case class MakeNode(nodeType: String, fields: Seq[Expression]) extends Expression
 {
   def disassemble = fields

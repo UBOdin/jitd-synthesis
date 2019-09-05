@@ -13,14 +13,22 @@ abstract class PolicyImplementation
 
   // Render two blocks of code to be run just before/after a JITD rewrite
   // happens.  [from] is replaced by [to].  
-  def onRewrite(
-    ctx:Render, 
+  def onRewrite(ctx:Render, 
+    definition:Definition,
+    handlerefbool:Boolean,
     from:MatchPattern, 
     to:ConstructorPattern, 
     fromTarget:String, 
     toTarget:String
-  ): (String, String)
-
+    
+  ): (Statement, Statement)
+  def onRewrite(ctx:Render, 
+    from:MatchPattern, 
+    to:ConstructorPattern, 
+    fromTarget:String, 
+    toTarget:String
+    
+  ): (Statement, Statement)
   // Render a block of code to be run when an idle cycle is available.
   def utilityFunctions(ctx:Render): String
 

@@ -17,7 +17,7 @@ case class TStruct(fields:Seq[Field]) extends Type
 case class TNodeRef() extends Type
 case class TNode(t:String) extends Type
 case class TIterator() extends Type
-
+case class THandleRef() extends Type
 object Type
 {
   def toString(t: Type): String =
@@ -30,6 +30,7 @@ object Type
       case TArray(nested) => s"array[${Type.toString(nested)}]"
       case TStruct(fields) => s"struct[${fields.map { _.toString }.mkString{", "}}]"
       case TNodeRef() => "noderef"
+      case THandleRef() => "handleref"
       case TNode(t) => s"node[$t]"
       case TIterator() => "iterator"
     }

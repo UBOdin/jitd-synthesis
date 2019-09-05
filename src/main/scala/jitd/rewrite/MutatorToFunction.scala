@@ -20,12 +20,12 @@ object MutatorToFunction
         "new_root"
       )
 
-    definition.typechecker.check("root" -> TNodeRef()) {
+    definition.typechecker.check("&root" -> THandleRef(), "root" -> TNodeRef()) {
       FunctionDefinition(
         renderName,
         None,
         args,
-        constructor ++ Assign("root", new_root, true)
+        constructor ++ Assign("&root", new_root, true)
       )
     }
   }

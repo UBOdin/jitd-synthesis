@@ -42,6 +42,7 @@ case class Declare(name:String, t:Option[Type], v:Expression) extends Statement
   def reassembleExpression(in: Seq[Expression]): Statement = Declare(name, t, in(0))
   def toString(prefix: String) = s"${prefix}var $name${t.map { x => ":"+Type.toString(x)}.getOrElse("")} = $v"
 }
+
 case class Assign(name:String, v:Expression, atomic:Boolean = false) extends Statement
 {
   def disasssembleStatement: Seq[Statement] = Seq()
@@ -50,7 +51,18 @@ case class Assign(name:String, v:Expression, atomic:Boolean = false) extends Sta
   def reassembleExpression(in: Seq[Expression]): Statement = Assign(name, in(0), atomic)
   def toString(prefix: String) = s"${prefix}$name = $v"
 }
+
 case class ExtractNode(name:String, v:Expression, nodeHandlers: Seq[(String, Statement)], onFail: Statement) extends Statement
+{
+  def disasssembleStatement: Seq[Statement] = Seq(onFail) ++ nodeHandlers.map { _._2 }
+  def reassembleStatement(in: Seq[Statement]): Statement = ExtractNode(name, v, nodeHandlers.zip(in.tail).map { case ((name, _), handler) => (name, handler) }, in(0))
+  def disasssembleExpression: Seq[Expression] = Seq(v)
+  def reassembleExpression(in: Seq[Expression]): Statement = ExtractNode(name, in(0), nodeHandlers, onFail)
+  def toString(prefix: String) = s"${prefix}extract $v into $name { \n"+nodeHandlers.map { 
+                                                              case (nodeType, onMatch) => s"${prefix}  case $nodeType -> \n${onMatch.toString(prefix+"    ")}\n"
+                                                            }.mkString+s"\n${prefix}  else -> \n${onFail.toString(prefix+"     ")}\n${prefix}}"
+}
+case class ExtractNodeNameSetRemove(name:String, v:Expression, nodeHandlers: Seq[(String, Statement)], onFail: Statement) extends Statement
 {
   def disasssembleStatement: Seq[Statement] = Seq(onFail) ++ nodeHandlers.map { _._2 }
   def reassembleStatement(in: Seq[Statement]): Statement = ExtractNode(name, v, nodeHandlers.zip(in.tail).map { case ((name, _), handler) => (name, handler) }, in(0))
@@ -108,4 +120,28 @@ case class Comment(msg:String) extends Statement
   def disasssembleExpression: Seq[Expression] = Seq()
   def reassembleExpression(in: Seq[Expression]): Statement = this
   def toString(prefix: String) = prefix+"rem: "+msg
+}
+case class DeclarePtr(name:String) extends Statement
+{
+  def disasssembleStatement: Seq[Statement] = Seq()
+  def reassembleStatement(in: Seq[Statement]): Statement = this
+  def disasssembleExpression: Seq[Expression] = Seq()
+  def reassembleExpression(in: Seq[Expression]): Statement = this
+  def toString(prefix: String) = prefix+"initialize: "+name
+}
+case class AssignPtrtoHandle(nameHandle:String,v:Expression) extends Statement
+{
+  def disasssembleStatement: Seq[Statement] = Seq()
+  def reassembleStatement(in: Seq[Statement]): Statement = this
+  def disasssembleExpression: Seq[Expression] = Seq(v)
+  def reassembleExpression(in: Seq[Expression]): Statement = AssignPtrtoHandle(nameHandle,in(0))
+  def toString(prefix: String) = prefix+"ptr to handle: "+nameHandle + "$v"
+}
+case class EmplaceSet(name:String,node:String) extends Statement
+{
+  def disasssembleStatement: Seq[Statement] = Seq()
+  def reassembleStatement(in: Seq[Statement]): Statement = this
+  def disasssembleExpression: Seq[Expression] = Seq()
+  def reassembleExpression(in: Seq[Expression]): Statement = EmplaceSet(name,node)
+  def toString(prefix: String) = prefix+"Add $name to set of $node "
 }
