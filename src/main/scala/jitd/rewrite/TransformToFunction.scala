@@ -32,7 +32,10 @@ object TransformToFunction
       )
       constructor ++Assign("target", (accessor), true)
     }
-
+    def func():Statement=
+    {
+      Comment(s"here is the func")
+    }
     definition.typechecker.check {//checks to see if its correct and returns same 
       FunctionDefinition(
         transform.name, 
@@ -40,7 +43,7 @@ object TransformToFunction
         Seq(
           ("target", THandleRef(), OutputRef)
         ),
-        Comment(s"Code to remove nodes from set")++stmt1 ++ makeMatchTest(constructNewNode() ++ stmt2)
+        Comment(s"Code to remove nodes from set")++makeMatchTest(stmt1++constructNewNode() ++ stmt2)
       )
     }
 

@@ -210,23 +210,7 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
         recur(onFail, scope)
         scope
       }
-      case ExtractNodeNameSetRemove(name, expr, matchers, onFail) => {
-        if(scope contains name) { 
-          error("Overriding existing variable")
-        }
-        val exp = exprType(expr)
-        if(exp != THandleRef()) {
-          error("Doesn't evaluate to an (extractable) node/Handle reference")
-        }
-        for( (nodeType, handler) <- matchers ){
-          if(!(nodeTypes contains nodeType)) {
-            error(s"Invalid Node Type: '$nodeType'")
-          }
-          recur(handler, scope + (name -> TNode(nodeType)))
-        }
-        recur(onFail, scope)
-        scope
-      }
+    
       case Return(expr) => {
         if(exprType(expr) != returnType.getOrElse { 
           error(s"Invalid Return Type (Found: ${exprType(expr)}; Void Function)")
@@ -271,6 +255,7 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
       }
       case Error(_) => scope
       case Comment(_) => scope
+      case SetRemoveFunction(_,_) => scope 
       case DeclarePtr(_) => scope
       case AssignPtrtoHandle(_,_)=> scope
       case EmplaceSet(_,_)=> scope 

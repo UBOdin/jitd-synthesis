@@ -8,6 +8,8 @@
     std::shared_ptr<JITDNode> * &node,  // Pointer to the node we're currently examining      
     std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
+    
+
     std::shared_ptr<JITDNode> lock = std::atomic_load((node));
     JITDNode *lock_raw = lock.get();
 

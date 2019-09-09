@@ -144,8 +144,6 @@ object MatchToStatement
                 Declare( nodeName, Some(TNode(node)), MakeNode(node, fieldExpressions)),
                 Declare( nodeName+"_ref", Some(TNodeRef()), WrapNode(Var(nodeName))),
                 Comment(s"Code to add nodes into sets"),
-                //DeclarePtr(nodeName),
-                //AssignPtrtoHandle(nodeName,WrapNodeRef(Var(nodeName+"_ref"))),
                 EmplaceSet(nodeName,node)
               )
             ),

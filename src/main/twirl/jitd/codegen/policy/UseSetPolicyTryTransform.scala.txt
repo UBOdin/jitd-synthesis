@@ -19,14 +19,13 @@
     rootHandleRef,targetHandleRef
   );
   gettimeofday(&end,NULL);
-  //set_creation(rootHandleRef);
+  
   float totalTime = (end.tv_sec - start.tv_sec) * 1000000.0 + (end.tv_usec - start.tv_usec);
   time_vec_@{transform}.push_back(totalTime);
-  //std::cout<<"total time taken for seraching for candidate to apply @{transform}:"<<totalTime<<"us"<<std::endl;
+  //std::cout<<"outside in try address:"<<targetHandleRef<<" type of node: "<<targetHandleRef->get()->type<<std::endl;
   if(bestScore >= 0) {
     @debug(s"  Applying $transform to")
     @dump
-    //targetHandleRef = &lock_raw_shrd_ptr;
     @{transform}(targetHandleRef);
     
     @debug(s"   ... and got")

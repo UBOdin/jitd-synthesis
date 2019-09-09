@@ -79,7 +79,7 @@ typedef enum {
 } JITDTransformType;
 
 @for(transform <- ctx.definition.transforms){
-  bool @{transform.name}(std::shared_ptr<JITDNode> * &targetHandleRef);
+  bool @{transform.name}(std::shared_ptr<JITDNode>  &targetHandleRef);
 }
 
 ///////////////////// JITD Debug Methods ///////////////////// 

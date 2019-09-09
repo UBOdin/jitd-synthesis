@@ -47,8 +47,10 @@ class RenderStatement(
           
       }
       case ExtractNode(name, v, matchers, onFail) => {
-            indent+s"// Extract ${renderExpression(v)} into ${matchers.map { _._1 }.mkString(" or ")}\n"+      
+        val here = "\"HERE\""
+            indent+s"// Extract ${renderExpression(v)} into ${matchers.map { _._1 }.mkString(" or ")}\n"+  
             indent+s"${ctx.cType(TNodeRef())} "+name+"_lock = std::atomic_load(("+renderExpression(v)+"));\n"+
+            //indent+s"std::cout<<"+here+"<<"+name+"_lock.get()->type<<std::endl;\n"+   
             indent+"switch(("+name+"_lock)->type){ \n"+
             matchers.map { case (nodeType, handler) => 
               val node = ctx.definition.nodesByName(nodeType)
@@ -63,29 +65,11 @@ class RenderStatement(
           indent+"}\n"
 
         }
-        case ExtractNodeNameSetRemove(name, v, matchers, onFail) => {
-            indent+s"//Extract ${renderExpression(v)} into ${matchers.map { _._1 }.mkString(" or ")}\n"
-            indent+s"${ctx.cType(TNodeRef())} "+name+"_set_check = std::atomic_load(("+renderExpression(v)+"));\n"+
-            indent+"switch(("+name+"_set_check)->type){ \n"+
-            matchers.map { case (nodeType, handler) => 
-              val node = ctx.definition.nodesByName(nodeType)
-              indent+" case "+node.enumName+":{\n"+
-              indent+"    "+node.renderName+" *"+name+" = ("+node.renderName+" *)("+name+"_set_check).get();\n"+
-              indent+"   if(!"+node.enumName+"_set.empty()) \n" +
-              indent+" { \n"+
-              indent+"\t\t"+node.enumName+"_set.erase("+name+"_set_check);\n"+
-              indent+" }\n"+
-              recurWithIndent(handler, "    ")+
-              indent+"  }; break;\n"
-            }.mkString+
-            indent+s"  default: { //${name} is not ${matchers.map { "a " + _._1 }.mkString(" or ")}\n"+
-              //recurWithIndent(onFail, "    ")+
-            indent+"  }; break;\n"+
-          indent+"}\n"
-            
-
-        }
       
+      case SetRemoveFunction(name,nodeType) => {
+        //indent+"/*** Removing: "+name+nodeType+" ***/\n"+
+        indent+"JITD_NODE_"+nodeType+"_set.erase("+name+"_lock);\n"
+      }
 
       case Void(v) => {
           indent + renderExpression(v)+";\n"

@@ -61,8 +61,8 @@ void setInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
       case @node.enumName : 
       {
         //std::cout<<"FOUND: "<<set_node->type<<std::endl;
-        @{node.enumName}_set.emplace(*root_handle);
-        std::cout<<"the ptrtoshrdptr of the root is"<<&root_handle<<std::endl;
+        @{node.enumName}_set.emplace(set_node);
+        //std::cout<<"the ptrtoshrdptr of the root is"<<&root_handle<<std::endl;
         //std::cout<<"JITD_@{node.renderName}_set:" << JITD_@{node.renderName}_set.size()<<std::endl;
         @{node.renderName} *updated_node = (@{node.renderName} *)lock_raw;
           std::shared_ptr<JITDNode> * child_nodeHandleRef;
@@ -108,9 +108,7 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 
         // Assemble everything into a @node.name
         node_stack.emplace(new @{node.renderName}(@{node.fields.map { _.name }.mkString(", ")}));
-        //JITD_@{node.renderName}_set.emplace(node_stack.top());
-        //std::cout << "Creating @node.name" << std::endl;
-        //printJITDNodeStructure(node_stack.top(), std::string(""));
+      
 
       } else 
     }

@@ -1,0 +1,17 @@
+@import jitd.spec._
+@import jitd.codegen._
+@import jitd.rewrite.InlineVars
+@import jitd.Debug
+@(ctx:Render, transform:Transform, constraint:Expression, scoreFn:Expression)
+
+  long searchFor@{transform.name}(          // Return the "best" score available
+    std::shared_ptr<JITDNode> * &node,  // Pointer to the node we're currently examining      
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+    long bestScoreVal = -1;
+    long currentScoreVal = -1;
+    
+    @{RenderPattern.setIteration(ctx,constraint,scoreFn, transform.from, "lock_raw", "break;")}
+    //std::cout<<"outside address:"<<targetHandleRef<<" type of node: "<<targetHandleRef->get()->type<<std::endl;
+    return bestScoreVal;
+  }

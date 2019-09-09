@@ -62,16 +62,6 @@ case class ExtractNode(name:String, v:Expression, nodeHandlers: Seq[(String, Sta
                                                               case (nodeType, onMatch) => s"${prefix}  case $nodeType -> \n${onMatch.toString(prefix+"    ")}\n"
                                                             }.mkString+s"\n${prefix}  else -> \n${onFail.toString(prefix+"     ")}\n${prefix}}"
 }
-case class ExtractNodeNameSetRemove(name:String, v:Expression, nodeHandlers: Seq[(String, Statement)], onFail: Statement) extends Statement
-{
-  def disasssembleStatement: Seq[Statement] = Seq(onFail) ++ nodeHandlers.map { _._2 }
-  def reassembleStatement(in: Seq[Statement]): Statement = ExtractNode(name, v, nodeHandlers.zip(in.tail).map { case ((name, _), handler) => (name, handler) }, in(0))
-  def disasssembleExpression: Seq[Expression] = Seq(v)
-  def reassembleExpression(in: Seq[Expression]): Statement = ExtractNode(name, in(0), nodeHandlers, onFail)
-  def toString(prefix: String) = s"${prefix}extract $v into $name { \n"+nodeHandlers.map { 
-                                                              case (nodeType, onMatch) => s"${prefix}  case $nodeType -> \n${onMatch.toString(prefix+"    ")}\n"
-                                                            }.mkString+s"\n${prefix}  else -> \n${onFail.toString(prefix+"     ")}\n${prefix}}"
-}
 case class Block(statements:Seq[Statement]) extends Statement
 {
   def disasssembleStatement: Seq[Statement] = statements
@@ -120,6 +110,14 @@ case class Comment(msg:String) extends Statement
   def disasssembleExpression: Seq[Expression] = Seq()
   def reassembleExpression(in: Seq[Expression]): Statement = this
   def toString(prefix: String) = prefix+"rem: "+msg
+}
+case class SetRemoveFunction(name:String,nodeType:String) extends Statement
+{
+  def disasssembleStatement: Seq[Statement] = Seq()
+  def reassembleStatement(in: Seq[Statement]): Statement = this
+  def disasssembleExpression: Seq[Expression] = Seq()
+  def reassembleExpression(in: Seq[Expression]): Statement = this
+  def toString(prefix: String) = prefix+"removing from set: "+name
 }
 case class DeclarePtr(name:String) extends Statement
 {

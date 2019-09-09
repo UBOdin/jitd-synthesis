@@ -32,14 +32,17 @@ object SetPolicyImplementation extends PolicyImplementation
       else
         {MatchToStatement.unroll(definition,fromNode,fromNodeVar+"_root",WrapNodeRef(Var("target")))}
     
-    //println("IN UNROLL SET"+extract)
+    //println("IN UNROLL SET: "+extract.map(_._1))
+    val eachVarName = extract.map(element => (element._1,element._2)) 
     //ExtractNodeNameForSet(s"setRemovalCode")
-    return extract
-      .foldRight(InlineVars(Comment(s"setRemovalDone"), fromMapping)) { (check, accumulator) => {
-        val (nodeVarName, nodeType, nodeSourceExpression) = check
-        //println("SPI "+nodeVarName+"||"+nodeType+"||"+nodeSourceExpression)
-        ExtractNodeNameSetRemove(nodeVarName, nodeSourceExpression, Seq(nodeType -> accumulator), Return(BoolConstant(false)))
-      }}
+    val seqStmt = eachVarName.map(vnnt => SetRemoveFunction(vnnt._1.toString,vnnt._2.toString))
+    return Block(seqStmt)
+    // return extract
+    //   .foldRight(InlineVars(Comment(s"setRemovalDone"), fromMapping)) { (check, accumulator) => {
+    //     val (nodeVarName, nodeType, nodeSourceExpression) = check
+    //     eachVarName.map(varName => SetRemoveFunction(varName.toString))
+    //     //ExtractNodeNameSetRemove(nodeVarName, nodeSourceExpression, Seq(nodeType -> accumulator), Return(BoolConstant(false)))
+    //   }}
     
 
   }
@@ -59,7 +62,7 @@ object SetPolicyImplementation extends PolicyImplementation
     rule match {
       case TieredPolicy(policies) => policies.map { utilityFunctions(ctx, _) }.mkString
       case TransformPolicy(name, constraint, scoreFn) =>
-        SetPolicySearch(  // Generated via Twirl template
+        UseSetPolicySearch(  // Generated via Twirl template
           ctx, 
           ctx.definition.transform(name), 
           constraint, 
@@ -79,7 +82,7 @@ object SetPolicyImplementation extends PolicyImplementation
         doOrganize(ctx, root, policies.head, onSuccess, "")+"  "+
           doOrganize(ctx, root, TieredPolicy(policies.tail), onSuccess, onFail)
       case TransformPolicy(name, _, _) => 
-        SetPolicyTryTransform(ctx, root, name, onSuccess, onFail).toString
+        UseSetPolicyTryTransform(ctx, root, name, onSuccess, onFail).toString
     }
 
   // Render a block of code to be run when an idle cycle is available.
