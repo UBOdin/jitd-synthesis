@@ -20,6 +20,8 @@ std::set<std::shared_ptr<JITDNode> > JITD_NODE_BTree_set;
 std::set<std::shared_ptr<JITDNode> > JITD_NODE_Concat_set;
 std::set<std::shared_ptr<JITDNode> > JITD_NODE_Delete_set;
 std::set<std::shared_ptr<JITDNode> > JITD_NODE_DeleteElements_set;
+//#define JITD_DEBUG_POLICY true;
+//std::shared_ptr<JITDNode> * rootHandleRef;
 ///////////////////// Transform Definitions ///////////////////// 
 
 @for(transform <- ctx.definition.transforms){
@@ -128,8 +130,12 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
   exit(-1); 
 }
 
-
+void print_JITD_with_Handle_Ref(std::shared_ptr<JITDNode> * node, const std::string &prefix)
+{
+  
+}
 void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix){ 
+//std::cout<<"In print"<<rootHandleRef->get()->type<<std::endl;
   switch(node->type){
     @for(node <- ctx.definition.nodes) {
       case @node.enumName : {
@@ -163,12 +169,39 @@ void print_set()
   if(!@{node.enumName}_set.empty())
   {
     std::cout<<"@{node.enumName}_set:" << @{node.enumName}_set.size()<<std::endl;
+    //std::set<std::shared_ptr<JITDNode>>::iterator it;
+    //for(it = @{node.enumName}_set.begin();it!=@{node.enumName}_set.end();++it)
+    //{
+      //std::shared_ptr<JITDNode> curr = *it;
+      //std::cout<<"The type of node is "<<curr.get()->type<<std::endl;
+      //if(curr.get()->type == JITD_NODE_BTree)
+      //{
+      //     BTreeNode *temp = (BTreeNode *)(curr).get();
+      //   std::cout<<"the sep value is "<<temp->sep<<std::endl;
+      //}
+    //}
   }
   
   }
 }
-
-
+void check_set()
+{
+  @for(node <- ctx.definition.nodes){
+    if(!@{node.enumName}_set.empty())
+    {
+      std::set<std::shared_ptr<JITDNode>>::iterator it;
+      for(it = @{node.enumName}_set.begin();it!=@{node.enumName}_set.end();++it)
+      {
+        std::shared_ptr<JITDNode> curr = *it;
+        std::cout<<"check_set():The type of node in @{node.enumName} is "<<curr.get()->type<<std::endl;
+      }
+    }
+    else
+    {
+      std::cout<<"Empty @{node.enumName}_set"<<std::endl;
+    }
+  }
+}
 void print_time_vector_sum()
 {
   

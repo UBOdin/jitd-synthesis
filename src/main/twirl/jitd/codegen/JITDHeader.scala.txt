@@ -40,7 +40,7 @@ class JITDNode {
   JITDNode(JITDNodeType type) : type(type) {}
 
   JITDNodeType type;
-  std::shared_ptr<JITDNode> *parent;
+  //std::shared_ptr<JITDNode> *parent;
   @{ctx.policyImplementation.state(ctx)}
 };
 
@@ -79,7 +79,7 @@ typedef enum {
 } JITDTransformType;
 
 @for(transform <- ctx.definition.transforms){
-  bool @{transform.name}(std::shared_ptr<JITDNode>  &targetHandleRef);
+  bool @{transform.name}(std::shared_ptr<JITDNode> * &targetHandleRef);
 }
 
 ///////////////////// JITD Debug Methods ///////////////////// 
@@ -89,6 +89,7 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in);
 void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix);
 void print_time_vector_sum();
 void print_set();
+void check_set();
 void setPopulateTraversal(std::shared_ptr<JITDNode> * &root_handle,bool set_flag);
 void setInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag);
 ///////////////////// JITD Accessors ///////////////////// 
@@ -122,10 +123,11 @@ class JITD {
       @{RenderMutator.declaration( mutator, ctx )};
     }
 
-    void print_debug() { print_JITD_node_structure(root, std::string("")); }
+    void print_debug() {print_JITD_node_structure(root, std::string("")); }
     bool do_organize();
     void print_time_vec() {print_time_vector_sum();}
     void print_set_size() {print_set();}
+    void check_set_intergrity(){check_set();};
     void make_set() {std::shared_ptr<JITDNode> *root_handle = &root;setInit(root_handle,true);}
     void remove_set(){std::shared_ptr<JITDNode> *root_handle = &root;}
   private:

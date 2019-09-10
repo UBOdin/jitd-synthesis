@@ -28,6 +28,7 @@ object RenderPattern
 
     }
   }
+  
   def setIteration(ctx:Render,constraint:Expression,scoreFn:Expression, pattern:MatchPattern, target:String, onFailure:String): String =
   {
 
@@ -36,6 +37,7 @@ object RenderPattern
     val indent3 = "\t\t\t\t\t"
     val indent4 = "\t\t\t\t\t\t"
     val here = "\"HERE\""
+    val notarraynode = "\"NOT ARRAY NODE\""
     pattern match{
       case MatchNode(nodeName,fields,name)=>{
         val node = ctx.definition.nodesByName(nodeName)
@@ -44,23 +46,8 @@ object RenderPattern
         s"if(!${node.enumName}_set.empty()){\n"+
         //s"std::cout<<${node.enumName}_set.size()"+"<<std::endl;\n"+
         indent+s"std::set< std::shared_ptr<JITDNode>  >::iterator it;\n"+
-        indent+s"for(it = ${node.enumName}_set.begin();it != ${node.enumName}_set.end();++it ){\n"+
-          indent2+s"JITDNode *lock_raw = it->get();\n"+ 
-          indent2+s"if(lock_raw->type!= JITD_NODE_Array){break;}\n"+
-          //s"std::cout<<lock_raw->type"+"<<std::endl;\n"+
-          indent2+s"${node.renderName} *${target}_real = (${node.renderName}*)${target};\n"+ 
-          indent2+s"if("+sizeCheck.mkString+"){\n"+
-            indent3+s"bestScoreVal = "+scoreCalc.mkString+";\n"+
-            indent3+s"if(bestScoreVal > currentScoreVal){\n"+
-            //s"std::cout<<bestScoreVal"+"<<std::endl;\n"+
-              indent4+s"currentScoreVal = bestScoreVal;\n"+
-              //s"std::cout<<currentScoreVal"+"<<std::endl;\n"+
-              indent4+s"targetHandleRef = (std::shared_ptr<JITDNode> *)&(*it);\n"+
-              indent4+"}\n"+
-            indent3+s"}\n"+ 
-          indent2+s"}\n"+
-          //s"std::cout<<"+here+"<<&targetHandleRef<<"+here+"<<targetHandleRef->get()->type<<std::endl;\n"+
-        "\t}"
+        indent+s"for(it = ${node.enumName}_set.begin();it != ${node.enumName}_set.end();it++ ){\n"
+          
       }
       case MatchAny(name) => ""
     }

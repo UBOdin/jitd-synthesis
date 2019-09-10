@@ -33,7 +33,7 @@ object SetPolicyImplementation extends PolicyImplementation
         {MatchToStatement.unroll(definition,fromNode,fromNodeVar+"_root",WrapNodeRef(Var("target")))}
     
     //println("IN UNROLL SET: "+extract.map(_._1))
-    val eachVarName = extract.map(element => (element._1,element._2)) 
+    val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2)) 
     //ExtractNodeNameForSet(s"setRemovalCode")
     val seqStmt = eachVarName.map(vnnt => SetRemoveFunction(vnnt._1.toString,vnnt._2.toString))
     return Block(seqStmt)

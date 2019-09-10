@@ -344,6 +344,10 @@ int jitd_test(
       
     ///////////////// OOOPS /////////////////
     }
+    // CASE("dump_with_set")
+    // {
+    //   jitd->print_nodes_with_ref();
+    // }
     CASE("print_time_log")
     {
       jitd->print_time_vec();
@@ -352,6 +356,11 @@ int jitd_test(
     {
       std::cout<<"Printing Set:-"<<std::endl;
       jitd->print_set_size();
+    }
+    CASE("check_set")
+    {
+      std::cout<<"Checking set integrity: "<<std::endl;
+      jitd->check_set_intergrity();
     }
     CASE("make_set")
     {

@@ -43,11 +43,13 @@ class RenderStatement(
       }
       case EmplaceSet(name,node)=>
       {
+          //indent+"if("+name+"_ref.get()->type == JITD_NODE_"+node+"){\n"+
           indent+ "JITD_NODE_"+node +"_set.emplace("+name+"_ref);\n"
+          //indent+"}\n"
           
       }
       case ExtractNode(name, v, matchers, onFail) => {
-        val here = "\"HERE\""
+        //indent+s"check_set();\n"+
             indent+s"// Extract ${renderExpression(v)} into ${matchers.map { _._1 }.mkString(" or ")}\n"+  
             indent+s"${ctx.cType(TNodeRef())} "+name+"_lock = std::atomic_load(("+renderExpression(v)+"));\n"+
             //indent+s"std::cout<<"+here+"<<"+name+"_lock.get()->type<<std::endl;\n"+   
@@ -67,8 +69,10 @@ class RenderStatement(
         }
       
       case SetRemoveFunction(name,nodeType) => {
-        //indent+"/*** Removing: "+name+nodeType+" ***/\n"+
+        val here = "\"Erase From "+nodeType+"Set\""
+        //indent+"std::cout<<"+here+"<<std::endl;\n"+
         indent+"JITD_NODE_"+nodeType+"_set.erase("+name+"_lock);\n"
+        //indent+s"check_set();\n"
       }
 
       case Void(v) => {
@@ -80,7 +84,13 @@ class RenderStatement(
       
       case Assign(name, v, true) => {
           //indent+s"${ctx.cType(THandleRef())} " +name+"_ptr"+ ";\n"+ 
-          indent+"std::atomic_store("+name+", "+renderExpression(v)+");\n"
+           val here = "\"Final Check Set\""
+           val before = "\"Before Final Check Set\""
+          indent+"std::cout<<"+before+"<<std::endl;\n"+
+          indent+s"check_set();\n"+
+          indent+"std::atomic_store("+name+", "+renderExpression(v)+");\n"+
+          indent+"std::cout<<"+here+"<<std::endl;\n"+
+          indent+s"check_set();\n"
           
         }
       case Block(nested) => {

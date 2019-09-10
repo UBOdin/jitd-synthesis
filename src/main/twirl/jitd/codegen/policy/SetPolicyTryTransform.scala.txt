@@ -26,7 +26,7 @@
   if(bestScore >= 0) {
     @debug(s"  Applying $transform to")
     @dump
-    //targetHandleRef = &lock_raw_shrd_ptr;
+    
     @{transform}(targetHandleRef);
     
     @debug(s"   ... and got")

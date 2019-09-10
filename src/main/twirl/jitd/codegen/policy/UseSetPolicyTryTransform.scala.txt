@@ -11,30 +11,34 @@
   @{ctx.cType(TNodeRef())}  lock_raw_shrd_ptr;
   std::shared_ptr<JITDNode> target;
   timeval start, end;
-  //std::cout << "Policy trying to find opportunities for @{transform}" << std::endl;
+
   std::shared_ptr<JITDNode> * rootHandleRef = &root;
   
   gettimeofday(&start,NULL);
   long bestScore = searchFor@{transform}(
     rootHandleRef,targetHandleRef
   );
+  //check_set();
+  std::cout<<"SearchComplete:"<<std::endl;
   gettimeofday(&end,NULL);
-  
   float totalTime = (end.tv_sec - start.tv_sec) * 1000000.0 + (end.tv_usec - start.tv_usec);
   time_vec_@{transform}.push_back(totalTime);
-  //std::cout<<"outside in try address:"<<targetHandleRef<<" type of node: "<<targetHandleRef->get()->type<<std::endl;
   if(bestScore >= 0) {
-    @debug(s"  Applying $transform to")
-    @dump
+  
+    std::cout<<"POLICYSEARCHTRY:"<<(*(targetHandleRef)).get()->type<<std::endl;
     @{transform}(targetHandleRef);
-    
-    @debug(s"   ... and got")
-    @dump
     
     @onSuccess
   } else { 
     @onFail 
   }
+
+
+
+
+
+
+
 }
 
 
