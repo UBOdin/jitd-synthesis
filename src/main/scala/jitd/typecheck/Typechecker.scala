@@ -115,8 +115,21 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
       }
       case WrapNode(target) => {
         recur(target) match {
-          case TNode(_) => TNodeRef()
+          case TNode(_) => TNodeRef()  
           case _ => error("Can't wrap a non-node")
+        }
+      }
+      case UnWrapHandle(target) => {
+        recur(target) match {
+          case THandleRef() => TNodeRef() 
+          //case TNodeRef() => TNodeRef() 
+          case _ => error("Can't unwrap a non-handle")
+        }
+      }
+      case WrapNodeRef(target) => {
+        recur(target) match {
+          case TNodeRef() => THandleRef()  
+          case _ => error("Can't wrap a non-node-ref")
         }
       }
       case MakeNode(nodeType, fields) => {
@@ -127,6 +140,17 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
         }
         TNode(nodeType)
       }
+    case NodeCast(nodeType,node, subscript) => {
+      recur(node) match {
+          case TNode(nodeType) => 
+            nodeTypes(nodeType).fields.find { _.name.equals(subscript) } match {
+              case Some(field) => field.t
+              case None => error("Invalid Node Subscript: "+subscript)
+            }
+          case _ => error("Subscript of Non-Node: "+node)
+        }
+
+    }
     }
   }
 
@@ -142,16 +166,31 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
         }
         scope
       }
-      case Assign(tgt, expr, isAtomic) => {
+      case Assign(tgt, expr, false) => {
         val tgtType = scope.getOrElse(tgt, { error("Assignment to undefined variable: "+tgt) })
+
         if(exprType(expr) != tgtType){
-          error("Assignment to "+tgt+" of incorrect type")
+         error("Assignment to "+tgt+" of incorrect type")
         }
-        if(tgtType == TNodeRef() && !isAtomic){
+        if(tgtType == TNodeRef())
+        {
           error("Non-atomic assignment to a NodeRef")
+        }
+        if(tgtType == THandleRef()){
+         error("Non-atomic assignment to a NodeHandle")
         }
         scope
       }
+      
+      case Assign(tgt,expr,true) => {
+        val tgtType = scope.getOrElse(tgt, { error("Assignment to undefined variable: "+tgt) })
+        if(tgtType != THandleRef() || exprType(expr)!= TNodeRef())
+        {
+          error("Atomic assignment into wrong types ")
+        }
+        scope
+      }
+
       case Declare(tgt, tOption, expr) => {
         if(scope contains tgt) {
           error("Overriding existing variable")
@@ -164,12 +203,14 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
         }
         scope + (tgt -> tRet)
       }
+      
       case ExtractNode(name, expr, matchers, onFail) => {
         if(scope contains name) { 
           error("Overriding existing variable")
         }
-        if(exprType(expr) != TNodeRef()) {
-          error("Doesn't evaluate to an (extractable) node reference")
+        val exp = exprType(expr)
+        if(exp != THandleRef()) {
+          error("Doesn't evaluate to an (extractable) node/Handle reference")
         }
         for( (nodeType, handler) <- matchers ){
           if(!(nodeTypes contains nodeType)) {
@@ -180,6 +221,7 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
         recur(onFail, scope)
         scope
       }
+      
       case Return(expr) => {
         if(exprType(expr) != returnType.getOrElse { 
           error(s"Invalid Return Type (Found: ${exprType(expr)}; Void Function)")
@@ -224,7 +266,9 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
       }
       case Error(_) => scope
       case Comment(_) => scope
-
+      case SetRemoveFunction(_,_,_) => scope 
+      case SetAddFunction(_,_,_) => scope 
+      
     }
   }
 

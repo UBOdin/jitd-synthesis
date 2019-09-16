@@ -29,6 +29,7 @@ class KVTypecheckSpec extends Specification {
       check(KeyValueJITD.accessor("get"), KeyValueJITD.node("SortedArray"))
       check(KeyValueJITD.accessor("get"), KeyValueJITD.node("Concat"))
       check(KeyValueJITD.accessor("get"), KeyValueJITD.node("BTree"))
+      check(KeyValueJITD.accessor("get"), KeyValueJITD.node("Delete"))
       ok
 
 

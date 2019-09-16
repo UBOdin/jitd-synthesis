@@ -12,5 +12,6 @@ object CppStdLib
     FunctionSignature("std::lower_bound", Seq(TIterator(), TIterator(), TKey()), TIterator()),
     FunctionSignature("std::vector<Record>", Seq(), TArray(TRecord())),
     FunctionSignature("std::sort", Seq(TIterator(), TIterator()))
+    
   )
 }

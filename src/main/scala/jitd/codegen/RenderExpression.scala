@@ -20,6 +20,9 @@ class RenderExpression(ctx: Render, renderFunction: Map[String, (Seq[Expression]
       case FunctionalIfThenElse(condition, thenCase, elseCase) => s"(${apply(condition)}) ? (${apply(thenCase)}) : (${elseCase})"       
       case MakeNode(nodeType, fields) => "new "+ctx.definition.node(nodeType).renderName+"("+fields.map { apply(_) }.mkString(", ")+")"
       case WrapNode(target) => "std::shared_ptr<JITDNode>("+apply(target)+")"
+      case WrapNodeRef(target) => "&("+apply(target)+")"   
+      case UnWrapHandle(target) => " *("+apply(target)+")"  
+      case NodeCast(nodeType,target,field) => s"((${nodeType}Node *)("+s"${apply(target)}))->${field}"  
     }
   }
 }

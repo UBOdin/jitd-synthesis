@@ -5,20 +5,17 @@
 @(ctx:Render, transform:Transform, constraint:Expression, scoreFn:Expression)
 
   long searchFor@{transform.name}(          // Return the "best" score available
-    std::shared_ptr<JITDNode> * &node,  // Pointer to the node we're currently examining
-    std::shared_ptr<JITDNode> * &targetHandleRef,      // Return value: The pointer with the "best" score
-    const UpdateHandle &in_updater,         // Function to call to update the current node
-    UpdateHandle &out_updater               // Return value: Function to call to update the best node
+    std::shared_ptr<JITDNode> * &node,  // Pointer to the node we're currently examining      
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
+  
+
     std::shared_ptr<JITDNode> lock = std::atomic_load((node));
     JITDNode *lock_raw = lock.get();
 
     long best_score = -1;
     long child_score = -1;
-    std::shared_ptr<JITDNode> child_target;
-    std::shared_ptr<JITDNode> * child_targetHandleRef;
-    UpdateHandle child_updater;
-
+    std::shared_ptr<JITDNode> * child_targetHandleRef;    
 
     do {
       @{ Debug.println(Debug.PolicyDetail){ s"  Testing ${transform.name} on " } }
@@ -39,8 +36,9 @@
             ctx.policy.varMapping
           ))};
           //std::cout<<"Getting best score as "<<best_score<<std::endl;
+        
         targetHandleRef = (node);
-        out_updater = in_updater;
+        
 
       }
     } while(false);
@@ -53,21 +51,13 @@
           @{node.renderName} *real_node = (@{node.renderName} *)lock_raw;
           std::shared_ptr<JITDNode> * real_nodeHandleRef;
           @for(field <- node.fields.filter { _.t == TNodeRef() }){
-          real_nodeHandleRef = &(real_node->@{field.name});
+            real_nodeHandleRef = &(real_node->@{field.name});
             child_score = searchFor@{transform.name}(
               real_nodeHandleRef, 
-              child_targetHandleRef,
-              std::bind(
-                &@{node.renderName}::update_@{field.name}_handle,
-                real_node,
-                std::placeholders::_1
-              ),
-              child_updater
+              child_targetHandleRef
             );
             if(child_score > best_score) { 
-              //target = child_target; 
               targetHandleRef = child_targetHandleRef;
-              out_updater = child_updater; 
               best_score = child_score;
             }
           }

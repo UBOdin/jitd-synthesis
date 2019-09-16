@@ -9,7 +9,7 @@ import jitd.codegen.policy._
 case class Render(
   val definition: Definition, 
   policyName: String = "",
-  val policyImplementation:PolicyImplementation = NaivePolicyImplementation,
+  val policyImplementation:PolicyImplementation = SetPolicyImplementation,
   val debug:Boolean = false
 ) {
   def keyType = definition.keyType
@@ -55,6 +55,7 @@ case class Render(
       case TKey()          => keyType
       case TNodeRef()      => "std::shared_ptr<JITDNode>"
       case TNode(t)        => s"${definition.node(t).renderName} *"
+      case THandleRef()      => s"std::shared_ptr<JITDNode> *"
       case TRecord()       => recordType
       case TStruct(fields) => structName(fields)
       case TArray(nested)  => bufferName(nested)
@@ -76,6 +77,7 @@ case class Render(
       case TIterator() => ???
       case TStruct(_) => ???
       case TNodeRef() => ???
+      case THandleRef() => ???
       case TNode(t) => ???
     }
   }

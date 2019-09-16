@@ -44,7 +44,7 @@ object KeyValueJITD extends HardcodedDefinition {
     "SortedArray"  -> Return { "record_binary_search".call("data", "target", "result") }, 
     "Concat"       -> If( Delegate("lhs") ) { Return(true) } { Return { Delegate("rhs") } },
     "BTree"        -> If( "target" lt "sep" ) { Return { Delegate("lhs") } } { Return { Delegate("rhs") } },
-    "Delete"       -> If( Delegate("rhs") ) { Return(false) } { Return { Delegate("rhs") } },
+    "Delete"       -> If( Delegate("rhs") ) { Return(false) } { Return { Delegate("lhs") } },
     "DeleteElements"       -> If( "record_scan".call("data","target","result") ) { Return(false) }{Return{Delegate("listptr")}}
     //if it returns true from rhs the element is a part of delete list so dont check lhs and get should return false as it is not a part of the structure.
   )
@@ -243,9 +243,9 @@ object KeyValueJITD extends HardcodedDefinition {
     "Array" fromFields( "data1" as "new_array_after_delete") andAfter(
       "delete_from_array".call("new_array_after_delete", "data2")) 
   }
-  Policy("CrackSortMerge")("crackAt" -> IntConstant(100),"null_data"-> IntConstant(0)) (
-    "PushDownAndCrack"            scoreBy { ArraySize("data") }
-      andThen ("CrackArray"       onlyIf { ArraySize("data") gte "crackAt" } 
+  Policy("CrackSortMerge")("crackAt" -> IntConstant(5),"null_data"-> IntConstant(0)) (
+    //"PushDownAndCrack"            scoreBy { ArraySize("data") }
+       ("CrackArray"       onlyIf { ArraySize("data") gte "crackAt" } 
                                   scoreBy { ArraySize("data") })
       //andThen ("PushDownDontDeleteBtree"          scoreBy { ArraySize("data") })
       //andThen ("PushDownDontDeleteElemBtree"          scoreBy { ArraySize("data") })

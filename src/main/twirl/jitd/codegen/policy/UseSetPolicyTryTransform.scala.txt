@@ -7,38 +7,39 @@
 @dump = { @{Debug.dump(Debug.Policy, "  ")("target", "    ")} }
 
 {
-  std::shared_ptr<JITDNode> * targetHandleRef;
+  @{ctx.cType(TNodeRef())} * targetHandleRef;
+  @{ctx.cType(TNodeRef())}  lock_raw_shrd_ptr;
   std::shared_ptr<JITDNode> target;
-  std::shared_ptr<JITDNode> nodeToChange;
-  UpdateHandle doUpdate;
   timeval start, end;
-  //std::cout << "Policy trying to find opportunities for @{transform}" << std::endl;
+
   std::shared_ptr<JITDNode> * rootHandleRef = &root;
+  
   gettimeofday(&start,NULL);
   long bestScore = searchFor@{transform}(
-    rootHandleRef,targetHandleRef,
-    std::bind(&JITD::update_root, this, std::placeholders::_1),
-    doUpdate
+    rootHandleRef,targetHandleRef
   );
+  //check_set();
+  //std::cout<<"SearchComplete:"<<std::endl;
   gettimeofday(&end,NULL);
   float totalTime = (end.tv_sec - start.tv_sec) * 1000000.0 + (end.tv_usec - start.tv_usec);
   time_vec_@{transform}.push_back(totalTime);
-  //std::cout<<"total time taken for seraching for candidate to apply @{transform}:"<<totalTime<<"us"<<std::endl;
   if(bestScore >= 0) {
-    @debug(s"  Applying $transform to")
-    @dump
-
+  
+    //std::cout<<"POLICYSEARCHTRY:"<<(*(targetHandleRef)).get()->type<<std::endl;
     @{transform}(targetHandleRef);
-    nodeToChange = *targetHandleRef;
-    @debug(s"   ... and got")
-    @dump
-    //DoUpdate in transforms
-    //doUpdate(target);
-    doUpdate(nodeToChange);
+    //check_set();
+    //std::cout<<"TRANSFORM DONE"<<std::endl;
     @onSuccess
   } else { 
     @onFail 
   }
+
+
+
+
+
+
+
 }
 
 
