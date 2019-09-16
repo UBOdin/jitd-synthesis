@@ -33,21 +33,7 @@ class RenderStatement(
       case Declare(name, None, v) => {
           indent+"auto "+name+"  =  "+renderExpression(v)+";\n"
         }
-      case DeclarePtr(name)=>
-      {
-        indent + "std::shared_ptr<JITDNode> *"+name+"_ref_handle"+";\n"
-      }  
-      case AssignPtrtoHandle(fromName,v)=>
-      {
-        indent + fromName+"_ref_handle" + "= " + renderExpression(v) + ";\n"
-      }
-      case EmplaceSet(name,node)=>
-      {
-          //indent+"if("+name+"_ref.get()->type == JITD_NODE_"+node+"){\n"+
-          indent+ "JITD_NODE_"+node +"_set.emplace("+name+"_ref);\n"
-          //indent+"}\n"
-          
-      }
+      
       case ExtractNode(name, v, matchers, onFail) => {
         //indent+s"check_set();\n"+
             indent+s"// Extract ${renderExpression(v)} into ${matchers.map { _._1 }.mkString(" or ")}\n"+  
@@ -66,15 +52,23 @@ class RenderStatement(
             indent+"  }; break;\n"+
           indent+"}\n"
 
-        }
+        }   
       
-      case SetRemoveFunction(name,nodeType) => {
-        val here = "\"Erase From "+nodeType+"Set\""
-        //indent+"std::cout<<"+here+"<<std::endl;\n"+
-        indent+"JITD_NODE_"+nodeType+"_set.erase("+name+"_lock);\n"
+      case SetRemoveFunction(name,nodeType,v) => {
+        val here = "\"Remove from "+nodeType+"Set : "+renderExpression(v)+"\""
+        //indent+"//std::cout<<"+here+"<<std::endl;\n"
+        indent+"JITD_NODE_"+nodeType+"_set.erase("+renderExpression(v)+");\n"
         //indent+s"check_set();\n"
       }
+      case SetAddFunction(name,nodeType,v) => {
+        //indent+s"std::cout<<Addr:<<"+renderExpression(v)+";\n"
 
+        
+          indent+"JITD_NODE_"+nodeType+"_set.emplace("+renderExpression(v)+");\n"
+        
+        
+      
+      }
       case Void(v) => {
           indent + renderExpression(v)+";\n"
         }
@@ -84,13 +78,9 @@ class RenderStatement(
       
       case Assign(name, v, true) => {
           //indent+s"${ctx.cType(THandleRef())} " +name+"_ptr"+ ";\n"+ 
-           val here = "\"Final Check Set\""
-           val before = "\"Before Final Check Set\""
-          indent+"std::cout<<"+before+"<<std::endl;\n"+
-          indent+s"check_set();\n"+
-          indent+"std::atomic_store("+name+", "+renderExpression(v)+");\n"+
-          indent+"std::cout<<"+here+"<<std::endl;\n"+
-          indent+s"check_set();\n"
+         
+          indent+"std::atomic_store("+name+", "+renderExpression(v)+");\n"
+          
           
         }
       case Block(nested) => {

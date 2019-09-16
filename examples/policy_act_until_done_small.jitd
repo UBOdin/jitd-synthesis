@@ -4,7 +4,7 @@ Return
 dump
 make_set
 print_set
-policy_act_for 1
+policy_act_for 6
 print_set
 dump
 check_set

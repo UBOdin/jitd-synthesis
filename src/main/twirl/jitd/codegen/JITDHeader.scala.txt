@@ -87,6 +87,7 @@ typedef enum {
 class JITD;
 std::shared_ptr<JITD> assemble_jitd(std::istream &in);
 void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix);
+void setAddition(std::shared_ptr<JITDNode> * node);
 void print_time_vector_sum();
 void print_set();
 void check_set();

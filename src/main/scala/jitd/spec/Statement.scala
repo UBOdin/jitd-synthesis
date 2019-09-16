@@ -111,7 +111,7 @@ case class Comment(msg:String) extends Statement
   def reassembleExpression(in: Seq[Expression]): Statement = this
   def toString(prefix: String) = prefix+"rem: "+msg
 }
-case class SetRemoveFunction(name:String,nodeType:String) extends Statement
+case class SetRemoveFunction(name:String,nodeType:String,v:Expression) extends Statement
 {
   def disasssembleStatement: Seq[Statement] = Seq()
   def reassembleStatement(in: Seq[Statement]): Statement = this
@@ -119,27 +119,11 @@ case class SetRemoveFunction(name:String,nodeType:String) extends Statement
   def reassembleExpression(in: Seq[Expression]): Statement = this
   def toString(prefix: String) = prefix+"removing from set: "+name
 }
-case class DeclarePtr(name:String) extends Statement
+case class SetAddFunction(name:String,nodeType:String,v:Expression) extends Statement
 {
   def disasssembleStatement: Seq[Statement] = Seq()
   def reassembleStatement(in: Seq[Statement]): Statement = this
   def disasssembleExpression: Seq[Expression] = Seq()
   def reassembleExpression(in: Seq[Expression]): Statement = this
-  def toString(prefix: String) = prefix+"initialize: "+name
-}
-case class AssignPtrtoHandle(nameHandle:String,v:Expression) extends Statement
-{
-  def disasssembleStatement: Seq[Statement] = Seq()
-  def reassembleStatement(in: Seq[Statement]): Statement = this
-  def disasssembleExpression: Seq[Expression] = Seq(v)
-  def reassembleExpression(in: Seq[Expression]): Statement = AssignPtrtoHandle(nameHandle,in(0))
-  def toString(prefix: String) = prefix+"ptr to handle: "+nameHandle + "$v"
-}
-case class EmplaceSet(name:String,node:String) extends Statement
-{
-  def disasssembleStatement: Seq[Statement] = Seq()
-  def reassembleStatement(in: Seq[Statement]): Statement = this
-  def disasssembleExpression: Seq[Expression] = Seq()
-  def reassembleExpression(in: Seq[Expression]): Statement = EmplaceSet(name,node)
-  def toString(prefix: String) = prefix+"Add $name to set of $node "
+  def toString(prefix: String) = s"${prefix} adding to set: $v"
 }

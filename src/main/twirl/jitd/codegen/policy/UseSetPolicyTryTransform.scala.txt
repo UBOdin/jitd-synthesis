@@ -19,15 +19,16 @@
     rootHandleRef,targetHandleRef
   );
   //check_set();
-  std::cout<<"SearchComplete:"<<std::endl;
+  //std::cout<<"SearchComplete:"<<std::endl;
   gettimeofday(&end,NULL);
   float totalTime = (end.tv_sec - start.tv_sec) * 1000000.0 + (end.tv_usec - start.tv_usec);
   time_vec_@{transform}.push_back(totalTime);
   if(bestScore >= 0) {
   
-    std::cout<<"POLICYSEARCHTRY:"<<(*(targetHandleRef)).get()->type<<std::endl;
+    //std::cout<<"POLICYSEARCHTRY:"<<(*(targetHandleRef)).get()->type<<std::endl;
     @{transform}(targetHandleRef);
-    
+    //check_set();
+    //std::cout<<"TRANSFORM DONE"<<std::endl;
     @onSuccess
   } else { 
     @onFail 

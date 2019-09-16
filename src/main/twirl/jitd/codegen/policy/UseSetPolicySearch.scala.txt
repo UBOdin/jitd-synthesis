@@ -17,14 +17,14 @@
     if(!JITD_NODE_Array_set.empty())
     {
       //std::cout<<"TRANSFORM: JITD_NODE_Array_set:" << JITD_NODE_Array_set.size()<<std::endl;
-      std::set< std::shared_ptr<JITDNode>  >::iterator it;
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
       for(it = JITD_NODE_Array_set.begin(); it!=JITD_NODE_Array_set.end(); ++it)
       {
-          std::cout<<"Searching:value in loop"<<count<<std::endl;
+          //std::cout<<"Searching:value in loop"<<count<<std::endl;
 
-          JITDNode *iter_node = it->get();
-          std::cout<<"Searching:the type of node on iteration"<<iter_node->type<<std::endl;
-          count++;
+          JITDNode *iter_node = (*it)->get();
+          //std::cout<<"Searching:the type of node on iteration"<<iter_node->type<<std::endl;
+          //count++;
           if(iter_node->type!=JITD_NODE_Array){break;}
           ArrayNode *iter_node_real = (ArrayNode *)iter_node;
           bestScore = array_size(iter_node_real->data);
@@ -32,8 +32,8 @@
           {
             curr_score = bestScore;
             //std::cout<<"Curr Score:"<<curr_score<<std::endl;
-            targetHandleRef = (std::shared_ptr<JITDNode> *)&(*it);
-            std::cout<<"Searching:POLICYSEARCH: "<<(*(targetHandleRef)).get()->type<<" SIZE: " <<bestScore<<std::endl;
+            targetHandleRef = (*it);
+            //std::cout<<"Searching:POLICYSEARCH: "<<(*(targetHandleRef)).get()->type<<" SIZE: " <<bestScore<<std::endl;
           }
           
       }

@@ -8,9 +8,10 @@ object TransformToFunction
   def apply(definition: Definition, transform: Transform): FunctionDefinition =
   {
     var handlerefbool = true
-    var ctx = Render(definition)
-    var (stmt1,stmt2) = ctx.policyImplementation.onRewrite(ctx,definition,handlerefbool,transform.from,transform.to,"target","to_ptr")
-    
+    var ctx = Render(definition) 
+    //var toMatchPattern = transform.to.toMatchPattern
+    var (stmt1,stmt2) = ctx.policyImplementation.onRewriteSet(ctx,definition,false,handlerefbool,transform.from,transform.to,"target","to_ptr")
+    //println(stmt2)  
     //println(extractionVarListFromNode)
     //println(stringVal.lift(0))
 
@@ -30,7 +31,7 @@ object TransformToFunction
         transform.to,
         "to_ptr"
       )
-      constructor ++Assign("target", (accessor), true)
+      constructor ++Assign("target", (accessor), true)++stmt2
     }
     def func():Statement=
     {
@@ -43,7 +44,7 @@ object TransformToFunction
         Seq(
           ("target", THandleRef(), OutputRef)
         ),
-        Comment(s"Code to remove nodes from set")++makeMatchTest(stmt1++constructNewNode() ++ stmt2)
+        Comment(s"Code to remove nodes from set")++makeMatchTest(stmt1++constructNewNode())
       )
     }
 

@@ -21,7 +21,8 @@ class RenderExpression(ctx: Render, renderFunction: Map[String, (Seq[Expression]
       case MakeNode(nodeType, fields) => "new "+ctx.definition.node(nodeType).renderName+"("+fields.map { apply(_) }.mkString(", ")+")"
       case WrapNode(target) => "std::shared_ptr<JITDNode>("+apply(target)+")"
       case WrapNodeRef(target) => "&("+apply(target)+")"   
-      case UnWrapHandle(target) => " *("+apply(target)+")"    
+      case UnWrapHandle(target) => " *("+apply(target)+")"  
+      case NodeCast(nodeType,target,field) => s"((${nodeType}Node *)("+s"${apply(target)}))->${field}"  
     }
   }
 }

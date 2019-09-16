@@ -11,10 +11,13 @@ object MatchToStatement
     definition: Definition,
     pattern: MatchPattern, 
     extractName: VarName, 
-    targetExpression: Expression
+    targetExpression: Expression,
+    addornot:Boolean
   ): 
     Seq[ (VarName, NodeType, Expression) ] =
   {
+     
+    
     pattern match {
       case MatchAny(_)                    => Seq()
       case MatchNode(nodeType, fields, _) => 
@@ -24,14 +27,55 @@ object MatchToStatement
               unroll(
                 definition, 
                 fieldPattern, 
-                extractName + "_" + fieldDefinition.name, 
-                WrapNodeRef(NodeSubscript(Var(extractName), fieldDefinition.name)) 
+                extractName + "_" + fieldDefinition.name,
+                if(addornot == false)
+                {
+                    WrapNodeRef(NodeSubscript(Var(extractName), fieldDefinition.name))
+                }
+                else{
+                    WrapNodeRef(NodeCast(nodeType,Var(extractName), fieldDefinition.name))
+                },
+                if(addornot == false)
+                {
+                  false
+                }
+                else{
+                  true
+                } 
               )
           } 
 
     }
   }
-  
+  // def unroll(
+  //   definition: Definition,
+  //   pattern: ConstructorPattern, 
+  //   extractName: VarName, 
+  //   targetExpression: Expression,
+  //   addornot:Boolean
+  // ): 
+  //   Seq[ (VarName, NodeType, Expression) ] =
+  // {
+     
+    
+  //   pattern match {
+  //     case MatchAny(_)                    => Seq()
+  //     case MatchNode(nodeType, fields, _) => 
+  //       Seq( (extractName, nodeType, targetExpression) ) ++
+  //         fields.zip(definition.node(nodeType).fields).flatMap { 
+  //           case (fieldPattern, fieldDefinition) => 
+  //             unroll(
+  //               definition, 
+  //               fieldPattern, 
+  //               extractName + "_" + fieldDefinition.name,
+  //               UnWrapHandle(NodeSubscript(Var(extractName), fieldDefinition.name)),
+  //               true  
+  //             )
+  //         } 
+
+  //   }
+  // }
+
 
   def varMappings(
     definition: Definition,
@@ -65,6 +109,7 @@ object MatchToStatement
     directFieldRef: Option[Expression] = None
   ): Map[String, Expression] =
   {
+    //println(directFieldRef)
     pattern match {
       case ConstructExpression(_, None) => Map()
       
@@ -72,7 +117,6 @@ object MatchToStatement
         Map( name -> 
               directFieldRef.getOrElse { Var(targetName) }
         )
-
       case ConstructNode(nodeType, fields, name) => {
           val me = Var(targetName)
           val myMapping:Map[String, Expression] = 
@@ -85,7 +129,7 @@ object MatchToStatement
               varMappings(
                 definition, 
                 fieldPattern, 
-                targetName+"_"+fieldDefinition.name, 
+                targetName+"_"+fieldDefinition.name,
                 Some(NodeSubscript(me, fieldDefinition.name))
               )
           }.fold(myMapping) { _ ++ _ }
@@ -95,6 +139,55 @@ object MatchToStatement
       case AfterConstruct(target, _) => varMappings(definition, target, targetName)
     }
   }
+def varMappingsForEmplace(
+    definition: Definition, 
+    pattern: ConstructorPattern, 
+    targetName: String,
+    directFieldRef: Expression
+  )
+  {
+    //println(directFieldRef)
+    // val ret = pattern match {
+    //   case ConstructExpression(_, None) => Seq()
+      
+    //   case ConstructExpression(_, Some(name)) => 
+    //     Seq(Var(targetName))
+    //   case ConstructNode(nodeType, fields, name) => {
+    //        val me = Var(targetName)
+    //       // val typeOfNode = nodeType 
+    //       // val myMapping:Map[String, Expression] = 
+    //       //   name match { 
+    //       //     case Some(x) => Map(x -> Var(" "))
+    //       //     case None => Map()
+    //       //   }
+    //       val temp = fields.zip(definition.node(nodeType).fields).map { 
+    //         case (fieldPattern, fieldDefinition) => 
+    //           varMappingsForEmplace(
+    //             definition, 
+    //             fieldPattern, 
+    //             targetName+"_"+fieldDefinition.name,
+    //            NodeSubscript(me, fieldDefinition.name)
+    //           )
+              
+    //           //println(temp)
+    //       }.flatten
+    //     }
+      
+    //   case BeforeConstruct(_, target) => Seq()
+    //   case AfterConstruct(target, _) => Seq()
+    // }
+    // println(ret)
+    // //directFieldRef 
+    // directFieldRef match {
+    //   case ns@NodeSubscript(_,_) =>  Seq(ns) ++ ret
+    //   // case ns@NodeSubscript(_,"rhs")) =>  Seq(ns)
+    //   // case ns@NodeSubscript(_,"listptr")) =>  Seq(ns)
+    //   // case ns@NodeSubscript(_,"data")) =>  Seq(ns)    
+    //   case _ => ret
+    //   }
+  }
+
+
 
   def apply(
     definition: Definition,
@@ -107,9 +200,9 @@ object MatchToStatement
   {
     val fromMappings = varMappings(definition, pattern, target+"_root") 
     val extractionSteps = if(handleref == true) 
-      {unroll(definition, pattern, target+"_root", (Var(target)))} 
+      {unroll(definition, pattern, target+"_root", (Var(target)),false)} 
     else 
-      {unroll(definition, pattern, target+"_root", WrapNodeRef(Var(target)))}
+      {unroll(definition, pattern, target+"_root", WrapNodeRef(Var(target)),false)}
     //println(InlineVars(onMatch, fromMappings))
     return extractionSteps
       .foldRight(InlineVars(onMatch, fromMappings)) { (check, accumulator) => {
@@ -143,8 +236,8 @@ object MatchToStatement
                 Comment(s"Assemble $target as a $node"),
                 Declare( nodeName, Some(TNode(node)), MakeNode(node, fieldExpressions)),
                 Declare( nodeName+"_ref", Some(TNodeRef()), WrapNode(Var(nodeName))),
-                Comment(s"Code to add nodes into sets"),
-                EmplaceSet(nodeName,node)
+                Comment(s"Code to add nodes into sets")
+                
               )
             ),
             Var(nodeName+"_ref")
@@ -176,7 +269,7 @@ object MatchToStatement
     //println(pattern)
     //println(varMappings(definition, pattern, target))
     val (constructor, accessor) = constructorWithoutVarMapping(definition, pattern, target)
-    //println("MTS"+accessor)
+    //println("MTS"+constructor)
     //println(InlineVars(constructor, varMappings(definition, pattern, target)))
     (
       InlineVars(

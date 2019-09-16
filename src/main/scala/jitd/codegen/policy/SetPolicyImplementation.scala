@@ -14,36 +14,49 @@ object SetPolicyImplementation extends PolicyImplementation
 
   // Render two blocks of code to be run just before/after a JITD rewrite
   // happens.  [from] is replaced by [to].  
-  def onRewrite(ctx:Render, 
+  def onRewriteSet(ctx:Render, 
     definition:Definition,
+    mutator: Boolean,
     handlerefbool:Boolean,
     from:MatchPattern, 
     to:ConstructorPattern, 
     fromTarget:String, 
-    toTarget:String): (Statement, Statement) =(setRemove(definition,handlerefbool,from,to,fromTarget), Comment(s" "))
-  def setRemove(definition:Definition,handlerefbool:Boolean,fromNode:MatchPattern,to:ConstructorPattern,fromNodeVar:String):Statement = 
+    toTarget:String): (Statement, Statement) =(setRemove(definition,handlerefbool,from,fromTarget), setAdd(definition,handlerefbool,to,toTarget,mutator))
+  def setRemove(definition:Definition,handlerefbool:Boolean,fromNode:MatchPattern,fromNodeVar:String):Statement = 
   {
-    val (constructor, accessor) = MatchToStatement.constructorWithoutVarMapping(definition,to,"to_ptr")
+    //val (constructor, accessor) = MatchToStatement.constructorWithoutVarMapping(definition,to,"to_ptr")
     //println("SRA"+constructor)
-    val fromMapping = MatchToStatement.varMappings(definition, fromNode, fromNodeVar+"_root") 
+    //val fromMapping = MatchToStatement.varMappings(definition, fromNode, fromNodeVar+"_root") 
     val extract = 
       if(handlerefbool == true)
-        {MatchToStatement.unroll(definition,fromNode,fromNodeVar+"_root",(Var("target")))}
+        {MatchToStatement.unroll(definition,fromNode,fromNodeVar+"_root",(Var("target")),false)}
       else
-        {MatchToStatement.unroll(definition,fromNode,fromNodeVar+"_root",WrapNodeRef(Var("target")))}
+        {MatchToStatement.unroll(definition,fromNode,fromNodeVar+"_root",WrapNodeRef(Var("target")),false)}
     
     //println("IN UNROLL SET: "+extract.map(_._1))
-    val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2)) 
+    val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3)) 
     //ExtractNodeNameForSet(s"setRemovalCode")
-    val seqStmt = eachVarName.map(vnnt => SetRemoveFunction(vnnt._1.toString,vnnt._2.toString))
+    val seqStmt = eachVarName.map(vnnt => SetRemoveFunction(vnnt._1.toString,vnnt._2.toString,vnnt._3))
     return Block(seqStmt)
-    // return extract
-    //   .foldRight(InlineVars(Comment(s"setRemovalDone"), fromMapping)) { (check, accumulator) => {
-    //     val (nodeVarName, nodeType, nodeSourceExpression) = check
-    //     eachVarName.map(varName => SetRemoveFunction(varName.toString))
-    //     //ExtractNodeNameSetRemove(nodeVarName, nodeSourceExpression, Seq(nodeType -> accumulator), Return(BoolConstant(false)))
-    //   }}
     
+
+  }
+  def setAdd(definition:Definition,handlerefbool:Boolean,to:ConstructorPattern,toNodeVar:String,mutator:Boolean):Statement = 
+  { 
+    val target = if (mutator == true) "root" else "target"
+    
+    val extract = 
+      if(handlerefbool == true)
+        {MatchToStatement.unroll(definition,to.toMatchPattern,toNodeVar,(Var(target)),false)}
+      else
+        {MatchToStatement.unroll(definition,to.toMatchPattern,toNodeVar,WrapNodeRef(Var(target)),false)}
+
+    val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3)) 
+   
+    val seqStmt = eachVarName.map(vnnt => SetAddFunction(vnnt._1.toString,vnnt._2.toString,vnnt._3))
+
+    
+    return Block(seqStmt)
 
   }
 
@@ -62,7 +75,7 @@ object SetPolicyImplementation extends PolicyImplementation
     rule match {
       case TieredPolicy(policies) => policies.map { utilityFunctions(ctx, _) }.mkString
       case TransformPolicy(name, constraint, scoreFn) =>
-        UseSetPolicySearch(  // Generated via Twirl template
+        SetPolicySearch(  // Generated via Twirl template
           ctx, 
           ctx.definition.transform(name), 
           constraint, 
@@ -82,7 +95,7 @@ object SetPolicyImplementation extends PolicyImplementation
         doOrganize(ctx, root, policies.head, onSuccess, "")+"  "+
           doOrganize(ctx, root, TieredPolicy(policies.tail), onSuccess, onFail)
       case TransformPolicy(name, _, _) => 
-        UseSetPolicyTryTransform(ctx, root, name, onSuccess, onFail).toString
+        SetPolicyTryTransform(ctx, root, name, onSuccess, onFail).toString
     }
 
   // Render a block of code to be run when an idle cycle is available.

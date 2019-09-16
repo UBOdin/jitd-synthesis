@@ -253,19 +253,3 @@ inline Key pick_separator(const std::vector<Record> &source)
     //std::cout<<"INDEXX_TO_PICK"<<index_to_pick;
     return source[index_to_pick].key; }
 }
-inline bool check_array_size(const std::vector<Record> &source)
-{
-  if(source.empty()) { return 0; }
-  else { 
-    if(source.size() <= 5)
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
-    //std::cout<<"SIZE"<<source.size();
-    
-}
-}

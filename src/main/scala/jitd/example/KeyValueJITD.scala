@@ -44,7 +44,7 @@ object KeyValueJITD extends HardcodedDefinition {
     "SortedArray"  -> Return { "record_binary_search".call("data", "target", "result") }, 
     "Concat"       -> If( Delegate("lhs") ) { Return(true) } { Return { Delegate("rhs") } },
     "BTree"        -> If( "target" lt "sep" ) { Return { Delegate("lhs") } } { Return { Delegate("rhs") } },
-    "Delete"       -> If( Delegate("rhs") ) { Return(false) } { Return { Delegate("rhs") } },
+    "Delete"       -> If( Delegate("rhs") ) { Return(false) } { Return { Delegate("lhs") } },
     "DeleteElements"       -> If( "record_scan".call("data","target","result") ) { Return(false) }{Return{Delegate("listptr")}}
     //if it returns true from rhs the element is a part of delete list so dont check lhs and get should return false as it is not a part of the structure.
   )

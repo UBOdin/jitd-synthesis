@@ -14,8 +14,9 @@ object NaivePolicyImplementation extends PolicyImplementation
 
   // Render two blocks of code to be run just before/after a JITD rewrite
   // happens.  [from] is replaced by [to].  
-  def onRewrite(ctx:Render,
+  def onRewriteSet(ctx:Render,
     definition:Definition, 
+    mutator: Boolean,
     handlerefbool:Boolean,
     from:MatchPattern, 
     to:ConstructorPattern, 

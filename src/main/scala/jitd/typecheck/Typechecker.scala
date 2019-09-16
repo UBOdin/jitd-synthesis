@@ -140,6 +140,17 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
         }
         TNode(nodeType)
       }
+    case NodeCast(nodeType,node, subscript) => {
+      recur(node) match {
+          case TNode(nodeType) => 
+            nodeTypes(nodeType).fields.find { _.name.equals(subscript) } match {
+              case Some(field) => field.t
+              case None => error("Invalid Node Subscript: "+subscript)
+            }
+          case _ => error("Subscript of Non-Node: "+node)
+        }
+
+    }
     }
   }
 
@@ -210,7 +221,7 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
         recur(onFail, scope)
         scope
       }
-    
+      
       case Return(expr) => {
         if(exprType(expr) != returnType.getOrElse { 
           error(s"Invalid Return Type (Found: ${exprType(expr)}; Void Function)")
@@ -255,10 +266,8 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
       }
       case Error(_) => scope
       case Comment(_) => scope
-      case SetRemoveFunction(_,_) => scope 
-      case DeclarePtr(_) => scope
-      case AssignPtrtoHandle(_,_)=> scope
-      case EmplaceSet(_,_)=> scope 
+      case SetRemoveFunction(_,_,_) => scope 
+      case SetAddFunction(_,_,_) => scope 
       
     }
   }
