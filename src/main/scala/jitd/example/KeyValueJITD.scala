@@ -243,7 +243,11 @@ object KeyValueJITD extends HardcodedDefinition {
     "Array" fromFields( "data1" as "new_array_after_delete") andAfter(
       "delete_from_array".call("new_array_after_delete", "data2")) 
   }
-  Policy("CrackSortMerge")("crackAt" -> IntConstant(5),"null_data"-> IntConstant(0)) (
+  // Policy("MergeSortedBTrees")("crackAt" -> IntConstant(5),"null_data"-> IntConstant(0))
+  // (
+  //   "MergeSortedBTrees"
+  // )
+  Policy("CrackSort")("crackAt" -> IntConstant(5),"null_data"-> IntConstant(0)) (
     //"PushDownAndCrack"            scoreBy { ArraySize("data") }
        ("CrackArray"       onlyIf { ArraySize("data") gte "crackAt" } 
                                   scoreBy { ArraySize("data") })

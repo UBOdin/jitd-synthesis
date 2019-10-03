@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <set>
+#include <queue>
 #include <memory>
 #include <algorithm>
 #include <ios>
@@ -16,7 +17,6 @@
 @for(include <- ctx.definition.includes) { 
 #include "@include"
 }
-
 @if(ctx.debug){
   #define JITD_DEBUG(cmd) std::cerr << cmd;
 } else {
@@ -40,7 +40,6 @@ class JITDNode {
   JITDNode(JITDNodeType type) : type(type) {}
 
   JITDNodeType type;
-  //std::shared_ptr<JITDNode> *parent;
   @{ctx.policyImplementation.state(ctx)}
 };
 
@@ -87,32 +86,62 @@ typedef enum {
 class JITD;
 std::shared_ptr<JITD> assemble_jitd(std::istream &in);
 void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix);
-void setAddition(std::shared_ptr<JITDNode> * node);
 void print_time_vector_sum();
 void print_set();
-void check_set();
-void setPopulateTraversal(std::shared_ptr<JITDNode> * &root_handle,bool set_flag);
-void setInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag);
+    void print_pq();
+    void check_set();
+    void check_pq();
+    void setInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag);
+    void pqInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag);
+    void setPopulateTraversal(std::shared_ptr<JITDNode> * &root_handle,bool set_flag);
+    void setAddition(std::shared_ptr<JITDNode> * node);
+    void pqAddition(std::shared_ptr<JITDNode> * node);
+    void setRemoval(std::shared_ptr<JITDNode> * node);
+    void pqRemoval(std::shared_ptr<JITDNode> * node);    
 ///////////////////// JITD Accessors ///////////////////// 
 
 @for( accessor <- ctx.definition.accessors ) {
   @{RenderAccessor.declaration( accessor, ctx, prefix="jitd_accessor_" )};
 }
-
-
 ///////////////////// JITD Definition ///////////////////// 
+
+
+      
+    
+
+
+struct cmpclass
+{
+  bool operator()( std::shared_ptr<JITDNode> * e1, std::shared_ptr<JITDNode> * e2) const
+  {
+        
+        @{RenderPattern.testCmp(ctx,ctx.policy.rule,"e1");}
+        @{RenderPattern.testCmp(ctx,ctx.policy.rule,"e2");}
+        if(e1_size == e2_size)
+        {
+          return (e1<e2);
+        }
+        else
+        {
+          return (e1_size > e2_size);
+        }
+  }
+};
 
 class JITD {
   
   public:
     JITD(JITDNode *root) : root(root) 
     {
-      @ctx.policyImplementation.init(ctx, "(this->root)")
+     /***Works only got single node root***/
+      @ctx.policyImplementation.init(ctx,ctx.policy.rule,"(this->root)")
     }
     JITD(std::shared_ptr<JITDNode> root) : root(root) 
     {
-      @ctx.policyImplementation.init(ctx, "(this->root)")
+      /***Works only got single node root***/
+      @ctx.policyImplementation.init(ctx,ctx.policy.rule,"(this->root)")
     }
+
 
     @for( accessor <- ctx.definition.accessors ) {
       @{RenderAccessor.declaration( accessor, ctx, root = true )} {
@@ -123,18 +152,22 @@ class JITD {
     @for( mutator <- ctx.definition.mutators ) {
       @{RenderMutator.declaration( mutator, ctx )};
     }
+    
 
     void print_debug() {print_JITD_node_structure(root, std::string("")); }
     bool do_organize();
     void print_time_vec() {print_time_vector_sum();}
     void print_set_size() {print_set();}
+    void print_pq_size() {print_pq();}
     void check_set_intergrity(){check_set();};
+    void check_pq_intergrity(){check_pq();};
     void make_set() {std::shared_ptr<JITDNode> *root_handle = &root;setInit(root_handle,true);}
-    void remove_set(){std::shared_ptr<JITDNode> *root_handle = &root;}
+    void make_pq() {std::shared_ptr<JITDNode> *root_handle = &root;pqInit(root_handle,true);}
+    
   private:
 
     std::shared_ptr<JITDNode> root;
-
+    
     void update_root(std::shared_ptr<JITDNode> &newRoot){ atomic_store(&root, newRoot); }
 };
 

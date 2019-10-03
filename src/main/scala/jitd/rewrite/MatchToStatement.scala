@@ -47,36 +47,77 @@ object MatchToStatement
 
     }
   }
-  // def unroll(
-  //   definition: Definition,
-  //   pattern: ConstructorPattern, 
-  //   extractName: VarName, 
-  //   targetExpression: Expression,
-  //   addornot:Boolean
-  // ): 
-  //   Seq[ (VarName, NodeType, Expression) ] =
-  // {
+def unrollSet(
+    definition: Definition,
+    pattern: MatchPattern, 
+    extractName: VarName, 
+    targetExpression: Expression
+  ): 
+    Seq[ (VarName, NodeType, Expression) ] =
+  {
+     
+    //println(fieldPattern)
+    pattern match {
+      case MatchAny(_)=>Seq() 
+      case MatchNode(nodeType, fields, _) => 
+        Seq( (extractName, nodeType, targetExpression) ) ++
+          fields.zip(definition.node(nodeType).fields).flatMap { 
+            case (fieldPattern, fieldDefinition) =>
+              //println((fieldDefinition).t)
+              unrollSet(
+                definition, 
+                fieldPattern, 
+                extractName + "_" + fieldDefinition.name,
+                WrapNodeRef(NodeSubscript(Var(extractName), fieldDefinition.name)),
+                fieldDefinition
+              )
+
+          } 
+
+    }
+  }
+def unrollSet(
+    definition: Definition,
+    pattern: MatchPattern, 
+    extractName: VarName, 
+    targetExpression: Expression,
+    fieldDef:Field
+  ): 
+    Seq[ (VarName, NodeType, Expression) ] =
+  {
      
     
-  //   pattern match {
-  //     case MatchAny(_)                    => Seq()
-  //     case MatchNode(nodeType, fields, _) => 
-  //       Seq( (extractName, nodeType, targetExpression) ) ++
-  //         fields.zip(definition.node(nodeType).fields).flatMap { 
-  //           case (fieldPattern, fieldDefinition) => 
-  //             unroll(
-  //               definition, 
-  //               fieldPattern, 
-  //               extractName + "_" + fieldDefinition.name,
-  //               UnWrapHandle(NodeSubscript(Var(extractName), fieldDefinition.name)),
-  //               true  
-  //             )
-  //         } 
+    pattern match {
+      case MatchAny(_)                    =>
+          //println(fieldDef)
+          if(fieldDef.t == TNodeRef())
+          {
+            Seq((extractName,fieldDef.t.toString,targetExpression))
+          }
+          else
+          {
+            Seq()
+          }
+          
+        
+        
+      case MatchNode(nodeType, fields, _) => 
+        Seq( (extractName, nodeType, targetExpression) ) ++
+          fields.zip(definition.node(nodeType).fields).flatMap { 
+            case (fieldPattern, fieldDefinition) =>
+              //println((fieldDefinition).t)
+              unrollSet(
+                definition, 
+                fieldPattern, 
+                extractName + "_" + fieldDefinition.name,
+                WrapNodeRef(NodeSubscript(Var(extractName), fieldDefinition.name)),
+                (fieldDefinition)
+              )
 
-  //   }
-  // }
+          } 
 
-
+    }
+  }
   def varMappings(
     definition: Definition,
     pattern: MatchPattern,
@@ -139,53 +180,7 @@ object MatchToStatement
       case AfterConstruct(target, _) => varMappings(definition, target, targetName)
     }
   }
-def varMappingsForEmplace(
-    definition: Definition, 
-    pattern: ConstructorPattern, 
-    targetName: String,
-    directFieldRef: Expression
-  )
-  {
-    //println(directFieldRef)
-    // val ret = pattern match {
-    //   case ConstructExpression(_, None) => Seq()
-      
-    //   case ConstructExpression(_, Some(name)) => 
-    //     Seq(Var(targetName))
-    //   case ConstructNode(nodeType, fields, name) => {
-    //        val me = Var(targetName)
-    //       // val typeOfNode = nodeType 
-    //       // val myMapping:Map[String, Expression] = 
-    //       //   name match { 
-    //       //     case Some(x) => Map(x -> Var(" "))
-    //       //     case None => Map()
-    //       //   }
-    //       val temp = fields.zip(definition.node(nodeType).fields).map { 
-    //         case (fieldPattern, fieldDefinition) => 
-    //           varMappingsForEmplace(
-    //             definition, 
-    //             fieldPattern, 
-    //             targetName+"_"+fieldDefinition.name,
-    //            NodeSubscript(me, fieldDefinition.name)
-    //           )
-              
-    //           //println(temp)
-    //       }.flatten
-    //     }
-      
-    //   case BeforeConstruct(_, target) => Seq()
-    //   case AfterConstruct(target, _) => Seq()
-    // }
-    // println(ret)
-    // //directFieldRef 
-    // directFieldRef match {
-    //   case ns@NodeSubscript(_,_) =>  Seq(ns) ++ ret
-    //   // case ns@NodeSubscript(_,"rhs")) =>  Seq(ns)
-    //   // case ns@NodeSubscript(_,"listptr")) =>  Seq(ns)
-    //   // case ns@NodeSubscript(_,"data")) =>  Seq(ns)    
-    //   case _ => ret
-    //   }
-  }
+
 
 
 
@@ -235,8 +230,8 @@ def varMappingsForEmplace(
               Seq(
                 Comment(s"Assemble $target as a $node"),
                 Declare( nodeName, Some(TNode(node)), MakeNode(node, fieldExpressions)),
-                Declare( nodeName+"_ref", Some(TNodeRef()), WrapNode(Var(nodeName))),
-                Comment(s"Code to add nodes into sets")
+                Declare( nodeName+"_ref", Some(TNodeRef()), WrapNode(Var(nodeName)))
+                
                 
               )
             ),

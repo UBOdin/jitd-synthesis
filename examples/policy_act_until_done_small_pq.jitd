@@ -1,0 +1,8 @@
+build
+Array random 40 1 40
+Return
+dump
+policy_act_for 2
+dump
+check_pq
+print_pq

@@ -54,20 +54,36 @@ class RenderStatement(
 
         }   
       
-      case SetRemoveFunction(name,nodeType,v) => {
-        val here = "\"Remove from "+nodeType+"Set : "+renderExpression(v)+"\""
+      case SetRemoveFunction(name,v) => {
+        //val here = "\"Remove from "+nodeType+"Set : "+renderExpression(v)+"\""
         //indent+"//std::cout<<"+here+"<<std::endl;\n"
-        indent+"JITD_NODE_"+nodeType+"_set.erase("+renderExpression(v)+");\n"
+        indent+"setRemoval("+renderExpression(v)+");\n"
         //indent+s"check_set();\n"
       }
-      case SetAddFunction(name,nodeType,v) => {
-        //indent+s"std::cout<<Addr:<<"+renderExpression(v)+";\n"
+      case SetAddFunction(name,v) => {
+        //val here = "\"Add to "+nodeType+"Set : "+renderExpression(v)+"\""
+        //indent+"//std::cout<<"+here+"<<std::endl;\n"
 
         
-          indent+"JITD_NODE_"+nodeType+"_set.emplace("+renderExpression(v)+");\n"
+          indent+"setAddition("+renderExpression(v)+");\n"
         
         
       
+      }
+      case PqAddFunction(name,nodeType,v) => {
+        //indent+s"std::cout<<Addr:<<"+renderExpression(v)+";\n"
+
+        
+          indent+"pqAddition("+renderExpression(v)+");\n"
+        
+        
+      
+      }
+      case PqRemoveFunction(name,v) => {
+        //val here = "\"Remove from "+nodeType+"Set : "+renderExpression(v)+"\""
+        //indent+"//std::cout<<"+here+"<<std::endl;\n"
+        indent+"pqRemoval("+renderExpression(v)+");\n"
+        //indent+s"check_set();\n"
       }
       case Void(v) => {
           indent + renderExpression(v)+";\n"

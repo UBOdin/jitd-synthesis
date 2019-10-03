@@ -7,10 +7,9 @@ abstract class PolicyImplementation
 {
   // Render field definitions for the JITD object
   def state(ctx:Render): String
-
   // Render a block of code to be run when the JITD is initialized
-  def init(ctx:Render, root:String): String
-
+  def init(ctx:Render,rule:PolicyRule,root:String): String
+  
   // Render two blocks of code to be run just before/after a JITD rewrite
   // happens.  [from] is replaced by [to].  
   def onRewriteSet(ctx:Render, 

@@ -9,11 +9,8 @@ object TransformToFunction
   {
     var handlerefbool = true
     var ctx = Render(definition) 
-    //var toMatchPattern = transform.to.toMatchPattern
     var (stmt1,stmt2) = ctx.policyImplementation.onRewriteSet(ctx,definition,false,handlerefbool,transform.from,transform.to,"target","to_ptr")
-    //println(stmt2)  
-    //println(extractionVarListFromNode)
-    //println(stringVal.lift(0))
+   
 
     def makeMatchTest(onMatch: Statement) = 
       MatchToStatement(
@@ -33,10 +30,6 @@ object TransformToFunction
       )
       constructor ++Assign("target", (accessor), true)++stmt2
     }
-    def func():Statement=
-    {
-      Comment(s"here is the func")
-    }
     definition.typechecker.check {//checks to see if its correct and returns same 
       FunctionDefinition(
         transform.name, 
@@ -44,7 +37,7 @@ object TransformToFunction
         Seq(
           ("target", THandleRef(), OutputRef)
         ),
-        Comment(s"Code to remove nodes from set")++makeMatchTest(stmt1++constructNewNode())
+        makeMatchTest(stmt1++constructNewNode())
       )
     }
 

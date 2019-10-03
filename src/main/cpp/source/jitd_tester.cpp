@@ -357,10 +357,20 @@ int jitd_test(
       std::cout<<"Printing Set:-"<<std::endl;
       jitd->print_set_size();
     }
+    CASE("print_pq")
+    {
+      std::cout<<"Printing PQ:-"<<std::endl;
+      jitd->print_pq_size();
+    }
     CASE("check_set")
     {
       std::cout<<"Checking set integrity: "<<std::endl;
       jitd->check_set_intergrity();
+    }
+    CASE("check_pq")
+    {
+      std::cout<<"Checking PQ integrity: "<<std::endl;
+      jitd->check_pq_intergrity();
     }
     CASE("make_set")
     {
@@ -368,11 +378,12 @@ int jitd_test(
       jitd->make_set();
 
     }
-    CASE("remove_set")
-    {
-      //std::cout<<"In Remove Set";
-      jitd->remove_set();
-    }
+    // CASE("make_pq")
+    // {
+    //   //std::cout<<"calling make_set"<<std::endl;
+    //   jitd->make_pq();
+
+    // }
     else {
       std::cerr << "Invalid Test Operation: " << op << std::endl;
       exit(-1);

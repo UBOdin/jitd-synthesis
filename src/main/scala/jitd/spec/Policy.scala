@@ -7,6 +7,7 @@ case class Policy(
   rule:PolicyRule
 )
 {
+  //println(defaults)
   def varMapping:Map[String,Expression] = 
     parameters.zip(defaults).map {
       case (p, d) => p.name -> d

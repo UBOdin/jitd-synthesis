@@ -27,29 +27,58 @@ object RenderPattern
       case MatchAny(name) => ""
 
     }
-  }
-  
-  def setIteration(ctx:Render,constraint:Expression,scoreFn:Expression, pattern:MatchPattern, target:String, onFailure:String): String =
-  {
+    
 
-    val indent = "\t\t\t"
-    val indent2 = "\t\t\t\t"
-    val indent3 = "\t\t\t\t\t"
-    val indent4 = "\t\t\t\t\t\t"
-    val here = "\"HERE\""
-    val notarraynode = "\"NOT ARRAY NODE\""
-    pattern match{
-      case MatchNode(nodeName,fields,name)=>{
+  }
+  def testCmp(ctx:Render,rule:PolicyRule, target:String): String =
+  {
+    //val recur = (newPattern:MatchPattern, newTarget:String) => testCmp(ctx, newPattern, newTarget)
+    rule match {
+      case TieredPolicy(Seq()) => ""
+      case TieredPolicy(policies) => 
+        {
+          testCmp(ctx,policies.head,target)
+        }
+      case TransformPolicy(name, _, scoreFn) => 
+        {
+          val pattern = ctx.definition.transform(name).from
+          pattern match {
+            case MatchNode(nodeName, fields, name) => { 
+              val node = ctx.definition.nodesByName(nodeName)
+              val targetReal = target+"_real"
+              //s"if(${target}->type != ${node.enumName}){ $onFailure }\n"+
+              s"JITDNode * ${target}_node_ptr = (*${target}).get();\n"+
+              fields.zip(node.fields).map { 
+            case (fieldPattern:MatchNode, fieldDefinition) =>
+              
+            case (fieldPattern:MatchAny, fieldDefinition) => 
+              {
+                s"${node.renderName} * ${targetReal} = (${node.renderName} *)${target}_node_ptr;\n"+
+                s"size_t ${target}_size = "+ ctx.expression(InlineVars(scoreFn, varMapping(ctx, pattern, "e1")++ctx.policy.varMapping))+";\n"
+
+              }
+              }.mkString
+          }
+
+          }
+
+      }
+
+    
+    
+
+  }
+}
+  def setPqGen(ctx:Render, pattern:MatchPattern,setorpq:String):String = 
+  {
+    pattern match {
+      case MatchNode(nodeName, fields, name) => {
         val node = ctx.definition.nodesByName(nodeName)
-        val sizeCheck = ctx.expression(InlineVars(constraint,RenderPattern.varMapping(ctx, pattern, "lock_raw")++ctx.policy.varMapping))
-        val scoreCalc = ctx.expression(InlineVars(scoreFn,RenderPattern.varMapping(ctx, pattern, "lock_raw")++ctx.policy.varMapping))
-        s"if(!${node.enumName}_set.empty()){\n"+
-        //s"std::cout<<${node.enumName}_set.size()"+"<<std::endl;\n"+
-        indent+s"std::set< std::shared_ptr<JITDNode>  >::iterator it;\n"+
-        indent+s"for(it = ${node.enumName}_set.begin();it != ${node.enumName}_set.end();it++ ){\n"
-          
+        s"${node.enumName}"+"_"+setorpq
+
       }
       case MatchAny(name) => ""
+
     }
   }
   def varMapping(ctx:Render, pattern:MatchPattern, target:String): Map[String,Var] =

@@ -16,7 +16,7 @@ object MutatorToFunction
           if(field.t.isInstanceOf[PrimType]) { FunctionArgType.Input } else { FunctionArgType.ConstInputRef }
         )
       }
-
+    var stmt = PqRemoveFunction("root",WrapNodeRef(Var("root")))
     val (constructor, new_root) = 
       MatchToStatement(
         definition,
@@ -29,7 +29,7 @@ object MutatorToFunction
         renderName,
         None,
         args,
-        constructor ++ Assign("&root", new_root, true) ++ stmt2
+        stmt++constructor ++ Assign("&root", new_root, true) ++ stmt2
       )
     }
   }

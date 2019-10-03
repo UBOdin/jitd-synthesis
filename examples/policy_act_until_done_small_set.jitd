@@ -1,0 +1,16 @@
+build
+Array random 40 1 40
+Return
+dump
+insert random 5 50 60
+dump
+check_set
+print_set
+insert random 5 50 60
+dump
+check_set
+print_set
+policy_act_for 30
+dump
+check_set
+print_set

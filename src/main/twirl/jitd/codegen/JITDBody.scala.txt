@@ -15,21 +15,17 @@ std::vector<float> time_vec_PushDownDontDeleteElemConcat;
 std::vector<float> time_vec_SortArray;
 std::vector<float> time_vec_DeleteElemFromSortedArray;
 
-struct cmpclass
-{
-  bool operator()( std::shared_ptr<JITDNode> * e1, std::shared_ptr<JITDNode> * e2) const
-  {
-        return (e1->get() < e2->get());
+@for(node <- ctx.definition.nodes){
+ std::set<std::shared_ptr<JITDNode> * >@{node.enumName}_set;
   }
-};
 
+std::set<std::shared_ptr<JITDNode> *, cmpclass> JITD_NODE_Array_pq;
+    std::set<std::shared_ptr<JITDNode> *, cmpclass > JITD_NODE_SortedArray_pq;
+    std::set<std::shared_ptr<JITDNode> * > JITD_NODE_BTree_pq;
+    std::set<std::shared_ptr<JITDNode> * > JITD_NODE_Concat_pq;
+    std::set<std::shared_ptr<JITDNode> * > JITD_NODE_Delete_pq;
+    std::set<std::shared_ptr<JITDNode> * > JITD_NODE_DeleteElements_pq;
 
-std::set<std::shared_ptr<JITDNode> * > JITD_NODE_Array_set;
-std::set<std::shared_ptr<JITDNode> * > JITD_NODE_SortedArray_set;
-std::set<std::shared_ptr<JITDNode> * > JITD_NODE_BTree_set;
-std::set<std::shared_ptr<JITDNode> * > JITD_NODE_Concat_set;
-std::set<std::shared_ptr<JITDNode> * > JITD_NODE_Delete_set;
-std::set<std::shared_ptr<JITDNode> * > JITD_NODE_DeleteElements_set;
 //#define JITD_DEBUG_POLICY true;
 //std::shared_ptr<JITDNode> * rootHandleRef;
 
@@ -66,6 +62,7 @@ bool JITD::do_organize()
 
 void setInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
 {
+
   //Init code when jitd is first populated
   std::shared_ptr<JITDNode> set_node = std::atomic_load((root_handle));
    JITDNode *lock_raw = set_node.get();
@@ -85,6 +82,111 @@ void setInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
             child_nodeHandleRef = &(updated_node->@{field.name}); 
             setInit(child_nodeHandleRef,false);
           }
+        break;
+      }
+      
+    }
+  }
+}
+
+void pqInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
+{
+
+  //Init code when jitd is first populated
+  std::shared_ptr<JITDNode> set_node = std::atomic_load((root_handle));
+   JITDNode *lock_raw = set_node.get();
+  switch(set_node->type)
+  {
+    @for(node <- ctx.definition.nodes){
+      case @node.enumName : 
+      {
+        //std::cout<<"FOUND "<< @node.enumName <<" : "<<root_handle<<std::endl;
+
+        @{node.enumName}_pq.emplace(root_handle);
+
+        @{node.renderName} *updated_node = (@{node.renderName} *)lock_raw;
+          std::shared_ptr<JITDNode> * child_nodeHandleRef;
+        @for(field <- node.fields.filter { _.t == TNodeRef() }){
+            child_nodeHandleRef = &(updated_node->@{field.name}); 
+            pqInit(child_nodeHandleRef,false);
+          }
+       
+       break;
+      }
+      
+    }
+  }
+}
+void setAddition(std::shared_ptr<JITDNode> * node)
+{
+  std::shared_ptr<JITDNode> set_node = std::atomic_load((node));
+  JITDNode *lock_raw = set_node.get();
+  switch(set_node->type)
+  {
+    @for(node <- ctx.definition.nodes){
+      case @node.enumName : 
+      {
+        //std::cout<<"FOUND ADD: "<<set_node->type<<std::endl;
+
+        @{node.enumName}_set.emplace(node);
+        
+        break;
+      }
+      
+    }
+  }
+}
+void pqAddition(std::shared_ptr<JITDNode> * node)
+{
+  std::shared_ptr<JITDNode> set_node = std::atomic_load((node));
+  JITDNode *lock_raw = set_node.get();
+  switch(set_node->type)
+  {
+    @for(node <- ctx.definition.nodes){
+      case @node.enumName : 
+      {
+        //std::cout<<"FOUND ADD: "<<set_node->type<<"Addr : "<<set_node<<std::endl;
+
+        @{node.enumName}_pq.emplace(node);
+        
+        break;
+      }
+      
+    }
+  }
+}
+void setRemoval(std::shared_ptr<JITDNode> * node)
+{
+  std::shared_ptr<JITDNode> set_node = std::atomic_load((node));
+  JITDNode *lock_raw = set_node.get();
+  switch(set_node->type)
+  {
+    @for(node <- ctx.definition.nodes){
+      case @node.enumName : 
+      {
+        //std::cout<<"FOUND ERASE: "<<set_node->type<<std::endl;
+
+        @{node.enumName}_set.erase(node);
+        
+        break;
+      }
+      
+    }
+  }
+}
+void pqRemoval(std::shared_ptr<JITDNode> * node)
+{
+  std::shared_ptr<JITDNode> set_node = std::atomic_load((node));
+  JITDNode *lock_raw = set_node.get();
+  switch(set_node->type)
+  {
+    @for(node <- ctx.definition.nodes){
+      case @node.enumName : 
+      {
+        //std::cout<<"FOUND ERASE: "<<set_node->type<<std::endl;
+
+        @{node.enumName}_pq.erase(node);
+        
         break;
       }
       
@@ -129,7 +231,6 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
     }
     if(op == "Return"){
     
-      
       return std::shared_ptr<JITD>(new JITD(node_stack.top()));
 
     }
@@ -184,6 +285,19 @@ void print_set()
   
   }
 }
+void print_pq()
+{
+//std::cout<<"calling print_set"<<std::endl;
+
+  @for(node <- ctx.definition.nodes){
+  if(!@{node.enumName}_pq.empty())
+  {
+    std::cout<<"@{node.enumName}_pq:" << @{node.enumName}_pq.size()<<std::endl;
+    
+  }
+  
+  }
+}
 void check_set()
 {
   @for(node <- ctx.definition.nodes){
@@ -201,6 +315,30 @@ void check_set()
       std::cout<<"Empty @{node.enumName}_set"<<std::endl;
     }
   }
+}
+void check_pq()
+{
+  @for(node <- ctx.definition.nodes){
+    if(!@{node.enumName}_pq.empty())
+    { 
+        std::set<std::shared_ptr<JITDNode> *>::iterator it;
+      for(it = @{node.enumName}_pq.begin();it!=@{node.enumName}_pq.end();++it)
+      {
+        std::shared_ptr<JITDNode> * curr = *it;
+        std::cout<<"check_pq():The type of node in @{node.enumName} is "<<curr->get()->type<<std::endl;
+        //if(curr->get()->type == JITD_NODE_Array)
+        //{
+         // std::cout<<"SIZE : "<<array_size(((ArrayNode *)(curr->get()))->data)<<std::endl;
+        //}
+      }
+        
+    }
+    else
+    {
+      std::cout<<"Empty @{node.enumName}_pq"<<std::endl;
+    }
+  }
+
 }
 void print_time_vector_sum()
 {
