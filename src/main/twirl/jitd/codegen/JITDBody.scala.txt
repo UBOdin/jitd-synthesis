@@ -14,6 +14,7 @@ std::vector<float> time_vec_PushDownDontDeleteElemBtree;
 std::vector<float> time_vec_PushDownDontDeleteElemConcat;
 std::vector<float> time_vec_SortArray;
 std::vector<float> time_vec_DeleteElemFromSortedArray;
+std::vector<float> time_vec_MergeSortedBTrees;
 
 @for(node <- ctx.definition.nodes){
  std::set<std::shared_ptr<JITDNode> * >@{node.enumName}_set;

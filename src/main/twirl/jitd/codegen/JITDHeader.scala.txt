@@ -117,13 +117,13 @@ struct cmpclass
         
         @{RenderPattern.testCmp(ctx,ctx.policy.rule,"e1");}
         @{RenderPattern.testCmp(ctx,ctx.policy.rule,"e2");}
-        if(e1_size == e2_size)
+        if(e1_score == e2_score)
         {
           return (e1<e2);
         }
         else
         {
-          return (e1_size > e2_size);
+          return (e1_score > e2_score);
         }
   }
 };

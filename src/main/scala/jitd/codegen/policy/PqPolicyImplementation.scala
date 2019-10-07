@@ -106,12 +106,20 @@ object PqPolicyImplementation extends PolicyImplementation
     rule match {
       case TieredPolicy(policies) => policies.map { utilityFunctions(ctx, _) }.mkString
       case TransformPolicy(name, constraint, scoreFn) =>
+        // println(name)
+        // UsePqPolicySearch(  // Generated via Twirl template
+        //   ctx, 
+        //   ctx.definition.transform(name), 
+        //   constraint, 
+        //   scoreFn
+        // ).toString
         val pattern_from = ctx.definition.transform(name).from
+        println(pattern_from)
         pattern_from match{
           case MatchNode(nodeType, fields, _) =>
             {
               fields.zip(ctx.definition.node(nodeType).fields).flatMap{
-                case(fieldPattern:MatchNode,fieldDefinition) => UsePqPolicySearch(  // Generated via Twirl template
+                case(fieldPattern:MatchNode,fieldDefinition) => UseSetPolicySearch(  // Generated via Twirl template
                     ctx, 
                     ctx.definition.transform(name), 
                     constraint, 

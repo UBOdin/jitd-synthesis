@@ -13,7 +13,7 @@ object RenderPattern
       case MatchNode(nodeName, fields, name) => { 
         val node = ctx.definition.nodesByName(nodeName)
         val targetReal = target+"_real"
-        s"if(${target}->type != ${node.enumName}){ $onFailure }\n"+
+        s"if(${target}->type != ${node.enumName}){std::cout<<${target}->type<<std::endl; $onFailure }\n"+
         s"${node.renderName} *${targetReal} = (${node.renderName} *)${target};\n"+
         fields.zip(node.fields).map { 
           case (fieldPattern:MatchNode, fieldDefinition) =>
@@ -30,9 +30,10 @@ object RenderPattern
     
 
   }
-  def testCmp(ctx:Render,rule:PolicyRule, target:String): String =
+  def testCmp(ctx:Render,rule:PolicyRule,target:String): String =
   {
     //val recur = (newPattern:MatchPattern, newTarget:String) => testCmp(ctx, newPattern, newTarget)
+    //targets.foreach((elem:String)=>println(elem))
     rule match {
       case TieredPolicy(Seq()) => ""
       case TieredPolicy(policies) => 
@@ -46,15 +47,16 @@ object RenderPattern
             case MatchNode(nodeName, fields, name) => { 
               val node = ctx.definition.nodesByName(nodeName)
               val targetReal = target+"_real"
+              s"size_t ${target}_score = 0;\n"+
               //s"if(${target}->type != ${node.enumName}){ $onFailure }\n"+
               s"JITDNode * ${target}_node_ptr = (*${target}).get();\n"+
               fields.zip(node.fields).map { 
-            case (fieldPattern:MatchNode, fieldDefinition) =>
+            case (fieldPattern:MatchNode, fieldDefinition) => ""
               
             case (fieldPattern:MatchAny, fieldDefinition) => 
               {
                 s"${node.renderName} * ${targetReal} = (${node.renderName} *)${target}_node_ptr;\n"+
-                s"size_t ${target}_size = "+ ctx.expression(InlineVars(scoreFn, varMapping(ctx, pattern, "e1")++ctx.policy.varMapping))+";\n"
+                s"${target}_score = "+ ctx.expression(InlineVars(scoreFn, varMapping(ctx, pattern, target)++ctx.policy.varMapping))+";\n"
 
               }
               }.mkString

@@ -1,8 +1,8 @@
 build
-Array random 40 1 40
+Array random 10 1 40
 Return
 dump
-policy_act_for 2
+policy_act_for 7
 dump
 check_pq
 print_pq

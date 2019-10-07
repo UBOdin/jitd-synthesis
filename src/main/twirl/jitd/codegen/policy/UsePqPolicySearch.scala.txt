@@ -18,7 +18,7 @@
     {
       std::set< std::shared_ptr<JITDNode> * >::iterator it;
       it = (@{RenderPattern.setPqGen(ctx, transform.from,"pq")}).begin();
-      //std::cout<<"FOUND NODE"<<std::endl;
+      std::cout<<"FOUND NODE :"<<((*it)->get())->type<<std::endl;
           JITDNode *iter_node = (*it)->get();
           //JITDNode *iter_node = (*it).get();
           
@@ -35,15 +35,7 @@
           targetHandleRef = (*it);
           }
 
-          //if(bestScore>curr_score)
-          //{
-           // curr_score = bestScore;
-           // std::cout<<"CURR Score"<<curr_score<<std::endl;
-            //targetHandleRef = (*it);
-            
-          //}
-          /***Removing the candidate node from the PQ***/
-          //@{RenderPattern.setPqGen(ctx, transform.from,"pq")}.erase(*it);
+          
       
     }
 
