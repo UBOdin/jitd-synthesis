@@ -13,7 +13,10 @@ object RenderPattern
       case MatchNode(nodeName, fields, name) => { 
         val node = ctx.definition.nodesByName(nodeName)
         val targetReal = target+"_real"
-        s"if(${target}->type != ${node.enumName}){std::cout<<${target}->type<<std::endl; $onFailure }\n"+
+        //val here = "\"HERE\""
+        
+        s"if(${target}->type != ${node.enumName}){$onFailure }\n"+
+        //s"std::cout<<"+here+"<<std::endl;\n"+
         s"${node.renderName} *${targetReal} = (${node.renderName} *)${target};\n"+
         fields.zip(node.fields).map { 
           case (fieldPattern:MatchNode, fieldDefinition) =>

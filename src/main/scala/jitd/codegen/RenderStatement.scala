@@ -57,7 +57,7 @@ class RenderStatement(
       case SetRemoveFunction(name,v) => {
         //val here = "\"Remove from "+nodeType+"Set : "+renderExpression(v)+"\""
         //indent+"//std::cout<<"+here+"<<std::endl;\n"
-        indent+"setRemoval("+renderExpression(v)+");\n"
+        indent+"this->setRemoval("+renderExpression(v)+");\n"
         //indent+s"check_set();\n"
       }
       case SetAddFunction(name,v) => {
@@ -65,7 +65,7 @@ class RenderStatement(
         //indent+"//std::cout<<"+here+"<<std::endl;\n"
 
         
-          indent+"setAddition("+renderExpression(v)+");\n"
+          indent+"this->setAddition("+renderExpression(v)+");\n"
         
         
       
@@ -74,7 +74,7 @@ class RenderStatement(
         //indent+s"std::cout<<Addr:<<"+renderExpression(v)+";\n"
 
         
-          indent+"pqAddition("+renderExpression(v)+");\n"
+          indent+"this->pqAddition("+renderExpression(v)+");\n"
         
         
       
@@ -82,7 +82,7 @@ class RenderStatement(
       case PqRemoveFunction(name,v) => {
         //val here = "\"Remove from "+nodeType+"Set : "+renderExpression(v)+"\""
         //indent+"//std::cout<<"+here+"<<std::endl;\n"
-        indent+"pqRemoval("+renderExpression(v)+");\n"
+        indent+"this->pqRemoval("+renderExpression(v)+");\n"
         //indent+s"check_set();\n"
       }
       case Void(v) => {

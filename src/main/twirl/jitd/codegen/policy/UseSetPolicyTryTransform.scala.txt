@@ -6,7 +6,7 @@
 @debug(msg:String) = { @{Debug.println(Debug.Policy, "  ")(msg)} }
 @dump = { @{Debug.dump(Debug.Policy, "  ")("target", "    ")} }
 
-{
+
   @{ctx.cType(TNodeRef())} * targetHandleRef;
   @{ctx.cType(TNodeRef())}  lock_raw_shrd_ptr;
   std::shared_ptr<JITDNode> target;
@@ -40,6 +40,6 @@
 
 
 
-}
+
 
 

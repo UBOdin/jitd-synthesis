@@ -16,16 +16,6 @@ std::vector<float> time_vec_SortArray;
 std::vector<float> time_vec_DeleteElemFromSortedArray;
 std::vector<float> time_vec_MergeSortedBTrees;
 
-@for(node <- ctx.definition.nodes){
- std::set<std::shared_ptr<JITDNode> * >@{node.enumName}_set;
-  }
-
-std::set<std::shared_ptr<JITDNode> *, cmpclass> JITD_NODE_Array_pq;
-    std::set<std::shared_ptr<JITDNode> *, cmpclass > JITD_NODE_SortedArray_pq;
-    std::set<std::shared_ptr<JITDNode> * > JITD_NODE_BTree_pq;
-    std::set<std::shared_ptr<JITDNode> * > JITD_NODE_Concat_pq;
-    std::set<std::shared_ptr<JITDNode> * > JITD_NODE_Delete_pq;
-    std::set<std::shared_ptr<JITDNode> * > JITD_NODE_DeleteElements_pq;
 
 //#define JITD_DEBUG_POLICY true;
 //std::shared_ptr<JITDNode> * rootHandleRef;
@@ -34,7 +24,7 @@ std::set<std::shared_ptr<JITDNode> *, cmpclass> JITD_NODE_Array_pq;
 ///////////////////// Transform Definitions ///////////////////// 
 
 @for(transform <- ctx.definition.transforms){
-@RenderFunction.body(ctx, TransformToFunction(ctx.definition, transform))
+@RenderFunction.body(ctx, TransformToFunction(ctx.definition, transform,"JITD::"))
 }
 
 ///////////////////// Accessor Definitions ///////////////////// 
@@ -61,7 +51,7 @@ bool JITD::do_organize()
 ///////////////////// Set creation ///////////////////// 
 
 
-void setInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
+void JITD::setInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
 {
 
   //Init code when jitd is first populated
@@ -74,14 +64,14 @@ void setInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
       {
         //std::cout<<"FOUND: "<<set_node->type<<std::endl;
 
-        @{node.enumName}_set.emplace(root_handle);
+        this->@{node.enumName}_set.emplace(root_handle);
 
         
         @{node.renderName} *updated_node = (@{node.renderName} *)lock_raw;
           std::shared_ptr<JITDNode> * child_nodeHandleRef;
         @for(field <- node.fields.filter { _.t == TNodeRef() }){
             child_nodeHandleRef = &(updated_node->@{field.name}); 
-            setInit(child_nodeHandleRef,false);
+            this->setInit(child_nodeHandleRef,false);
           }
         break;
       }
@@ -90,7 +80,7 @@ void setInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
   }
 }
 
-void pqInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
+void JITD::pqInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
 {
 
   //Init code when jitd is first populated
@@ -103,13 +93,13 @@ void pqInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
       {
         //std::cout<<"FOUND "<< @node.enumName <<" : "<<root_handle<<std::endl;
 
-        @{node.enumName}_pq.emplace(root_handle);
+        this->@{node.enumName}_pq.emplace(root_handle);
 
         @{node.renderName} *updated_node = (@{node.renderName} *)lock_raw;
           std::shared_ptr<JITDNode> * child_nodeHandleRef;
         @for(field <- node.fields.filter { _.t == TNodeRef() }){
             child_nodeHandleRef = &(updated_node->@{field.name}); 
-            pqInit(child_nodeHandleRef,false);
+            this->pqInit(child_nodeHandleRef,false);
           }
        
        break;
@@ -118,7 +108,7 @@ void pqInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
     }
   }
 }
-void setAddition(std::shared_ptr<JITDNode> * node)
+void JITD::setAddition(std::shared_ptr<JITDNode> * node)
 {
   std::shared_ptr<JITDNode> set_node = std::atomic_load((node));
   JITDNode *lock_raw = set_node.get();
@@ -129,7 +119,7 @@ void setAddition(std::shared_ptr<JITDNode> * node)
       {
         //std::cout<<"FOUND ADD: "<<set_node->type<<std::endl;
 
-        @{node.enumName}_set.emplace(node);
+        this->@{node.enumName}_set.emplace(node);
         
         break;
       }
@@ -137,7 +127,7 @@ void setAddition(std::shared_ptr<JITDNode> * node)
     }
   }
 }
-void pqAddition(std::shared_ptr<JITDNode> * node)
+void JITD::pqAddition(std::shared_ptr<JITDNode> * node)
 {
   std::shared_ptr<JITDNode> set_node = std::atomic_load((node));
   JITDNode *lock_raw = set_node.get();
@@ -148,7 +138,7 @@ void pqAddition(std::shared_ptr<JITDNode> * node)
       {
         //std::cout<<"FOUND ADD: "<<set_node->type<<"Addr : "<<set_node<<std::endl;
 
-        @{node.enumName}_pq.emplace(node);
+        this->@{node.enumName}_pq.emplace(node);
         
         break;
       }
@@ -156,7 +146,7 @@ void pqAddition(std::shared_ptr<JITDNode> * node)
     }
   }
 }
-void setRemoval(std::shared_ptr<JITDNode> * node)
+void JITD::setRemoval(std::shared_ptr<JITDNode> * node)
 {
   std::shared_ptr<JITDNode> set_node = std::atomic_load((node));
   JITDNode *lock_raw = set_node.get();
@@ -167,7 +157,7 @@ void setRemoval(std::shared_ptr<JITDNode> * node)
       {
         //std::cout<<"FOUND ERASE: "<<set_node->type<<std::endl;
 
-        @{node.enumName}_set.erase(node);
+        this->@{node.enumName}_set.erase(node);
         
         break;
       }
@@ -175,7 +165,7 @@ void setRemoval(std::shared_ptr<JITDNode> * node)
     }
   }
 }
-void pqRemoval(std::shared_ptr<JITDNode> * node)
+void JITD::pqRemoval(std::shared_ptr<JITDNode> * node)
 {
   std::shared_ptr<JITDNode> set_node = std::atomic_load((node));
   JITDNode *lock_raw = set_node.get();
@@ -186,7 +176,7 @@ void pqRemoval(std::shared_ptr<JITDNode> * node)
       {
         //std::cout<<"FOUND ERASE: "<<set_node->type<<std::endl;
 
-        @{node.enumName}_pq.erase(node);
+        this->@{node.enumName}_pq.erase(node);
         
         break;
       }
@@ -273,39 +263,39 @@ void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string
   }
 }
 
-void print_set()
+void JITD::print_set()
 {
 //std::cout<<"calling print_set"<<std::endl;
 
   @for(node <- ctx.definition.nodes){
-  if(!@{node.enumName}_set.empty())
+  if(!this->@{node.enumName}_set.empty())
   {
-    std::cout<<"@{node.enumName}_set:" << @{node.enumName}_set.size()<<std::endl;
+    std::cout<<"@{node.enumName}_set:" << this->@{node.enumName}_set.size()<<std::endl;
     
   }
   
   }
 }
-void print_pq()
+void JITD::print_pq()
 {
 //std::cout<<"calling print_set"<<std::endl;
 
   @for(node <- ctx.definition.nodes){
-  if(!@{node.enumName}_pq.empty())
+  if(!this->@{node.enumName}_pq.empty())
   {
-    std::cout<<"@{node.enumName}_pq:" << @{node.enumName}_pq.size()<<std::endl;
+    std::cout<<"@{node.enumName}_pq:" << this->@{node.enumName}_pq.size()<<std::endl;
     
   }
   
   }
 }
-void check_set()
+void JITD::check_set()
 {
   @for(node <- ctx.definition.nodes){
-    if(!@{node.enumName}_set.empty())
+    if(!this->@{node.enumName}_set.empty())
     {
       std::set<std::shared_ptr<JITDNode> *>::iterator it;
-      for(it = @{node.enumName}_set.begin();it!=@{node.enumName}_set.end();++it)
+      for(it = this->@{node.enumName}_set.begin();it!=this->@{node.enumName}_set.end();++it)
       {
         std::shared_ptr<JITDNode> * curr = *it;
         std::cout<<"check_set():The type of node in @{node.enumName} is "<<curr->get()->type<<std::endl;
@@ -317,13 +307,13 @@ void check_set()
     }
   }
 }
-void check_pq()
+void JITD::check_pq()
 {
   @for(node <- ctx.definition.nodes){
-    if(!@{node.enumName}_pq.empty())
+    if(!this->@{node.enumName}_pq.empty())
     { 
         std::set<std::shared_ptr<JITDNode> *>::iterator it;
-      for(it = @{node.enumName}_pq.begin();it!=@{node.enumName}_pq.end();++it)
+      for(it = this->@{node.enumName}_pq.begin();it!=this->@{node.enumName}_pq.end();++it)
       {
         std::shared_ptr<JITDNode> * curr = *it;
         std::cout<<"check_pq():The type of node in @{node.enumName} is "<<curr->get()->type<<std::endl;
@@ -354,7 +344,7 @@ void print_time_vector_sum()
       sum_of_elems += n;
       //std::cout<<n<<",";
     }
-    //std::cout<<"\nTime for PushDownAndCrack "<<sum_of_elems<<"us"<<std::endl;
+    std::cout<<"\nTime for PushDownAndCrack "<<sum_of_elems<<"us"<<std::endl;
   }
   if(time_vec_CrackArray.size()!=0)
   {
@@ -365,7 +355,7 @@ void print_time_vector_sum()
       sum_of_elems += n;
       //std::cout<<n<<",";
     }
-    //std::cout<<"\nTime for CrackArray "<<sum_of_elems<<"us"<<std::endl;
+    std::cout<<"\nTime for CrackArray "<<sum_of_elems<<"us"<<std::endl;
   }
   if(time_vec_PushDownDontDeleteElemBtree.size()!=0)
   {
@@ -376,7 +366,7 @@ void print_time_vector_sum()
       sum_of_elems += n;
       //std::cout<<n<<",";
     }
-    //std::cout<<"\nTime for PushDownDontDeleteElemBtree "<<sum_of_elems<<"us"<<std::endl;
+    std::cout<<"\nTime for PushDownDontDeleteElemBtree "<<sum_of_elems<<"us"<<std::endl;
   }
   if(time_vec_PushDownDontDeleteElemConcat.size()!=0)
   {
@@ -387,7 +377,7 @@ void print_time_vector_sum()
       sum_of_elems += n;
       //std::cout<<n<<",";
     }
-    //std::cout<<"\nTime for PushDownDontDeleteElemConcat "<<sum_of_elems<<"us"<<std::endl;
+    std::cout<<"\nTime for PushDownDontDeleteElemConcat "<<sum_of_elems<<"us"<<std::endl;
   }
   if(time_vec_SortArray.size()!=0)
   {
@@ -398,7 +388,7 @@ void print_time_vector_sum()
       sum_of_elems += n;
       //std::cout<<n<<",";
     }
-    //std::cout<<"\nTime for SortArray "<<sum_of_elems<<"us"<<std::endl;
+    std::cout<<"\nTime for SortArray "<<sum_of_elems<<"us"<<std::endl;
   }
   if(time_vec_DeleteElemFromSortedArray.size()!=0)
   {
@@ -409,6 +399,6 @@ void print_time_vector_sum()
       sum_of_elems += n;
      //std::cout<<n<<",";
     }
-    //std::cout<<"\nTime for DeleteElemFromSortedArray "<<sum_of_elems<<"us"<<std::endl;
+    std::cout<<"\nTime for DeleteElemFromSortedArray "<<sum_of_elems<<"us"<<std::endl;
   }
 }

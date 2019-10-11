@@ -4,7 +4,7 @@ import jitd.codegen.Render
 import jitd.spec._
 import jitd.codegen.policy.txt._
 import jitd.rewrite._
-
+import util.control.Breaks._
 object PqPolicyImplementation extends PolicyImplementation
 {
   // Render field definitions for the JITD object
@@ -103,7 +103,8 @@ object PqPolicyImplementation extends PolicyImplementation
 
   def utilityFunctions(ctx:Render, rule:PolicyRule): String = 
   {
-    rule match {
+    
+      rule match {
       case TieredPolicy(policies) => policies.map { utilityFunctions(ctx, _) }.mkString
       case TransformPolicy(name, constraint, scoreFn) =>
         // println(name)
@@ -114,29 +115,36 @@ object PqPolicyImplementation extends PolicyImplementation
         //   scoreFn
         // ).toString
         val pattern_from = ctx.definition.transform(name).from
-        println(pattern_from)
+        //println(pattern_from)
         pattern_from match{
           case MatchNode(nodeType, fields, _) =>
+          {
+            if (fields.forall{_.isInstanceOf[MatchAny]})
             {
-              fields.zip(ctx.definition.node(nodeType).fields).flatMap{
-                case(fieldPattern:MatchNode,fieldDefinition) => UseSetPolicySearch(  // Generated via Twirl template
+              UsePqPolicySearch(  // Generated via Twirl template
                     ctx, 
                     ctx.definition.transform(name), 
                     constraint, 
                     scoreFn
                     ).toString
-                case(fieldPattern:MatchAny,fieldDefinition) => UsePqPolicySearch(  // Generated via Twirl template
-                    ctx, 
-                    ctx.definition.transform(name), 
-                    constraint, 
-                    scoreFn
-                    ).toString
-                  
-              }.mkString
             }
+            else
+            {
+              UseSetPolicySearch(  // Generated via Twirl template
+                    ctx, 
+                    ctx.definition.transform(name), 
+                    constraint, 
+                    scoreFn
+                    ).toString
+            }
+
+          } 
         }
         
     }
+
+  
+    
   }
 
   def utilityFunctions(ctx:Render): String =

@@ -5,7 +5,7 @@ import jitd.spec.FunctionArgType._
 import jitd.codegen._
 object TransformToFunction
 {
-  def apply(definition: Definition, transform: Transform): FunctionDefinition =
+  def apply(definition: Definition, transform: Transform,prefix:String): FunctionDefinition =
   {
     var handlerefbool = true
     var ctx = Render(definition) 
@@ -32,7 +32,7 @@ object TransformToFunction
     }
     definition.typechecker.check {//checks to see if its correct and returns same 
       FunctionDefinition(
-        transform.name, 
+        prefix+transform.name, 
         Some(TBool()),
         Seq(
           ("target", THandleRef(), OutputRef)

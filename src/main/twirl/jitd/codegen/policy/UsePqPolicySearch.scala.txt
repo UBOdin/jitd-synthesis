@@ -4,7 +4,7 @@
 @import jitd.Debug
 @(ctx:Render, transform:Transform, constraint:Expression, scoreFn:Expression)
 
-  long searchFor@{transform.name}(          // Return the "best" score available
+  long JITD::searchFor@{transform.name}(          // Return the "best" score available
     std::shared_ptr<JITDNode> * &node,  // Pointer to the node we're currently examining      
     std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
@@ -14,11 +14,11 @@
     long bestScore = -1;
     long curr_score = -1;
     
-    if(!(@{RenderPattern.setPqGen(ctx, transform.from,"pq")}).empty())
+    if(!(this->@{RenderPattern.setPqGen(ctx, transform.from,"pq")}).empty())
     {
       std::set< std::shared_ptr<JITDNode> * >::iterator it;
-      it = (@{RenderPattern.setPqGen(ctx, transform.from,"pq")}).begin();
-      std::cout<<"FOUND NODE :"<<((*it)->get())->type<<std::endl;
+      it = (this->@{RenderPattern.setPqGen(ctx, transform.from,"pq")}).begin();
+      //std::cout<<"FOUND NODE :"<<((*it)->get())->type<<std::endl;
           JITDNode *iter_node = (*it)->get();
           //JITDNode *iter_node = (*it).get();
           
