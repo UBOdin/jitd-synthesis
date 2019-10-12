@@ -2,11 +2,7 @@ build
 Array random 40 1 40
 Return
 dump
-policy_act_for 3
-dump
-check_pq
-check_set
-policy_act_for 1
+policy_act_until_done
 dump
 check_pq
 check_set
