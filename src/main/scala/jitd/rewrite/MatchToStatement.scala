@@ -47,20 +47,24 @@ object MatchToStatement
 
     }
   }
+
+
+
+
 def unrollSet(
     definition: Definition,
     pattern: MatchPattern, 
     extractName: VarName, 
     targetExpression: Expression
   ): 
-    Seq[ (VarName, NodeType, Expression) ] =
+    Seq[ (VarName, NodeType, Expression, MatchPattern) ] =
   {
      
     //println(fieldPattern)
     pattern match {
       case MatchAny(_)=>Seq() 
       case MatchNode(nodeType, fields, _) => 
-        Seq( (extractName, nodeType, targetExpression) ) ++
+        Seq( (extractName, nodeType, targetExpression, pattern) ) ++
           fields.zip(definition.node(nodeType).fields).flatMap { 
             case (fieldPattern, fieldDefinition) =>
               //println((fieldDefinition).t)
@@ -83,7 +87,7 @@ def unrollSet(
     targetExpression: Expression,
     fieldDef:Field
   ): 
-    Seq[ (VarName, NodeType, Expression) ] =
+    Seq[ (VarName, NodeType, Expression, MatchPattern) ] =
   {
      
     
@@ -92,17 +96,14 @@ def unrollSet(
           //println(fieldDef)
           if(fieldDef.t == TNodeRef())
           {
-            Seq((extractName,fieldDef.t.toString,targetExpression))
+            Seq((extractName,fieldDef.t.toString,targetExpression,pattern))
           }
           else
           {
             Seq()
           }
-          
-        
-        
       case MatchNode(nodeType, fields, _) => 
-        Seq( (extractName, nodeType, targetExpression) ) ++
+        Seq( (extractName, nodeType, targetExpression, pattern) ) ++
           fields.zip(definition.node(nodeType).fields).flatMap { 
             case (fieldPattern, fieldDefinition) =>
               //println((fieldDefinition).t)
@@ -111,7 +112,7 @@ def unrollSet(
                 fieldPattern, 
                 extractName + "_" + fieldDefinition.name,
                 WrapNodeRef(NodeSubscript(Var(extractName), fieldDefinition.name)),
-                (fieldDefinition)
+                fieldDefinition
               )
 
           } 

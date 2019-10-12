@@ -70,21 +70,10 @@ class RenderStatement(
         
       
       }
-      case PqAddFunction(name,nodeType,v) => {
-        //indent+s"std::cout<<Addr:<<"+renderExpression(v)+";\n"
-
-        
-          indent+"this->pqAddition("+renderExpression(v)+");\n"
-        
-        
-      
-      }
-      case PqRemoveFunction(name,v) => {
-        //val here = "\"Remove from "+nodeType+"Set : "+renderExpression(v)+"\""
-        //indent+"//std::cout<<"+here+"<<std::endl;\n"
-        indent+"this->pqRemoval("+renderExpression(v)+");\n"
-        //indent+s"check_set();\n"
-      }
+      case PQStatement(transform_name,op,v) =>
+        {
+          indent+"this->"+transform_name+"_PQ."+op+"("+renderExpression(v)+");\n"
+        }
       case Void(v) => {
           indent + renderExpression(v)+";\n"
         }
@@ -114,6 +103,7 @@ class RenderStatement(
       case Comment(msg) => {
           indent+"/*** "+msg+" ***/\n"
         }
+        
       
     }
   }

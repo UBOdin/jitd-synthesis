@@ -9,7 +9,7 @@ object SetPolicyImplementation extends PolicyImplementation
   // Render field definitions for the JITD object
   def state(ctx:Render): String = ""
   // Render a block of code to be run when the JITD is initialized
-  def init(ctx:Render,rule:PolicyRule,root:String): String = "std::shared_ptr<JITDNode> *root_handle = &"++root++";setInit(root_handle,true);"
+  def init(ctx:Render,rule:PolicyRule,root:String): String = "std::shared_ptr<JITDNode> *root_handle = &"++root++";setInit(root_handle);"
   
   // Render two blocks of code to be run just before/after a JITD rewrite
   // happens.  [from] is replaced by [to].
@@ -18,6 +18,7 @@ object SetPolicyImplementation extends PolicyImplementation
     definition:Definition,
     mutator: Boolean,
     handlerefbool:Boolean,
+    transform_name:String,
     from:MatchPattern, 
     to:ConstructorPattern, 
     fromTarget:String, 

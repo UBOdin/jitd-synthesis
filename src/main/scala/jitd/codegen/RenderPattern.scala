@@ -16,7 +16,6 @@ object RenderPattern
         //val here = "\"HERE\""
         
         s"if(${target}->type != ${node.enumName}){$onFailure }\n"+
-        //s"std::cout<<"+here+"<<std::endl;\n"+
         s"${node.renderName} *${targetReal} = (${node.renderName} *)${target};\n"+
         fields.zip(node.fields).map { 
           case (fieldPattern:MatchNode, fieldDefinition) =>
@@ -33,46 +32,117 @@ object RenderPattern
     
 
   }
-  def testCmp(ctx:Render,rule:PolicyRule,target:String): String =
+  
+  def PqDeclare(ctx:Render,rule:PolicyRule,init:Boolean): String = 
   {
-    //val recur = (newPattern:MatchPattern, newTarget:String) => testCmp(ctx, newPattern, newTarget)
-    //targets.foreach((elem:String)=>println(elem))
     rule match {
       case TieredPolicy(Seq()) => ""
-      case TieredPolicy(policies) => 
-        {
-          testCmp(ctx,policies.head,target)
-        }
+      case TieredPolicy(policies) => policies.map{PqDeclare(ctx,_,true)}.mkString 
+        
       case TransformPolicy(name, _, scoreFn) => 
         {
+          val transfrom_name = name
+
           val pattern = ctx.definition.transform(name).from
+          //println(name)
+          pattern match {
+            case MatchNode(nodeName, fields, name) => { 
+              //val node = ctx.definition.nodesByName(nodeName)
+              //println(name)
+              if (fields.forall{_.isInstanceOf[MatchAny]})
+              {
+                if(init == true)
+                {
+                  s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_PQ;\n"
+                }
+                else
+                {
+                  s"//${transfrom_name}_PQ"
+                }
+              }
+              else
+              {
+                ""
+              }   
+          }
+
+          }
+          
+        }
+    
+  }
+  }
+  def ComparatorClass(ctx:Render,rule:PolicyRule): String = 
+  {
+    //val rule = ctx.policy.rule;
+    rule match {
+      case TieredPolicy(Seq()) => ""
+      case TieredPolicy(policies) => policies.map{ComparatorClass(ctx,_)}.mkString 
+        
+      case TransformPolicy(name, _, scoreFn) => 
+        {
+          val transfrom_name = name
+
+          val pattern = ctx.definition.transform(name).from
+          //println(name)
           pattern match {
             case MatchNode(nodeName, fields, name) => { 
               val node = ctx.definition.nodesByName(nodeName)
-              val targetReal = target+"_real"
-              s"size_t ${target}_score = 0;\n"+
-              //s"if(${target}->type != ${node.enumName}){ $onFailure }\n"+
-              s"JITDNode * ${target}_node_ptr = (*${target}).get();\n"+
-              fields.zip(node.fields).map { 
-            case (fieldPattern:MatchNode, fieldDefinition) => ""
-              
-            case (fieldPattern:MatchAny, fieldDefinition) => 
+              if (fields.forall{_.isInstanceOf[MatchAny]})
               {
-                s"${node.renderName} * ${targetReal} = (${node.renderName} *)${target}_node_ptr;\n"+
-                s"${target}_score = "+ ctx.expression(InlineVars(scoreFn, varMapping(ctx, pattern, target)++ctx.policy.varMapping))+";\n"
-
+                s"struct ${transfrom_name}_Cmp{\n"+
+                s" bool operator()( std::shared_ptr<JITDNode> * e1, std::shared_ptr<JITDNode> * e2) const{\n"+
+                s"  size_t e1_score = 0;\n"+
+                s"  JITDNode * e1_node_ptr = (*e1).get();\n"+
+                s"  size_t e2_score = 0;\n"+
+                s"  JITDNode * e2_node_ptr = (*e2).get();\n"+
+                s"  ${node.renderName} * e1_node_ptr_real = (${node.renderName} *)e1_node_ptr;\n"+
+                s"  ${node.renderName} * e2_node_ptr_real = (${node.renderName} *)e2_node_ptr;\n"+
+                s"  e1_score = "+ ctx.expression(InlineVars(scoreFn, varMapping(ctx, pattern, "e1_node_ptr")++ctx.policy.varMapping))+";\n"+
+                s"  e2_score = "+ ctx.expression(InlineVars(scoreFn, varMapping(ctx, pattern, "e2_node_ptr")++ctx.policy.varMapping))+";\n"+
+                s"  if(e1_score == e2_score){\n"+
+                s"    return (e1<e2);\n"+
+                s"  }\n"+
+                s"  else{\n"+
+                s"    return (e1_score > e2_score);\n"+
+                s"  }\n"+
+                s" }\n"+
+                s"};\n"
               }
-              }.mkString
+              else
+              {
+                ""
+              }
+             
+            
+              
           }
 
           }
-
-      }
-
+          
+        }
     
-    
-
   }
+}
+def PQCall(transform_name:String,pattern:MatchPattern):String = 
+{
+   pattern match {
+            case MatchNode(nodeName, fields, name) => { 
+
+              if(fields.forall{_.isInstanceOf[MatchAny]})
+              {
+                
+                s"${transform_name}_PQ"
+              }
+              else
+              {
+                ""
+              }
+             
+            }
+           case MatchAny(_) => ""
+
+  }  
 }
   def setPqGen(ctx:Render, pattern:MatchPattern,setorpq:String):String = 
   {

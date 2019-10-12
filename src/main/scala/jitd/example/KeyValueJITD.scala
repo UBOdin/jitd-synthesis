@@ -247,7 +247,7 @@ object KeyValueJITD extends HardcodedDefinition {
   // (
   //   "MergeSortedBTrees"
   // )
-  Policy("CrackSort")("crackAt" -> IntConstant(1000000),"null_data"-> IntConstant(0)) (
+  Policy("CrackSort")("crackAt" -> IntConstant(16),"null_data"-> IntConstant(0)) (
     //"PushDownAndCrack"            scoreBy { ArraySize("data") }
        ("CrackArray"       onlyIf { ArraySize("data") gte "crackAt" } 
                                   scoreBy { ArraySize("data") })
@@ -256,7 +256,7 @@ object KeyValueJITD extends HardcodedDefinition {
       //andThen ("PushDownDontDeleteConcat"            scoreBy { ArraySize("data") })
       //andThen ("PushDownDontDeleteElemConcat"          scoreBy { ArraySize("data") })
       andThen ("SortArray"        scoreBy { ArraySize("data") })
-      //andThen ("MergeSortedBTrees")
+      andThen ("MergeSortedBTrees")
       //andThen "MergeSortedConcat"
       
      // andThen "MergeDeleteNodes"

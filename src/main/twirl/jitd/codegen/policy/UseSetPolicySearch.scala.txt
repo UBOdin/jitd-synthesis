@@ -13,11 +13,11 @@
     int count = 0;
     long best_score = -1;
     long curr_score = -1;
-    if(!(this->@{RenderPattern.setPqGen(ctx, transform.from,"pq")}).empty())
+    if(!(this->@{RenderPattern.setPqGen(ctx, transform.from,"set")}).empty())
     {
       
       std::set< std::shared_ptr<JITDNode> * >::iterator it;
-      for(it = (this->@{RenderPattern.setPqGen(ctx, transform.from,"pq")}).begin(); it!=(this->@{RenderPattern.setPqGen(ctx, transform.from,"pq")}).end(); ++it)
+      for(it = (this->@{RenderPattern.setPqGen(ctx, transform.from,"set")}).begin(); it!=(this->@{RenderPattern.setPqGen(ctx, transform.from,"set")}).end(); ++it)
       {
           
           JITDNode *iter_node = (*it)->get();
@@ -36,7 +36,7 @@
 
           if(best_score>curr_score)
           {
-            std::cout<<"BESTSCORE: "<<best_score<<std::endl;
+            //std::cout<<"BESTSCORE: "<<best_score<<std::endl;
             curr_score = best_score;
             
             targetHandleRef = (*it);

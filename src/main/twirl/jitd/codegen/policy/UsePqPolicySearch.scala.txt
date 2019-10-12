@@ -14,10 +14,10 @@
     long bestScore = -1;
     long curr_score = -1;
     
-    if(!(this->@{RenderPattern.setPqGen(ctx, transform.from,"pq")}).empty())
+    if(!(this->@{RenderPattern.PQCall(transform.name,transform.from)}).empty())
     {
       std::set< std::shared_ptr<JITDNode> * >::iterator it;
-      it = (this->@{RenderPattern.setPqGen(ctx, transform.from,"pq")}).begin();
+      it = (this->@{RenderPattern.PQCall(transform.name,transform.from)}).begin();
       //std::cout<<"FOUND NODE :"<<((*it)->get())->type<<std::endl;
           JITDNode *iter_node = (*it)->get();
           //JITDNode *iter_node = (*it).get();

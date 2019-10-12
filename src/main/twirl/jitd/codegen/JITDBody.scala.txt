@@ -51,7 +51,7 @@ bool JITD::do_organize()
 ///////////////////// Set creation ///////////////////// 
 
 
-void JITD::setInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
+void JITD::setInit(std::shared_ptr<JITDNode> * &root_handle)
 {
 
   //Init code when jitd is first populated
@@ -71,7 +71,7 @@ void JITD::setInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
           std::shared_ptr<JITDNode> * child_nodeHandleRef;
         @for(field <- node.fields.filter { _.t == TNodeRef() }){
             child_nodeHandleRef = &(updated_node->@{field.name}); 
-            this->setInit(child_nodeHandleRef,false);
+            this->setInit(child_nodeHandleRef);
           }
         break;
       }
@@ -80,34 +80,7 @@ void JITD::setInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
   }
 }
 
-void JITD::pqInit(std::shared_ptr<JITDNode> * &root_handle,bool set_flag)
-{
 
-  //Init code when jitd is first populated
-  std::shared_ptr<JITDNode> set_node = std::atomic_load((root_handle));
-   JITDNode *lock_raw = set_node.get();
-  switch(set_node->type)
-  {
-    @for(node <- ctx.definition.nodes){
-      case @node.enumName : 
-      {
-        //std::cout<<"FOUND "<< @node.enumName <<" : "<<root_handle<<std::endl;
-
-        this->@{node.enumName}_pq.emplace(root_handle);
-
-        @{node.renderName} *updated_node = (@{node.renderName} *)lock_raw;
-          std::shared_ptr<JITDNode> * child_nodeHandleRef;
-        @for(field <- node.fields.filter { _.t == TNodeRef() }){
-            child_nodeHandleRef = &(updated_node->@{field.name}); 
-            this->pqInit(child_nodeHandleRef,false);
-          }
-       
-       break;
-      }
-      
-    }
-  }
-}
 void JITD::setAddition(std::shared_ptr<JITDNode> * node)
 {
   std::shared_ptr<JITDNode> set_node = std::atomic_load((node));
@@ -309,26 +282,38 @@ void JITD::check_set()
 }
 void JITD::check_pq()
 {
-  @for(node <- ctx.definition.nodes){
-    if(!this->@{node.enumName}_pq.empty())
+  
+    if(!this->CrackArray_PQ.empty())
     { 
         std::set<std::shared_ptr<JITDNode> *>::iterator it;
-      for(it = this->@{node.enumName}_pq.begin();it!=this->@{node.enumName}_pq.end();++it)
+      for(it = this->CrackArray_PQ.begin();it!=this->CrackArray_PQ.end();++it)
       {
         std::shared_ptr<JITDNode> * curr = *it;
-        std::cout<<"check_pq():The type of node in @{node.enumName} is "<<curr->get()->type<<std::endl;
-        //if(curr->get()->type == JITD_NODE_Array)
-        //{
-         // std::cout<<"SIZE : "<<array_size(((ArrayNode *)(curr->get()))->data)<<std::endl;
-        //}
+        std::cout<<"check_pq():The type of node in CrackArray_PQ is "<<curr->get()->type<<std::endl;
+       
       }
         
     }
     else
     {
-      std::cout<<"Empty @{node.enumName}_pq"<<std::endl;
+      std::cout<<"Empty CrackArray_PQ"<<std::endl;
     }
-  }
+    if(!this->SortArray_PQ.empty())
+    { 
+        std::set<std::shared_ptr<JITDNode> *>::iterator it;
+      for(it = this->SortArray_PQ.begin();it!=this->SortArray_PQ.end();++it)
+      {
+        std::shared_ptr<JITDNode> * curr = *it;
+        std::cout<<"check_pq():The type of node in SortArray_PQ is "<<curr->get()->type<<std::endl;
+       
+      }
+        
+    }
+    else
+    {
+      std::cout<<"Empty SortArray_PQ"<<std::endl;
+    }
+  
 
 }
 void print_time_vector_sum()
