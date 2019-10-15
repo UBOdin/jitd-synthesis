@@ -118,7 +118,7 @@ class HardcodedDefinition
   implicit def stringToVar(x:String) = Var(x)
   implicit def stringToExpressionConstructor(x:String) = ConstructExpression(Var(x))
   implicit def stringToMatchAny(x:String) = MatchAny(Some(x))
-  implicit def stringToTransformPolicy(x:String) = TransformPolicy(x)
+  implicit def stringToTransformPolicy(x:String) = TransformPolicy(x,x)
   implicit def boolToBoolConst(x:Boolean) = BoolConstant(x)
   implicit def intToIntConstant(x:Integer) = IntConstant(x)
   implicit def doubleToFloatConstant(x:Double) = FloatConstant(x)

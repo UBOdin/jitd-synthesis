@@ -107,6 +107,7 @@ void print_time_vector_sum();
 class JITD {
   
   public:
+    
     @{RenderPattern.ComparatorClass(ctx,ctx.policy.rule);}
     @{RenderPattern.PqDeclare(ctx,ctx.policy.rule,true);}
     std::set<std::shared_ptr<JITDNode> *> JITD_NODE_Array_pq;

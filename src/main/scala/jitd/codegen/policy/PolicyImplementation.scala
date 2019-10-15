@@ -16,7 +16,6 @@ abstract class PolicyImplementation
     definition:Definition,
     mutator: Boolean,
     handlerefbool:Boolean,
-    transform_name:String,
     from:MatchPattern, 
     to:ConstructorPattern, 
     fromTarget:String, 

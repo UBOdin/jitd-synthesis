@@ -12,7 +12,7 @@ object TransformToFunction
 
     var ctx = Render(definition) 
     val rule = ctx.policy.rule
-    var (stmt1,stmt2) = ctx.policyImplementation.onRewriteSet(ctx,definition,false,handlerefbool,transform.name,transform.from,transform.to,"target","to_ptr")
+    var (stmt1,stmt2) = ctx.policyImplementation.onRewriteSet(ctx,definition,false,handlerefbool,transform.from,transform.to,"target","to_ptr")
     
     def makeMatchTest(onMatch: Statement) = 
       MatchToStatement(

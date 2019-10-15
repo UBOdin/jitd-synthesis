@@ -94,6 +94,7 @@ def unrollSet(
     pattern match {
       case MatchAny(_)                    =>
           //println(fieldDef)
+          
           if(fieldDef.t == TNodeRef())
           {
             Seq((extractName,fieldDef.t.toString,targetExpression,pattern))

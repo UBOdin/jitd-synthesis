@@ -253,14 +253,26 @@ void JITD::print_pq()
 {
 //std::cout<<"calling print_set"<<std::endl;
 
-  @for(node <- ctx.definition.nodes){
-  if(!this->@{node.enumName}_pq.empty())
+  
+  if(!this->CrackArray_PQ.empty())
   {
-    std::cout<<"@{node.enumName}_pq:" << this->@{node.enumName}_pq.size()<<std::endl;
+    std::cout<<"CrackArray_PQ:" << this->CrackArray_PQ.size()<<std::endl;
     
   }
-  
+  else
+  {
+    std::cout<<"CrackArray_PQ is Empty" <<std::endl;
   }
+  if(!this->SortArray_PQ.empty())
+  {
+    std::cout<<"SortArray_PQ:" << this->SortArray_PQ.size()<<std::endl;
+    
+  }
+  else
+  {
+    std::cout<<"SortArray_PQ is Empty" <<std::endl;
+  }
+  
 }
 void JITD::check_set()
 {
@@ -303,7 +315,7 @@ void JITD::check_pq()
         std::set<std::shared_ptr<JITDNode> *>::iterator it;
       for(it = this->SortArray_PQ.begin();it!=this->SortArray_PQ.end();++it)
       {
-        std::shared_ptr<JITDNode> * curr = *it;
+       std::shared_ptr<JITDNode> * curr = *it;
         std::cout<<"check_pq():The type of node in SortArray_PQ is "<<curr->get()->type<<std::endl;
        
       }
@@ -312,7 +324,7 @@ void JITD::check_pq()
     else
     {
       std::cout<<"Empty SortArray_PQ"<<std::endl;
-    }
+  }
   
 
 }

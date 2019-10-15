@@ -1,8 +1,10 @@
 build
-Array random 40 1 40
+Array random 100 1 100
 Return
 dump
 policy_act_until_done
 dump
 check_pq
+print_pq
 check_set
+print_set

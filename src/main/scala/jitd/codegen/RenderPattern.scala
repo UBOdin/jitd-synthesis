@@ -2,7 +2,7 @@ package jitd.codegen
 
 import jitd.spec._
 import jitd.rewrite.InlineVars
-
+import jitd.rewrite.MatchToStatement
 object RenderPattern
 {
   def test(ctx:Render, pattern:MatchPattern, target:String, onFailure:String): String =
@@ -39,7 +39,7 @@ object RenderPattern
       case TieredPolicy(Seq()) => ""
       case TieredPolicy(policies) => policies.map{PqDeclare(ctx,_,true)}.mkString 
         
-      case TransformPolicy(name, _, scoreFn) => 
+      case TransformPolicy(unique_name,name, _, scoreFn) => 
         {
           val transfrom_name = name
 
@@ -57,7 +57,7 @@ object RenderPattern
                 }
                 else
                 {
-                  s"//${transfrom_name}_PQ"
+                  ""
                 }
               }
               else
@@ -72,6 +72,7 @@ object RenderPattern
     
   }
   }
+  
   def ComparatorClass(ctx:Render,rule:PolicyRule): String = 
   {
     //val rule = ctx.policy.rule;
@@ -79,7 +80,7 @@ object RenderPattern
       case TieredPolicy(Seq()) => ""
       case TieredPolicy(policies) => policies.map{ComparatorClass(ctx,_)}.mkString 
         
-      case TransformPolicy(name, _, scoreFn) => 
+      case TransformPolicy(unique_name,name, _, scoreFn) => 
         {
           val transfrom_name = name
 

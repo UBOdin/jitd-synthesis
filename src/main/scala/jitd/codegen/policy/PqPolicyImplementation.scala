@@ -14,19 +14,22 @@ object PqPolicyImplementation extends PolicyImplementation
   {
     s"std::shared_ptr<JITDNode> *root_handle = &"++root++";setInit(root_handle);"+
     PQinit(ctx,rule,"emplace",Var("root_handle")).toString
+
   }
 
-  def PQinit(ctx:Render,rule:PolicyRule,op:String,root:Expression): Statement = 
+  def PQinit(ctx:Render,rule:PolicyRule,op:String,root:Expression,rootpattern:Option[MatchPattern]=None): Statement = 
     {
       rule match {
       case TieredPolicy(Seq()) => Comment(s"")
-      case TieredPolicy(policies) => Block(policies.map{PQinit(ctx,_,op,root)}) 
-      case TransformPolicy(name, _, scoreFn) => 
+      case TieredPolicy(policies) => Block(policies.map{PQinit(ctx,_,op,root,rootpattern)}) 
+      case TransformPolicy(unique_name,name, _, scoreFn) => 
         {
-            val transform_name = name
+            val transform_name = unique_name
             val pattern = ctx.definition.transform(name).from 
-            
-            pattern match{
+            val compatible = Pattern.compatible(pattern,rootpattern.getOrElse{MatchAny()})
+            if(compatible ==true)
+            {
+                pattern match{
               case MatchNode(nodeType, fields, _) =>
               {
                   if (fields.forall{_.isInstanceOf[MatchAny]}) 
@@ -38,8 +41,12 @@ object PqPolicyImplementation extends PolicyImplementation
                     Block(Seq())
                   }
               }
-            }  
-            
+            }
+            }
+            else
+            {
+              Block(Seq())
+            }        
         }
         
       }
@@ -49,11 +56,10 @@ object PqPolicyImplementation extends PolicyImplementation
     definition:Definition,
     mutator: Boolean,
     handlerefbool:Boolean,
-    transform_name:String,
     from:MatchPattern, 
     to:ConstructorPattern, 
     fromTarget:String, 
-    toTarget:String): (Statement, Statement) =(pqRemove(ctx,definition,handlerefbool,transform_name,from,fromTarget,mutator), pqAdd(ctx,definition,handlerefbool,transform_name,to,toTarget,mutator))
+    toTarget:String): (Statement, Statement) =(pqRemove(ctx,definition,handlerefbool,from,fromTarget,mutator), pqAdd(ctx,definition,handlerefbool,to,toTarget,mutator))
   //Eg: of what OnRewriteSet should return
 
   //array(data) -> Btree(Array1,sep,Array2) 
@@ -71,7 +77,7 @@ object PqPolicyImplementation extends PolicyImplementation
   //PROBLEM: But with the current logic there is a CrackArray_PQ.emplace(SortedArray) and SortArray_PQ.emplace(SortArray)
 
   //This function takes in the MatchPattern and adds that node to all possible PQs.
-  def pqAdd(ctx:Render,definition:Definition,handlerefbool:Boolean,transform_name:String,to:ConstructorPattern,toNodeVar:String,mutator:Boolean):Statement = 
+  def pqAdd(ctx:Render,definition:Definition,handlerefbool:Boolean,to:ConstructorPattern,toNodeVar:String,mutator:Boolean):Statement = 
   { 
     val target = if (mutator == true) "root" else "target"
     val rule = ctx.policy.rule
@@ -92,7 +98,7 @@ object PqPolicyImplementation extends PolicyImplementation
               {
                   if (fields.forall{_.isInstanceOf[MatchAny]})//lets call nodes without decendents as standalone.This condition is to make sure only standalone
                   {                                           //nodes get put into a PQ.
-                    PQinit(ctx,rule,"emplace",vnnt._3)//Function to populate what all PQs are there in the JITD structure based on the ctx.policy.rule 
+                    PQinit(ctx,rule,"emplace",vnnt._3,Some(vnnt._4))//Function to populate what all PQs are there in the JITD structure based on the ctx.policy.rule 
                   }                                   //and what operation is invoked on the PQ on what expression(expression for the node).
                   else
                   {
@@ -108,7 +114,7 @@ object PqPolicyImplementation extends PolicyImplementation
 
   }
   
-  def pqRemove(ctx:Render,definition:Definition,handlerefbool:Boolean,transform_name:String,fromNode:MatchPattern,fromNodeVar:String,mutator:Boolean):Statement = 
+  def pqRemove(ctx:Render,definition:Definition,handlerefbool:Boolean,fromNode:MatchPattern,fromNodeVar:String,mutator:Boolean):Statement = 
   {
     val rule = ctx.policy.rule
     val extract = 
@@ -130,7 +136,7 @@ object PqPolicyImplementation extends PolicyImplementation
               {
                   if (fields.forall{_.isInstanceOf[MatchAny]}) 
                   {
-                    PQinit(ctx,rule,"erase",vnnt._3) 
+                    PQinit(ctx,rule,"erase",vnnt._3,Some(vnnt._4)) 
                   }
                   else
                   {
@@ -158,7 +164,7 @@ object PqPolicyImplementation extends PolicyImplementation
     
       rule match {
       case TieredPolicy(policies) => policies.map { utilityFunctions(ctx, _) }.mkString
-      case TransformPolicy(name, constraint, scoreFn) =>
+      case TransformPolicy(unique_name,name, constraint, scoreFn) =>
         
         val pattern_from = ctx.definition.transform(name).from
         //println(pattern_from)
@@ -203,7 +209,7 @@ object PqPolicyImplementation extends PolicyImplementation
       case TieredPolicy(policies) => 
         doOrganize(ctx, root, policies.head, onSuccess, "")+"  "+
           doOrganize(ctx, root, TieredPolicy(policies.tail), onSuccess, onFail)
-      case TransformPolicy(name, _, _) => 
+      case TransformPolicy(unique_name,name, _, _) => 
         UsePqPolicyTryTransform(ctx, root, name, onSuccess, onFail).toString
     }
 

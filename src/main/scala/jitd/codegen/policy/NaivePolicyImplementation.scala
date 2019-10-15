@@ -19,7 +19,6 @@ object NaivePolicyImplementation extends PolicyImplementation
     definition:Definition, 
     mutator: Boolean,
     handlerefbool:Boolean,
-    transform_name:String,
     from:MatchPattern, 
     to:ConstructorPattern, 
     fromTarget:String, 
@@ -39,7 +38,7 @@ object NaivePolicyImplementation extends PolicyImplementation
   {
     rule match {
       case TieredPolicy(policies) => policies.map { utilityFunctions(ctx, _) }.mkString
-      case TransformPolicy(name, constraint, scoreFn) =>
+      case TransformPolicy(unique_name,name, constraint, scoreFn) =>
         NaivePolicySearch(  // Generated via Twirl template
           ctx, 
           ctx.definition.transform(name), 
@@ -59,7 +58,7 @@ object NaivePolicyImplementation extends PolicyImplementation
       case TieredPolicy(policies) => 
         doOrganize(ctx, root, policies.head, onSuccess, "")+"  "+
           doOrganize(ctx, root, TieredPolicy(policies.tail), onSuccess, onFail)
-      case TransformPolicy(name, _, _) => 
+      case TransformPolicy(unique_name,name, _, _) => 
         NaivePolicyTryTransform(ctx, root, name, onSuccess, onFail).toString
     }
 
