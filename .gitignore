@@ -4,3 +4,6 @@
 /jitd_test
 /test_accessor
 /jitd.cpp
+*.swp
+*.o
+jitd_harness
