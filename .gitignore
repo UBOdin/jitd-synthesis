@@ -7,3 +7,4 @@
 *.swp
 *.o
 jitd_harness
+src/main/cpp/include/data.hpp
