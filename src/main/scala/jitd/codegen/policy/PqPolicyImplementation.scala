@@ -10,13 +10,35 @@ object PqPolicyImplementation extends PolicyImplementation
 {
   // Render field definitions for the JITD object
   def state(ctx:Render): String = "//std::cout<<\"STATE CALLED\"<<std::endl;"
+  //Pre-conditoin: All support structures are empty
   def init(ctx:Render,rule:PolicyRule,root:String):String = 
   {
-    s"std::shared_ptr<JITDNode> *root_handle = &"++root++";setInit(root_handle);"+
-    PQinit(ctx,rule,"emplace",Var("root_handle")).toString
+    s"std::shared_ptr<JITDNode> *root_handle = &"++root++";"+
+    //s"setInit(root_handle);"+
+    PQinit(ctx,rule,"emplace(",Var("root_handle")).toString
 
   }
+  //Post-condition: support structures correctly ref root and all its decendents appear in the sets corresponding to theeir type.
+  //every node reachable from root and its desendants is a part of all PQs that it is eligible for.
+  //LIMITATION:THE PQ INIT CODE ONLY LOOKS AT ROOTS OF TYPE ARRAY.
+  def eligible(pattern:MatchPattern):Boolean = 
+  {
+     pattern match{
+              case MatchNode(nodeType, fields, _) =>
+              {
+                  if (fields.forall{_.isInstanceOf[MatchAny]}) 
+                  {
+                      true
+                  }
+                  else
+                  {
+                    false
+                  }
+              }
+              case MatchAny(_) => false
 
+            }
+  }
   def PQinit(ctx:Render,rule:PolicyRule,op:String,root:Expression,rootpattern:Option[MatchPattern]=None): Statement = 
     {
       rule match {
@@ -27,21 +49,17 @@ object PqPolicyImplementation extends PolicyImplementation
             val transform_name = unique_name
             val pattern = ctx.definition.transform(name).from 
             val compatible = Pattern.compatible(pattern,rootpattern.getOrElse{MatchAny()})
+            val eligibility = eligible(pattern)
             if(compatible ==true)
             {
-                pattern match{
-              case MatchNode(nodeType, fields, _) =>
-              {
-                  if (fields.forall{_.isInstanceOf[MatchAny]}) 
+                  if (eligibility == true) 
                   {
-                      PQStatement(transform_name,op,root)//The Statement that transalates to Eg:CrackArray_PQ.emplace(&target)
+                      commonFunction("this->"+transform_name+"_PQ.",op,root)//The Statement that transalates to Eg:CrackArray_PQ.emplace(&target)
                   }
                   else
                   {
                     Block(Seq())
                   }
-              }
-            }
             }
             else
             {
@@ -77,6 +95,7 @@ object PqPolicyImplementation extends PolicyImplementation
   //PROBLEM: But with the current logic there is a CrackArray_PQ.emplace(SortedArray) and SortArray_PQ.emplace(SortArray)
 
   //This function takes in the MatchPattern and adds that node to all possible PQs.
+  //Post-condition:Every matched Node apprears in every PQ thats its eligible for and in appropriate sets.
   def pqAdd(ctx:Render,definition:Definition,handlerefbool:Boolean,to:ConstructorPattern,toNodeVar:String,mutator:Boolean):Statement = 
   { 
     val target = if (mutator == true) "root" else "target"
@@ -89,31 +108,25 @@ object PqPolicyImplementation extends PolicyImplementation
         {MatchToStatement.unrollSet(definition,to.toMatchPattern,toNodeVar,WrapNodeRef(Var(target)))}
 
     val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4)) 
-    val setseqStmt = eachVarName.map(vnnt => SetAddFunction(vnnt._1.toString,vnnt._3)) 
+    //val setseqStmt = eachVarName.map(vnnt => commonFunction("this->setAddition","(",vnnt._3)) 
     val pqseqStmt = eachVarName.map(vnnt =>
           {
-            vnnt._4 match
-            {
-              case MatchNode(nodeType, fields, _) =>
-              {
-                  if (fields.forall{_.isInstanceOf[MatchAny]})//lets call nodes without decendents as standalone.This condition is to make sure only standalone
+            val eligibility = eligible(vnnt._4)
+                  if (eligibility == true)//lets call nodes without decendents as standalone.This condition is to make sure only standalone
                   {                                           //nodes get put into a PQ.
-                    PQinit(ctx,rule,"emplace",vnnt._3,Some(vnnt._4))//Function to populate what all PQs are there in the JITD structure based on the ctx.policy.rule 
+                    PQinit(ctx,rule,"emplace(",vnnt._3,Some(vnnt._4))//Function to populate what all PQs are there in the JITD structure based on the ctx.policy.rule 
                   }                                   //and what operation is invoked on the PQ on what expression(expression for the node).
                   else
                   {
-                    Block(Seq())
+                    commonFunction("this->setAddition","(",vnnt._3)
+                    //Block(Seq())
                   }
-              }
-            case MatchAny(_) => Block(Seq())
-            }
-            
           })
-          return {Block(pqseqStmt) ++ Block(setseqStmt)}
-    
-
+          //return {Block(pqseqStmt) ++ Block(setseqStmt)}
+          return Block(pqseqStmt)
   }
-  
+  //Pre-condition: The existing support structures are correct.
+  //Post-condition: Every matched Node apprearing in a Match Pattern doesnot appear in any sets and PQs.
   def pqRemove(ctx:Render,definition:Definition,handlerefbool:Boolean,fromNode:MatchPattern,fromNodeVar:String,mutator:Boolean):Statement = 
   {
     val rule = ctx.policy.rule
@@ -126,27 +139,23 @@ object PqPolicyImplementation extends PolicyImplementation
     
     //println(extract(0)._4)  
     val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4))
-    val setseqStmt = eachVarName.map(vnnt => SetRemoveFunction(vnnt._1,vnnt._3))
+    //val setseqStmt = eachVarName.map(vnnt => commonFunction("this->setRemoval","(",vnnt._3))
     
           val pqseqStmt = eachVarName.map(vnnt =>
           {
-            vnnt._4 match
-            {
-              case MatchNode(nodeType, fields, _) =>
-              {
-                  if (fields.forall{_.isInstanceOf[MatchAny]}) 
+            val eligibility = eligible(vnnt._4)
+                  if (eligibility == true) 
                   {
-                    PQinit(ctx,rule,"erase",vnnt._3,Some(vnnt._4)) 
+                    PQinit(ctx,rule,"erase(",vnnt._3,Some(vnnt._4)) 
                   }
                   else
                   {
-                    Comment(s"")
+                    commonFunction("this->setRemoval","(",vnnt._3)
+                    //Block(Seq())
                   }
-              }
-            case MatchAny(_) => Comment(s"")
-            }
           })
-          return {Block(pqseqStmt) ++ Block(setseqStmt)}
+          //return {Block(pqseqStmt) ++ Block(setseqStmt)}
+          return Block(pqseqStmt)
        
   }
 

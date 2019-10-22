@@ -266,9 +266,7 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
       }
       case Error(_) => scope
       case Comment(_) => scope
-      case SetRemoveFunction(_,_) => scope 
-      case SetAddFunction(_,_) => scope 
-      case PQStatement(_,_,_) => scope
+      case commonFunction(_,_,_) => scope
       
     }
   }

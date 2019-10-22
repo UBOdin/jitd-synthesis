@@ -37,7 +37,7 @@ object SetPolicyImplementation extends PolicyImplementation
     val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3))
     //println(eachVarName.lift(2)) 
     //ExtractNodeNameForSet(s"setRemovalCode")
-    val seqStmt = eachVarName.map(vnnt => SetRemoveFunction(vnnt._1.toString,vnnt._3))
+    val seqStmt = eachVarName.map(vnnt => commonFunction("this->setRemoval","(",vnnt._3))
     return Block(seqStmt)
     
 
@@ -54,7 +54,7 @@ object SetPolicyImplementation extends PolicyImplementation
 
     val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3)) 
    
-    val seqStmt = eachVarName.map(vnnt => SetAddFunction(vnnt._1.toString,vnnt._3))
+    val seqStmt = eachVarName.map(vnnt => commonFunction("this->setAddition","(",vnnt._3))
 
     
     return Block(seqStmt)

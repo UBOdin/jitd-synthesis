@@ -100,25 +100,7 @@ void JITD::setAddition(std::shared_ptr<JITDNode> * node)
     }
   }
 }
-void JITD::pqAddition(std::shared_ptr<JITDNode> * node)
-{
-  std::shared_ptr<JITDNode> set_node = std::atomic_load((node));
-  JITDNode *lock_raw = set_node.get();
-  switch(set_node->type)
-  {
-    @for(node <- ctx.definition.nodes){
-      case @node.enumName : 
-      {
-        //std::cout<<"FOUND ADD: "<<set_node->type<<"Addr : "<<set_node<<std::endl;
 
-        this->@{node.enumName}_pq.emplace(node);
-        
-        break;
-      }
-      
-    }
-  }
-}
 void JITD::setRemoval(std::shared_ptr<JITDNode> * node)
 {
   std::shared_ptr<JITDNode> set_node = std::atomic_load((node));
@@ -138,25 +120,7 @@ void JITD::setRemoval(std::shared_ptr<JITDNode> * node)
     }
   }
 }
-void JITD::pqRemoval(std::shared_ptr<JITDNode> * node)
-{
-  std::shared_ptr<JITDNode> set_node = std::atomic_load((node));
-  JITDNode *lock_raw = set_node.get();
-  switch(set_node->type)
-  {
-    @for(node <- ctx.definition.nodes){
-      case @node.enumName : 
-      {
-        //std::cout<<"FOUND ERASE: "<<set_node->type<<std::endl;
 
-        this->@{node.enumName}_pq.erase(node);
-        
-        break;
-      }
-      
-    }
-  }
-}
 ///////////////////// Debugging Utilities ///////////////////// 
 
 std::shared_ptr<JITD> assemble_jitd(std::istream &in)
@@ -263,15 +227,15 @@ void JITD::print_pq()
   {
     std::cout<<"CrackArray_PQ is Empty" <<std::endl;
   }
-  if(!this->SortArray_PQ.empty())
-  {
-    std::cout<<"SortArray_PQ:" << this->SortArray_PQ.size()<<std::endl;
+  //if(!this->SortArray_PQ.empty())
+  //{
+  //  std::cout<<"SortArray_PQ:" << this->SortArray_PQ.size()<<std::endl;
     
-  }
-  else
-  {
-    std::cout<<"SortArray_PQ is Empty" <<std::endl;
-  }
+  //}
+  //else
+  //{
+  //  std::cout<<"SortArray_PQ is Empty" <<std::endl;
+  //}
   
 }
 void JITD::check_set()
@@ -310,21 +274,21 @@ void JITD::check_pq()
     {
       std::cout<<"Empty CrackArray_PQ"<<std::endl;
     }
-    if(!this->SortArray_PQ.empty())
-    { 
-        std::set<std::shared_ptr<JITDNode> *>::iterator it;
-      for(it = this->SortArray_PQ.begin();it!=this->SortArray_PQ.end();++it)
-      {
-       std::shared_ptr<JITDNode> * curr = *it;
-        std::cout<<"check_pq():The type of node in SortArray_PQ is "<<curr->get()->type<<std::endl;
+    //if(!this->SortArray_PQ.empty())
+    //{ 
+    //    std::set<std::shared_ptr<JITDNode> *>::iterator it;
+     // for(it = this->SortArray_PQ.begin();it!=this->SortArray_PQ.end();++it)
+     // {
+     //  std::shared_ptr<JITDNode> * curr = *it;
+     //   std::cout<<"check_pq():The type of node in SortArray_PQ is "<<curr->get()->type<<std::endl;
        
-      }
+     // }
         
-    }
-    else
-    {
-      std::cout<<"Empty SortArray_PQ"<<std::endl;
-  }
+    //}
+    //else
+    //{
+    //  std::cout<<"Empty SortArray_PQ"<<std::endl;
+  //}
   
 
 }
