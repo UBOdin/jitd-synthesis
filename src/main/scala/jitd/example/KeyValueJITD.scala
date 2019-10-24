@@ -247,7 +247,7 @@ object KeyValueJITD extends HardcodedDefinition {
   // (
   //   "MergeSortedBTrees"
   // )
-  Policy("CrackSort")("crackAt" -> IntConstant(1000000000),"null_data"-> IntConstant(0)) (
+  Policy("CrackSort")("crackAt" -> IntConstant(1000000),"null_data"-> IntConstant(0)) (
     //"PushDownAndCrack"            scoreBy { ArraySize("data") }
        ("CrackArray"       onlyIf { ArraySize("data") gte "crackAt" } 
                                   scoreBy { ArraySize("data") })

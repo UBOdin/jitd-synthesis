@@ -53,7 +53,7 @@ class RenderStatement(
           indent+"}\n"
 
         }   
-
+      //Use Void instead of this and have obj oeientation info  
       case commonFunction(function,op,v) =>{
         indent+function+op+renderExpression(v)+");\n"
       }

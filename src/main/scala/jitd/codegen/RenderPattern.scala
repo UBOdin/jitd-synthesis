@@ -3,8 +3,10 @@ package jitd.codegen
 import jitd.spec._
 import jitd.rewrite.InlineVars
 import jitd.rewrite.MatchToStatement
+import jitd.codegen.policy._
 object RenderPattern
 {
+  var trackablesets = scala.collection.mutable.Set[String]()
   def test(ctx:Render, pattern:MatchPattern, target:String, onFailure:String): String =
   {
     val recur = (newPattern:MatchPattern, newTarget:String) => test(ctx, newPattern, newTarget, onFailure)
@@ -44,29 +46,37 @@ object RenderPattern
           val transfrom_name = name
 
           val pattern = ctx.definition.transform(name).from
-          //println(name)
-          pattern match {
-            case MatchNode(nodeName, fields, name) => { 
-              //val node = ctx.definition.nodesByName(nodeName)
-              //println(name)
-              if (fields.forall{_.isInstanceOf[MatchAny]})
+          val eligibility = PqPolicyImplementation.eligible(pattern)
+          
+              if (eligibility == true)
               {
                 if(init == true)
                 {
-                  s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_PQ;\n"
+                   s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_PQ;\n"
                 }
                 else
                 {
-                  ""
+                   ""
                 }
               }
               else
               {
-                ""
-              }   
-          }
+                val extract = MatchToStatement.unrollSet(ctx.definition,pattern,"",(Var("")))
+                // println(extract(0))
+                // println(extract(0)._2)
+                // val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4)) 
+                // val pqseqStmt = eachVarName.map(vnnt =>
+                // {
+                    trackablesets.add(extract(0)._2.toString)
+                    //println(trackablesets)
+                     s"std::set<std::shared_ptr<JITDNode> *> JITD_NODE_${extract(0)._2.toString}_set;\n"
+                     
+                //})
+                //return pqseqStmt.mkString
+              }  
+          
 
-          }
+          
           
         }
     

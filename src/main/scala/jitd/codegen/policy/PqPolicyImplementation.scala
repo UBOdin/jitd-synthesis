@@ -6,8 +6,11 @@ import jitd.codegen.policy.txt._
 import jitd.rewrite._
 import jitd.codegen.RenderPattern
 import util.control.Breaks._
+
 object PqPolicyImplementation extends PolicyImplementation
 {
+  var trackable = RenderPattern.trackablesets
+  //var trackable = Set("Array","SortedArray","Concat","Delete","BTree","DeleteElements")
   // Render field definitions for the JITD object
   def state(ctx:Render): String = "//std::cout<<\"STATE CALLED\"<<std::endl;"
   //Pre-conditoin: All support structures are empty
@@ -108,7 +111,19 @@ object PqPolicyImplementation extends PolicyImplementation
         {MatchToStatement.unrollSet(definition,to.toMatchPattern,toNodeVar,WrapNodeRef(Var(target)))}
 
     val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4)) 
-    //val setseqStmt = eachVarName.map(vnnt => commonFunction("this->setAddition","(",vnnt._3)) 
+    val setseqStmt = eachVarName.map(vnnt => 
+      {
+            val hasSet = trackable(vnnt._2.toString)
+            if(hasSet == true)
+            {
+              //Comment(s"SET ADD")
+              commonFunction("this->JITD_NODE_"+vnnt._2+"_set.","emplace(",vnnt._3)
+            }
+            else
+            {
+              Block(Seq())
+            }
+      }) 
     val pqseqStmt = eachVarName.map(vnnt =>
           {
             val eligibility = eligible(vnnt._4)
@@ -118,12 +133,13 @@ object PqPolicyImplementation extends PolicyImplementation
                   }                                   //and what operation is invoked on the PQ on what expression(expression for the node).
                   else
                   {
-                    commonFunction("this->setAddition","(",vnnt._3)
-                    //Block(Seq())
+
+                    //commonFunction("this->setAddition","(",vnnt._3)
+                    Block(Seq())
                   }
           })
-          //return {Block(pqseqStmt) ++ Block(setseqStmt)}
-          return Block(pqseqStmt)
+          return {Block(pqseqStmt) ++ Block(setseqStmt)}
+          //return Block(pqseqStmt)
   }
   //Pre-condition: The existing support structures are correct.
   //Post-condition: Every matched Node apprearing in a Match Pattern doesnot appear in any sets and PQs.
@@ -139,7 +155,19 @@ object PqPolicyImplementation extends PolicyImplementation
     
     //println(extract(0)._4)  
     val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4))
-    //val setseqStmt = eachVarName.map(vnnt => commonFunction("this->setRemoval","(",vnnt._3))
+    val setseqStmt = eachVarName.map(vnnt => 
+      {
+        val hasSet = trackable(vnnt._2.toString)
+            if(hasSet == true)
+            {
+              //Comment(s"SET REMOVE")
+              commonFunction("this->JITD_NODE_"+vnnt._2+"_set.","erase(",vnnt._3)
+            }
+            else
+            {
+              Block(Seq())
+            }
+      })
     
           val pqseqStmt = eachVarName.map(vnnt =>
           {
@@ -150,12 +178,12 @@ object PqPolicyImplementation extends PolicyImplementation
                   }
                   else
                   {
-                    commonFunction("this->setRemoval","(",vnnt._3)
-                    //Block(Seq())
+                    //commonFunction("this->setRemoval","(",vnnt._3)
+                    Block(Seq())
                   }
           })
-          //return {Block(pqseqStmt) ++ Block(setseqStmt)}
-          return Block(pqseqStmt)
+          return {Block(pqseqStmt) ++ Block(setseqStmt)}
+          //return Block(pqseqStmt)
        
   }
 

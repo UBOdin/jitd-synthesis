@@ -6,7 +6,7 @@ import jitd.codegen.policy.txt._
 import jitd.rewrite._
 object SetPolicyImplementation extends PolicyImplementation
 {
-  // Render field definitions for the JITD object
+  // Render field definitions for the JITD object 
   def state(ctx:Render): String = ""
   // Render a block of code to be run when the JITD is initialized
   def init(ctx:Render,rule:PolicyRule,root:String): String = "std::shared_ptr<JITDNode> *root_handle = &"++root++";setInit(root_handle);"
