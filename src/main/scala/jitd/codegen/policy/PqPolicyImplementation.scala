@@ -9,7 +9,7 @@ import util.control.Breaks._
 
 object PqPolicyImplementation extends PolicyImplementation
 {
-  var trackable = RenderPattern.trackablesets
+  var trackable = RenderPattern.trackablesets//try making this immuatble
   //var trackable = Set("Array","SortedArray","Concat","Delete","BTree","DeleteElements")
   // Render field definitions for the JITD object
   def state(ctx:Render): String = "//std::cout<<\"STATE CALLED\"<<std::endl;"
@@ -145,6 +145,7 @@ object PqPolicyImplementation extends PolicyImplementation
   //Post-condition: Every matched Node apprearing in a Match Pattern doesnot appear in any sets and PQs.
   def pqRemove(ctx:Render,definition:Definition,handlerefbool:Boolean,fromNode:MatchPattern,fromNodeVar:String,mutator:Boolean):Statement = 
   {
+    println(trackable)
     val rule = ctx.policy.rule
     val extract = 
       if(handlerefbool == true)

@@ -16,7 +16,7 @@ std::vector<float> time_vec_SortArray;
 std::vector<float> time_vec_DeleteElemFromSortedArray;
 std::vector<float> time_vec_MergeSortedBTrees;
 std::vector<float> time_vec_MergeSortedConcat;
-
+std::vector<float> time_vec_DeleteElemFromArray;
 
 //#define JITD_DEBUG_POLICY true;
 //std::shared_ptr<JITDNode> * rootHandleRef;

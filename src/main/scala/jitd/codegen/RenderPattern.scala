@@ -62,14 +62,26 @@ object RenderPattern
               else
               {
                 val extract = MatchToStatement.unrollSet(ctx.definition,pattern,"",(Var("")))
+                if(trackablesets(extract(0)._2.toString))
+                {
+                  ""
+                }
+                else
+                {
+                  trackablesets.add(extract(0)._2.toString)
+                  s"std::set<std::shared_ptr<JITDNode> *> JITD_NODE_${extract(0)._2.toString}_set;\n"
+                }
+                
+                
+                //val extract = MatchToStatement.unrollSet(ctx.definition,pattern,"",(Var("")))
                 // println(extract(0))
                 // println(extract(0)._2)
                 // val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4)) 
                 // val pqseqStmt = eachVarName.map(vnnt =>
                 // {
-                    trackablesets.add(extract(0)._2.toString)
+                    //trackablesets.add(extract(0)._2.toString)
                     //println(trackablesets)
-                     s"std::set<std::shared_ptr<JITDNode> *> JITD_NODE_${extract(0)._2.toString}_set;\n"
+                     //trackablesets.foreach(node => s"std::set<std::shared_ptr<JITDNode> *> JITD_NODE_${node}_set;\n").toString
                      
                 //})
                 //return pqseqStmt.mkString
@@ -81,8 +93,9 @@ object RenderPattern
         }
     
   }
-  }
   
+ } 
+ 
   def ComparatorClass(ctx:Render,rule:PolicyRule): String = 
   {
     //val rule = ctx.policy.rule;

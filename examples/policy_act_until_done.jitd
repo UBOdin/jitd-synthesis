@@ -1,5 +1,5 @@
 build
-Array random 1000000000 1 1000000000
+Array random 100000000 1 100000000
 Return
 policy_act_until_done
 print_pq

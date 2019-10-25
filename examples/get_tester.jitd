@@ -1,0 +1,12 @@
+build
+Array explicit 1 2 3 4 5 6 7 8 9 10
+Return
+dump
+get 5
+insert explicit 11
+dump
+get 11
+remove_elements explicit 6
+dump
+policy_act_until_done
+dump
