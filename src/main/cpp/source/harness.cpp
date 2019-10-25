@@ -23,18 +23,20 @@ int jitd_harness() {
 	int i;
 	struct operation_node opnode;
 
+/*
 	int testarray[] = {41, 6, 7, 19, 51, 95, 94, 93, 88, 5};
 	bool observed;
 	bool expected;
+*/
 
 	printf("Starting\n");
-
 	gettimeofday(&start, NULL);
 
-	r.key = -9999999;
+	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
+
+	r.key = -9999999;  // dummy init key; will be popped later
 	r.value = (Value)0xDEADBEEF;
 	data.push_back(r);
-	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
 
 	i = 0;
 	while (true) {
