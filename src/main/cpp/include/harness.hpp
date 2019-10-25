@@ -16,8 +16,6 @@ struct operation_node {
 
 
 typedef enum operation_type optype;
-typedef struct operation_node opnode;
-typedef std::vector<Record> RecordBuffer;
 
 
 double total_time(timeval &start, timeval &end);
