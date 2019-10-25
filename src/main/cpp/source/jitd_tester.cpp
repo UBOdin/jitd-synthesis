@@ -17,7 +17,7 @@
 #include "jitd_test.hpp"
 
 #include <unistd.h>
-#include "input.hpp"
+#include "harness.hpp"
 #include "data.hpp"
 
 #define SEED_MAX 111111
