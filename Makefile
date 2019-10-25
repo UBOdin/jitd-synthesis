@@ -19,7 +19,7 @@ jitd_test.o:  target/jitd_test.cpp src/main/cpp/include/runtime.hpp target/jitd_
 	$(CC) $(CFLAGS) -c target/jitd_test.cpp -I src/main/cpp/include -I target
 
 harness.o:  src/main/cpp/source/harness.cpp
-	$(CC) $(CFLAGS) -c src/main/cpp/source/harness.cpp -I src/main/cpp/include
+	$(CC) $(CFLAGS) -c src/main/cpp/source/harness.cpp -I src/main/cpp/include -I target
 
 clean: 
 	$(RM) jitd_harness *.o *~
