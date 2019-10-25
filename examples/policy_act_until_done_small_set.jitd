@@ -1,16 +1,12 @@
 build
-Array random 40 1 40
+Array random 10 1 40
 Return
 dump
-insert random 5 50 60
+policy_act_for 7
 dump
 check_set
 print_set
-insert random 5 50 60
-dump
-check_set
-print_set
-policy_act_for 30
+policy_act_for 1
 dump
 check_set
 print_set

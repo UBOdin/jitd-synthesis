@@ -19,7 +19,7 @@ case class Render(
     case "" => definition.policies(0)
     case _ => definition.policies.find { _.name == policyName }.get
   }
-
+  
   def statement = new RenderStatement(this)
   def expression = statement.renderExpression
 

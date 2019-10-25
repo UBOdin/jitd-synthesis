@@ -16,7 +16,7 @@ object MutatorToFunction
           if(field.t.isInstanceOf[PrimType]) { FunctionArgType.Input } else { FunctionArgType.ConstInputRef }
         )
       }
-    var stmt = PqRemoveFunction("root",WrapNodeRef(Var("root")))
+    var stmt = PqPolicyImplementation.PQinit(ctx,ctx.policy.rule,"erase(",WrapNodeRef(Var("root")))
     val (constructor, new_root) = 
       MatchToStatement(
         definition,

@@ -5,13 +5,15 @@ import jitd.spec.FunctionArgType._
 import jitd.codegen._
 object TransformToFunction
 {
-  def apply(definition: Definition, transform: Transform): FunctionDefinition =
+  def apply(definition: Definition, transform: Transform,prefix:String): FunctionDefinition =
   {
     var handlerefbool = true
-    var ctx = Render(definition) 
-    var (stmt1,stmt2) = ctx.policyImplementation.onRewriteSet(ctx,definition,false,handlerefbool,transform.from,transform.to,"target","to_ptr")
    
 
+    var ctx = Render(definition) 
+    val rule = ctx.policy.rule
+    var (stmt1,stmt2) = ctx.policyImplementation.onRewriteSet(ctx,definition,false,handlerefbool,transform.from,transform.to,"target","to_ptr")
+    
     def makeMatchTest(onMatch: Statement) = 
       MatchToStatement(
         definition, 
@@ -32,7 +34,7 @@ object TransformToFunction
     }
     definition.typechecker.check {//checks to see if its correct and returns same 
       FunctionDefinition(
-        transform.name, 
+        prefix+transform.name, 
         Some(TBool()),
         Seq(
           ("target", THandleRef(), OutputRef)

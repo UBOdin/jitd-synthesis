@@ -33,14 +33,15 @@ case class TieredPolicy(tiers:Seq[PolicyRule]) extends PolicyRule
   override def toString = tiers.mkString("\n  andThen\n")
 }
 case class TransformPolicy(
+  unique_name:String,
   transform:String, 
   constraint:Expression = BoolConstant(true),
   scoreFn:Expression = IntConstant(0)
 ) extends PolicyRule
 {
   def onlyIf(newConstraint:Expression) = 
-    TransformPolicy(transform, constraint and newConstraint, scoreFn)
-  def scoreBy(newScoreFn:Expression) = TransformPolicy(transform, constraint, newScoreFn)
+    TransformPolicy(unique_name,transform, constraint and newConstraint, scoreFn)
+  def scoreBy(newScoreFn:Expression) = TransformPolicy(unique_name,transform, constraint, newScoreFn)
 
   override def toString = 
     transform + (constraint match {

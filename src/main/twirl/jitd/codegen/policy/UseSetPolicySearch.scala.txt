@@ -4,25 +4,25 @@
 @import jitd.Debug
 @(ctx:Render, transform:Transform, constraint:Expression, scoreFn:Expression)
 
-  long searchFor@{transform.name}(          // Return the "best" score available
+  long JITD::searchFor@{transform.name}(          // Return the "best" score available
     std::shared_ptr<JITDNode> * &node,  // Pointer to the node we're currently examining      
     std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
   
-
+    //std::cout<<"STARTING TRANSFORM@transform.name"<<std::endl;
     int count = 0;
     long best_score = -1;
     long curr_score = -1;
-    if(!@{RenderPattern.setPqGen(ctx, transform.from,"set")}.empty())
+    if(!(this->@{RenderPattern.setPqGen(ctx, transform.from,"set")}).empty())
     {
       
       std::set< std::shared_ptr<JITDNode> * >::iterator it;
-      for(it = @{RenderPattern.setPqGen(ctx, transform.from,"set")}.begin(); it!=@{RenderPattern.setPqGen(ctx, transform.from,"set")}.end(); ++it)
+      for(it = (this->@{RenderPattern.setPqGen(ctx, transform.from,"set")}).begin(); it!=(this->@{RenderPattern.setPqGen(ctx, transform.from,"set")}).end(); ++it)
       {
           
           JITDNode *iter_node = (*it)->get();
           
-           @{RenderPattern.test(ctx, transform.from, "iter_node", "break;")}
+           @{RenderPattern.test(ctx, transform.from, "iter_node", "continue;")}
           
            if(@{ctx.expression(InlineVars(constraint, 
             RenderPattern.varMapping(ctx, transform.from, "iter_node")++
@@ -36,6 +36,7 @@
 
           if(best_score>curr_score)
           {
+            //std::cout<<"BESTSCORE: "<<best_score<<std::endl;
             curr_score = best_score;
             
             targetHandleRef = (*it);

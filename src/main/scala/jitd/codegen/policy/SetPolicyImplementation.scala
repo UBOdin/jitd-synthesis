@@ -9,7 +9,7 @@ object SetPolicyImplementation extends PolicyImplementation
   // Render field definitions for the JITD object
   def state(ctx:Render): String = ""
   // Render a block of code to be run when the JITD is initialized
-  def init(ctx:Render,rule:PolicyRule,root:String): String = "std::shared_ptr<JITDNode> *root_handle = &"++root++";setInit(root_handle,true);"
+  def init(ctx:Render,rule:PolicyRule,root:String): String = "std::shared_ptr<JITDNode> *root_handle = &"++root++";setInit(root_handle);"
   
   // Render two blocks of code to be run just before/after a JITD rewrite
   // happens.  [from] is replaced by [to].
@@ -37,7 +37,7 @@ object SetPolicyImplementation extends PolicyImplementation
     val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3))
     //println(eachVarName.lift(2)) 
     //ExtractNodeNameForSet(s"setRemovalCode")
-    val seqStmt = eachVarName.map(vnnt => SetRemoveFunction(vnnt._1.toString,vnnt._3))
+    val seqStmt = eachVarName.map(vnnt => commonFunction("this->setRemoval","(",vnnt._3))
     return Block(seqStmt)
     
 
@@ -54,7 +54,7 @@ object SetPolicyImplementation extends PolicyImplementation
 
     val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3)) 
    
-    val seqStmt = eachVarName.map(vnnt => SetAddFunction(vnnt._1.toString,vnnt._3))
+    val seqStmt = eachVarName.map(vnnt => commonFunction("this->setAddition","(",vnnt._3))
 
     
     return Block(seqStmt)
@@ -76,7 +76,7 @@ object SetPolicyImplementation extends PolicyImplementation
   {
     rule match {
       case TieredPolicy(policies) => policies.map { utilityFunctions(ctx, _) }.mkString
-      case TransformPolicy(name, constraint, scoreFn) =>
+      case TransformPolicy(unique_name,name, constraint, scoreFn) =>
         UseSetPolicySearch(  // Generated via Twirl template
           ctx, 
           ctx.definition.transform(name), 
@@ -96,7 +96,7 @@ object SetPolicyImplementation extends PolicyImplementation
       case TieredPolicy(policies) => 
         doOrganize(ctx, root, policies.head, onSuccess, "")+"  "+
           doOrganize(ctx, root, TieredPolicy(policies.tail), onSuccess, onFail)
-      case TransformPolicy(name, _, _) => 
+      case TransformPolicy(unique_name,name, _, _) => 
         UseSetPolicyTryTransform(ctx, root, name, onSuccess, onFail).toString
     }
 

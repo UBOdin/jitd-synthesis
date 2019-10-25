@@ -1,10 +1,6 @@
 build
-Array random 100 1 100
+Array random 1000000000 1 1000000000
 Return
-dump
 policy_act_until_done
-dump
-check_pq
 print_pq
-check_set
 print_set

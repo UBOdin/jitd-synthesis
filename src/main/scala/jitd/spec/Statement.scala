@@ -109,37 +109,13 @@ case class Comment(msg:String) extends Statement
   def reassembleStatement(in: Seq[Statement]): Statement = this
   def disasssembleExpression: Seq[Expression] = Seq()
   def reassembleExpression(in: Seq[Expression]): Statement = this
-  def toString(prefix: String) = prefix+"rem: "+msg
+  def toString(prefix: String) = prefix+"//rem: "+msg
 }
-case class SetRemoveFunction(name:String,v:Expression) extends Statement
+case class commonFunction(name:String,op:String,v:Expression) extends Statement
 {
   def disasssembleStatement: Seq[Statement] = Seq()
   def reassembleStatement(in: Seq[Statement]): Statement = this
   def disasssembleExpression: Seq[Expression] = Seq()
   def reassembleExpression(in: Seq[Expression]): Statement = this
-  def toString(prefix: String) = s"${prefix} removing from set: $v"
-}
-case class PqRemoveFunction(name:String,v:Expression) extends Statement
-{
-  def disasssembleStatement: Seq[Statement] = Seq()
-  def reassembleStatement(in: Seq[Statement]): Statement = this
-  def disasssembleExpression: Seq[Expression] = Seq()
-  def reassembleExpression(in: Seq[Expression]): Statement = this
-  def toString(prefix: String) = s"${prefix} removing from PQ: $v"
-}
-case class SetAddFunction(name:String,v:Expression) extends Statement
-{
-  def disasssembleStatement: Seq[Statement] = Seq()
-  def reassembleStatement(in: Seq[Statement]): Statement = this
-  def disasssembleExpression: Seq[Expression] = Seq()
-  def reassembleExpression(in: Seq[Expression]): Statement = this
-  def toString(prefix: String) = s"${prefix} adding to set: $v"
-}
-case class PqAddFunction(name:String,nodeType:String,v:Expression) extends Statement
-{
-  def disasssembleStatement: Seq[Statement] = Seq()
-  def reassembleStatement(in: Seq[Statement]): Statement = this
-  def disasssembleExpression: Seq[Expression] = Seq()
-  def reassembleExpression(in: Seq[Expression]): Statement = this
-  def toString(prefix: String) = s"${prefix} adding to PQ: $v"
+  def toString(prefix: String) = s"${name}${op}${v});"
 }
