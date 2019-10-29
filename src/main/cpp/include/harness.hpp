@@ -1,7 +1,8 @@
 
 enum operation_type {
 
-	QUERY,
+	INSERT,
+	SELECT,
 	DELAY,
 	STOP,
 
@@ -10,12 +11,9 @@ enum operation_type {
 struct operation_node {
 
 	enum operation_type optype;
-	void* data;
+	float data;
 
 };
-
-
-typedef enum operation_type optype;
 
 
 double total_time(timeval &start, timeval &end);
