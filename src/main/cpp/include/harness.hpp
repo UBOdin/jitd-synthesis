@@ -3,7 +3,7 @@ enum operation_type {
 
 	INSERT,
 	SELECT,
-	DELAY,
+	TIME,
 	STOP,
 
 };
@@ -11,7 +11,7 @@ enum operation_type {
 struct operation_node {
 
 	enum operation_type optype;
-	float data;
+	double data;
 
 };
 

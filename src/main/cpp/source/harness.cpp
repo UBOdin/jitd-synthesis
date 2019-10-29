@@ -23,6 +23,9 @@ int jitd_harness() {
 	int i;
 	struct operation_node opnode;
 	bool results;
+	double time_base;
+	double time_this;
+	double time_delta;
 
 	printf("Starting\n");
 	gettimeofday(&start, NULL);
@@ -35,16 +38,27 @@ int jitd_harness() {
 	r.value = (Value)0xDEADBEEF;
 	data.push_back(r);
 
-	i = 0;
+	// Grab reference time:
+	if (operation_array[0].optype != TIME) {
+		printf("Missing initial time\n");
+		_exit(1);
+	}
+	time_base = operation_array[0].data;
+
+	i = 1;  // Skip initial time event
 	while (true) {
 //		printf("iteration %d\n", i);
 		opnode = operation_array[i];
 		if (opnode.optype == STOP) {
 			break;
 		}
-		if (opnode.optype == DELAY) {
-			ms = opnode.data / 100;  // Adjust delay to taste
+		if (opnode.optype == TIME) {
+			time_this = opnode.data;
+			time_delta = time_this - time_base;
+			printf("Time:  %f, %f\n", time_this, time_delta);
+			ms = (opnode.data - time_base) * 1000;  // Adjust delay to taste
 //			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+			time_base = time_this;
 		}
 		if (opnode.optype == INSERT) {
 			r.key = (long)opnode.data;
