@@ -27,7 +27,7 @@ double gettime_ms() {
 
 	gettimeofday(&now, NULL);
 
-	return (now.tv_sec * 1000000.0 + now.tv_sec) / 1000.0;
+	return (now.tv_sec * 1000000.0 + now.tv_usec) / 1000.0;
 
 }
 
