@@ -34,11 +34,9 @@ int jitd_harness() {
 	bool results;
 	double time_base;
 	double time_this;
+	double time_prev;
 	double time_next;
 	double time_delta;
-
-	printf("Starting\n");
-	gettimeofday(&start, NULL);
 
 	// Initialize bare jitds structure:
 	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
@@ -48,27 +46,71 @@ int jitd_harness() {
 	r.value = (Value)0xDEADBEEF;
 	data.push_back(r);
 
+	// Seed data structure with existing keys:
+	printf("Initializing data structure\n");
+	i = 0;
+	while (true) {
+		node = seed_array[i];
+		if (node.type == STOP) {
+			break;
+		}
+		if (node.type != INSERT) {
+			printf("Error:  expected Insert\n");
+			_exit(1);
+		}
+		r.key = node.data.key;
+		data.pop_back();
+		data.push_back(r);
+		jitd->insert(data);
+		i++;
+	}
+
+	printf("Finished initialization; starting operations\n");
+	gettimeofday(&start, NULL);
+
+	time_prev = 0;
 	time_base = gettime_ms();
 
 	i = 0;
 	while (true) {
+
+		printf("Iteration:  %d\n", i);
+		if (i == 20) {
+			printf("Reached end\n");
+			break;
+		}
 //		printf("iteration %d\n", i);
+
+		// Get next operation:
 		node = operation_array[i];
+
 		if (node.type == STOP) {
 			break;
 		}
-		if (node.type == INSERT) {
+		else if (node.type == INSERT) {
 			r.key = node.data.key;
 			data.pop_back();
 			data.push_back(r);
 			jitd->insert(data);
 		}
-		if (node.type == SELECT) {
+		else if (node.type == SELECT) {
 			results = jitd->get(node.data.key, r);
 		}
+		else {
+			printf("Error:  Unexpected operation\n");
+			_exit(1);
+		}
 
-//		i++; // Advance to time frame  TODO:  failsafe this is the case
-		time_next = time_base + node.data.time;
+		// Advance to time frame
+		i++;
+		node = operation_array[i];
+		// Sanity check
+		if (node.type != TIME) {
+			printf("Error:  Expected time field\n");
+			_exit(1);
+		}
+
+//		time_next = time_base + node.data.time;
 
 /*
 		while (true) {
@@ -86,18 +128,19 @@ int jitd_harness() {
 		}
 */
 
-/*
+
 		if (node.type == TIME) {
 			time_this = node.data.time;
-			time_delta = time_this - time_base;
-			printf("Time:  %f, %f\n", time_this, time_delta);
-			ms = (node.data.time - time_base) * 1000;  // Adjust delay to taste
+			time_delta = time_this - time_prev;
+			ms = (node.data.time - time_prev) * 1000;  // Adjust delay to taste
+			printf("Time:  base:  %f, delta:  %f, ms:  %d\n", time_this, time_delta, ms);
 //			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-			time_base = time_this;
+			time_prev = time_this;
 		}
-*/
+
 
 		i++;
+
 	}
 
 	gettimeofday(&end, NULL);

@@ -8,6 +8,7 @@ enum operation {
 
 };
 
+// N.b. time and key fields are mutually exclusive, so union:
 union datatype {
 
 	double time;
@@ -20,10 +21,13 @@ struct operation_node {
 
 	enum operation type;
 	union datatype data;
+	int rows;
 
 };
 
 int jitd_harness();
 
+// Machine-generated static data:
 extern struct operation_node operation_array[];
+extern struct operation_node seed_array[];
 
