@@ -1,5 +1,5 @@
 
-enum operation_type {
+enum operation {
 
 	INSERT,
 	SELECT,
@@ -8,14 +8,22 @@ enum operation_type {
 
 };
 
-struct operation_node {
+union datatype {
 
-	enum operation_type optype;
-	double data;
+	double time;
+	long key;
+	int null;
 
 };
 
+struct operation_node {
 
-double total_time(timeval &start, timeval &end);
+	enum operation type;
+	union datatype data;
+
+};
+
 int jitd_harness();
+
+extern struct operation_node operation_array[];
 

@@ -13,6 +13,7 @@ HEADER = src/main/cpp/include
 JITD_TEST_C = target/jitd_test.cpp
 JITD_TESTER_C = $(SOURCE)/jitd_tester.cpp
 HARNESS_C = $(SOURCE)/harness.cpp
+DATA_C = $(SOURCE)/data.cpp
 
 JITD_TEST_H = target/jitd_test.hpp
 RUNTIME_H = $(HEADER)/runtime.hpp
@@ -26,17 +27,20 @@ HARNESS_H = $(HEADER)/harness.hpp
 default: $(MAIN)
 	@echo Build successful
 
-jitd_harness:  jitd_tester.o jitd_test.o harness.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_tester.o jitd_test.o harness.o
+jitd_harness:  jitd_tester.o jitd_test.o harness.o data.o
+	$(CC) $(CFLAGS) -o $(MAIN) jitd_tester.o jitd_test.o harness.o data.o
 
-jitd_test.o:  $(JITD_TEST_C) $(JITD_TEST_H) $(RUNTIME_H)
+jitd_test.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
 	$(CC) $(CFLAGS) -c $(JITD_TEST_C) $(INCLUDES)
 
-jitd_tester.o:  $(JITD_TESTER_C) $(JITD_TEST_H) $(HARNESS_H) $(JITD_TEST_H)
+jitd_tester.o:  $(JITD_TESTER_C) $(TEST_H) $(JITD_TEST_H) $(HARNESS_H)
 	$(CC) $(CFLAGS) -c $(JITD_TESTER_C) $(INCLUDES)
 
-harness.o:  $(HARNESS_C) $(HARNESS_H) $(JITD_TEST_H)
+harness.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	$(CC) $(CFLAGS) -c $(HARNESS_C) $(INCLUDES)
+
+data.o:  $(DATA_C) $(HARNESS_H)
+	$(CC) $(CFLAGS) -c $(DATA_C) $(INCLUDES)
 
 clean: 
 	$(RM) jitd_harness *.o *~ $(MAIN)

@@ -8,9 +8,18 @@
 #include <unistd.h>
 
 #include "jitd_test.hpp"
+#include "test.hpp"
 #include "harness.hpp"
-#include "data.hpp"
 
+double gettime_ms() {
+
+	timeval now;
+
+	gettimeofday(&now, NULL);
+
+	return (now.tv_sec * 1000000.0 + now.tv_sec) / 1000.0;
+
+}
 
 int jitd_harness() {
 
@@ -21,10 +30,11 @@ int jitd_harness() {
 	Record r;
 	int ms;
 	int i;
-	struct operation_node opnode;
+	struct operation_node node;
 	bool results;
 	double time_base;
 	double time_this;
+	double time_next;
 	double time_delta;
 
 	printf("Starting\n");
@@ -38,37 +48,55 @@ int jitd_harness() {
 	r.value = (Value)0xDEADBEEF;
 	data.push_back(r);
 
-	// Grab reference time:
-	if (operation_array[0].optype != TIME) {
-		printf("Missing initial time\n");
-		_exit(1);
-	}
-	time_base = operation_array[0].data;
+	time_base = gettime_ms();
 
-	i = 1;  // Skip initial time event
+	i = 0;
 	while (true) {
 //		printf("iteration %d\n", i);
-		opnode = operation_array[i];
-		if (opnode.optype == STOP) {
+		node = operation_array[i];
+		if (node.type == STOP) {
 			break;
 		}
-		if (opnode.optype == TIME) {
-			time_this = opnode.data;
-			time_delta = time_this - time_base;
-			printf("Time:  %f, %f\n", time_this, time_delta);
-			ms = (opnode.data - time_base) * 1000;  // Adjust delay to taste
-//			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-			time_base = time_this;
-		}
-		if (opnode.optype == INSERT) {
-			r.key = (long)opnode.data;
+		if (node.type == INSERT) {
+			r.key = node.data.key;
 			data.pop_back();
 			data.push_back(r);
 			jitd->insert(data);
 		}
-		if (opnode.optype == SELECT) {
-			results = jitd->get((long)opnode.data, r);
+		if (node.type == SELECT) {
+			results = jitd->get(node.data.key, r);
 		}
+
+//		i++; // Advance to time frame  TODO:  failsafe this is the case
+		time_next = time_base + node.data.time;
+
+/*
+		while (true) {
+			results = jitd->do_organize();
+			if (results == false) {
+				break;
+			}
+			if (gettime_ms() >= time_next) {
+				break;
+			}
+		}
+		if (gettime_ms() < time_next) {
+			ms = time_next - gettime_ms();
+			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+		}
+*/
+
+/*
+		if (node.type == TIME) {
+			time_this = node.data.time;
+			time_delta = time_this - time_base;
+			printf("Time:  %f, %f\n", time_this, time_delta);
+			ms = (node.data.time - time_base) * 1000;  // Adjust delay to taste
+//			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+			time_base = time_this;
+		}
+*/
+
 		i++;
 	}
 
