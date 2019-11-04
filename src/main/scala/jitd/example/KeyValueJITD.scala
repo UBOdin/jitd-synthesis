@@ -28,7 +28,7 @@ object KeyValueJITD extends HardcodedDefinition {
   Node( "Concat",      "lhs"  -> node, "rhs" -> node )
   Node( "Delete",      "lhs"  -> node, "rhs" -> node )
   Node( "BTree",       "lhs"  -> node, "sep" -> key, "rhs" -> node )
-  Node( "DeleteElements",      "listptr"  -> node, "data" -> record.array )
+  Node( "DeleteElements",      "lhsnode"  -> node, "data" -> record.array )
 
   //////////////////////////////////////////////
 
@@ -45,7 +45,7 @@ object KeyValueJITD extends HardcodedDefinition {
     "Concat"       -> If( Delegate("lhs") ) { Return(true) } { Return { Delegate("rhs") } },
     "BTree"        -> If( "target" lt "sep" ) { Return { Delegate("lhs") } } { Return { Delegate("rhs") } },
     "Delete"       -> If( Delegate("rhs") ) { Return(false) } { Return { Delegate("lhs") } },
-    "DeleteElements"  -> If( "record_scan".call("data","target","result") ) { Return(false) }{Return{Delegate("listptr")}}
+    "DeleteElements"  -> If( "record_scan".call("data","target","result") ) { Return(false) }{Return{Delegate("lhsnode")}}
     //if it returns true from rhs the element is a part of delete list so dont check lhs and get should return false as it is not a part of the structure.
   )
 
@@ -55,7 +55,7 @@ object KeyValueJITD extends HardcodedDefinition {
     "Concat"      -> Return { Delegate( "lhs" ) plus Delegate("rhs") },
     "BTree"       -> Return { Delegate( "lhs" ) plus Delegate("rhs") },
     "Delete"      -> Return { Delegate( "lhs" ) minus Delegate("rhs") },
-    "DeleteElements"      -> Return { Delegate( "listptr" ) minus ArraySize("data") }//check logic doesnt return a neg value.
+    "DeleteElements"      -> Return { Delegate( "lhsnode" ) minus ArraySize("data") }//check logic doesnt return a neg value.
   //FIX THE SIZE FOR DELETE
   )
 
@@ -247,20 +247,20 @@ object KeyValueJITD extends HardcodedDefinition {
   // (
   //   "MergeSortedBTrees"
   // )
-  Policy("CrackSort")("crackAt" -> IntConstant(1000000000),"null_data"-> IntConstant(0)) (
+  Policy("CrackSort")("crackAt" -> IntConstant(1000000),"null_data"-> IntConstant(0)) (
     //"PushDownAndCrack"            scoreBy { ArraySize("data") }
        ("CrackArray"       onlyIf { ArraySize("data") gte "crackAt" } 
                                   scoreBy { ArraySize("data") })
       //andThen ("PushDownDontDeleteBtree"          scoreBy { ArraySize("data") })
       //andThen ("PushDownDontDeleteElemBtree"          scoreBy { ArraySize("data") })
       //andThen ("PushDownDontDeleteConcat"            scoreBy { ArraySize("data") })
-      //andThen ("PushDownDontDeleteElemConcat"          scoreBy { ArraySize("data") })
+      andThen ("PushDownDontDeleteElemConcat"          scoreBy { ArraySize("data") })
       //andThen ("SortArray"        scoreBy { ArraySize("data") })
       //andThen ("MergeSortedBTrees")
       //andThen "MergeSortedConcat"
       
      // andThen "MergeDeleteNodes"
-     //andThen ("DeleteFromSortedArray" scoreBy{ArraySize("data2")})
+     andThen ("DeleteElemFromArray" scoreBy{ArraySize("data2")})
      //andThen ("DeleteElemFromSortedArray" scoreBy{ArraySize("data2")})
   )
 

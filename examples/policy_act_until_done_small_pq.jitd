@@ -1,5 +1,5 @@
 build
-Array random 100 1 100
+Array random 25 1 100
 Return
 dump
 policy_act_until_done

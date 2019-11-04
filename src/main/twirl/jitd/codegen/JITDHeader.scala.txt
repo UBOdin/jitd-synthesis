@@ -110,11 +110,9 @@ class JITD {
 
     @{RenderPattern.ComparatorClass(ctx,ctx.policy.rule);}
     @{RenderPattern.PqDeclare(ctx,ctx.policy.rule,true);}
-    
-
-    @for(node <- ctx.definition.nodes){
-      std::set<std::shared_ptr<JITDNode> * >@{node.enumName}_set;
-     }
+    //@for(node <- ctx.definition.nodes){
+    //  std::set<std::shared_ptr<JITDNode> * >@{node.enumName}_set;
+    // }
 
     JITD(JITDNode *root) : root(root) 
     {
