@@ -150,11 +150,13 @@ int jitd_harness() {
 	i = 0;
 	while (true) {
 
+/*
 		printf("Iteration:  %d\n", i);
 		if (i == 20) {
 			printf("Reached end\n");
 			break;
 		}
+*/
 //		printf("iteration %d\n", i);
 
 		// Get next operation:
@@ -172,11 +174,19 @@ int jitd_harness() {
 		else if (node.type == SELECT) {
 			results = jitd->get(node.data.key, r);
 		}
-		else {
+		else if (node.type == TIME) {
+			time_this = node.data.time;
+			time_delta = time_this - time_prev;
+			ms = (node.data.time - time_prev) * 1000;  // Adjust delay to taste
+//			printf("Time:  base:  %f, delta:  %f, ms:  %d\n", time_this, time_delta, ms);
+//			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+			time_prev = time_this;
+		} else {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
 		}
 
+/*
 		// Advance to time frame
 		i++;
 		node = operation_array[i];
@@ -185,8 +195,7 @@ int jitd_harness() {
 			printf("Error:  Expected time field\n");
 			_exit(1);
 		}
-
-//		time_next = time_base + node.data.time;
+*/
 
 /*
 		while (true) {
@@ -204,19 +213,7 @@ int jitd_harness() {
 		}
 */
 
-
-		if (node.type == TIME) {
-			time_this = node.data.time;
-			time_delta = time_this - time_prev;
-			ms = (node.data.time - time_prev) * 1000;  // Adjust delay to taste
-			printf("Time:  base:  %f, delta:  %f, ms:  %d\n", time_this, time_delta, ms);
-//			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-			time_prev = time_this;
-		}
-
-
 		i++;
-
 	}
 
 	gettimeofday(&end, NULL);
