@@ -11,6 +11,16 @@
 #include "test.hpp"
 #include "harness.hpp"
 
+
+static std::shared_ptr<JITD> jitd;
+static std::vector<Record> data;
+static Record r;
+static struct operation_node node;
+static int i;
+
+// N.b. struct Record.key -- long int; Record.value -- void*
+
+
 double gettime_ms() {
 
 	timeval now;
@@ -21,32 +31,9 @@ double gettime_ms() {
 
 }
 
-int jitd_harness() {
 
-	timeval start;
-	timeval end;
-	std::shared_ptr<JITD> jitd;
-	std::vector<Record> data;
-	Record r;
-	int ms;
-	int i;
-	struct operation_node node;
-	bool results;
-	double time_base;
-	double time_this;
-	double time_prev;
-	double time_next;
-	double time_delta;
+int seed_jitds() {
 
-	// Initialize bare jitds structure:
-	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
-
-	// Init data template to push:
-	r.key = -9999999;  // dummy init key; will be popped later
-	r.value = (Value)0xDEADBEEF;
-	data.push_back(r);
-
-	// Seed data structure with existing keys:
 	printf("Initializing data structure\n");
 	i = 0;
 	while (true) {
@@ -64,8 +51,97 @@ int jitd_harness() {
 		jitd->insert(data);
 		i++;
 	}
+	printf("Finished\n");
+	return 0;
 
-	printf("Finished initialization; starting operations\n");
+}
+
+
+int test_jitds() {
+
+	Key key;
+	Key minkey = 999999;
+	Key maxkey = 0;
+	bool expected;
+	bool observed;
+	int j;
+
+	printf("Verifying inserted data\n");
+
+	// Get search range:
+	i = 0;
+	while (true) {
+		node = seed_array[i];
+		if (node.type == STOP) {
+			break;
+		}
+		key = node.data.key;
+		if (key > maxkey) {
+			maxkey = key;
+		}
+		if (key < minkey) {
+			minkey = key;
+		}
+		i++;
+	}
+
+	// TODO:  probably should use hashes here -- N^2 loop...
+	// Verify that presence / absence of keys from seed array matches jitds population:
+	for (i = minkey; i < maxkey; i++) {
+		// Check whether target value _was_ inserted:
+		expected = false;
+		j = 0;
+		while (true) {
+			node = seed_array[j];
+			if (node.type == STOP) {
+				break;
+			}
+			if (node.data.key == i) {
+				expected = true;
+				break;
+			}
+			j++;
+		}
+		// Check whether target value is reported by jitds:
+		observed = jitd->get(i, r);
+		if (expected != observed) {
+			printf("jitds test failure:  expected = %d; observed = %d on item %d\n", expected, observed, i);
+			_exit(1);
+		}
+	}
+
+	printf("Passed basic integrity check\n");
+	return 0;
+
+}
+
+
+int jitd_harness() {
+
+	timeval start;
+	timeval end;
+	int ms;
+	bool results;
+	double time_base;
+	double time_this;
+	double time_prev;
+	double time_next;
+	double time_delta;
+
+	// Initialize bare jitds structure:
+	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
+
+	// Init data template to push:
+	r.key = -9999999;  // dummy init key; will be popped later
+	r.value = (Value)0xDEADBEEF;
+	data.push_back(r);
+
+	// Pre-populate structure with existing keys:
+	seed_jitds();
+	// Basic structural integrity check:
+	test_jitds();
+
+	printf("Starting operations\n");
 	gettimeofday(&start, NULL);
 
 	time_prev = 0;
