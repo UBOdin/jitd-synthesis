@@ -127,6 +127,7 @@ int jitd_harness() {
 	double time_prev;
 	double time_next;
 	double time_delta;
+	double time_now;
 
 	// Initialize bare jitds structure:
 	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
@@ -173,45 +174,52 @@ int jitd_harness() {
 		}
 		else if (node.type == SELECT) {
 			results = jitd->get(node.data.key, r);
+/*
 		}
 		else if (node.type == TIME) {
 			time_this = node.data.time;
 			time_delta = time_this - time_prev;
 			ms = (node.data.time - time_prev) * 1000;  // Adjust delay to taste
 //			printf("Time:  base:  %f, delta:  %f, ms:  %d\n", time_this, time_delta, ms);
-//			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 			time_prev = time_this;
+*/
 		} else {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
 		}
 
-/*
 		// Advance to time frame
 		i++;
 		node = operation_array[i];
-		// Sanity check
-		if (node.type != TIME) {
+		if (node.type == STOP) {
+			break;
+		} else if (node.type != TIME) {
 			printf("Error:  Expected time field\n");
 			_exit(1);
 		}
-*/
 
-/*
+		// Get start time of the next operation:
+		time_next = time_base + (node.data.time * 1000.0);
+		// Until we reach the next start time, do any jitds housecleaning remaining:
 		while (true) {
+			// Overrun next start time yet?
+			time_now = gettime_ms();
+			if (time_now >= time_next) {
+				break;
+			}
+			// Else, do more housecleaning:
 			results = jitd->do_organize();
 			if (results == false) {
 				break;
 			}
-			if (gettime_ms() >= time_next) {
-				break;
-			}
 		}
-		if (gettime_ms() < time_next) {
-			ms = time_next - gettime_ms();
+		// If we have not yet reached the next start time, block until then:
+		// (i.e. no more housecleaning left)
+		if (time_now < time_next) {
+			ms = 0; //time_next - time_now;
 			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 		}
-*/
 
 		i++;
 	}
