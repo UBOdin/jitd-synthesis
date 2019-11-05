@@ -56,6 +56,7 @@ void __errtrap(int result, const char* error, int line) {
 
 int init_struct() {
 
+/*
 	int result;
 	char filename[] = "testfile.db";  // TODO:  parameterize this
 	sqlite3_stmt* statement;
@@ -79,8 +80,8 @@ int init_struct() {
 		_exit(1);
 	}
 	result = sqlite3_finalize(statement);
-
-//	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
+*/
+	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
 
 	return 0;
 
@@ -89,6 +90,7 @@ int init_struct() {
 
 bool get_data(long key) {
 
+/*
 	int result;
 	sqlite3_stmt* statement;
 	int rowcount;
@@ -111,42 +113,26 @@ bool get_data(long key) {
 			printf("Error:  step select\n");
 			_exit(1);
 		}
-/*
-		colcount = sqlite3_column_count(statement);
-		if (colcount != 2) {
-			printf("Unexpected column count\n");
-			_exit(1);
-		}
-		type = sqlite3_column_type(statement, 0);
-		if (type == SQLITE_INTEGER) {
-			__int64_t value = sqlite3_column_int64(statement, 0);
-			printf("Integer value:  %ld\n", value);
-		}
-		type = sqlite3_column_type(statement, 1);
-		if (type == SQLITE_TEXT) {
-			const unsigned char* value = sqlite3_column_text(statement, 1);
-			printf("String value:  %s\n", value);
-		}
-*/
 		rowcount++;
 	}
 	result = sqlite3_finalize(statement);
 
 	return (bool)rowcount;
+*/
 
-/*
 	bool result;
 
 	result = jitd->get(key, r);
 
 	return result;
-*/
+
 
 }
 
 
 int put_data(long key) {
 
+/*
 	int result;
 	sqlite3_stmt* statement;
 
@@ -162,13 +148,13 @@ int put_data(long key) {
 		_exit(1);
 	}
 	result = sqlite3_finalize(statement);
+*/
 
-/*
 	r.key = key;
 	data.pop_back();
 	data.push_back(r);
 	jitd->insert(data);
-*/
+
 
 	return 0;
 
@@ -370,13 +356,11 @@ int jitd_harness() {
 	while (true) {
 
 /*
-		printf("Iteration:  %d\n", i);
-		if (i == 20) {
-			printf("Reached end\n");
-			break;
+		if ((i % 100) == 0) {
+			printf("Iteration:  %d\n", i);
+			//break;
 		}
 */
-//		printf("iteration %d\n", i);
 
 		time_start = gettime_ms();
 
@@ -428,7 +412,7 @@ int jitd_harness() {
 		// Get start time of the next operation:
 		time_next = time_base + (node.data.time * 1000.0);
 		time_now = gettime_ms();
-/*
+
 		// Until we reach the next start time, do any jitds housecleaning remaining:
 		while (true) {
 			// Break if we have reached the next start time:
@@ -445,15 +429,15 @@ int jitd_harness() {
 				break;
 			}
 		}
-*/
+
 		// If we have not yet reached the next start time, block until then:
 		// (i.e. no more housecleaning left)
 		if (time_now < time_next) {
 
-			ms = 0; //time_next - time_now;  // Adjust to taste  TODO:  parameterize this
-			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+			ms = 0; //(time_next - time_now) / 10000.0;  // Adjust to taste  TODO:  parameterize this
+//			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 
-//			time_base -= (time_next - time_now);
+			time_base -= (time_next - time_now);
 		}
 
 		i++;
