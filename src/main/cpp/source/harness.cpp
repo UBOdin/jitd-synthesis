@@ -49,7 +49,47 @@ void __errtrap(int result, const char* error, int line) {
 }
 
 
-int seed_jitds() {
+int init_struct() {
+
+	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
+
+	return 0;
+
+}
+
+
+bool get_data(double key) {
+
+	bool result;
+
+	result = jitd->get(key, r);
+
+	return result;
+
+}
+
+
+int put_data(double key) {
+
+	r.key = key;
+	data.pop_back();
+	data.push_back(r);
+	jitd->insert(data);
+
+	return 0;
+
+}
+
+
+int zap_data() {
+
+	return 0;
+
+}
+
+
+
+int seed_struct() {
 
 	int i;
 
@@ -64,10 +104,7 @@ int seed_jitds() {
 			printf("Error:  expected Insert\n");
 			_exit(1);
 		}
-		r.key = node.data.key;
-		data.pop_back();
-		data.push_back(r);
-		jitd->insert(data);
+		put_data(node.data.key);
 		i++;
 	}
 	printf("Finished\n");
@@ -76,7 +113,7 @@ int seed_jitds() {
 }
 
 
-int test_jitds() {
+int test_struct() {
 
 	Key key;
 	Key minkey = 999999;
@@ -106,7 +143,7 @@ int test_jitds() {
 	}
 
 	// TODO:  probably should use hashes here -- N^2 loop...
-	// Verify that presence / absence of keys from seed array matches jitds population:
+	// Verify that presence / absence of keys from seed array matches structure population:
 	for (i = minkey; i < maxkey; i++) {
 		// Check whether target value _was_ inserted:
 		expected = false;
@@ -122,10 +159,10 @@ int test_jitds() {
 			}
 			j++;
 		}
-		// Check whether target value is reported by jitds:
-		observed = jitd->get(i, r);
+		// Check whether target value is reported by the structure:
+		observed = get_data(i);
 		if (expected != observed) {
-			printf("jitds test failure:  expected = %d; observed = %d on item %d\n", expected, observed, i);
+			printf("structure test failure:  expected = %d; observed = %d on item %d\n", expected, observed, i);
 			_exit(1);
 		}
 	}
@@ -213,7 +250,7 @@ int jitd_harness() {
 	int break_no_work = 0;
 
 	// Initialize bare jitds structure:
-	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
+	init_struct();
 
 	// Init data template to push:
 	r.key = -9999999;  // dummy init key; will be popped later
@@ -221,9 +258,9 @@ int jitd_harness() {
 	data.push_back(r);
 
 	// Pre-populate structure with existing keys:
-	seed_jitds();
+	seed_struct();
 	// Basic structural integrity check:
-	test_jitds();
+	test_struct();
 	// Allocate output structure:
 	init_output();
 
@@ -256,13 +293,10 @@ int jitd_harness() {
 			break;
 		}
 		else if (node.type == INSERT) {
-			r.key = node.data.key;
-			data.pop_back();
-			data.push_back(r);
-			jitd->insert(data);
+			put_data(node.data.key);
 		}
 		else if (node.type == SELECT) {
-			results = jitd->get(node.data.key, r);
+			results = get_data(node.data.key);
 /*
 		}
 		else if (node.type == TIME) {
