@@ -296,15 +296,17 @@ int jitd_harness() {
 
 		// Get start time of the next operation:
 		time_next = time_base + (node.data.time * 1000.0);
+		time_now = gettime_ms();
 		// Until we reach the next start time, do any jitds housecleaning remaining:
 		while (true) {
-			// Overrun next start time yet?
-			time_now = gettime_ms();
+			// Break if we have reached the next start time:
 			if (time_now >= time_next) {
 				break;
 			}
 			// Else, do more housecleaning:
 			results = jitd->do_organize();
+			time_now = gettime_ms();
+			// Break if no more cleanup:
 			if (results == false) {
 				break;
 			}
@@ -312,7 +314,7 @@ int jitd_harness() {
 		// If we have not yet reached the next start time, block until then:
 		// (i.e. no more housecleaning left)
 		if (time_now < time_next) {
-			ms = 0; //time_next - time_now;
+			ms = 0; //time_next - time_now;  // Adjust to taste  TODO:  parameterize this
 			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 		}
 
