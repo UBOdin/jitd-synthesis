@@ -209,6 +209,8 @@ int jitd_harness() {
 	double time_now;
 	double time_start;
 	double time_end;
+	int break_overrun = 0;
+	int break_no_work = 0;
 
 	// Initialize bare jitds structure:
 	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
@@ -230,6 +232,7 @@ int jitd_harness() {
 
 	time_prev = 0;
 	time_base = gettime_ms();
+	printf("Start base time:  %f\n", time_base);
 
 	i = 0;
 	j = 0;
@@ -301,6 +304,7 @@ int jitd_harness() {
 		while (true) {
 			// Break if we have reached the next start time:
 			if (time_now >= time_next) {
+				break_overrun++;
 				break;
 			}
 			// Else, do more housecleaning:
@@ -308,18 +312,25 @@ int jitd_harness() {
 			time_now = gettime_ms();
 			// Break if no more cleanup:
 			if (results == false) {
+				break_no_work++;
 				break;
 			}
 		}
 		// If we have not yet reached the next start time, block until then:
 		// (i.e. no more housecleaning left)
 		if (time_now < time_next) {
+/*
 			ms = 0; //time_next - time_now;  // Adjust to taste  TODO:  parameterize this
 			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+*/
+			time_base -= (time_next - time_now);
 		}
 
 		i++;
 	}
+
+	printf("End base time:  %f\n", time_base);
+	printf("Overrun:  %d -- Ran out of work:  %d\n", break_overrun, break_no_work);
 
 	save_output();
 
