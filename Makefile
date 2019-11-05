@@ -28,7 +28,7 @@ default: $(MAIN)
 	@echo Build successful
 
 jitd_harness:  jitd_tester.o jitd_test.o harness.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_tester.o jitd_test.o harness.o data.o
+	$(CC) $(CFLAGS) -o $(MAIN) jitd_tester.o jitd_test.o harness.o data.o -lsqlite3
 
 jitd_test.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
 	$(CC) $(CFLAGS) -c $(JITD_TEST_C) $(INCLUDES)

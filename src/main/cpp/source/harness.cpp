@@ -15,6 +15,7 @@
 #include "test.hpp"
 #include "harness.hpp"
 
+#include "sqlite3.h"
 
 static std::shared_ptr<JITD> jitd;
 static std::vector<Record> data;
@@ -22,6 +23,10 @@ static Record r;
 static struct operation_node node;
 static double* output_array;
 static int output_size;
+
+#define STMT_BUFLEN 256
+static sqlite3* ppDb;
+static char stmt_buffer[STMT_BUFLEN];
 
 // N.b. struct Record.key -- long int; Record.value -- void*
 
@@ -51,30 +56,119 @@ void __errtrap(int result, const char* error, int line) {
 
 int init_struct() {
 
-	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
+	int result;
+	char filename[] = "testfile.db";  // TODO:  parameterize this
+	sqlite3_stmt* statement;
+	char create_table[] = "CREATE TABLE kvstore (key INTEGER PRIMARY KEY, value TEXT NOT NULL);";
+
+	// Create new SQLite db:  TODO:  deal with existing file issue
+	result = sqlite3_open(filename, &ppDb);
+	if (result != SQLITE_OK) {
+		printf("Error:  initializing SQLite db\n");
+		_exit(1);
+	}
+	// Create a simple K-V table:
+	result = sqlite3_prepare(ppDb, create_table, strlen(create_table), &statement, NULL);
+	if (result != SQLITE_OK) {
+		printf("Error:  prepare create table\n");
+		_exit(1);
+	}
+	result = sqlite3_step(statement);
+	if (result != SQLITE_DONE) {
+		printf("Error:  step create table\n");
+		_exit(1);
+	}
+	result = sqlite3_finalize(statement);
+
+//	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
 
 	return 0;
 
 }
 
 
-bool get_data(double key) {
+bool get_data(long key) {
 
+	int result;
+	sqlite3_stmt* statement;
+	int rowcount;
+	int colcount;
+	int type;
+
+	snprintf(stmt_buffer, STMT_BUFLEN, "SELECT key, value FROM kvstore WHERE key=%ld;", key);
+	result = sqlite3_prepare(ppDb, stmt_buffer, STMT_BUFLEN, &statement, NULL);
+	if (result != SQLITE_OK) {
+		printf("Error:  prepare select\n");
+		_exit(1);
+	}
+	rowcount = 0;
+	while (true) {
+		result = sqlite3_step(statement);
+		if (result == SQLITE_DONE) {
+			break;
+		}
+		if (result != SQLITE_ROW) {
+			printf("Error:  step select\n");
+			_exit(1);
+		}
+/*
+		colcount = sqlite3_column_count(statement);
+		if (colcount != 2) {
+			printf("Unexpected column count\n");
+			_exit(1);
+		}
+		type = sqlite3_column_type(statement, 0);
+		if (type == SQLITE_INTEGER) {
+			__int64_t value = sqlite3_column_int64(statement, 0);
+			printf("Integer value:  %ld\n", value);
+		}
+		type = sqlite3_column_type(statement, 1);
+		if (type == SQLITE_TEXT) {
+			const unsigned char* value = sqlite3_column_text(statement, 1);
+			printf("String value:  %s\n", value);
+		}
+*/
+		rowcount++;
+	}
+	result = sqlite3_finalize(statement);
+
+	return (bool)rowcount;
+
+/*
 	bool result;
 
 	result = jitd->get(key, r);
 
 	return result;
+*/
 
 }
 
 
-int put_data(double key) {
+int put_data(long key) {
 
+	int result;
+	sqlite3_stmt* statement;
+
+	snprintf(stmt_buffer, STMT_BUFLEN, "INSERT INTO kvstore (key, value) VALUES (%ld, 'DEADBEEF');", key);
+	result = sqlite3_prepare(ppDb, stmt_buffer, STMT_BUFLEN, &statement, NULL);
+	if (result != SQLITE_OK) {
+		printf("Error:  prepare insert\n");
+		_exit(1);
+	}
+	result = sqlite3_step(statement);
+	if (result != SQLITE_DONE) {
+		printf("Error:  step insert\n");
+		_exit(1);
+	}
+	result = sqlite3_finalize(statement);
+
+/*
 	r.key = key;
 	data.pop_back();
 	data.push_back(r);
 	jitd->insert(data);
+*/
 
 	return 0;
 
@@ -334,6 +428,7 @@ int jitd_harness() {
 		// Get start time of the next operation:
 		time_next = time_base + (node.data.time * 1000.0);
 		time_now = gettime_ms();
+/*
 		// Until we reach the next start time, do any jitds housecleaning remaining:
 		while (true) {
 			// Break if we have reached the next start time:
@@ -350,27 +445,28 @@ int jitd_harness() {
 				break;
 			}
 		}
+*/
 		// If we have not yet reached the next start time, block until then:
 		// (i.e. no more housecleaning left)
 		if (time_now < time_next) {
-/*
+
 			ms = 0; //time_next - time_now;  // Adjust to taste  TODO:  parameterize this
 			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-*/
-			time_base -= (time_next - time_now);
+
+//			time_base -= (time_next - time_now);
 		}
 
 		i++;
 	}
 
-	printf("End base time:  %f\n", time_base);
-	printf("Overrun:  %d -- Ran out of work:  %d\n", break_overrun, break_no_work);
+	gettimeofday(&end, NULL);
+	std::cout << "Total runtime: " << total_time(start, end) << " us" << std::endl;
 
 	save_output();
+	sqlite3_close(ppDb);
 
-	gettimeofday(&end, NULL);
-
-	std::cout << "Total runtime: " << total_time(start, end) << " us" << std::endl;
+	printf("End base time:  %f\n", time_base);
+	printf("Overrun:  %d -- Ran out of work:  %d\n", break_overrun, break_no_work);
 	printf("End\n");
 	return 0;
 
