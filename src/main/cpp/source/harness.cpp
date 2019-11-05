@@ -237,7 +237,7 @@ int jitd_harness() {
 	int ms;
 	int i;
 	int j;
-	bool results;
+	bool result;
 	double time_base;
 	double time_this;
 	double time_prev;
@@ -296,7 +296,7 @@ int jitd_harness() {
 			put_data(node.data.key);
 		}
 		else if (node.type == SELECT) {
-			results = get_data(node.data.key);
+			result = get_data(node.data.key);
 /*
 		}
 		else if (node.type == TIME) {
@@ -342,10 +342,10 @@ int jitd_harness() {
 				break;
 			}
 			// Else, do more housecleaning:
-			results = jitd->do_organize();
+			result = jitd->do_organize();
 			time_now = gettime_ms();
 			// Break if no more cleanup:
-			if (results == false) {
+			if (result == false) {
 				break_no_work++;
 				break;
 			}
