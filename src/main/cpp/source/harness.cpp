@@ -2,9 +2,13 @@
 #include <memory>
 #include <thread>
 
+#include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "jitd_test.hpp"
@@ -16,7 +20,8 @@ static std::shared_ptr<JITD> jitd;
 static std::vector<Record> data;
 static Record r;
 static struct operation_node node;
-static int i;
+static double* output_array;
+static int output_size;
 
 // N.b. struct Record.key -- long int; Record.value -- void*
 
@@ -32,7 +37,21 @@ double gettime_ms() {
 }
 
 
+#define errtrap(error) (__errtrap(result, error, __LINE__))
+void __errtrap(int result, const char* error, int line) {
+
+	if (result == -1) {
+		printf("Error in %s() on line %d:  %s\n", error, line, strerror(errno));
+		_exit(errno);
+	}
+	return;
+
+}
+
+
 int seed_jitds() {
+
+	int i;
 
 	printf("Initializing data structure\n");
 	i = 0;
@@ -64,6 +83,7 @@ int test_jitds() {
 	Key maxkey = 0;
 	bool expected;
 	bool observed;
+	int i;
 	int j;
 
 	printf("Verifying inserted data\n");
@@ -116,11 +136,70 @@ int test_jitds() {
 }
 
 
+int init_output() {
+
+	int i;
+	int j;
+
+	printf("Setting up output structure\n");
+	i = 0;
+	j = 0;
+	while (true) {
+		node = operation_array[i];
+		if (node.type == STOP) {
+			break;
+		}
+		i++;
+		if (node.type == TIME) {
+			continue;
+		}
+		j++;
+	}
+	output_array = (double*)malloc(sizeof(double) * j);
+	output_size = j;
+
+	printf("Allocated for %d operation results\n", j);
+	return 0;
+
+}
+
+
+int save_output() {
+
+	#define BUFFER_SIZE 64
+
+	double time_delta;
+	int result;
+	int output_fd;
+	char output_filename[] = "output_data.txt";
+	char output_buffer[BUFFER_SIZE];
+
+	printf("Saving results\n");
+	result = open(output_filename, O_CREAT | O_RDWR | O_TRUNC, 0666);
+	errtrap("open");
+	output_fd = result;
+
+	for (int i = 0; i < output_size; i++) {
+		time_delta = output_array[i];
+		snprintf(output_buffer, BUFFER_SIZE, "%f\n", time_delta);
+		result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
+		errtrap("write");
+	}
+
+	close(output_fd);
+	printf("Finished\n");
+	return 0;
+
+}
+
+
 int jitd_harness() {
 
 	timeval start;
 	timeval end;
 	int ms;
+	int i;
+	int j;
 	bool results;
 	double time_base;
 	double time_this;
@@ -128,6 +207,8 @@ int jitd_harness() {
 	double time_next;
 	double time_delta;
 	double time_now;
+	double time_start;
+	double time_end;
 
 	// Initialize bare jitds structure:
 	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
@@ -141,6 +222,8 @@ int jitd_harness() {
 	seed_jitds();
 	// Basic structural integrity check:
 	test_jitds();
+	// Allocate output structure:
+	init_output();
 
 	printf("Starting operations\n");
 	gettimeofday(&start, NULL);
@@ -149,6 +232,7 @@ int jitd_harness() {
 	time_base = gettime_ms();
 
 	i = 0;
+	j = 0;
 	while (true) {
 
 /*
@@ -159,6 +243,8 @@ int jitd_harness() {
 		}
 */
 //		printf("iteration %d\n", i);
+
+		time_start = gettime_ms();
 
 		// Get next operation:
 		node = operation_array[i];
@@ -188,6 +274,15 @@ int jitd_harness() {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
 		}
+
+		if (j >= output_size) {
+			printf("Error:  output overflow\n");
+			_exit(1);
+		}
+		// Save out operation time:
+		time_delta = gettime_ms() - time_start;
+		output_array[j] = time_delta;
+		j++;
 
 		// Advance to time frame
 		i++;
@@ -224,9 +319,11 @@ int jitd_harness() {
 		i++;
 	}
 
+	save_output();
+
 	gettimeofday(&end, NULL);
 
-	std::cout << "Init JITD: " << total_time(start, end) << " us" << std::endl;
+	std::cout << "Total runtime: " << total_time(start, end) << " us" << std::endl;
 	printf("End\n");
 	return 0;
 
