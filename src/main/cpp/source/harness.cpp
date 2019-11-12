@@ -10,6 +10,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <math.h>
 
 #include "jitd_test.hpp"
 #include "test.hpp"
@@ -374,6 +375,14 @@ int jitd_harness() {
 	test_struct();
 	// Allocate output structure:
 	init_output();
+	// Block :30 to stabilize system:
+	printf("Waiting -- stabilize system\n");
+//	std::this_thread::sleep_for(std::chrono::milliseconds(30 * 1000));
+	double sum;
+	for (double k = 0; k < 1000 * 1000 * 1000; k++) {
+			sum += sin(k);
+	}
+	printf("wait sum:  %f\n", sum);
 
 	printf("Starting operations\n");
 	gettimeofday(&start, NULL);
