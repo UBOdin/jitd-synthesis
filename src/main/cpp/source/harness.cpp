@@ -14,6 +14,7 @@
 #include "jitd_test.hpp"
 #include "test.hpp"
 #include "harness.hpp"
+#include "conf.hpp"
 
 #include "sqlite3.h"
 
@@ -56,11 +57,17 @@ void __errtrap(int result, const char* error, int line) {
 
 int init_struct() {
 
-/*
+
+	#ifdef STORAGE_SQLITE
+
 	int result;
 	char filename[] = "testfile.db";  // TODO:  parameterize this
 	sqlite3_stmt* statement;
 	char create_table[] = "CREATE TABLE kvstore (key INTEGER PRIMARY KEY, value TEXT NOT NULL);";
+
+	// Remove any preexisting datafile:
+	result = unlink(filename);
+	errtrap("unlink");
 
 	// Create new SQLite db:  TODO:  deal with existing file issue
 	result = sqlite3_open(filename, &ppDb);
@@ -80,8 +87,14 @@ int init_struct() {
 		_exit(1);
 	}
 	result = sqlite3_finalize(statement);
-*/
+
+	#endif
+
+	#ifdef STORAGE_JITD
+
 	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
+
+	#endif
 
 	return 0;
 
@@ -90,7 +103,9 @@ int init_struct() {
 
 bool get_data(long key) {
 
-/*
+
+	#ifdef STORAGE_SQLITE
+
 	int result;
 	sqlite3_stmt* statement;
 	int rowcount;
@@ -118,7 +133,10 @@ bool get_data(long key) {
 	result = sqlite3_finalize(statement);
 
 	return (bool)rowcount;
-*/
+
+	#endif
+
+	#ifdef STORAGE_JITD
 
 	bool result;
 
@@ -126,13 +144,15 @@ bool get_data(long key) {
 
 	return result;
 
+	#endif
 
 }
 
 
 int put_data(long key) {
 
-/*
+	#ifdef STORAGE_SQLITE
+
 	int result;
 	sqlite3_stmt* statement;
 
@@ -148,13 +168,17 @@ int put_data(long key) {
 		_exit(1);
 	}
 	result = sqlite3_finalize(statement);
-*/
+
+	#endif
+
+	#ifdef STORAGE_JITD
 
 	r.key = key;
 	data.pop_back();
 	data.push_back(r);
 	jitd->insert(data);
 
+	#endif
 
 	return 0;
 
@@ -329,6 +353,13 @@ int jitd_harness() {
 	int break_overrun = 0;
 	int break_no_work = 0;
 
+	#ifdef STORAGE_SQLITE
+	printf("Using SQLite storage\n");
+	#endif
+	#ifdef STORAGE_JITD
+	printf("Using JITD storage\n");
+	#endif
+
 	// Initialize bare jitds structure:
 	init_struct();
 
@@ -413,6 +444,8 @@ int jitd_harness() {
 		time_next = time_base + (node.data.time * 1000.0);
 		time_now = gettime_ms();
 
+		#ifdef STORAGE_SQLITE
+
 		// Until we reach the next start time, do any jitds housecleaning remaining:
 		while (true) {
 			// Break if we have reached the next start time:
@@ -430,6 +463,8 @@ int jitd_harness() {
 			}
 		}
 
+		#endif
+
 		// If we have not yet reached the next start time, block until then:
 		// (i.e. no more housecleaning left)
 		if (time_now < time_next) {
@@ -437,7 +472,7 @@ int jitd_harness() {
 			ms = 0; //(time_next - time_now) / 10000.0;  // Adjust to taste  TODO:  parameterize this
 //			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 
-			time_base -= (time_next - time_now);
+//			time_base -= (time_next - time_now);
 		}
 
 		i++;
@@ -447,7 +482,9 @@ int jitd_harness() {
 	std::cout << "Total runtime: " << total_time(start, end) << " us" << std::endl;
 
 	save_output();
+	#ifdef STORAGE_SQLITE
 	sqlite3_close(ppDb);
+	#endif
 
 	printf("End base time:  %f\n", time_base);
 	printf("Overrun:  %d -- Ran out of work:  %d\n", break_overrun, break_no_work);
