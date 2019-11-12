@@ -25,6 +25,15 @@ struct operation_node {
 
 };
 
+struct output_node {
+
+	double time_start;
+	double time_delta;
+	enum operation type;
+	long key;
+
+};
+
 int jitd_harness();
 
 // Machine-generated static data:

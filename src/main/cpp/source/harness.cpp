@@ -25,7 +25,7 @@ static std::shared_ptr<JITD> jitd;
 static std::vector<Record> data;
 static Record r;
 static struct operation_node node;
-static double* output_array;
+static struct output_node* output_array;
 static int output_size;
 
 #ifdef STORAGE_SQLITE
@@ -306,7 +306,7 @@ int init_output() {
 		}
 		j++;
 	}
-	output_array = (double*)malloc(sizeof(double) * j);
+	output_array = (struct output_node*)malloc(sizeof(struct output_node) * j);
 	output_size = j;
 
 	printf("Allocated for %d operation results\n", j);
@@ -319,7 +319,6 @@ int save_output() {
 
 	#define BUFFER_SIZE 64
 
-	double time_delta;
 	int result;
 	int output_fd;
 	char output_filename[] = "output_data.txt";
@@ -331,8 +330,7 @@ int save_output() {
 	output_fd = result;
 
 	for (int i = 0; i < output_size; i++) {
-		time_delta = output_array[i];
-		snprintf(output_buffer, BUFFER_SIZE, "%f\n", time_delta);
+		snprintf(output_buffer, BUFFER_SIZE, "%f\t%f\t%d\t%ld\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key);
 		result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
 		errtrap("write");
 	}
@@ -381,11 +379,13 @@ int jitd_harness() {
 	// Block :30 to stabilize system:
 	printf("Waiting -- stabilize system\n");
 //	std::this_thread::sleep_for(std::chrono::milliseconds(30 * 1000));
+/*
 	double sum;
 	for (double k = 0; k < 1000 * 1000 * 1000; k++) {
 			sum += sin(k);
 	}
 	printf("wait sum:  %f\n", sum);
+*/
 
 	printf("Starting operations\n");
 	gettimeofday(&start, NULL);
@@ -439,7 +439,10 @@ int jitd_harness() {
 		}
 		// Save out operation time:
 		time_delta = gettime_ms() - time_start;
-		output_array[j] = time_delta;
+		output_array[j].time_start = time_start;
+		output_array[j].time_delta = time_delta;
+		output_array[j].type = node.type;
+		output_array[j].key = node.data.key;
 		j++;
 
 		// Advance to time frame
