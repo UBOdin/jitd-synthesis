@@ -17,7 +17,9 @@
 #include "harness.hpp"
 #include "conf.hpp"
 
+#ifdef STORAGE_SQLITE
 #include "sqlite3.h"
+#endif
 
 static std::shared_ptr<JITD> jitd;
 static std::vector<Record> data;
@@ -26,9 +28,11 @@ static struct operation_node node;
 static double* output_array;
 static int output_size;
 
+#ifdef STORAGE_SQLITE
 #define STMT_BUFLEN 256
 static sqlite3* ppDb;
 static char stmt_buffer[STMT_BUFLEN];
+#endif
 
 // N.b. struct Record.key -- long int; Record.value -- void*
 
@@ -92,6 +96,11 @@ int init_struct() {
 	#endif
 
 	#ifdef STORAGE_JITD
+
+	// Init data template to push:
+	r.key = -9999999;  // dummy init key; will be popped later
+	r.value = (Value)0xDEADBEEF;
+	data.push_back(r);
 
 	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
 
@@ -363,12 +372,6 @@ int jitd_harness() {
 
 	// Initialize bare jitds structure:
 	init_struct();
-
-	// Init data template to push:
-	r.key = -9999999;  // dummy init key; will be popped later
-	r.value = (Value)0xDEADBEEF;
-	data.push_back(r);
-
 	// Pre-populate structure with existing keys:
 	seed_struct();
 	// Basic structural integrity check:
