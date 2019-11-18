@@ -8,3 +8,4 @@
 *.o
 jitd_harness
 src/main/cpp/source/data.cpp
+src/main/cpp/include/conf.hpp
