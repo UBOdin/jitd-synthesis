@@ -218,7 +218,7 @@ int seed_struct() {
 			printf("Error:  expected Insert\n");
 			_exit(1);
 		}
-		put_data(node.data.key);
+		put_data(node.key);
 		i++;
 	}
 	printf("Finished\n");
@@ -246,7 +246,7 @@ int test_struct() {
 		if (node.type == STOP) {
 			break;
 		}
-		key = node.data.key;
+		key = node.key;
 		if (key > maxkey) {
 			maxkey = key;
 		}
@@ -267,7 +267,7 @@ int test_struct() {
 			if (node.type == STOP) {
 				break;
 			}
-			if (node.data.key == i) {
+			if (node.key == i) {
 				expected = true;
 				break;
 			}
@@ -290,26 +290,20 @@ int test_struct() {
 int init_output() {
 
 	int i;
-	int j;
 
 	printf("Setting up output structure\n");
 	i = 0;
-	j = 0;
 	while (true) {
 		node = operation_array[i];
 		if (node.type == STOP) {
 			break;
 		}
 		i++;
-		if (node.type == TIME) {
-			continue;
-		}
-		j++;
 	}
-	output_array = (struct output_node*)malloc(sizeof(struct output_node) * j);
-	output_size = j;
+	output_array = (struct output_node*)malloc(sizeof(struct output_node) * i);
+	output_size = i;
 
-	printf("Allocated for %d operation results\n", j);
+	printf("Allocated for %d operation results\n", i);
 	return 0;
 
 }
@@ -414,20 +408,10 @@ int jitd_harness() {
 			break;
 		}
 		else if (node.type == INSERT) {
-			put_data(node.data.key);
+			put_data(node.key);
 		}
 		else if (node.type == SELECT) {
-			result = get_data(node.data.key);
-/*
-		}
-		else if (node.type == TIME) {
-			time_this = node.data.time;
-			time_delta = time_this - time_prev;
-			ms = (node.data.time - time_prev) * 1000;  // Adjust delay to taste
-//			printf("Time:  base:  %f, delta:  %f, ms:  %d\n", time_this, time_delta, ms);
-			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-			time_prev = time_this;
-*/
+			result = get_data(node.key);
 		} else {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
@@ -442,21 +426,18 @@ int jitd_harness() {
 		output_array[j].time_start = time_start;
 		output_array[j].time_delta = time_delta;
 		output_array[j].type = node.type;
-		output_array[j].key = node.data.key;
+		output_array[j].key = node.key;
 		j++;
 
-		// Advance to time frame
+		// Advance to next frame
 		i++;
 		node = operation_array[i];
 		if (node.type == STOP) {
 			break;
-		} else if (node.type != TIME) {
-			printf("Error:  Expected time field\n");
-			_exit(1);
 		}
 
 		// Get start time of the next operation:
-		time_next = time_base + (node.data.time * 1000.0);
+		time_next = time_base + (node.time * 1000.0);
 		time_now = gettime_ms();
 
 		#ifdef STORAGE_SQLITE
@@ -490,7 +471,6 @@ int jitd_harness() {
 //			time_base -= (time_next - time_now);
 		}
 
-		i++;
 	}
 
 	gettimeofday(&end, NULL);
