@@ -7,5 +7,7 @@
 *.swp
 *.o
 jitd_harness
+jitd_harness_*
 src/main/cpp/source/data.cpp
 src/main/cpp/include/conf.hpp
+testfile.db
