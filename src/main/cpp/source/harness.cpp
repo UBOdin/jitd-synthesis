@@ -68,7 +68,7 @@ int init_struct() {
 	int result;
 	char filename[] = ":memory:"; // "testfile.db";  // TODO:  parameterize this
 	sqlite3_stmt* statement;
-	char create_table[] = "CREATE TABLE kvstore (key INTEGER PRIMARY KEY, value TEXT NOT NULL);";
+	char create_table[] = "CREATE TABLE kvstore (key INTEGER PRIMARY KEY);";
 
 	// Remove any preexisting datafile:
 	if (strcmp(filename, ":memory:") != 0) {
@@ -101,7 +101,7 @@ int init_struct() {
 
 	// Init data template to push:
 	r.key = -9999999;  // dummy init key; will be popped later
-	r.value = (Value)0xDEADBEEF;
+//	r.value = (Value)0xDEADBEEF;
 	data.push_back(r);
 
 	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
@@ -124,7 +124,7 @@ bool get_data(long key) {
 	int colcount;
 	int type;
 
-	snprintf(stmt_buffer, STMT_BUFLEN, "SELECT key, value FROM kvstore WHERE key=%ld;", key);
+	snprintf(stmt_buffer, STMT_BUFLEN, "SELECT key FROM kvstore WHERE key=%ld;", key);
 	result = sqlite3_prepare(ppDb, stmt_buffer, STMT_BUFLEN, &statement, NULL);
 	if (result != SQLITE_OK) {
 		printf("Error:  prepare select\n");
@@ -168,7 +168,7 @@ int put_data(long key) {
 	int result;
 	sqlite3_stmt* statement;
 
-	snprintf(stmt_buffer, STMT_BUFLEN, "INSERT INTO kvstore (key, value) VALUES (%ld, 'DEADBEEF');", key);
+	snprintf(stmt_buffer, STMT_BUFLEN, "INSERT INTO kvstore (key) VALUES (%ld);", key);
 	result = sqlite3_prepare(ppDb, stmt_buffer, STMT_BUFLEN, &statement, NULL);
 	if (result != SQLITE_OK) {
 		printf("Error:  prepare insert\n");
