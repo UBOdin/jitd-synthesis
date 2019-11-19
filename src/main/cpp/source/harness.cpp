@@ -399,11 +399,11 @@ int jitd_harness() {
 		}
 */
 
-		time_start = gettime_ms();
-
 		// Get next operation:
 		node = operation_array[i];
 
+		// Benchmark next operation:
+		time_start = gettime_ms();
 		if (node.type == STOP) {
 			break;
 		}
@@ -416,18 +416,17 @@ int jitd_harness() {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
 		}
+		time_delta = gettime_ms() - time_start;
 
-		if (j >= output_size) {
+		// Save out operation time:
+		if (i >= output_size) {
 			printf("Error:  output overflow\n");
 			_exit(1);
 		}
-		// Save out operation time:
-		time_delta = gettime_ms() - time_start;
-		output_array[j].time_start = time_start;
-		output_array[j].time_delta = time_delta;
-		output_array[j].type = node.type;
-		output_array[j].key = node.key;
-		j++;
+		output_array[i].time_start = time_start;
+		output_array[i].time_delta = time_delta;
+		output_array[i].type = node.type;
+		output_array[i].key = node.key;
 
 		// Advance to next frame
 		i++;
