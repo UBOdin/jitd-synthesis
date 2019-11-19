@@ -66,13 +66,15 @@ int init_struct() {
 	#ifdef STORAGE_SQLITE
 
 	int result;
-	char filename[] = "testfile.db";  // TODO:  parameterize this
+	char filename[] = ":memory:"; // "testfile.db";  // TODO:  parameterize this
 	sqlite3_stmt* statement;
 	char create_table[] = "CREATE TABLE kvstore (key INTEGER PRIMARY KEY, value TEXT NOT NULL);";
 
 	// Remove any preexisting datafile:
-	result = unlink(filename);
-	errtrap("unlink");
+	if (strcmp(filename, ":memory:") != 0) {
+		result = unlink(filename);
+		errtrap("unlink");
+	}
 
 	// Create new SQLite db:  TODO:  deal with existing file issue
 	result = sqlite3_open(filename, &ppDb);

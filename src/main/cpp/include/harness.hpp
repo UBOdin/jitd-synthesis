@@ -22,6 +22,7 @@ struct output_node {
 	double time_delta;
 	enum operation type;
 	long key;
+	int rows;
 
 };
 
