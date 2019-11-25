@@ -165,11 +165,9 @@ def main():
 
 	fig3, ax3 = plt.subplots()
 
-	#ax3.scatter(optime_null_list, , optime_list, s = 1)
-	for e, f in zip(optime_null_list, optime_row_list):
-		#row_dict = optime_row_list[f]
-		for g in f: #row_dict:
-			ax3.scatter(optime_null_list[int(e)], g, s = f[g] ) #int(math.log(float(f[g]))))
+	for e, f_dict in zip(optime_null_list, optime_row_list):
+		for g in f_dict:
+			ax3.scatter(optime_null_list[int(e)], g, s = f_dict[g] ) #int(math.log(float(f[g]))))
 		#end_for
 
 	#end_for
