@@ -326,7 +326,7 @@ int save_output() {
 	output_fd = result;
 
 	for (int i = 0; i < output_size; i++) {
-		snprintf(output_buffer, BUFFER_SIZE, "%f\t%f\t%d\t%ld\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key);
+		snprintf(output_buffer, BUFFER_SIZE, "%f\t%f\t%d\t%ld\t%d\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key, output_array[i].rows);
 		result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
 		errtrap("write");
 	}
@@ -414,6 +414,19 @@ int jitd_harness() {
 		}
 		else if (node.type == SELECT) {
 			result = get_data(node.key);
+			// Basic sanity check
+			if (result != (bool)node.rows) {
+				printf("Unexpected get result\n");
+				_exit(1);
+			}
+			// Re-fetch if original data returned multiple rows:
+/*
+			if (node.rows > 1) {
+				for (int j = 1; j < node.rows; j++) {
+					result = get_data(node.key);
+				}
+			}
+*/
 		} else {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
@@ -429,6 +442,7 @@ int jitd_harness() {
 		output_array[i].time_delta = time_delta;
 		output_array[i].type = node.type;
 		output_array[i].key = node.key;
+		output_array[i].rows = node.rows;
 
 		// Advance to next frame
 		i++;
