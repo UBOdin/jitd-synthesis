@@ -61,11 +61,11 @@ inline bool record_binary_search(const std::vector<Record> &data, const Key &key
 inline void append(std::vector<Record> &to, std::vector<Record> &from){
   to.insert(std::end(to), std::begin(from), std::end(from));
 }
-inline void appendConcat(std::vector<Record> &to, std::vector<Record> &from)
-{ 
-  to.insert(std::end(to), std::begin(from), std::end(from));
-  std::sort(std::begin(to),std::end(to));
-}
+// inline void appendConcat(std::vector<Record> &to, std::vector<Record> &from)
+// { 
+//   to.insert(std::end(to), std::begin(from), std::end(from));
+//   std::sort(std::begin(to),std::end(to));
+// }
 // inline void remove(std::vector<Record> &to_delete, std::vector<Record> &from_delete)
 // {
 //   for(int i = 0; i < from_delete.size(); i++)
@@ -151,11 +151,11 @@ inline void do_crack(
   for(auto curr = std::begin(source); curr < std::end(source); ++curr)
   {
     //std::cout << "  Check: " << curr->key;
-    if(*curr < sep){ lhs.emplace_back(*curr); }
-    else           { rhs.emplace_back(*curr); }
+    if(*curr < sep){ lhs.push_back(*curr); }
+    else           { rhs.push_back(*curr); }
   }
 }
-inline void copy_delete_array(
+inline void array_copy(
 
   const std::vector<Record> &source,  
   std::vector<Record> &lhs, 
@@ -168,60 +168,60 @@ inline void copy_delete_array(
   for(auto curr = std::begin(source); curr < std::end(source); ++curr)
   {
     // std::cout << "  Check: " << curr->key << std::endl;
-    lhs.emplace_back(*curr); 
-    rhs.emplace_back(*curr); 
+    lhs.push_back(*curr); 
+    rhs.push_back(*curr); 
   }
 
 } 
-inline void copy_delete_array_btree(
+// inline void copy_delete_array_btree(
 
-  const std::vector<Record> &source, 
-  Key sep, 
-  std::vector<Record> &lhs, 
-  std::vector<Record> &rhs
-){
-  //std::cout<<"Doing copy"<<std::endl;
-  // std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
+//   const std::vector<Record> &source, 
+//   Key sep, 
+//   std::vector<Record> &lhs, 
+//   std::vector<Record> &rhs
+// ){
+//   //std::cout<<"Doing copy"<<std::endl;
+//   // std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
   
-  for(auto curr = std::begin(source); curr < std::end(source); ++curr)
-  {
-    // std::cout << "  Check: " << curr->key << std::endl;
-    if(*curr<sep)
-    {
-      lhs.emplace_back(*curr);
-    }
-    else
-    {
-      rhs.emplace_back(*curr); 
-    }
+//   for(auto curr = std::begin(source); curr < std::end(source); ++curr)
+//   {
+//     // std::cout << "  Check: " << curr->key << std::endl;
+//     if(*curr<sep)
+//     {
+//       lhs.emplace_back(*curr);
+//     }
+//     else
+//     {
+//       rhs.emplace_back(*curr); 
+//     }
   
-  }
+//   }
 
-} 
-inline void delete_from_sorted_array(std::vector<Record> &to_delete,std::vector<Record> &from_delete)
-{
-  //std::cout<<"in deleting";
-  if(to_delete.size()!=0 && from_delete.size()!=0)
-  {
-    for(int i = 0; i < from_delete.size(); i++)
-    {
-      auto iter = std::find(std::begin(to_delete),std::end(to_delete),from_delete[i]);
-      if(iter != std::end(to_delete))
-      {
-        to_delete.erase(iter);
+// } 
+// inline void delete_from_sorted_array(std::vector<Record> &to_delete,std::vector<Record> &from_delete)
+// {
+//   //std::cout<<"in deleting";
+//   if(to_delete.size()!=0 && from_delete.size()!=0)
+//   {
+//     for(int i = 0; i < from_delete.size(); i++)
+//     {
+//       auto iter = std::find(std::begin(to_delete),std::end(to_delete),from_delete[i]);
+//       if(iter != std::end(to_delete))
+//       {
+//         to_delete.erase(iter);
      
-      }
-    } 
+//       }
+//     } 
 
-  }
-  else
-  {
-    std::cout<<"size 0 encountered"<<std::endl;
-  }
+//   }
+//   else
+//   {
+//     std::cout<<"size 0 encountered"<<std::endl;
+//   }
   
 
-}
-inline void delete_from_array(std::vector<Record> &to_delete,std::vector<Record> &from_delete)
+// }
+inline void delete_from_leaf(std::vector<Record> &to_delete,std::vector<Record> &from_delete)
 {
   //std::cout<<"in deleting";
   if(to_delete.size()!=0 && from_delete.size()!=0)

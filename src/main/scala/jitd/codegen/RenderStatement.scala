@@ -55,7 +55,12 @@ class RenderStatement(
         }   
       //Use Void instead of this and have obj oeientation info  
       case commonFunction(function,op,v) =>{
+        
+        //s"gettimeofday(&start,NULL);\n"+
         indent+function+op+renderExpression(v)+");\n"
+        //s"gettimeofday(&end,NULL);\n"+
+        //s"totalTime = (end.tv_sec - start.tv_sec) * 1000000.0 + (end.tv_usec - start.tv_usec);\n"+
+        //s"CrackArray_emplace.push_back(totalTime);"
       }
       
      

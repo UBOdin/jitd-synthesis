@@ -50,13 +50,18 @@ typedef std::function<void(std::shared_ptr<JITDNode> &new_node)> UpdateHandle;
 @for(node <- ctx.definition.nodes){
 class @{node.renderName} : public JITDNode { 
   public:
-  @{node.renderName}( @{ node.fields.map { ctx.fieldDefn(_) }.mkString(", " )} ) : 
+  @{node.renderName}( @{ node.fields.map { ctx.fieldDefn(_, passByRef=true, isConst=true) }.mkString(", " )} ) : 
     JITDNode(@{node.enumName})
     @for(field <- node.fields){,
       @{field.name}(@{field.name})
     }
   {}
-
+  @for(constructor <- node.constructors ){
+    @{node.renderName}(@{constructor.args.map{ ctx.fieldDefn(_, passByRef=true, isConst=true) }.mkString(", " )}):
+      JITDNode(@{node.enumName})
+        @{constructor.defaults.map{", "+ctx.expression(_)}.mkString("")}
+        @{ctx.statement(constructor.body)}
+  }
   @for(field <- node.fields.filter { _.t == TNodeRef() }){
     void update_@{field.name}_handle(std::shared_ptr<JITDNode> &new_value){
       @{field.name} = new_value;
@@ -87,7 +92,8 @@ class JITD;
 std::shared_ptr<JITD> assemble_jitd(std::istream &in);
 void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix);
 void print_time_vector_sum();
-   
+void print_search_time_vector_sum();
+void print_timing_vec();   
 ///////////////////// JITD Accessors ///////////////////// 
 
 @for( accessor <- ctx.definition.accessors ) {
@@ -110,9 +116,6 @@ class JITD {
 
     @{RenderPattern.ComparatorClass(ctx,ctx.policy.rule);}
     @{RenderPattern.PqDeclare(ctx,ctx.policy.rule,true);}
-    //@for(node <- ctx.definition.nodes){
-    //  std::set<std::shared_ptr<JITDNode> * >@{node.enumName}_set;
-    // }
 
     JITD(JITDNode *root) : root(root) 
     {
@@ -157,6 +160,8 @@ class JITD {
     void print_debug() {print_JITD_node_structure(root, std::string("")); }
     bool do_organize();
     void print_time_vec() {print_time_vector_sum();}
+    void print_search_time_vec() {print_search_time_vector_sum();}
+    void print_timing() {print_timing_vec();}
     void print_set_size() {print_set();}
     void print_pq_size() {print_pq();}
     void check_set_intergrity(){check_set();};

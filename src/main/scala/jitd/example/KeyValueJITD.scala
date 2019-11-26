@@ -12,23 +12,27 @@ object KeyValueJITD extends HardcodedDefinition {
   Def(bool, "record_scan",          record.array, key, record)
   Def(bool, "record_binary_search", record.array, key, record)
   Def("do_crack", record.array, key, record.array, record.array)
-  Def("copy_delete_array",record.array, record.array, record.array)
-  Def("copy_delete_array_btree",record.array, key, record.array, record.array)
+  Def("array_copy",record.array, record.array, record.array)
+  //Def("copy_delete_array_btree",record.array, key, record.array, record.array)
   Def("append", record.array, record.array)
-  Def("appendConcat",record.array,record.array)
+  //Def("appendConcat",record.array,record.array)
   Def("remove",record.array,record.array)
-  Def("delete_from_sorted_array",record.array,record.array)
-  Def("delete_from_array",record.array,record.array)
+  //Def("delete_from_sorted_array",record.array,record.array)
+  Def("delete_from_leaf",record.array,record.array)
   Def(key, "pick_separator", record.array)
 
   //////////////////////////////////////////////
 
-  Node( "Array",       "data" -> record.array )
-  Node( "SortedArray", "data" -> record.array )
-  Node( "Concat",      "lhs"  -> node, "rhs" -> node )
-  Node( "Delete",      "lhs"  -> node, "rhs" -> node )
-  Node( "BTree",       "lhs"  -> node, "sep" -> key, "rhs" -> node )
-  Node( "DeleteElements",      "lhsnode"  -> node, "data" -> record.array )
+  Node( "Array",       "data" -> record.array )(
+        NodeConstructor(Seq(),Seq("data".call()))
+  )
+  Node( "SortedArray", "data" -> record.array )(
+        NodeConstructor(Seq(),Seq("data".call()))
+  )
+  Node( "Concat",      "lhs"  -> node, "rhs" -> node )()
+  Node( "Delete",      "lhs"  -> node, "rhs" -> node )()
+  Node( "BTree",       "lhs"  -> node, "sep" -> key, "rhs" -> node )()
+  Node( "DeleteElements",      "node"  -> node, "data" -> record.array )()
 
   //////////////////////////////////////////////
 
@@ -45,7 +49,7 @@ object KeyValueJITD extends HardcodedDefinition {
     "Concat"       -> If( Delegate("lhs") ) { Return(true) } { Return { Delegate("rhs") } },
     "BTree"        -> If( "target" lt "sep" ) { Return { Delegate("lhs") } } { Return { Delegate("rhs") } },
     "Delete"       -> If( Delegate("rhs") ) { Return(false) } { Return { Delegate("lhs") } },
-    "DeleteElements"  -> If( "record_scan".call("data","target","result") ) { Return(false) }{Return{Delegate("lhsnode")}}
+    "DeleteElements"  -> If( "record_scan".call("data","target","result") ) { Return(false) }{Return{Delegate("node")}}
     //if it returns true from rhs the element is a part of delete list so dont check lhs and get should return false as it is not a part of the structure.
   )
 
@@ -55,7 +59,7 @@ object KeyValueJITD extends HardcodedDefinition {
     "Concat"      -> Return { Delegate( "lhs" ) plus Delegate("rhs") },
     "BTree"       -> Return { Delegate( "lhs" ) plus Delegate("rhs") },
     "Delete"      -> Return { Delegate( "lhs" ) minus Delegate("rhs") },
-    "DeleteElements"      -> Return { Delegate( "lhsnode" ) minus ArraySize("data") }//check logic doesnt return a neg value.
+    "DeleteElements"      -> Return { Delegate( "node" ) minus ArraySize("data") }//check logic doesnt return a neg value.
   //FIX THE SIZE FOR DELETE
   )
 
@@ -85,14 +89,14 @@ object KeyValueJITD extends HardcodedDefinition {
   } {
     "BTree" fromFields(
       "Array" fromFields(
-        BlankArray as "lhs_partition"
-      ),
+          
+      ) as "lhs_partition",
       "pick_separator".call("data") as "separator",
       "Array" fromFields(
-        BlankArray as "rhs_partition"
-      )
+       
+      ) as "rhs_partition"
     ) andAfter(
-      "do_crack".call("data", "separator", "lhs_partition", "rhs_partition")
+      "do_crack".call("data", "separator", NodeSubscript(Var("lhs_partition"),"data"), NodeSubscript(Var("rhs_partition"),"data"))
     )
   }
 
@@ -115,8 +119,8 @@ object KeyValueJITD extends HardcodedDefinition {
     )
   } {
     "SortedArray" fromFields("lhs" as "merged") andAfter (
-      "appendConcat".call("merged", "rhs")
-    )
+      "append".call("merged", "rhs") 
+    ) andAfter ("std::sort".call(Begin("merged"),End("merged")) )
   }
   // Transform("MergeDeleteNodes") {
   //   "Delete" withFields( 
@@ -149,14 +153,14 @@ object KeyValueJITD extends HardcodedDefinition {
   } {
     "BTree" fromFields(
       "Concat" fromFields( "a", "Array" fromFields(
-        BlankArray as "lhs_partition"
-      )),
+        
+      )as "lhs_partition"),
       "separator",
       "Concat" fromFields( "b", "Array" fromFields(
-          BlankArray as "rhs_partition"
-      ))
+          
+      )as "rhs_partition")
     ) andAfter(
-      "do_crack".call("data", "separator", "lhs_partition", "rhs_partition")
+      "do_crack".call("data", "separator", NodeSubscript(Var("lhs_partition"),"data"), NodeSubscript(Var("rhs_partition"),"data"))
     )
   }
   Transform("PushDownDontDeleteBtree")
@@ -168,14 +172,14 @@ object KeyValueJITD extends HardcodedDefinition {
   } {
     "BTree" fromFields(
       "Delete" fromFields( "a", "Array" fromFields(
-        BlankArray as "lhs_partition"
-      )),
+        
+      ) as "lhs_partition"),
       "separator",
       "Delete" fromFields( "b", "Array" fromFields(
-          BlankArray as "rhs_partition"
-      ))
+          
+      ) as "rhs_partition")
     ) andAfter(
-      "copy_delete_array_btree".call("data","separator", "lhs_partition", "rhs_partition")
+      "do_crack".call("data","separator", NodeSubscript(Var("lhs_partition"),"data"), NodeSubscript(Var("rhs_partition"),"data"))
     ) 
   }
   Transform("PushDownDontDeleteElemBtree")
@@ -197,13 +201,13 @@ object KeyValueJITD extends HardcodedDefinition {
   } {
     "Concat" fromFields(
       "Delete" fromFields( "a", "Array" fromFields(
-        BlankArray as "lhs_partition"
-      )),
+        
+      ) as "lhs_partition"),
       "Delete" fromFields( "b", "Array" fromFields(
-          BlankArray as "rhs_partition"
-      ))
+          
+      ) as "rhs_partition")
     ) andAfter(
-      "copy_delete_array".call("data", "lhs_partition", "rhs_partition")
+      "array_copy".call("data", NodeSubscript(Var("lhs_partition"),"data"), NodeSubscript(Var("rhs_partition"),"data"))
     ) 
   }
   Transform("PushDownDontDeleteElemConcat")
@@ -220,47 +224,47 @@ object KeyValueJITD extends HardcodedDefinition {
     "Delete" withFields("SortedArray" withFields( "data1" ),"SortedArray" withFields( "data2" ))
   } {
     "SortedArray" fromFields( "data1" as "new_sorted_array_after_delete") andAfter(
-      "delete_from_sorted_array".call("new_sorted_array_after_delete", "data2")) 
+      "delete_from_leaf".call("new_sorted_array_after_delete", "data2")) 
   }
   Transform("DeleteElemFromSortedArray")
   {
     "DeleteElements" withFields("SortedArray" withFields( "data1" ), "data2" )
   } {
     "SortedArray" fromFields( "data1" as "new_sorted_array_after_delete") andAfter(
-      "delete_from_sorted_array".call("new_sorted_array_after_delete", "data2")) 
+      "delete_from_leaf".call("new_sorted_array_after_delete", "data2")) 
   }
   Transform("DeleteFromArray")
   {
     "Delete" withFields("Array" withFields( "data1" ),"Array" withFields( "data2" ))
   } {
     "Array" fromFields( "data1" as "new_array_after_delete") andAfter(
-      "delete_from_array".call("new_array_after_delete", "data2")) 
+      "delete_from_leaf".call("new_array_after_delete", "data2")) 
   }
   Transform("DeleteElemFromArray")
   {
     "DeleteElements" withFields("Array" withFields( "data1" ), "data2")
   } {
     "Array" fromFields( "data1" as "new_array_after_delete") andAfter(
-      "delete_from_array".call("new_array_after_delete", "data2")) 
+      "delete_from_leaf".call("new_array_after_delete", "data2")) 
   }
   // Policy("MergeSortedBTrees")("crackAt" -> IntConstant(5),"null_data"-> IntConstant(0))
   // (
   //   "MergeSortedBTrees"
   // )
-  Policy("CrackSort")("crackAt" -> IntConstant(1000000),"null_data"-> IntConstant(0)) (
+  Policy("CrackSort")("crackAt" -> IntConstant(100),"null_data"-> IntConstant(0)) (
     //"PushDownAndCrack"            scoreBy { ArraySize("data") }
        ("CrackArray"       onlyIf { ArraySize("data") gte "crackAt" } 
                                   scoreBy { ArraySize("data") })
       //andThen ("PushDownDontDeleteBtree"          scoreBy { ArraySize("data") })
       //andThen ("PushDownDontDeleteElemBtree"          scoreBy { ArraySize("data") })
       //andThen ("PushDownDontDeleteConcat"            scoreBy { ArraySize("data") })
-      andThen ("PushDownDontDeleteElemConcat"          scoreBy { ArraySize("data") })
+      //andThen ("PushDownDontDeleteElemConcat"          scoreBy { ArraySize("data") })
       //andThen ("SortArray"        scoreBy { ArraySize("data") })
       //andThen ("MergeSortedBTrees")
       //andThen "MergeSortedConcat"
       
      // andThen "MergeDeleteNodes"
-     andThen ("DeleteElemFromArray" scoreBy{ArraySize("data2")})
+     //andThen ("DeleteElemFromArray" scoreBy{ArraySize("data2")})
      //andThen ("DeleteElemFromSortedArray" scoreBy{ArraySize("data2")})
   )
 

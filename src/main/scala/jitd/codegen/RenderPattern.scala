@@ -73,18 +73,6 @@ object RenderPattern
                 }
                 
                 
-                //val extract = MatchToStatement.unrollSet(ctx.definition,pattern,"",(Var("")))
-                // println(extract(0))
-                // println(extract(0)._2)
-                // val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4)) 
-                // val pqseqStmt = eachVarName.map(vnnt =>
-                // {
-                    //trackablesets.add(extract(0)._2.toString)
-                    //println(trackablesets)
-                     //trackablesets.foreach(node => s"std::set<std::shared_ptr<JITDNode> *> JITD_NODE_${node}_set;\n").toString
-                     
-                //})
-                //return pqseqStmt.mkString
               }  
           
 
@@ -148,32 +136,12 @@ object RenderPattern
     
   }
 }
-def PQCall(transform_name:String,pattern:MatchPattern):String = 
-{
-   pattern match {
-            case MatchNode(nodeName, fields, name) => { 
-
-              if(fields.forall{_.isInstanceOf[MatchAny]})
-              {
-                
-                s"${transform_name}_PQ"
-              }
-              else
-              {
-                ""
-              }
-             
-            }
-           case MatchAny(_) => ""
-
-  }  
-}
-  def setPqGen(ctx:Render, pattern:MatchPattern,setorpq:String):String = 
+  def setGen(ctx:Render, pattern:MatchPattern):String = 
   {
     pattern match {
       case MatchNode(nodeName, fields, name) => {
         val node = ctx.definition.nodesByName(nodeName)
-        s"${node.enumName}"+"_"+setorpq
+        s"${node.enumName}"+"_"+"set"
 
       }
       case MatchAny(name) => ""
