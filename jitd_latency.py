@@ -245,6 +245,18 @@ def main():
 	fig4.tight_layout()
 	fig4.savefig("latency_key.pdf")
 
+	fig5, ax5 = plt.subplots()
+
+	ax5.scatter(time_start_list, key_list, s = 1)
+
+	ax5.set_xlabel("Operation start time (ms)", fontsize = 10, fontweight = "bold")
+	ax5.set_ylabel("Key", fontsize = 10, fontweight = "bold")
+	ax5.axis([0, maxlatency, minkey, maxkey])
+
+	fig5.tight_layout()
+	fig5.savefig("walltime_key.pdf")
+
+
 	if (interactive == True):
 		plt.show()
 	#end_if
