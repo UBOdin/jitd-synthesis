@@ -29,8 +29,8 @@ def process_loglines(file_name):
 	iteration = 0
 	time_start = 0.0
 	time_start_list = []
-	optime = 0.0
-	optime_list = []
+	latency = 0.0
+	latency_list = []
 	rowcount = 0
 	rowcount_list = []
 	key = 0
@@ -59,8 +59,8 @@ def process_loglines(file_name):
 		time_start = float(logline_list[0])
 		time_start_list.append(time_start)
 
-		optime = float(logline_list[1]) * 1000.0
-		optime_list.append(optime)
+		latency = float(logline_list[1]) * 1000.0
+		latency_list.append(latency)
 
 		rowcount = int(logline_list[4])
 		rowcount_list.append(rowcount)
@@ -72,9 +72,9 @@ def process_loglines(file_name):
 
 	input_file.close()
 
-	#print(optime_list)
+	#print(latency_list)
 
-	return time_start_list, optime_list, rowcount_list, key_list
+	return time_start_list, latency_list, rowcount_list, key_list
 
 #end_def
 
@@ -86,15 +86,15 @@ def main():
 	minlatency = 999999.0
 	maxlatency = 0.0
 	time_start_list = []
-	optime_list = []
-	optime_null_list = []
-	optime_bucket_list = []
-	optime_cdf_list = []
+	latency_list = []
+	latency_null_list = []
+	latency_bucket_list = []
+	latency_cdf_list = []
 	cumsum = 0
 	bucket = 0
 	maxbucket = 0
 	rowcount_list = []
-	optime_row_list = []
+	latency_row_list = []
 	row_dict = {}
 	rowcount_frequency_list = []
 	maxrows = 0
@@ -109,9 +109,9 @@ def main():
 		#end_if
 	#end_if
 
-	time_start_list, optime_list, rowcount_list, key_list = process_loglines(filename)
+	time_start_list, latency_list, rowcount_list, key_list = process_loglines(filename)
 
-	for e in optime_list:
+	for e in latency_list:
 		if (e < minlatency):
 			minlatency = e
 		#end_if
@@ -123,17 +123,17 @@ def main():
 	print(minlatency, maxlatency)
 
 	for i in range(int(maxlatency) * 10 + 10):
-		optime_null_list.append(float(i / 10.0))
-		optime_bucket_list.append(0)
-		optime_cdf_list.append(0)
-		optime_row_list.append({})
+		latency_null_list.append(float(i / 10.0))
+		latency_bucket_list.append(0)
+		latency_cdf_list.append(0)
+		latency_row_list.append({})
 	#end_for
 
-	for e, f in zip(optime_list, rowcount_list):
+	for e, f in zip(latency_list, rowcount_list):
 		bucket = int(e * 10.0)
-		optime_bucket_list[bucket] += 1
+		latency_bucket_list[bucket] += 1
 
-		row_dict = optime_row_list[bucket]
+		row_dict = latency_row_list[bucket]
 		if (f in row_dict):
 			row_dict[f] += 1
 		else:
@@ -144,20 +144,20 @@ def main():
 			maxrows = f
 		#end_if
 
-		if (optime_bucket_list[bucket] > maxbucket):
-			maxbucket = optime_bucket_list[bucket]
+		if (latency_bucket_list[bucket] > maxbucket):
+			maxbucket = latency_bucket_list[bucket]
 		#end_if
 
 	#end_for
 
-	for i in range(len(optime_bucket_list)):
-		cumsum += optime_bucket_list[i]
-		optime_cdf_list[i] = cumsum
+	for i in range(len(latency_bucket_list)):
+		cumsum += latency_bucket_list[i]
+		latency_cdf_list[i] = cumsum
 	#end_for
 
 	fig0, ax0 = plt.subplots()
 
-	ax0.plot(optime_null_list, optime_bucket_list)
+	ax0.plot(latency_null_list, latency_bucket_list)
 
 	ax0.set_xlabel("Operation latency (ms) (.1ms buckets)", fontsize = 10, fontweight = "bold")
 	ax0.set_ylabel("Number of operations taking this long", fontsize = 10, fontweight = "bold")
@@ -169,7 +169,7 @@ def main():
 
 	fig1, ax1 = plt.subplots()
 
-	ax1.plot(optime_null_list, optime_cdf_list)
+	ax1.plot(latency_null_list, latency_cdf_list)
 
 	ax1.set_xlabel("Operation latency (ms) (.1ms buckets)", fontsize = 10, fontweight = "bold")
 	ax1.set_ylabel("Number of operations taking this long", fontsize = 10, fontweight = "bold")
@@ -183,7 +183,7 @@ def main():
 
 	time_start_list = [ e - time_start_list[0] for e in time_start_list ]
 
-	ax2.scatter(time_start_list, optime_list, s = 1)
+	ax2.scatter(time_start_list, latency_list, s = 1)
 
 	ax2.set_xlabel("Operation start time (ms)", fontsize = 10, fontweight = "bold")
 	ax2.set_ylabel("Operation latency (ms)", fontsize = 10, fontweight = "bold")
@@ -195,7 +195,7 @@ def main():
 
 	fig3, ax3 = plt.subplots()
 
-	for e, f_dict in zip(optime_null_list, optime_row_list):
+	for e, f_dict in zip(latency_null_list, latency_row_list):
 		for g in f_dict:
 			ax3.scatter(e, g, s = f_dict[g] ) #int(math.log(float(f[g]))))
 		#end_for
@@ -215,7 +215,7 @@ def main():
 	blue_y_list = []
 	red_x_list = []
 	red_y_list = []
-	for e, f, g in zip(key_list, optime_list, rowcount_list):
+	for e, f, g in zip(key_list, latency_list, rowcount_list):
 		if (e < minkey):
 			minkey = e
 		#end_if
