@@ -13,11 +13,11 @@
     int count = 0;
     long best_score = -1;
     long curr_score = -1;
-    if(!(this->@{RenderPattern.setPqGen(ctx, transform.from,"set")}).empty())
+    if(!(this->@{RenderPattern.setGen(ctx, transform.from)}).empty())
     {
       
       std::set< std::shared_ptr<JITDNode> * >::iterator it;
-      for(it = (this->@{RenderPattern.setPqGen(ctx, transform.from,"set")}).begin(); it!=(this->@{RenderPattern.setPqGen(ctx, transform.from,"set")}).end(); ++it)
+      for(it = (this->@{RenderPattern.setGen(ctx, transform.from)}).begin(); it!=(this->@{RenderPattern.setGen(ctx, transform.from)}).end(); ++it)
       {
           
           JITDNode *iter_node = (*it)->get();

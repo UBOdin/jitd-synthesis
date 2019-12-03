@@ -10,23 +10,25 @@
   @{ctx.cType(TNodeRef())} * targetHandleRef;
   @{ctx.cType(TNodeRef())}  lock_raw_shrd_ptr;
   std::shared_ptr<JITDNode> target;
-  timeval start, end;
+  //timeval start, end,start2,end2;
 
   std::shared_ptr<JITDNode> * rootHandleRef = &root;
   
-  gettimeofday(&start,NULL);
+  //gettimeofday(&start,NULL);
   long bestScore = searchFor@{transform}(
     rootHandleRef,targetHandleRef
   );
   //std::cout<<"Best Score:"<<bestScore<<std::endl;
-  gettimeofday(&end,NULL);
-  float totalTime = (end.tv_sec - start.tv_sec) * 1000000.0 + (end.tv_usec - start.tv_usec);
-  time_vec_@{transform}.push_back(totalTime);
+  //gettimeofday(&end,NULL);
+  //float totalTime = (end.tv_sec - start.tv_sec) * 1000000.0 + (end.tv_usec - start.tv_usec);
+  //search_time_vec_@{transform}.push_back(totalTime);
   if(bestScore >= 0) {
   
-    
+    //gettimeofday(&start2,NULL);
     @{transform}(targetHandleRef);
-    
+    //gettimeofday(&end2,NULL);
+    //float totalTime = (end.tv_sec - start.tv_sec) * 1000000.0 + (end.tv_usec - start.tv_usec);
+    //time_vec_@{transform}.push_back(totalTime);
     @onSuccess
   } else { 
     @onFail 

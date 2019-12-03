@@ -61,9 +61,9 @@ class HardcodedDefinition
     functionSignatures = functionSignatures ++ newFunctions
   }
 
-  def Node(name:String, fields:Field*) 
+  def Node(name:String, fields:Field*)(constructors:NodeConstructor*) 
   {
-    nodes = jitd.spec.Node(name, fields) :: nodes
+    nodes = jitd.spec.Node(name, fields, constructors) :: nodes
   }
 
   def Accessor(name: String, ret:Type = TBool())(inputs:Field*)(outputs:Field*)(per_node:(String, Statement)*)

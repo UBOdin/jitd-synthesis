@@ -18,7 +18,7 @@
 
 #include "harness.hpp"
 
-#define SEED_MAX 111111
+#define SEED_MAX 364785
 double total_time(timeval &start, timeval &end)
 {
   return (end.tv_sec - start.tv_sec) * 1000000.0 +
@@ -354,6 +354,14 @@ int jitd_test(
     CASE("print_time_log")
     {
       jitd->print_time_vec();
+    }
+    CASE("print_search_time_log")
+    {
+      jitd->print_search_time_vec();
+    }
+    CASE("print_timing")
+    {
+      jitd->print_timing();
     } 
     CASE("print_set")
     {

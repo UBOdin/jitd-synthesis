@@ -145,7 +145,7 @@ object PqPolicyImplementation extends PolicyImplementation
   //Post-condition: Every matched Node apprearing in a Match Pattern doesnot appear in any sets and PQs.
   def pqRemove(ctx:Render,definition:Definition,handlerefbool:Boolean,fromNode:MatchPattern,fromNodeVar:String,mutator:Boolean):Statement = 
   {
-    println(trackable)
+    //println(trackable)
     val rule = ctx.policy.rule
     val extract = 
       if(handlerefbool == true)

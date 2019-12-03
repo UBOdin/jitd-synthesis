@@ -12,7 +12,8 @@ object RenderFunction
         val const = FunctionArgType.isConst(inout)
         val byRef = FunctionArgType.isByRef(inout)
         s"${if(const){"const "}else{""}}${ctx.cType(t)} ${if(byRef){"&"}else{""}}${name} "
-    }.mkString(",")+")\n"+indent+"{\n"+ "/***std::cout<<\" The transform applied is:"+s"${fn.name}"+"\""+"<<std::endl;***/"+ "\n"+
+    }.mkString(",")+")\n"+indent+"{\n"+ "/***std::cout<<\" The transform applied is:"+s"${fn.name}"+"\""+"<<std::endl;***/"+ "\n"+ 
+    //s"timeval start,end;\n" + "float totalTime;\n"+
       ctx.statement(fn.body, indent+"  ")+
     "\n"+indent+"}"
   }
