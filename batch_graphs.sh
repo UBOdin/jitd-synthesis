@@ -11,6 +11,7 @@ for e in $runs; do
 	mv latency_walltime.pdf graphs/latency_walltime_jitd_$e.pdf
 	mv latency_rowcount.pdf graphs/latency_rowcount_jitd_$e.pdf
 	mv latency_key.pdf graphs/latency_key_jitd_$e.pdf
+	mv walltime_key.pdf graphs/walltime_key_jitd_$e.pdf
 	# (skip cdf)
 
 	python jitd_latency.py output/sqlite_$e.txt script
@@ -18,6 +19,7 @@ for e in $runs; do
 	mv latency_walltime.pdf graphs/latency_walltime_sqlite_$e.pdf
 	mv latency_rowcount.pdf graphs/latency_rowcount_sqlite_$e.pdf
 	mv latency_key.pdf graphs/latency_key_sqlite_$e.pdf
+	mv walltime_key.pdf graphs/walltime_key_sqlite_$e.pdf
 
 	python jitd_diff.py output/jitd_$e.txt output/sqlite_$e.txt script
 	mv latency_difference.pdf graphs/latency_difference_$e.pdf
