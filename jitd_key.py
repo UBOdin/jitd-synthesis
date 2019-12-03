@@ -99,6 +99,8 @@ def main():
 	rowcount_frequency_list = []
 	maxrows = 0
 	key_list = []
+	minkey = 999999
+	maxkey = 0
 
 	filename = sys.argv[1]
 	if (len(sys.argv) > 2):
@@ -152,86 +154,45 @@ def main():
 		cumsum += optime_bucket_list[i]
 		optime_cdf_list[i] = cumsum
 	#end_for
-	'''
-	fig0, ax0 = plt.subplots()
-
-	ax0.plot(optime_null_list, optime_bucket_list)
-
-	ax0.set_xlabel("Operation latency (ms) (.1ms buckets)", fontsize = 10, fontweight = "bold")
-	ax0.set_ylabel("Number of operations taking this long", fontsize = 10, fontweight = "bold")
-	ax0.axis([0, maxlatency, 0, maxbucket])
-	print(maxlatency, maxbucket)
-
-	fig0.tight_layout()
-	fig0.savefig("latency_frequency.pdf")
-
-	fig1, ax1 = plt.subplots()
-
-	ax1.plot(optime_null_list, optime_cdf_list)
-
-	ax1.set_xlabel("Operation latency (ms) (.1ms buckets)", fontsize = 10, fontweight = "bold")
-	ax1.set_ylabel("Number of operations taking this long", fontsize = 10, fontweight = "bold")
-	ax1.axis([0, maxlatency, 0, cumsum])
-	print(maxlatency, cumsum)
-
-	fig1.tight_layout()
-	fig1.savefig("latency_cdf.pdf")
-
-	fig2, ax2 = plt.subplots()
-
-	time_start_list = [ e - time_start_list[0] for e in time_start_list ]
-
-	ax2.scatter(time_start_list, optime_list, s = 1)
-
-	ax2.set_xlabel("Operation start time (ms)", fontsize = 10, fontweight = "bold")
-	ax2.set_ylabel("Operation latency (ms)", fontsize = 10, fontweight = "bold")
-	ax2.axis([0, time_start_list[-1], 0, maxlatency])
-	print(time_start_list[-1], maxlatency)
-
-	fig2.tight_layout()
-	fig2.savefig("latency_walltime.pdf")
-
-	fig3, ax3 = plt.subplots()
-
-	for e, f_dict in zip(optime_null_list, optime_row_list):
-		for g in f_dict:
-			ax3.scatter(e, g, s = f_dict[g] ) #int(math.log(float(f[g]))))
-		#end_for
-	#end_for
-
-	ax3.set_xlabel("Operation latency (ms) (.1ms buckets)", fontsize = 10, fontweight = "bold")
-	ax3.set_ylabel("Number of rows returned", fontsize = 10, fontweight = "bold")
-	ax3.axis([0, maxlatency, 0, maxrows + 1])
-
-	fig3.tight_layout()
-	fig3.savefig("latency_rowcount.pdf")
-	'''
 
 	fig4, ax4 = plt.subplots()
 
-	z = 0
+	# For pyplot optimization, generate vector parameters for scatter():
+	blue_x_list = []
+	blue_y_list = []
+	red_x_list = []
+	red_y_list = []
 	for e, f, g in zip(key_list, optime_list, rowcount_list):
+		if (e < minkey):
+			minkey = e
+		#end_if
+		if (e > maxkey):
+			maxkey = e
+		#end_if
 		if (g == 0):
-			ax4.scatter(e, f, s = 10, c = "blue")
+			blue_x_list.append(e)
+			blue_y_list.append(f)
 		else:
-			ax4.scatter(e, f, s = 10, c = "red")
-		#end_if
-		z += 1
-		if ((z % 100) == 0):
-			print(z)
-		#end_if
-		if (z == 5000):
-			pass #break
+			red_x_list.append(e)
+			red_y_list.append(f)
 		#end_if
 	#end_for
+	ax4.scatter(blue_x_list, blue_y_list, s = 10, c = "blue")
+	ax4.scatter(red_x_list, red_y_list, s = 10, c = "red")
 
 	ax4.set_xlabel("Key", fontsize = 10, fontweight = "bold")
 	ax4.set_ylabel("Operation latency (ms)", fontsize = 10, fontweight = "bold")
+	ax4.axis([minkey, maxkey, 0, maxlatency])
 
 	red_patch = mpatches.Patch(color = "blue", label = "miss (rows returned = 0)")
 	blue_patch = mpatches.Patch(color = "red", label = "hit (rows returned > 0")
 
 	ax4.legend(handles = [blue_patch, red_patch])
+
+	print(minlatency)
+	print(maxlatency)
+	print(minkey)
+	print(maxkey)
 
 	fig4.tight_layout()
 	fig4.savefig("latency_key.pdf")
