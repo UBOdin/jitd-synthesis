@@ -33,6 +33,8 @@ def process_loglines(file_name):
 	optime_list = []
 	rowcount = 0
 	rowcount_list = []
+	key = 0
+	key_list = []
 
 	input_file = open(file_name, "r")
 
@@ -63,13 +65,16 @@ def process_loglines(file_name):
 		rowcount = int(logline_list[4])
 		rowcount_list.append(rowcount)
 
+		key = int(logline_list[3])
+		key_list.append(key)
+
 	#end_while
 
 	input_file.close()
 
 	#print(optime_list)
 
-	return time_start_list, optime_list, rowcount_list
+	return time_start_list, optime_list, rowcount_list, key_list
 
 #end_def
 
@@ -93,6 +98,9 @@ def main():
 	row_dict = {}
 	rowcount_frequency_list = []
 	maxrows = 0
+	key_list = []
+	minkey = 999999
+	maxkey = 0
 
 	filename = sys.argv[1]
 	if (len(sys.argv) > 2):
@@ -101,7 +109,7 @@ def main():
 		#end_if
 	#end_if
 
-	time_start_list, optime_list, rowcount_list = process_loglines(filename)
+	time_start_list, optime_list, rowcount_list, key_list = process_loglines(filename)
 
 	for e in optime_list:
 		if (e < minlatency):
@@ -199,6 +207,43 @@ def main():
 
 	fig3.tight_layout()
 	fig3.savefig("latency_rowcount.pdf")
+
+	fig4, ax4 = plt.subplots()
+
+	# For pyplot optimization, generate vector parameters for scatter():
+	blue_x_list = []
+	blue_y_list = []
+	red_x_list = []
+	red_y_list = []
+	for e, f, g in zip(key_list, optime_list, rowcount_list):
+		if (e < minkey):
+			minkey = e
+		#end_if
+		if (e > maxkey):
+			maxkey = e
+		#end_if
+		if (g == 0):
+			blue_x_list.append(e)
+			blue_y_list.append(f)
+		else:
+			red_x_list.append(e)
+			red_y_list.append(f)
+		#end_if
+	#end_for
+	ax4.scatter(blue_x_list, blue_y_list, s = 10, c = "blue")
+	ax4.scatter(red_x_list, red_y_list, s = 10, c = "red")
+
+	ax4.set_xlabel("Key", fontsize = 10, fontweight = "bold")
+	ax4.set_ylabel("Operation latency (ms)", fontsize = 10, fontweight = "bold")
+	ax4.axis([minkey, maxkey, 0, maxlatency])
+	print(minkey, maxkey)
+
+	red_patch = mpatches.Patch(color = "blue", label = "miss (rows returned = 0)")
+	blue_patch = mpatches.Patch(color = "red", label = "hit (rows returned > 0")
+	ax4.legend(handles = [blue_patch, red_patch])
+
+	fig4.tight_layout()
+	fig4.savefig("latency_key.pdf")
 
 	if (interactive == True):
 		plt.show()
