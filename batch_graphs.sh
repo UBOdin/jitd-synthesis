@@ -10,12 +10,14 @@ for e in $runs; do
 	mv latency_frequency.pdf graphs/latency_frequency_jitd_$e.pdf
 	mv latency_walltime.pdf graphs/latency_walltime_jitd_$e.pdf
 	mv latency_rowcount.pdf graphs/latency_rowcount_jitd_$e.pdf
+	mv latency_key.pdf graphs/latency_key_jitd_$e.pdf
 	# (skip cdf)
 
 	python jitd_tdf.py output/sqlite_$e.txt script
 	mv latency_frequency.pdf graphs/latency_frequency_sqlite_$e.pdf
 	mv latency_walltime.pdf graphs/latency_walltime_sqlite_$e.pdf
 	mv latency_rowcount.pdf graphs/latency_rowcount_sqlite_$e.pdf
+	mv latency_key.pdf graphs/latency_key_sqlite_$e.pdf
 
 	python jitd_diff.py output/jitd_$e.txt output/sqlite_$e.txt script
 	mv latency_difference.pdf graphs/latency_difference_$e.pdf
