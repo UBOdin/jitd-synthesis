@@ -176,7 +176,7 @@ int put_data(long key) {
 	}
 	result = sqlite3_step(statement);
 	if (result != SQLITE_DONE) {
-		printf("Error:  step insert:  %d\n", result);
+		printf("Error:  step insert\n");
 		_exit(1);
 	}
 	result = sqlite3_finalize(statement);
@@ -369,7 +369,7 @@ int jitd_harness() {
 	// Pre-populate structure with existing keys:
 	seed_struct();
 	// Basic structural integrity check:
-//	test_struct();
+	test_struct();
 	// Allocate output structure:
 	init_output();
 	// Block :30 to stabilize system:
@@ -403,6 +403,7 @@ int jitd_harness() {
 
 		// Get next operation:
 		node = operation_array[i];
+
 		// Benchmark next operation:
 		time_start = gettime_ms();
 		if (node.type == STOP) {
@@ -415,8 +416,8 @@ int jitd_harness() {
 			result = get_data(node.key);
 			// Basic sanity check
 			if (result != (bool)node.rows) {
-//				printf("Unexpected get result on row %d and key %ld\n", i, node.key);
-//				_exit(1);
+				printf("Unexpected get result\n");
+				_exit(1);
 			}
 			// Re-fetch if original data returned multiple rows:
 /*
@@ -454,7 +455,7 @@ int jitd_harness() {
 		time_next = time_base + (node.time * 1000.0);
 		time_now = gettime_ms();
 
-		#ifdef JITD_SQLITE
+		#ifdef STORAGE_JITD
 
 		// Until we reach the next start time, do any jitds housecleaning remaining:
 		while (true) {
