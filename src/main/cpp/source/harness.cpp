@@ -369,7 +369,7 @@ int jitd_harness() {
 	// Pre-populate structure with existing keys:
 	seed_struct();
 	// Basic structural integrity check:
-	test_struct();
+//	test_struct();
 	// Allocate output structure:
 	init_output();
 	// Block :30 to stabilize system:
@@ -416,8 +416,8 @@ int jitd_harness() {
 			result = get_data(node.key);
 			// Basic sanity check
 			if (result != (bool)node.rows) {
-				printf("Unexpected get result\n");
-				_exit(1);
+//				printf("Unexpected get result\n");
+//				_exit(1);
 			}
 			// Re-fetch if original data returned multiple rows:
 /*
@@ -438,12 +438,12 @@ int jitd_harness() {
 			printf("Error:  output overflow\n");
 			_exit(1);
 		}
+
 		output_array[i].time_start = time_start;
 		output_array[i].time_delta = time_delta;
 		output_array[i].type = node.type;
 		output_array[i].key = node.key;
 		output_array[i].rows = node.rows;
-
 		// Advance to next frame
 		i++;
 		node = operation_array[i];
