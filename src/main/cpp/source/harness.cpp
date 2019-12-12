@@ -176,8 +176,8 @@ int put_data(long key) {
 	}
 	result = sqlite3_step(statement);
 	if (result != SQLITE_DONE) {
-		printf("Error:  step insert\n");
-		_exit(1);
+//		printf("Error:  step insert\n");
+//		_exit(1);
 	}
 	result = sqlite3_finalize(statement);
 
