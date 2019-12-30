@@ -105,7 +105,7 @@ def main():
 	ax0.scatter(null_list, difftime_list, s = 1)
 
 	ax0.set_xlabel("Operation number", fontsize = 10, fontweight = "bold")
-	ax0.set_ylabel("Operation time difference (JITD - SQLite) (ms)", fontsize = 10, fontweight = "bold")
+	ax0.set_ylabel("Operation time difference (JITD - SQLite) (us)", fontsize = 10, fontweight = "bold")
 
 	fig0.tight_layout()
 	fig0.savefig("latency_difference" + filetype)

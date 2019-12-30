@@ -165,7 +165,7 @@ def main():
 
 	ax0.plot(latency_null_list, latency_bucket_list)
 
-	ax0.set_xlabel("Operation latency (ms) (.1ms buckets)", fontsize = 10, fontweight = "bold")
+	ax0.set_xlabel("Operation latency (us) (.1ms buckets)", fontsize = 10, fontweight = "bold")
 	ax0.set_ylabel("Number of operations taking this long", fontsize = 10, fontweight = "bold")
 	ax0.axis([0, maxlatency, 0, maxbucket])
 	print(maxlatency, maxbucket)
@@ -177,7 +177,7 @@ def main():
 
 	ax1.plot(latency_null_list, latency_cdf_list)
 
-	ax1.set_xlabel("Operation latency (ms) (.1ms buckets)", fontsize = 10, fontweight = "bold")
+	ax1.set_xlabel("Operation latency (us) (.1ms buckets)", fontsize = 10, fontweight = "bold")
 	ax1.set_ylabel("Number of operations taking this long", fontsize = 10, fontweight = "bold")
 	ax1.axis([0, maxlatency, 0, cumsum])
 	print(maxlatency, cumsum)
@@ -192,7 +192,7 @@ def main():
 	ax2.scatter(time_start_list, latency_list, s = 1)
 
 	ax2.set_xlabel("Operation start time (ms)", fontsize = 10, fontweight = "bold")
-	ax2.set_ylabel("Operation latency (ms)", fontsize = 10, fontweight = "bold")
+	ax2.set_ylabel("Operation latency (us)", fontsize = 10, fontweight = "bold")
 	ax2.axis([0, time_start_list[-1], 0, maxlatency])
 	print(time_start_list[-1], maxlatency)
 
@@ -207,7 +207,7 @@ def main():
 		#end_for
 	#end_for
 
-	ax3.set_xlabel("Operation latency (ms) (.1ms buckets)", fontsize = 10, fontweight = "bold")
+	ax3.set_xlabel("Operation latency (us) (.1ms buckets)", fontsize = 10, fontweight = "bold")
 	ax3.set_ylabel("Number of rows returned", fontsize = 10, fontweight = "bold")
 	ax3.axis([0, maxlatency, 0, maxrows + 1])
 
@@ -240,7 +240,7 @@ def main():
 	ax4.scatter(red_x_list, red_y_list, s = 10, c = "red")
 
 	ax4.set_xlabel("Key", fontsize = 10, fontweight = "bold")
-	ax4.set_ylabel("Operation latency (ms)", fontsize = 10, fontweight = "bold")
+	ax4.set_ylabel("Operation latency (us)", fontsize = 10, fontweight = "bold")
 	ax4.axis([minkey, maxkey, 0, maxlatency])
 	print(minkey, maxkey)
 
