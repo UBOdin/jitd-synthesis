@@ -101,11 +101,17 @@ def main():
 	key_list = []
 	minkey = 999999
 	maxkey = 0
+	filetype = ".pdf"
 
 	filename = sys.argv[1]
 	if (len(sys.argv) > 2):
 		if (sys.argv[2] == "script"):
 			interactive = False
+		#end_if
+	#end_if
+	if (len(sys.argv) > 3):
+		if (sys.argv[3] == "png"):
+			filetype = ".png"
 		#end_if
 	#end_if
 
@@ -165,7 +171,7 @@ def main():
 	print(maxlatency, maxbucket)
 
 	fig0.tight_layout()
-	fig0.savefig("latency_frequency.pdf")
+	fig0.savefig("latency_frequency" + filetype)
 
 	fig1, ax1 = plt.subplots()
 
@@ -177,7 +183,7 @@ def main():
 	print(maxlatency, cumsum)
 
 	fig1.tight_layout()
-	fig1.savefig("latency_cdf.pdf")
+	fig1.savefig("latency_cdf" + filetype)
 
 	fig2, ax2 = plt.subplots()
 
@@ -191,7 +197,7 @@ def main():
 	print(time_start_list[-1], maxlatency)
 
 	fig2.tight_layout()
-	fig2.savefig("latency_walltime.pdf")
+	fig2.savefig("latency_walltime" + filetype)
 
 	fig3, ax3 = plt.subplots()
 
@@ -206,7 +212,7 @@ def main():
 	ax3.axis([0, maxlatency, 0, maxrows + 1])
 
 	fig3.tight_layout()
-	fig3.savefig("latency_rowcount.pdf")
+	fig3.savefig("latency_rowcount" + filetype)
 
 	fig4, ax4 = plt.subplots()
 
@@ -243,7 +249,7 @@ def main():
 	ax4.legend(handles = [blue_patch, red_patch])
 
 	fig4.tight_layout()
-	fig4.savefig("latency_key.pdf")
+	fig4.savefig("latency_key" + filetype)
 
 	fig5, ax5 = plt.subplots()
 
@@ -254,7 +260,7 @@ def main():
 	ax5.axis([0, maxlatency, minkey, maxkey])
 
 	fig5.tight_layout()
-	fig5.savefig("walltime_key.pdf")
+	fig5.savefig("walltime_key" + filetype)
 
 
 	if (interactive == True):

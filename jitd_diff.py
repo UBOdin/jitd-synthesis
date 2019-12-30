@@ -68,15 +68,27 @@ def main():
 
 	filename_1 = ""
 	filename_2 = ""
+	interactive = True
 	starttime_list_1 = []
 	starttime_list_2 = []
 	optime_list_1 = []
 	optime_list_2 = []
 	null_list = []
 	difftime_list = []
+	filetype = ".pdf"
 
 	filename_1 = sys.argv[1]
 	filename_2 = sys.argv[2]
+	if (len(sys.argv) > 3):
+		if (sys.argv[3] == "script"):
+			interactive = False
+		#end_if
+	#end_if
+	if (len(sys.argv) > 4):
+		if (sys.argv[4] == "png"):
+			filetype = ".png"
+		#end_if
+	#end_if
 
 	starttime_list_1, optime_list_1 = process_loglines(filename_1)
 	starttime_list_2, optime_list_2 = process_loglines(filename_2)
@@ -96,9 +108,12 @@ def main():
 	ax0.set_ylabel("Operation time difference (JITD - SQLite) (ms)", fontsize = 10, fontweight = "bold")
 
 	fig0.tight_layout()
-	fig0.savefig("latency_difference.pdf")
+	fig0.savefig("latency_difference" + filetype)
 
-	#plt.show()
+
+	if (interactive == True):
+		plt.show()
+	#end_if
 
 #end_def
 
