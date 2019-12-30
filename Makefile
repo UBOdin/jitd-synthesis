@@ -39,6 +39,10 @@ jitd_storage_sqlite:  jitd_tester.o jitd_test.o harness_sqlite.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_tester.o jitd_test.o harness_sqlite.o data.o -lsqlite3
 	@echo built with sqlite storage
 
+jitd_storage_uomap::  jitd_tester.o jitd_test.o harness_uomap.o data.o
+	$(CC) $(CFLAGS) -o $(MAIN) jitd_tester.o jitd_test.o harness_uomap.o data.o
+	@echo built with uomap storage
+
 jitd_test.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
 	$(CC) $(CFLAGS) -c $(JITD_TEST_C) $(INCLUDES)
 
@@ -55,6 +59,10 @@ harness_jitd.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 harness_sqlite.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_SQLITE" > $(CONF_H)
 	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_sqlite.o $(INCLUDES)
+
+harness_uomap.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
+	@echo "#define STORAGE_UOMAP" > $(CONF_H)
+	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_uomap.o $(INCLUDES)
 
 data.o:  $(DATA_C) $(HARNESS_H)
 	$(CC) $(CFLAGS) -c $(DATA_C) $(INCLUDES)

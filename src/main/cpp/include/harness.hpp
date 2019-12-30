@@ -3,6 +3,7 @@ enum operation {
 
 	INSERT,
 	SELECT,
+	DELETE,
 	STOP,
 
 };

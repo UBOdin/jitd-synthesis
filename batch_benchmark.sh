@@ -11,6 +11,9 @@ mv jitd_harness jitd_harness_jitd.exe
 make clean
 make jitd_storage_sqlite
 mv jitd_harness jitd_harness_sqlite.exe
+make clean
+make jitd_storage_uomap
+mv jitd_harness jitd_harness_uomap.exe
 echo "Done building"
 
 for e in $runs; do
@@ -32,6 +35,15 @@ for e in $runs; do
 		exit 1
 	fi
 	mv output_data.txt output/sqlite_$e.txt
+
+	echo
+	sleep 5
+	./jitd_harness_uomap.exe
+	if [ "$?" != "0" ]; then
+		echo "Error on UOMap"
+		exit 1
+	fi
+	mv output_data.txt output/uomap_$e.txt
 
 done
 

@@ -21,17 +21,28 @@
 #include "sqlite3.h"
 #endif
 
-static std::shared_ptr<JITD> jitd;
-static std::vector<Record> data;
-static Record r;
+#ifdef STORAGE_UOMAP
+#include <unordered_map>
+#endif
+
 static struct operation_node node;
 static struct output_node* output_array;
 static int output_size;
+
+#ifdef STORAGE_JITD
+static std::shared_ptr<JITD> jitd;
+static std::vector<Record> data;
+static Record r;
+#endif
 
 #ifdef STORAGE_SQLITE
 #define STMT_BUFLEN 256
 static sqlite3* ppDb;
 static char stmt_buffer[STMT_BUFLEN];
+#endif
+
+#ifdef STORAGE_UOMAP
+static std::unordered_map<long, int> umap;
 #endif
 
 // N.b. struct Record.key -- long int; Record.value -- void*
@@ -108,6 +119,12 @@ int init_struct() {
 
 	#endif
 
+	#ifdef STORAGE_UOMAP
+
+	// (nothing)
+
+	#endif
+
 	return 0;
 
 }
@@ -158,6 +175,18 @@ bool get_data(long key) {
 
 	#endif
 
+	#ifdef STORAGE_UOMAP
+
+	std::unordered_map<long, int>::iterator key_iter;
+	std::unordered_map<long, int>::iterator end_iter;
+
+	key_iter = umap.find(key);
+	end_iter = umap.end();
+
+	return !(key_iter == end_iter);
+
+	#endif
+
 }
 
 
@@ -176,8 +205,8 @@ int put_data(long key) {
 	}
 	result = sqlite3_step(statement);
 	if (result != SQLITE_DONE) {
-//		printf("Error:  step insert\n");
-//		_exit(1);
+		printf("Error:  step insert\n");
+		_exit(1);
 	}
 	result = sqlite3_finalize(statement);
 
@@ -192,12 +221,61 @@ int put_data(long key) {
 
 	#endif
 
+	#ifdef STORAGE_UOMAP
+
+	std::pair<std::unordered_map<long, int>::iterator, bool> result_pair;
+	std::pair<long, int> data_pair;
+
+	//data_pair = std::make_pair<long, int>(key, 9999);
+	data_pair.first = key;
+	data_pair.second = 9999;  // dummy
+	result_pair = umap.insert(data_pair);
+	if (result_pair.second == false) {
+		printf("Error:  duplicate uomap key\n");
+		_exit(1);
+	}
+
+	#endif
+
 	return 0;
 
 }
 
 
-int zap_data() {
+int remove_data(long key) {
+
+	#ifdef STORAGE_SQLITE
+
+	int result;
+	sqlite3_stmt* statement;
+
+	snprintf(stmt_buffer, STMT_BUFLEN, "DELETE FROM kvstore WHERE key = %ld;", key);
+	result = sqlite3_prepare(ppDb, stmt_buffer, STMT_BUFLEN, &statement, NULL);
+	if (result != SQLITE_OK) {
+		printf("Error:  prepare delete\n");
+		_exit(1);
+	}
+	result = sqlite3_step(statement);
+	if (result != SQLITE_DONE) {
+		printf("Error:  step delete\n");
+		_exit(1);
+	}
+	result = sqlite3_finalize(statement);
+
+	#endif
+
+	#ifdef STORAGE_JITD
+
+	printf("Remove unsupported on JITD\n");
+	_exit(1);
+
+	#endif
+
+	#ifdef STORAGE_UOMAP
+
+	umap.erase(key);
+
+	#endif
 
 	return 0;
 
@@ -363,6 +441,9 @@ int jitd_harness() {
 	#ifdef STORAGE_JITD
 	printf("Using JITD storage\n");
 	#endif
+	#ifdef STORAGE_UOMAP
+	printf("Using UOMap storage\n");
+	#endif
 
 	// Initialize bare jitds structure:
 	init_struct();
@@ -416,8 +497,8 @@ int jitd_harness() {
 			result = get_data(node.key);
 			// Basic sanity check
 			if (result != (bool)node.rows) {
-//				printf("Unexpected get result\n");
-//				_exit(1);
+				printf("Unexpected get result on iteration %d:  %d, %d\n", i, result, node.rows);
+				_exit(1);
 			}
 			// Re-fetch if original data returned multiple rows:
 /*
@@ -427,6 +508,8 @@ int jitd_harness() {
 				}
 			}
 */
+		} else if (node.type == DELETE) {
+			result = remove_data(node.key);
 		} else {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
