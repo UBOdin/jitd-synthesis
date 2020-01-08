@@ -42,7 +42,8 @@ static char stmt_buffer[STMT_BUFLEN];
 #endif
 
 #ifdef STORAGE_UOMAP
-static std::unordered_map<long, int> umap;
+#define UOM_TYPE long, int
+static std::unordered_map<UOM_TYPE> umap;
 #endif
 
 // N.b. struct Record.key -- long int; Record.value -- void*
@@ -177,8 +178,8 @@ bool get_data(long key) {
 
 	#ifdef STORAGE_UOMAP
 
-	std::unordered_map<long, int>::iterator key_iter;
-	std::unordered_map<long, int>::iterator end_iter;
+	std::unordered_map<UOM_TYPE>::iterator key_iter;
+	std::unordered_map<UOM_TYPE>::iterator end_iter;
 
 	key_iter = umap.find(key);
 	end_iter = umap.end();
@@ -223,10 +224,10 @@ int put_data(long key) {
 
 	#ifdef STORAGE_UOMAP
 
-	std::pair<std::unordered_map<long, int>::iterator, bool> result_pair;
-	std::pair<long, int> data_pair;
+	std::pair<std::unordered_map<UOM_TYPE>::iterator, bool> result_pair;
+	std::pair<UOM_TYPE> data_pair;
 
-	//data_pair = std::make_pair<long, int>(key, 9999);
+	//data_pair = std::make_pair<UOM_TYPE>(key, 9999);
 	data_pair.first = key;
 	data_pair.second = 9999;  // dummy
 	result_pair = umap.insert(data_pair);
