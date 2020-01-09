@@ -11,6 +11,7 @@ def get_data(file_name):
 	input_file = "" # file obj
 	iteration = -1
 	header_flag = True
+	logline = ""
 	logline_list = []
 	subline_list = []
 	operation = ""
