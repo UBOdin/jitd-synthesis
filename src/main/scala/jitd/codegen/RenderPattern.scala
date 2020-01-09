@@ -6,7 +6,9 @@ import jitd.rewrite.MatchToStatement
 import jitd.codegen.policy._
 object RenderPattern
 {
+  //Try using immutable
   var trackablesets = scala.collection.mutable.Set[String]()
+  var trackablepq = scala.collection.mutable.Set[String]()
   def test(ctx:Render, pattern:MatchPattern, target:String, onFailure:String): String =
   {
     val recur = (newPattern:MatchPattern, newTarget:String) => test(ctx, newPattern, newTarget, onFailure)
@@ -35,11 +37,11 @@ object RenderPattern
 
   }
   
-  def PqDeclare(ctx:Render,rule:PolicyRule,init:Boolean): String = 
+  def SetPqDeclare(ctx:Render,rule:PolicyRule,init:Boolean): String = 
   {
     rule match {
       case TieredPolicy(Seq()) => ""
-      case TieredPolicy(policies) => policies.map{PqDeclare(ctx,_,true)}.mkString 
+      case TieredPolicy(policies) => policies.map{SetPqDeclare(ctx,_,true)}.mkString 
         
       case TransformPolicy(unique_name,name, _, scoreFn) => 
         {
@@ -52,7 +54,9 @@ object RenderPattern
               {
                 if(init == true)
                 {
+
                    s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_PQ;\n"
+                   //s"void ${transfrom_name}_add(std::shared_ptr<JITDNode> * node);\n"
                 }
                 else
                 {
@@ -70,6 +74,7 @@ object RenderPattern
                 {
                   trackablesets.add(extract(0)._2.toString)
                   s"std::set<std::shared_ptr<JITDNode> *> JITD_NODE_${extract(0)._2.toString}_set;\n"
+                  //s"void set_${extract(0)._2.toString}_add(std::shared_ptr<JITDNode> * node);\n"
                 }
                 
                 
@@ -83,6 +88,55 @@ object RenderPattern
   }
   
  } 
+ def PQPopulate(ctx:Render,rule:PolicyRule,op:String,node_name:String,node_type:String,node_enumName:String):String = 
+ {
+  rule match {
+      case TieredPolicy(Seq()) => ""
+      case TieredPolicy(policies) => policies.map{PQPopulate(ctx,_,op,node_name,node_type,node_enumName)}.mkString 
+        
+      case TransformPolicy(unique_name,name, _, scoreFn) => 
+        {
+          val transfrom_name = name
+
+          val pattern = ctx.definition.transform(name).from
+          //println(name)
+          pattern match {
+            case MatchNode(nodeName, fields, name) => { 
+              //val equality = node_type.equals(nodeName)
+              val node = ctx.definition.nodesByName(nodeName)
+              if (fields.forall{_.isInstanceOf[MatchAny]} && node_type.equals(nodeName))
+              {
+                s"this->"+transfrom_name+"_PQ."+op+"("+node_name+");\n" //Assumption: If there is a PQ there cannot be a set
+              }
+              else
+              {
+                ""
+              }
+             
+            
+              
+          }
+
+          }
+          
+        }
+    
+  }
+ }
+ def SetPopulate(ctx:Render,rule:PolicyRule,op:String,node_name:String,node_type:String,node_enumName:String):String = 
+ {
+  
+  if(trackablesets(node_type)) 
+  {
+    s"this->"+node_enumName+"_set."+op+"("+node_name+");\n" //Assumption: If there is a PQ there cannot be a set 
+   
+  }
+  else
+  {
+    ""
+  }
+ 
+ }
  
   def ComparatorClass(ctx:Render,rule:PolicyRule): String = 
   {
@@ -136,6 +190,7 @@ object RenderPattern
     
   }
 }
+//Function is used in pure Set policy
   def setGen(ctx:Render, pattern:MatchPattern):String = 
   {
     pattern match {

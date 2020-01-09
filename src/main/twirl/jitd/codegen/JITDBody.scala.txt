@@ -26,11 +26,7 @@ std::vector<float> search_time_vec_DeleteElemFromSortedArray;
 std::vector<float> search_time_vec_MergeSortedBTrees;
 std::vector<float> search_time_vec_MergeSortedConcat;
 std::vector<float> search_time_vec_DeleteElemFromArray;
-@for(transform<-ctx.definition.transforms){
-  std::vector<float>@{transform.name}_empty;
-  std::vector<float>@{transform.name}_emplace;
-  std::vector<float>@{transform.name}_begin;
-}
+
 //#define JITD_DEBUG_POLICY true;
 //std::shared_ptr<JITDNode> * rootHandleRef;
 
@@ -62,38 +58,32 @@ bool JITD::do_organize()
   //std::cout<<"calling do organize"<<std::endl;
   @ctx.policyImplementation.doOrganize(ctx, "(this->root)")
 }
-///////////////////// Set creation ///////////////////// 
+///////////////////// Set/PQ populate ///////////////////// 
 
-
-void JITD::setInit(std::shared_ptr<JITDNode> * &root_handle)
+void JITD::SetPqErase(std::shared_ptr<JITDNode> * node_handle)
 {
-
-  
+  std::shared_ptr<JITDNode> node_ptr = std::atomic_load((node_handle));
+  switch(node_ptr->type){
+    @for(node <- ctx.definition.nodes) {
+      case @node.enumName : {
+          @{RenderPattern.SetPopulate(ctx,ctx.policy.rule,"erase","node_handle",s"${node.name}",s"${node.enumName}");}
+          @{RenderPattern.PQPopulate(ctx,ctx.policy.rule,"erase","node_handle",s"${node.name}",s"${node.enumName}");}
+          };break;
+        }
+      }
 }
-
-
-void JITD::setAddition(std::shared_ptr<JITDNode> * node)
+void JITD::SetPqAdd(std::shared_ptr<JITDNode> * node_handle)
 {
-  
+  std::shared_ptr<JITDNode> node_ptr = std::atomic_load((node_handle));
+  switch(node_ptr->type){
+    @for(node <- ctx.definition.nodes) {
+      case @node.enumName : {
+          @{RenderPattern.SetPopulate(ctx,ctx.policy.rule,"emplace","node_handle",s"${node.name}",s"${node.enumName}");}
+          @{RenderPattern.PQPopulate(ctx,ctx.policy.rule,"emplace","node_handle",s"${node.name}",s"${node.enumName}");}
+          };break;
+        }
+      }
 }
-
-void JITD::setRemoval(std::shared_ptr<JITDNode> * node)
-{
-  
-}
-void JITD::check_set()
-{
-  
-   
-  
-}
-void JITD::print_set()
-{
-
-  
-  
-}
-
 ///////////////////// Debugging Utilities ///////////////////// 
 
 std::shared_ptr<JITD> assemble_jitd(std::istream &in)
@@ -113,7 +103,8 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
           // Construct a @field.name
           @ctx.cType(field.t) @field.name;
           @{ field.t match {
-            
+            case TRecord() => s""
+
             case TArray(TRecord()) => s"load_records(${field.name}, toks);"
             
             case TNodeRef() => s"${field.name} = node_stack.top(); node_stack.pop();"
@@ -144,36 +135,6 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
   std::cerr << "Reached end of build with no Return" << std::endl; 
   exit(-1); 
 }
-
-void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix){ 
-//std::cout<<"In print"<<rootHandleRef->get()->type<<std::endl;
-  switch(node->type){
-    @for(node <- ctx.definition.nodes) {
-      case @node.enumName : {
-        @node.renderName *node_real = (@node.renderName *)node.get();
-        std::cout << prefix << "@{node.name}[ "
-        @{ node.fields.filter { _.t != TNodeRef() }
-            .map { f => 
-                "<< \"" + f.name + "=\" << " +
-                ctx.printableValue("node_real->"+f.name, f.t) 
-            }.mkString(" << \", \"") };
-        @{  val children = node.fields.filter { _.t == TNodeRef() }
-            if(children.size > 0){
-              "std::cout << std::endl;\n"+
-              children.map { f => 
-                "print_JITD_node_structure(node_real->"+f.name+", prefix+std::string(\"  \"));\n"
-              }.mkString+
-              "std::cout << prefix;"
-            } else { "" }
-        } 
-        std::cout << " ]" << std::endl;
-        break;
-      }
-    }
-  }
-}
-
-
 void JITD::print_pq()
 {
 //std::cout<<"calling print_set"<<std::endl;
@@ -209,46 +170,43 @@ void JITD::check_pq()
     {
       std::cout<<"Empty CrackArray_PQ"<<std::endl;
     }
+   
     
-  
 
 }
-void print_timing_vec()
-{
-  if(CrackArray_empty.size()!=0)
-  {
-    float sum_of_elems=0.0; 
-    
-    for (auto& n : CrackArray_empty)
-    {
-      sum_of_elems += n;
-     //std::cout<<n<<",";
+
+void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix){ 
+
+  switch(node->type){
+    @for(node <- ctx.definition.nodes) {
+      case @node.enumName : {
+        @node.renderName *node_real = (@node.renderName *)node.get();
+        std::cout << prefix << "@{node.name}[ "
+        @{ node.fields.filter { _.t != TNodeRef() }
+            .map { f => 
+                "<< \"" + f.name + "=\" << " +
+                ctx.printableValue("node_real->"+f.name, f.t) 
+            }.mkString(" << \", \"") };
+
+        @{  val children = node.fields.filter { _.t == TNodeRef() }
+            if(children.size > 0){
+              "std::cout << std::endl;\n"+
+              children.map { f => 
+                "print_JITD_node_structure(node_real->"+f.name+", prefix+std::string(\"  \"));\n"
+              }.mkString+
+              "std::cout << prefix;"
+            } else { "" }
+        } 
+        std::cout << " ]" << std::endl;
+        break;
+      }
     }
-    std::cout<<"\nTime for CrackArray_empty "<<sum_of_elems<<"us and has "<<CrackArray_empty.size()<<" elements"<<std::endl;
-  }
-  if(CrackArray_begin.size()!=0)
-  {
-    float sum_of_elems=0.0; 
-    
-    for (auto& n : CrackArray_begin)
-    {
-      sum_of_elems += n;
-     //std::cout<<n<<",";
-    }
-    std::cout<<"\nTime for CrackArray_begin "<<sum_of_elems<<"us and has "<<CrackArray_begin.size()<<" elements"<<std::endl;
-  }
-  if(CrackArray_emplace.size()!=0)
-  {
-    float sum_of_elems=0.0; 
-    
-    for (auto& n : CrackArray_emplace)
-    {
-      sum_of_elems += n;
-     //std::cout<<n<<",";
-    }
-    std::cout<<"\nTime for CrackArray_set_op "<<sum_of_elems<<"us and has "<<CrackArray_emplace.size()<<" elements"<<std::endl;
   }
 }
+
+
+
+
 void print_time_vector_sum()
 {
   

@@ -16,7 +16,10 @@ object MutatorToFunction
           if(field.t.isInstanceOf[PrimType]) { FunctionArgType.Input } else { FunctionArgType.ConstInputRef }
         )
       }
-    var stmt = PqPolicyImplementation.PQinit(ctx,ctx.policy.rule,"erase(",WrapNodeRef(Var("root")))
+     // println(stmt1)
+    //var stmt = PqPolicyImplementation.Set_PQ_init_mutator(ctx,ctx.policy.rule,"remove",WrapNodeRef(Var("root")))
+    var stmt = commonFunction("SetPqErase(","",WrapNodeRef(Var("root")))
+    //var stmt = PqPolicyImplementation.Set_PQ_init_mutator(ctx,ctx.policy.rule,"remove",Var("root"))
     val (constructor, new_root) = 
       MatchToStatement(
         definition,
@@ -29,6 +32,7 @@ object MutatorToFunction
         renderName,
         None,
         args,
+        //stmt++ 
         stmt++constructor ++ Assign("&root", new_root, true) ++ stmt2
       )
     }

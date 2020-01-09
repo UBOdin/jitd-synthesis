@@ -2,13 +2,13 @@ package jitd.spec
 
 sealed abstract class Type {
   def array = TArray(this)
+  //def record = TRecord()
 }
 
 sealed abstract class PrimType extends Type
 
 case class TKey() extends PrimType { override def toString = "key" }
 case class TRecord() extends Type
-
 case class TInt() extends PrimType
 case class TFloat() extends PrimType
 case class TBool() extends PrimType
