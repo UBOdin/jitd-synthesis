@@ -12,3 +12,5 @@ src/main/cpp/source/data.cpp
 src/main/cpp/include/conf.hpp
 testfile.db
 *.pdf
+ycsb_benchmark/*.tsv
+ycsb_benchmark/*.cpp
