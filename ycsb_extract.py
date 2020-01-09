@@ -155,7 +155,7 @@ def process_initialize_benchmark_pair(workload):
 			rows = ""
 		else:
 			print("Unsupported benchmark operation")
-			#sys.exit(1)
+			sys.exit(1)
 		#end_if
 		benchmark_file.write("\t{ .type = " + operation + ", .time = 0.0, .key = " + f + rows + "},\n")
 	#end_for
