@@ -8,6 +8,7 @@ def get_data(file_name):
 
 	input_file = "" # file obj
 	iteration = -1
+	header_flag = True
 	logline_list = []
 	subline_list = []
 	operation = ""
@@ -29,19 +30,14 @@ def get_data(file_name):
 			sys.exit(1)
 		#end_if
 
-		if (iteration <= 11):
-			continue
-		elif (iteration == 12):
-			if (logline[0:5] != "*****"):
-				print("Bad header")
-				sys.exit(1)
+		# Skip headers and footers:
+		if (header_flag == True):
+			if (logline[0:20] == "********************"):
+				header_flag = False
 			#end_if
 			continue
-		elif (iteration == 1013):
-			if (logline[0:9] != "[OVERALL]"):
-				print("Bad footer")
-				sys.exit(1)
-			#end_if
+		#end_if
+		if (logline[0:9] == "[OVERALL]"):
 			break
 		#end_if
 
@@ -77,17 +73,37 @@ def main():
 
 	print("Hello World")
 
-	file_name = ""
+	workload = ""
+	input_file_name = ""
+	path = "ycsb_benchmark/"
 	operation_list = []
 	key_list = []
+	output_file_name = ""
+	output_file = "" # File obj
+	output_line = ""
 
-	file_name = sys.argv[1]
+	workload = sys.argv[1]
 
-	operation_list, key_list = get_data(file_name)
+	input_file_name = path + "ycsb_raw_" + workload + ".txt"
 
-	print(operation_list)
-	print(key_list)
-	
+	operation_list, key_list = get_data(input_file_name)
+
+	if (len(operation_list) != len(key_list)):
+		print("Mismatch lengths")
+		sys.exit(1)
+	#end_if
+
+	output_file_name = path + "ycsb_tsv_" + workload + ".tsv"
+
+	output_file = open(output_file_name, "w")
+
+	for e, f in zip(operation_list, key_list):
+		output_line = e + "\t" + f + "\n"
+		output_file.write(output_line)
+	#end_for
+
+	output_file.close()
+
 	return
 
 #end_def
