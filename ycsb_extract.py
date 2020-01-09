@@ -6,6 +6,8 @@ import json
 
 def get_data(file_name):
 
+	# file_name = ""
+	# -----
 	input_file = "" # file obj
 	iteration = -1
 	header_flag = True
@@ -69,11 +71,10 @@ def get_data(file_name):
 #end_def
 
 
-def main():
+def process_workload(workload):
 
-	print("Hello World")
-
-	workload = ""
+	# workload = ""
+	# -----
 	input_file_name = ""
 	path = "ycsb_benchmark/"
 	operation_list = []
@@ -82,7 +83,6 @@ def main():
 	output_file = "" # File obj
 	output_line = ""
 
-	workload = sys.argv[1]
 
 	input_file_name = path + "ycsb_raw_" + workload + ".txt"
 
@@ -104,7 +104,65 @@ def main():
 
 	output_file.close()
 
-	return
+	return operation_list, key_list
+
+#end_def
+
+
+def main():
+
+	print("Hello World")
+
+	workload = ""
+	workload_operation_list = []
+	workload_key_list = []
+	initialize_operation_list = []
+	initialize_key_list = []
+	benchmark_file_name = ""
+	benchmark_file = "" # file obj
+	output_line = ""
+	operation = ""
+	rows = ""
+
+	workload = sys.argv[1]
+
+	initialize_operation_list, initialize_key_list = process_workload("initialize_" + workload)
+	workload_operation_list, workload_key_list = process_workload("workload_" + workload)
+
+	benchmark_file = open("ycsb_benchmark/workload_" + workload + "_data.cpp", "w")
+	benchmark_file.write("\n")
+	benchmark_file.write("#include \"harness.hpp\"\n")
+	benchmark_file.write("\n")
+	benchmark_file.write("struct operation_node seed_array[] {\n")
+	rows = ""
+	for e, f in zip(initialize_operation_list, initialize_key_list):
+		if (e != "INSERT"):
+			print("Unsupported operation")
+			sys.exit(1)
+		#end_if
+		benchmark_file.write("\t{ .type = INSERT, .time = 0.0, .key = " + f + "},\n")
+	#end_for
+	benchmark_file.write("\t{ .type = STOP },\n")
+	benchmark_file.write("};\n")
+	benchmark_file.write("\n")
+	benchmark_file.write("struct operation_node operation_array[] {\n")
+	for e, f in zip(workload_operation_list, workload_key_list):
+		if (e == "READ"):
+			operation = "SELECT"
+			rows = ", .rows = 0"
+		elif ((e == "UPDATE") or (e == "INSERT")):
+			operation = e
+			rows = ""
+		else:
+			print("Unsupported operation")
+			sys.exit(1)
+		#end_if
+		benchmark_file.write("\t{ .type = " + operation + ", .time = 0.0, .key = " + f + rows + "},\n")
+	#end_for
+	benchmark_file.write("\t{ .type = STOP },\n")
+	benchmark_file.write("};\n")
+	benchmark_file.write("\n")
+	benchmark_file.close()
 
 #end_def
 
