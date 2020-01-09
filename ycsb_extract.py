@@ -48,7 +48,7 @@ def get_data(file_name):
 
 		if (len(subline_list) != 3):
 			print("Unexpected length")
-			sys.exit(1)
+			#sys.exit(1)  TODO:  Extra SCAN parameter?
 		#end_if
 
 		operation = subline_list[0]
@@ -109,13 +109,12 @@ def process_workload(workload):
 #end_def
 
 
-def main():
+def process_initialize_benchmark_pair(workload):
 
-	print("Hello World")
-
-	workload = ""
-	workload_operation_list = []
-	workload_key_list = []
+	# workload = ""
+	# -----
+	benchmark_operation_list = []
+	benchmark_key_list = []
 	initialize_operation_list = []
 	initialize_key_list = []
 	benchmark_file_name = ""
@@ -124,10 +123,10 @@ def main():
 	operation = ""
 	rows = ""
 
-	workload = sys.argv[1]
+	#workload = sys.argv[1]
 
 	initialize_operation_list, initialize_key_list = process_workload("initialize_" + workload)
-	workload_operation_list, workload_key_list = process_workload("workload_" + workload)
+	benchmark_operation_list, benchmark_key_list = process_workload("benchmark_" + workload)
 
 	benchmark_file = open("ycsb_benchmark/workload_" + workload + "_data.cpp", "w")
 	benchmark_file.write("\n")
@@ -137,7 +136,7 @@ def main():
 	rows = ""
 	for e, f in zip(initialize_operation_list, initialize_key_list):
 		if (e != "INSERT"):
-			print("Unsupported operation")
+			print("Unsupported initialize operation")
 			sys.exit(1)
 		#end_if
 		benchmark_file.write("\t{ .type = INSERT, .time = 0.0, .key = " + f + "},\n")
@@ -146,16 +145,16 @@ def main():
 	benchmark_file.write("};\n")
 	benchmark_file.write("\n")
 	benchmark_file.write("struct operation_node operation_array[] {\n")
-	for e, f in zip(workload_operation_list, workload_key_list):
+	for e, f in zip(benchmark_operation_list, benchmark_key_list):
 		if (e == "READ"):
 			operation = "SELECT"
 			rows = ", .rows = 0"
-		elif ((e == "UPDATE") or (e == "INSERT")):
+		elif ((e == "UPDATE") or (e == "INSERT") or (e == "SCAN")):
 			operation = e
 			rows = ""
 		else:
-			print("Unsupported operation")
-			sys.exit(1)
+			print("Unsupported benchmark operation")
+			#sys.exit(1)
 		#end_if
 		benchmark_file.write("\t{ .type = " + operation + ", .time = 0.0, .key = " + f + rows + "},\n")
 	#end_for
@@ -163,6 +162,19 @@ def main():
 	benchmark_file.write("};\n")
 	benchmark_file.write("\n")
 	benchmark_file.close()
+
+#end_def
+
+
+def main():
+
+	print("Hello World")
+
+	workload_list = ["a", "b", "c", "d", "e", "f"]
+
+	for e in workload_list:
+		process_initialize_benchmark_pair(e)
+	#end_for
 
 #end_def
 
