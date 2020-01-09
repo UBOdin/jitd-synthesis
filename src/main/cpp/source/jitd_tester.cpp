@@ -15,7 +15,7 @@
 
 #include "test.hpp"
 #include "jitd_test.hpp"
-#define SEED_MAX 364785
+#define SEED_MAX 638645
 double total_time(timeval &start, timeval &end)
 {
   return (end.tv_sec - start.tv_sec) * 1000000.0 +
@@ -134,7 +134,34 @@ int jitd_test(
       jitd->insert(data);
       gettimeofday(&end, NULL);
       std::cout << "Insert into JITD: " << total_time(start, end) << " us" << std::endl;
-    } CASE("remove_elements")
+    }CASE("insert-singleton") {
+      timeval start, end;
+      Record r;
+      std::string op;
+      toks >> op;
+      int count, min, max;
+      if(op == "random")
+      {
+        
+        std::cout<<"OP FOUND RANDOM"<<std::endl;
+        toks >> count >> min >> max;
+        std::cout<<"count"<<count<<"max"<<max<<"min"<<min<<std::endl;
+        int max_minus_min = max - min;
+        gettimeofday(&start, NULL);
+        for(int i = 0; i < count; i++){
+          r.key = (rand() % max_minus_min)+min;
+          r.value = (Value)0xDEADBEEF;
+          jitd->insert_singleton(r);
+        } 
+        gettimeofday(&end, NULL);
+      }
+      //load_records_singleton(data, toks);
+      //gettimeofday(&start, NULL);
+      //jitd->insert_singleton(data);
+      //gettimeofday(&end, NULL);
+      std::cout << "Insert into JITD: " << total_time(start, end) << " us" << std::endl;
+    } 
+    CASE("remove_elements")
     {
       timeval start, end;
       RecordBuffer data;
@@ -356,36 +383,37 @@ int jitd_test(
     {
       jitd->print_search_time_vec();
     }
-    CASE("print_timing")
+    // CASE("print_timing")
+    // {
+    //   jitd->print_timing();
+    // } 
+    // CASE("print_set")
+    // {
+    //   std::cout<<"Printing Set:-"<<std::endl;
+    //   jitd->print_set_size();
+    // }
+    
+    // CASE("check_set")
+    // {
+    //   std::cout<<"Checking set integrity: "<<std::endl;
+    //   jitd->check_set_intergrity();
+    // }
+    CASE("check_pq")
     {
-      jitd->print_timing();
-    } 
-    CASE("print_set")
-    {
-      std::cout<<"Printing Set:-"<<std::endl;
-      jitd->print_set_size();
+      std::cout<<"Checking PQ integrity: "<<std::endl;
+      jitd->check_pq_intergrity();
     }
     CASE("print_pq")
     {
       std::cout<<"Printing PQ:-"<<std::endl;
       jitd->print_pq_size();
     }
-    CASE("check_set")
-    {
-      std::cout<<"Checking set integrity: "<<std::endl;
-      jitd->check_set_intergrity();
-    }
-    CASE("check_pq")
-    {
-      std::cout<<"Checking PQ integrity: "<<std::endl;
-      jitd->check_pq_intergrity();
-    }
-    CASE("make_set")
-    {
-      //std::cout<<"calling make_set"<<std::endl;
-      jitd->make_set();
+    // CASE("make_set")
+    // {
+    //   //std::cout<<"calling make_set"<<std::endl;
+    //   jitd->make_set();
 
-    }
+    // }
     // CASE("make_pq")
     // {
     //   //std::cout<<"calling make_set"<<std::endl;

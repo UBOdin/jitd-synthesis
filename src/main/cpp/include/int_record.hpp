@@ -43,13 +43,28 @@ inline bool operator <(const Key &a, const Record &b) {
   return a < b.key;
 }
 
-std::ostream &operator<<(std::ostream &o, const Record &r);
+inline std::ostream &operator<<(std::ostream &o, const Record &r){
+  o << "(" << r.key << " -> " << r.value << ")"; 
+  return o;
+};
 
 inline bool record_scan(const std::vector<Record> &data, const Key &key, Record &result){
   auto last = std::end(data);
   for(auto curr = std::begin(data); curr != last; ++curr){
     if(*curr == key){ result = *curr; return true; }
   }
+  return false;
+}
+// inline bool record_scan(const std::vector<Record> &data,const Key &key){
+//   Record dummy;
+//   return record_scan(data,key,dummy);
+// }
+  
+inline bool singleton_scan(const Record &data, const Key &key, Record &result){
+  // auto last = std::end(data);
+  // for(auto curr = std::begin(data); curr != last; ++curr){
+    if(data == key){ result = data; return true; }
+  //}
   return false;
 }
 inline bool record_binary_search(const std::vector<Record> &data, const Key &key, Record &result){
@@ -60,6 +75,10 @@ inline bool record_binary_search(const std::vector<Record> &data, const Key &key
 
 inline void append(std::vector<Record> &to, std::vector<Record> &from){
   to.insert(std::end(to), std::begin(from), std::end(from));
+}
+inline void append_singleton(Record &to, Record &from,std::vector<Record> &merged){
+  merged.push_back(to);
+  merged.push_back(from);
 }
 // inline void appendConcat(std::vector<Record> &to, std::vector<Record> &from)
 // { 
@@ -148,7 +167,8 @@ inline void do_crack(
   std::vector<Record> &rhs
 ){
   //std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
-  for(auto curr = std::begin(source); curr < std::end(source); ++curr)
+  auto end = std::end(source);
+  for(auto curr = std::begin(source); curr != end; ++curr)
   {
     //std::cout << "  Check: " << curr->key;
     if(*curr < sep){ lhs.push_back(*curr); }
@@ -164,8 +184,8 @@ inline void array_copy(
   //std::cout<<"Doing copy"<<std::endl;
   // std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
 
-
-  for(auto curr = std::begin(source); curr < std::end(source); ++curr)
+  auto end = std::end(source);
+  for(auto curr = std::begin(source); curr != end; ++curr)
   {
     // std::cout << "  Check: " << curr->key << std::endl;
     lhs.push_back(*curr); 
@@ -224,6 +244,7 @@ inline void array_copy(
 inline void delete_from_leaf(std::vector<Record> &to_delete,std::vector<Record> &from_delete)
 {
   //std::cout<<"in deleting";
+  //TODO: optimize begin and end
   if(to_delete.size()!=0 && from_delete.size()!=0)
   {
     for(int i = 0; i < from_delete.size(); i++)
