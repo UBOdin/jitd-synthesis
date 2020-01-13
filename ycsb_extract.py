@@ -4,6 +4,13 @@ import os
 import json
 
 
+def sort_key(input_list):
+
+	return input_list[0]
+
+#end_def
+
+
 def get_data(file_name):
 
 	# file_name = ""
@@ -22,6 +29,7 @@ def get_data(file_name):
 	field_header = ""
 	field_key = ""
 	field_value = ""
+	presort_list = []
 
 	parseline_list = []
 	parseline_list_list = []
@@ -80,6 +88,8 @@ def get_data(file_name):
 
 		index += 3 # skip over " ] "
 
+		presort_list = []
+
 		while (True):
 
 			field_header = logline[index:index + 5]
@@ -93,11 +103,13 @@ def get_data(file_name):
 			#end_if
 
 			field_key = logline[index + 5:index + 6]
-			parseline_list.append(field_key)
+			#parseline_list.append(field_key)
 
 			field_value = logline[index + 7:index + 107]
 			field_value = field_value.replace(" ", "_")
-			parseline_list.append(field_value)
+			#parseline_list.append(field_value)
+
+			presort_list.append([field_key, field_value])
 
 			if (logline[index + 107:index + 108] != " "):
 				print("Unexpected intrafield delimiter")
@@ -107,6 +119,19 @@ def get_data(file_name):
 			index += 108
 
 		#end_while
+
+		#print("start sort")
+
+		#presort_list = sorted(presort_list, key = sort_key)
+
+		#print("end sort")
+
+		for e in presort_list:
+			parseline_list.append(e[0])
+			parseline_list.append(e[1])
+		#end_for
+
+		#print("end append")
 
 		parseline_list_list.append(parseline_list)
 
@@ -143,6 +168,9 @@ def process_workload(workload):
 
 	for parseline_list in parseline_list_list:
 		#output_line = parseline_list[0] + "\t" + parseline_list[1] + "\n"
+
+		output_line = ""
+
 		listlen = len(parseline_list)
 		for i in range(listlen):
 			if (i < listlen - 1):
@@ -152,6 +180,7 @@ def process_workload(workload):
 			#end_if
 		#end_for
 		output_file.write(output_line)
+
 	#end_for
 
 	output_file.close()
