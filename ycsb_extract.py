@@ -12,12 +12,19 @@ def get_data(file_name):
 	iteration = -1
 	header_flag = True
 	logline = ""
-	logline_list = []
-	subline_list = []
+	index = 0
+	logline_header_list = []
 	operation = ""
-	operation_list = []
+	#operation_list = []
 	key = ""
-	key_list = []
+	#key_list = []
+
+	field_header = ""
+	field_key = ""
+	field_value = ""
+
+	parseline_list = []
+	parseline_list_list = []
 
 
 	input_file = open(file_name, "r")
@@ -27,7 +34,7 @@ def get_data(file_name):
 		iteration += 1
 
 		# Keep reading until finished:
-		logline = input_file.readline().decode("ascii")
+		logline = input_file.readline() #.decode("ascii")
 		if (logline == ""):
 			print("No data")
 			sys.exit(1)
@@ -44,30 +51,69 @@ def get_data(file_name):
 			break
 		#end_if
 
-		logline_list = logline.split(" [")
-		subline_list = logline_list[0].split(" ")
+		parseline_list = []
 
-		if (len(subline_list) != 3):
+		index = logline.find(" [ ", 0, 50)
+		if (index == -1):
+			print("Delimiter not found")
+			sys.exit(1)
+		#end_if
+		logline_header_list = logline[:index].split(" ")
+
+		if (len(logline_header_list) != 3):
 			print("Unexpected length")
 			#sys.exit(1)  TODO:  Extra SCAN parameter?
 		#end_if
 
-		operation = subline_list[0]
-		operation_list.append(operation)
-		key = subline_list[2]
+		operation = logline_header_list[0]
+		#operation_list.append(operation)
+		parseline_list.append(operation)
+		key = logline_header_list[2]
 		if (key[0:4] != "user"):
 			print("Unexpected key")
 			print(iteration)
 			print(logline)
 			sys.exit(1)
 		#end_if
-		key_list.append(key[4:])
+		#key_list.append(key[4:])
+		parseline_list.append(key[4:])
+
+		index += 3 # skip over " ] "
+
+		while (True):
+
+			field_header = logline[index:index + 5]
+			if (field_header == "]\n"):
+				break
+			elif (field_header == "<all "):
+				break
+			elif (field_header != "field"):
+				print("Unexpected k-v delimiter")
+				sys.exit(1)
+			#end_if
+
+			field_key = logline[index + 5:index + 6]
+			parseline_list.append(field_key)
+
+			field_value = logline[index + 7:index + 107]
+			parseline_list.append(field_value)
+
+			if (logline[index + 107:index + 108] != " "):
+				print("Unexpected intrafield delimiter")
+				sys.exit(1)
+			#end_if
+
+			index += 108
+
+		#end_while
+
+		parseline_list_list.append(parseline_list)
 
 	#end_while
 
 	input_file.close()
 
-	return operation_list, key_list
+	return parseline_list_list
 
 #end_def
 
@@ -78,8 +124,9 @@ def process_workload(workload):
 	# -----
 	input_file_name = ""
 	path = "ycsb_benchmark/"
-	operation_list = []
-	key_list = []
+	parseline_list_list = []
+	parseline_list = []
+	listlen = 0
 	output_file_name = ""
 	output_file = "" # File obj
 	output_line = ""
@@ -87,25 +134,28 @@ def process_workload(workload):
 
 	input_file_name = path + "ycsb_raw_" + workload + ".txt"
 
-	operation_list, key_list = get_data(input_file_name)
-
-	if (len(operation_list) != len(key_list)):
-		print("Mismatch lengths")
-		sys.exit(1)
-	#end_if
+	parseline_list_list = get_data(input_file_name)
 
 	output_file_name = path + "ycsb_tsv_" + workload + ".tsv"
 
 	output_file = open(output_file_name, "w")
 
-	for e, f in zip(operation_list, key_list):
-		output_line = e + "\t" + f + "\n"
+	for parseline_list in parseline_list_list:
+		#output_line = parseline_list[0] + "\t" + parseline_list[1] + "\n"
+		listlen = len(parseline_list)
+		for i in range(listlen):
+			if (i < listlen - 1):
+				output_line += parseline_list[i] + "\t"
+			else:
+				output_line += parseline_list[i] + "\n"
+			#end_if
+		#end_for
 		output_file.write(output_line)
 	#end_for
 
 	output_file.close()
 
-	return operation_list, key_list
+	return parseline_list_list
 
 #end_def
 
@@ -125,6 +175,11 @@ def process_initialize_benchmark_pair(workload):
 	rows = ""
 
 	#workload = sys.argv[1]
+
+	process_workload("initialize_" + workload)
+	process_workload("benchmark_" + workload)
+
+	return
 
 	initialize_operation_list, initialize_key_list = process_workload("initialize_" + workload)
 	benchmark_operation_list, benchmark_key_list = process_workload("benchmark_" + workload)
@@ -171,10 +226,18 @@ def main():
 
 	print("Hello World")
 
+	workload = ""
 	workload_list = ["a", "b", "c", "d", "e", "f"]
 
-	for e in workload_list:
-		process_initialize_benchmark_pair(e)
+	'''
+	workload = sys.argv[1]
+
+	process_workload(workload)
+	'''
+
+	for workload in workload_list:
+		print("Processing workload %s" % (workload))
+		process_initialize_benchmark_pair(workload)
 	#end_for
 
 #end_def
