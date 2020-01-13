@@ -122,7 +122,7 @@ def get_data(file_name):
 
 		#print("start sort")
 
-		#presort_list = sorted(presort_list, key = sort_key)
+		presort_list = sorted(presort_list, key = sort_key)
 
 		#print("end sort")
 
