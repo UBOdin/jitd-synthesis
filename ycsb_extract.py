@@ -96,6 +96,7 @@ def get_data(file_name):
 			parseline_list.append(field_key)
 
 			field_value = logline[index + 7:index + 107]
+			field_value = field_value.replace(" ", "_")
 			parseline_list.append(field_value)
 
 			if (logline[index + 107:index + 108] != " "):
