@@ -194,60 +194,56 @@ def process_initialize_benchmark_pair(workload):
 
 	# workload = ""
 	# -----
-	benchmark_operation_list = []
-	benchmark_key_list = []
-	initialize_operation_list = []
-	initialize_key_list = []
-	benchmark_file_name = ""
+	initialize_list_list = []
+	benchmark_list_list = []
 	benchmark_file = "" # file obj
 	output_line = ""
 	operation = ""
+	key = ""
 	rows = ""
 
-	#workload = sys.argv[1]
-
-	process_workload("initialize_" + workload)
-	process_workload("benchmark_" + workload)
-
-	return
-
-	initialize_operation_list, initialize_key_list = process_workload("initialize_" + workload)
-	benchmark_operation_list, benchmark_key_list = process_workload("benchmark_" + workload)
+	initialize_list_list = process_workload("initialize_" + workload)
+	benchmark_list_list = process_workload("benchmark_" + workload)
 
 	benchmark_file = open("ycsb_benchmark/workload_" + workload + "_data.cpp", "w")
 	benchmark_file.write("\n")
 	benchmark_file.write("#include \"harness.hpp\"\n")
 	benchmark_file.write("\n")
 	benchmark_file.write("struct operation_node seed_array[] {\n")
-	rows = ""
-	for e, f in zip(initialize_operation_list, initialize_key_list):
-		if (e != "INSERT"):
+	for initialize_list in initialize_list_list:
+		operation = initialize_list[0]
+		if (operation != "INSERT"):
 			print("Unsupported initialize operation")
 			sys.exit(1)
 		#end_if
-		benchmark_file.write("\t{ .type = INSERT, .time = 0.0, .key = " + f + "},\n")
-	#end_for
+		key = initialize_list[1]
+		benchmark_file.write("\t{ .type = INSERT, .time = 0.0, .key = " + key + "},\n")
+	#end_for	
 	benchmark_file.write("\t{ .type = STOP },\n")
 	benchmark_file.write("};\n")
 	benchmark_file.write("\n")
 	benchmark_file.write("struct operation_node operation_array[] {\n")
-	for e, f in zip(benchmark_operation_list, benchmark_key_list):
-		if (e == "READ"):
+
+	for benchmark_list in benchmark_list_list:
+		operation = benchmark_list[0]
+		if (operation == "READ"):
 			operation = "SELECT"
 			rows = ", .rows = 0"
-		elif ((e == "UPDATE") or (e == "INSERT") or (e == "SCAN")):
-			operation = e
+		elif ((operation == "UPDATE") or (operation == "INSERT") or (operation == "SCAN")):
 			rows = ""
 		else:
 			print("Unsupported benchmark operation")
 			sys.exit(1)
 		#end_if
-		benchmark_file.write("\t{ .type = " + operation + ", .time = 0.0, .key = " + f + rows + "},\n")
+		key = benchmark_list[1]
+		benchmark_file.write("\t{ .type = " + operation + ", .time = 0.0, .key = " + key + rows + "},\n")
 	#end_for
 	benchmark_file.write("\t{ .type = STOP },\n")
 	benchmark_file.write("};\n")
 	benchmark_file.write("\n")
 	benchmark_file.close()
+
+	return
 
 #end_def
 
@@ -257,18 +253,17 @@ def main():
 	print("Hello World")
 
 	workload = ""
+
+	#workload = sys.argv[1]
 	workload_list = ["a", "b", "c", "d", "e", "f"]
 
-	'''
-	workload = sys.argv[1]
-
-	process_workload(workload)
-	'''
-
+	#process_initialize_benchmark_pair(workload)
+	#'''
 	for workload in workload_list:
 		print("Processing workload %s" % (workload))
 		process_initialize_benchmark_pair(workload)
 	#end_for
+	#'''
 
 #end_def
 
