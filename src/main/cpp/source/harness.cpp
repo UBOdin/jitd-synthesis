@@ -29,21 +29,12 @@ static struct operation_node node;
 static struct output_node* output_array;
 static int output_size;
 
-#ifdef STORAGE_JITD
-static std::shared_ptr<JITD> jitd;
-static std::vector<Record> data;
-static Record r;
-#endif
-
 #ifdef STORAGE_SQLITE
 #define STMT_BUFLEN 256
-static sqlite3* ppDb;
-static char stmt_buffer[STMT_BUFLEN];
 #endif
 
 #ifdef STORAGE_UOMAP
 #define UOM_TYPE long, int
-static std::unordered_map<UOM_TYPE> umap;
 #endif
 
 // N.b. struct Record.key -- long int; Record.value -- void*
@@ -72,11 +63,13 @@ void __errtrap(int result, const char* error, int line) {
 }
 
 
-int init_struct() {
+void* init_struct() {
 
 
 	#ifdef STORAGE_SQLITE
 
+	sqlite3* ppDb;
+	char stmt_buffer[STMT_BUFLEN];
 	int result;
 	char filename[] = ":memory:"; // "testfile.db";  // TODO:  parameterize this
 	sqlite3_stmt* statement;
@@ -107,22 +100,34 @@ int init_struct() {
 	}
 	result = sqlite3_finalize(statement);
 
+	return (void*)ppDb;
+
 	#endif
 
 	#ifdef STORAGE_JITD
+
+/*
+	std::shared_ptr<JITD> jitd;
+	std::vector<Record> data;
+	Record r;
 
 	// Init data template to push:
 	r.key = -9999999;  // dummy init key; will be popped later
 //	r.value = (Value)0xDEADBEEF;
 	data.push_back(r);
+*/
 
-	jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
+	std::shared_ptr<JITD>* jitd = new std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
+
+	return (void*)jitd;
 
 	#endif
 
 	#ifdef STORAGE_UOMAP
 
-	// (nothing)
+	std::unordered_map<UOM_TYPE>* umap = new std::unordered_map<UOM_TYPE>;
+
+	return (void*)umap;
 
 	#endif
 
@@ -131,11 +136,13 @@ int init_struct() {
 }
 
 
-bool get_data(long key) {
+bool get_data(void* storage, long key) {
 
 
 	#ifdef STORAGE_SQLITE
 
+	sqlite3* ppDb = (sqlite3*)storage;
+	char stmt_buffer[STMT_BUFLEN];
 	int result;
 	sqlite3_stmt* statement;
 	int rowcount;
@@ -168,6 +175,9 @@ bool get_data(long key) {
 
 	#ifdef STORAGE_JITD
 
+	std::shared_ptr<JITD> jitd = storage;
+	std::vector<Record> data;
+	Record r;
 	bool result;
 
 	result = jitd->get(key, r);
@@ -178,11 +188,12 @@ bool get_data(long key) {
 
 	#ifdef STORAGE_UOMAP
 
+	std::unordered_map<UOM_TYPE>* umap = (std::unordered_map<UOM_TYPE>*)storage;
 	std::unordered_map<UOM_TYPE>::iterator key_iter;
 	std::unordered_map<UOM_TYPE>::iterator end_iter;
 
-	key_iter = umap.find(key);
-	end_iter = umap.end();
+	key_iter = umap->find(key);
+	end_iter = umap->end();
 
 	return !(key_iter == end_iter);
 
@@ -191,10 +202,12 @@ bool get_data(long key) {
 }
 
 
-int put_data(long key) {
+int put_data(void* storage, long key) {
 
 	#ifdef STORAGE_SQLITE
 
+	sqlite3* ppDb = (sqlite3*)storage;
+	char stmt_buffer[STMT_BUFLEN];
 	int result;
 	sqlite3_stmt* statement;
 
@@ -215,6 +228,10 @@ int put_data(long key) {
 
 	#ifdef STORAGE_JITD
 
+	std::shared_ptr<JITD> jitd = storage;
+	std::vector<Record> data;
+	Record r;
+
 	r.key = key;
 	data.pop_back();
 	data.push_back(r);
@@ -224,13 +241,14 @@ int put_data(long key) {
 
 	#ifdef STORAGE_UOMAP
 
+	std::unordered_map<UOM_TYPE>* umap = (std::unordered_map<UOM_TYPE>*)storage; 
 	std::pair<std::unordered_map<UOM_TYPE>::iterator, bool> result_pair;
 	std::pair<UOM_TYPE> data_pair;
 
 	//data_pair = std::make_pair<UOM_TYPE>(key, 9999);
 	data_pair.first = key;
 	data_pair.second = 9999;  // dummy
-	result_pair = umap.insert(data_pair);
+	result_pair = umap->insert(data_pair);
 	if (result_pair.second == false) {
 		printf("Error:  duplicate uomap key\n");
 		_exit(1);
@@ -243,10 +261,12 @@ int put_data(long key) {
 }
 
 
-int remove_data(long key) {
+int remove_data(void* storage, long key) {
 
 	#ifdef STORAGE_SQLITE
 
+	sqlite3* ppDb = (sqlite3*)storage;
+	char stmt_buffer[STMT_BUFLEN];
 	int result;
 	sqlite3_stmt* statement;
 
@@ -274,7 +294,8 @@ int remove_data(long key) {
 
 	#ifdef STORAGE_UOMAP
 
-	umap.erase(key);
+	std::unordered_map<UOM_TYPE>* umap = (std::unordered_map<UOM_TYPE>*)storage;
+	umap->erase(key);
 
 	#endif
 
@@ -284,7 +305,7 @@ int remove_data(long key) {
 
 
 
-int seed_struct() {
+int seed_struct(void* storage) {
 
 	int i;
 
@@ -299,7 +320,7 @@ int seed_struct() {
 			printf("Error:  expected Insert\n");
 			_exit(1);
 		}
-		put_data(node.key);
+		put_data(storage, node.key);
 		i++;
 	}
 	printf("Finished\n");
@@ -308,7 +329,7 @@ int seed_struct() {
 }
 
 
-int test_struct() {
+int test_struct(void* storage) {
 
 	Key key;
 	Key minkey = 999999;
@@ -355,7 +376,7 @@ int test_struct() {
 			j++;
 		}
 		// Check whether target value is reported by the structure:
-		observed = get_data(i);
+		observed = get_data(storage, i);
 		if (expected != observed) {
 			printf("structure test failure:  expected = %d; observed = %d on item %d\n", expected, observed, i);
 			_exit(1);
@@ -419,6 +440,7 @@ int save_output() {
 
 int jitd_harness() {
 
+	void* storage;
 	timeval start;
 	timeval end;
 	int ms;
@@ -447,11 +469,11 @@ int jitd_harness() {
 	#endif
 
 	// Initialize bare jitds structure:
-	init_struct();
+	storage = init_struct();
 	// Pre-populate structure with existing keys:
-	seed_struct();
+	seed_struct(storage);
 	// Basic structural integrity check:
-//	test_struct();
+//	test_struct(storage);
 	// Allocate output structure:
 	init_output();
 	// Block :30 to stabilize system:
@@ -492,10 +514,10 @@ int jitd_harness() {
 			break;
 		}
 		else if (node.type == INSERT) {
-			put_data(node.key);
+			put_data(storage, node.key);
 		}
 		else if (node.type == SELECT) {
-			result = get_data(node.key);
+			result = get_data(storage, node.key);
 			// Basic sanity check
 			if (result != (bool)node.rows) {
 				printf("Unexpected get result on iteration %d:  %d, %d\n", i, result, node.rows);
@@ -505,12 +527,12 @@ int jitd_harness() {
 /*
 			if (node.rows > 1) {
 				for (int j = 1; j < node.rows; j++) {
-					result = get_data(node.key);
+					result = get_data(storage, node.key);
 				}
 			}
 */
 		} else if (node.type == DELETE) {
-			result = remove_data(node.key);
+			result = remove_data(storage, node.key);
 		} else {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
@@ -577,7 +599,7 @@ int jitd_harness() {
 
 	save_output();
 	#ifdef STORAGE_SQLITE
-	sqlite3_close(ppDb);
+	sqlite3_close((sqlite3*)storage);
 	#endif
 
 	printf("End base time:  %f\n", time_base);
