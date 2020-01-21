@@ -218,12 +218,11 @@ def process_initialize_benchmark_pair(workload):
 		#end_if
 		key = initialize_list[1]
 		benchmark_file.write("\t{ .type = INSERT, .time = 0.0, .key = " + key + "},\n")
-	#end_for	
+	#end_for
 	benchmark_file.write("\t{ .type = STOP },\n")
 	benchmark_file.write("};\n")
 	benchmark_file.write("\n")
 	benchmark_file.write("struct operation_node operation_array[] {\n")
-
 	for benchmark_list in benchmark_list_list:
 		operation = benchmark_list[0]
 		if (operation == "READ"):
