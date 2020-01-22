@@ -32,8 +32,8 @@ struct output_node {
 int jitd_harness();
 
 // Machine-generated static data:
-extern struct operation_node seed_array[];
-extern struct operation_node operation_array[];
+extern struct operation_node initialize_array[];
+extern struct operation_node benchmark_array[];
 extern struct output_node output_array[];
 extern long output_size;
 

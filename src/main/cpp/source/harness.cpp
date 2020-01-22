@@ -301,7 +301,7 @@ int remove_data(void* storage, long key) {
 
 
 
-int seed_struct(void* storage) {
+int initialize_structure(void* storage) {
 
 	struct operation_node node;
 	int i;
@@ -309,7 +309,7 @@ int seed_struct(void* storage) {
 	printf("Initializing data structure\n");
 	i = 0;
 	while (true) {
-		node = seed_array[i];
+		node = initialize_array[i];
 		if (node.type == STOP) {
 			break;
 		}
@@ -342,7 +342,7 @@ int test_struct(void* storage) {
 	// Get search range:
 	i = 0;
 	while (true) {
-		node = seed_array[i];
+		node = initialize_array[i];
 		if (node.type == STOP) {
 			break;
 		}
@@ -357,13 +357,13 @@ int test_struct(void* storage) {
 	}
 
 	// TODO:  probably should use hashes here -- N^2 loop...
-	// Verify that presence / absence of keys from seed array matches structure population:
+	// Verify that presence / absence of keys from initialize array matches structure population:
 	for (i = minkey; i < maxkey; i++) {
 		// Check whether target value _was_ inserted:
 		expected = false;
 		j = 0;
 		while (true) {
-			node = seed_array[j];
+			node = initialize_array[j];
 			if (node.type == STOP) {
 				break;
 			}
@@ -448,7 +448,7 @@ int jitd_harness() {
 	// Initialize bare jitds structure:
 	storage = init_struct();
 	// Pre-populate structure with existing keys:
-	seed_struct(storage);
+	initialize_structure(storage);
 	// Basic structural integrity check:
 //	test_struct(storage);
 	// Block :30 to stabilize system:
@@ -481,7 +481,7 @@ int jitd_harness() {
 */
 
 		// Get next operation:
-		node = operation_array[i];
+		node = benchmark_array[i];
 
 		// Benchmark next operation:
 		time_start = gettime_ms();
@@ -527,7 +527,7 @@ int jitd_harness() {
 		output_array[i].rows = node.rows;
 		// Advance to next frame
 		i++;
-		node = operation_array[i];
+		node = benchmark_array[i];
 		if (node.type == STOP) {
 			break;
 		}

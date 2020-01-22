@@ -209,7 +209,7 @@ def process_initialize_benchmark_pair(workload):
 	benchmark_file.write("\n")
 	benchmark_file.write("#include \"harness.hpp\"\n")
 	benchmark_file.write("\n")
-	benchmark_file.write("struct operation_node seed_array[] = {\n")
+	benchmark_file.write("struct operation_node initialize_array[] = {\n")
 	for initialize_list in initialize_list_list:
 		operation = initialize_list[0]
 		if (operation != "INSERT"):
@@ -222,7 +222,7 @@ def process_initialize_benchmark_pair(workload):
 	benchmark_file.write("\t{ .type = STOP },\n")
 	benchmark_file.write("};\n")
 	benchmark_file.write("\n")
-	benchmark_file.write("struct operation_node operation_array[] = {\n")
+	benchmark_file.write("struct operation_node benchmark_array[] = {\n")
 	for benchmark_list in benchmark_list_list:
 		operation = benchmark_list[0]
 		if (operation == "READ"):
@@ -240,8 +240,8 @@ def process_initialize_benchmark_pair(workload):
 	benchmark_file.write("\t{ .type = STOP },\n")
 	benchmark_file.write("};\n")
 	benchmark_file.write("\n")
-	benchmark_file.write("struct output_node output_array[sizeof(operation_array) / sizeof(operation_node)];\n")
-	benchmark_file.write("long output_size = sizeof(operation_array) / sizeof(operation_node);\n")
+	benchmark_file.write("struct output_node output_array[sizeof(benchmark_array) / sizeof(operation_node)];\n")
+	benchmark_file.write("long output_size = sizeof(benchmark_array) / sizeof(operation_node);\n")
 	benchmark_file.write("\n")
 	benchmark_file.close()
 
