@@ -25,7 +25,6 @@
 #include <unordered_map>
 #endif
 
-static struct operation_node node;
 static struct output_node* output_array;
 static int output_size;
 
@@ -307,6 +306,7 @@ int remove_data(void* storage, long key) {
 
 int seed_struct(void* storage) {
 
+	struct operation_node node;
 	int i;
 
 	printf("Initializing data structure\n");
@@ -331,13 +331,14 @@ int seed_struct(void* storage) {
 
 int test_struct(void* storage) {
 
+	struct operation_node node;
+	int i;
+	int j;
 	Key key;
 	Key minkey = 999999;
 	Key maxkey = 0;
 	bool expected;
 	bool observed;
-	int i;
-	int j;
 
 	printf("Verifying inserted data\n");
 
@@ -391,6 +392,7 @@ int test_struct(void* storage) {
 
 int init_output() {
 
+	struct operation_node node;
 	int i;
 
 	printf("Setting up output structure\n");
@@ -444,6 +446,7 @@ int jitd_harness() {
 	timeval start;
 	timeval end;
 	int ms;
+	struct operation_node node;
 	int i;
 	int j;
 	bool result;
