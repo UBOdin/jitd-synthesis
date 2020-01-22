@@ -25,9 +25,6 @@
 #include <unordered_map>
 #endif
 
-static struct output_node* output_array;
-static int output_size;
-
 #ifdef STORAGE_SQLITE
 #define STMT_BUFLEN 256
 #endif
@@ -390,29 +387,6 @@ int test_struct(void* storage) {
 }
 
 
-int init_output() {
-
-	struct operation_node node;
-	int i;
-
-	printf("Setting up output structure\n");
-	i = 0;
-	while (true) {
-		node = operation_array[i];
-		if (node.type == STOP) {
-			break;
-		}
-		i++;
-	}
-	output_array = (struct output_node*)malloc(sizeof(struct output_node) * i);
-	output_size = i;
-
-	printf("Allocated for %d operation results\n", i);
-	return 0;
-
-}
-
-
 int save_output() {
 
 	#define BUFFER_SIZE 64
@@ -477,8 +451,6 @@ int jitd_harness() {
 	seed_struct(storage);
 	// Basic structural integrity check:
 //	test_struct(storage);
-	// Allocate output structure:
-	init_output();
 	// Block :30 to stabilize system:
 	printf("Waiting -- stabilize system\n");
 //	std::this_thread::sleep_for(std::chrono::milliseconds(30 * 1000));
