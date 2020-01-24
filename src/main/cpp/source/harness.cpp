@@ -36,13 +36,13 @@
 // N.b. struct Record.key -- long int; Record.value -- void*
 
 
-double gettime_ms() {
+double gettime_us() {
 
 	timeval now;
 
 	gettimeofday(&now, NULL);
 
-	return (now.tv_sec * 1000000.0 + now.tv_usec) / 1000.0;
+	return now.tv_sec * 1000000.0 + now.tv_usec;
 
 }
 
@@ -473,7 +473,7 @@ int jitd_harness() {
 	gettimeofday(&start, NULL);
 
 	time_prev = 0;
-	time_base = gettime_ms();
+	time_base = gettime_us();
 	printf("Start base time:  %f\n", time_base);
 
 	i = 0;
@@ -496,7 +496,7 @@ int jitd_harness() {
 		rows = benchmark_array[i].rows;
 
 		// Benchmark next operation:
-		time_start = gettime_ms();
+		time_start = gettime_us();
 		if (optype == STOP) {
 			break;
 		}
@@ -526,7 +526,7 @@ int jitd_harness() {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
 		}
-		time_delta = gettime_ms() - time_start;
+		time_delta = gettime_us() - time_start;
 
 		// Save out operation time:
 		if (i >= output_size) {
@@ -547,8 +547,8 @@ int jitd_harness() {
 		}
 
 		// Get start time of the next operation:
-		time_next = time_base + (benchmark_array[i].time * 1000.0);
-		time_now = gettime_ms();
+		time_next = time_base + (benchmark_array[i].time * 1000000.0);
+		time_now = gettime_us();
 
 		#ifdef STORAGE_JITD
 
@@ -561,7 +561,7 @@ int jitd_harness() {
 			}
 			// Else, do more housecleaning:
 			result = jitd->do_organize();
-			time_now = gettime_ms();
+			time_now = gettime_us();
 			// Break if no more cleanup:
 			if (result == false) {
 				break_no_work++;
@@ -575,7 +575,7 @@ int jitd_harness() {
 		// (i.e. no more housecleaning left)
 		if (time_now < time_next) {
 
-			ms = 0; //(time_next - time_now) / 10000.0;  // Adjust to taste  TODO:  parameterize this
+			ms = 0; //(time_next - time_now) / 10000000.0;  // Adjust to taste  TODO:  parameterize this
 //			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 
 //			time_base -= (time_next - time_now);
