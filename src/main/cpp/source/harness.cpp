@@ -59,7 +59,7 @@ void __errtrap(int result, const char* error, int line) {
 }
 
 
-void* init_struct() {
+void* create_storage() {
 
 
 	#ifdef STORAGE_SQLITE
@@ -307,7 +307,7 @@ int update_data(void* storage, long key, int field, char* val) {
 }
 
 
-int initialize_structure(void* storage) {
+int populate_storage(void* storage) {
 
 	enum operation optype;
 	int i;
@@ -452,10 +452,10 @@ int jitd_harness() {
 	#ifdef STORAGE_UOMAP
 	printf("Using UOMap storage\n");
 	#endif
-	// Initialize bare jitds structure:
-	storage = init_struct();
+	// Initialize bare storage structure:
+	storage = create_storage();
 	// Pre-populate structure with existing keys:
-	initialize_structure(storage);
+	populate_storage(storage);
 	// Basic structural integrity check:
 //	test_struct(storage);
 	// Block :30 to stabilize system:
