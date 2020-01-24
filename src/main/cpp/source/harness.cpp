@@ -198,7 +198,7 @@ bool get_data(void* storage, long key) {
 }
 
 
-int put_data(void* storage, long key) {
+int put_data(void* storage, long key, char* val) {
 
 	#ifdef STORAGE_SQLITE
 
@@ -300,6 +300,12 @@ int remove_data(void* storage, long key) {
 }
 
 
+int update_data(void* storage, long key, int field, char* val) {
+
+	return 0;
+
+}
+
 
 int initialize_structure(void* storage) {
 
@@ -309,6 +315,7 @@ int initialize_structure(void* storage) {
 	printf("Initializing data structure\n");
 	i = 0;
 	while (true) {
+// TODO:  do not get entire struct
 		node = initialize_array[i];
 		if (node.type == STOP) {
 			break;
@@ -317,7 +324,7 @@ int initialize_structure(void* storage) {
 			printf("Error:  expected Insert\n");
 			_exit(1);
 		}
-		put_data(storage, node.key);
+		put_data(storage, node.key, node.val);
 		i++;
 	}
 	printf("Finished\n");
@@ -444,7 +451,6 @@ int jitd_harness() {
 	#ifdef STORAGE_UOMAP
 	printf("Using UOMap storage\n");
 	#endif
-
 	// Initialize bare jitds structure:
 	storage = init_struct();
 	// Pre-populate structure with existing keys:
@@ -483,13 +489,15 @@ int jitd_harness() {
 		// Get next operation:
 		node = benchmark_array[i];
 
+// TODO:  This needs to be a pointer.  Val is a big array.
+
 		// Benchmark next operation:
 		time_start = gettime_ms();
 		if (node.type == STOP) {
 			break;
 		}
 		else if (node.type == INSERT) {
-			put_data(storage, node.key);
+			put_data(storage, node.key, node.val);
 		}
 		else if (node.type == SELECT) {
 			result = get_data(storage, node.key);
@@ -508,6 +516,8 @@ int jitd_harness() {
 */
 		} else if (node.type == DELETE) {
 			result = remove_data(storage, node.key);
+		} else if (node.type == UPDATE) {
+			result = update_data(storage, node.key, node.field, node.val);
 		} else {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
@@ -527,6 +537,7 @@ int jitd_harness() {
 		output_array[i].rows = node.rows;
 		// Advance to next frame
 		i++;
+// TODO:  do not get entire struct
 		node = benchmark_array[i];
 		if (node.type == STOP) {
 			break;
@@ -572,6 +583,10 @@ int jitd_harness() {
 	gettimeofday(&end, NULL);
 	std::cout << "Total runtime: " << total_time(start, end) << " us" << std::endl;
 
+	// Failsafe:  if input < output:
+	if (i < output_size) {
+		output_size = i;
+	}
 	save_output();
 	#ifdef STORAGE_SQLITE
 	sqlite3_close((sqlite3*)storage);
