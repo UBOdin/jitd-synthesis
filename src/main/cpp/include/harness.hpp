@@ -1,4 +1,6 @@
 
+#include <string>
+
 enum operation {
 
 	INSERT,
@@ -11,7 +13,6 @@ enum operation {
 };
 
 // N.b. initializer field order must match that of structure declaration in C++
-// N.b. array initializers must _exactly_ fit declared size (less 1 for nullterm) in C++14
 
 struct operation_node {
 
@@ -20,7 +21,7 @@ struct operation_node {
 	long key;
 	int rows;			// Sanity check for select:  actual number of rows returned in ground truth
 	int field;			// in YCSB:  which non-key column to modify
-	char val[100 * 10 + 1];		// in YCSB:  10 non-key columns of equal-sized ASCII blobs (plus nullterm)
+	std::string field_array[10];
 
 };
 

@@ -4,11 +4,6 @@ import os
 import json
 
 
-# Fill data for C++ column fields:
-fill900 = "." * 900
-fill1000 = "." * 1000
-
-
 def sort_key(input_list):
 
 	return input_list[0]
@@ -116,6 +111,8 @@ def get_data(file_name):
 			# Escape question marks (double ?? is preprocessor trigraph alert):
 			field_value = field_value.replace("?", "\\?")
 			#field_value = field_value.replace("\'", "\\\'")
+			# SQLite issues with single quote:
+			field_value = field_value.replace("'", "_")
 
 			presort_list.append([field_key, field_value])
 
@@ -207,7 +204,7 @@ def process_initialize_benchmark_pair(workload):
 	key = ""
 	rows = ""
 	field = ""
-	val = ""
+	field_array = ""
 
 	initialize_list_list = process_workload("initialize_" + workload)
 	benchmark_list_list = process_workload("benchmark_" + workload)
@@ -225,13 +222,14 @@ def process_initialize_benchmark_pair(workload):
 			sys.exit(1)
 		#end_if
 		key = initialize_list[1]
-		val = ""
+		field_array = "{ "
 		for i in range(2, 22, 2):
 			# Fields should be 0, 1, ... 9:
 			assert(int(initialize_list[i]) == (i - 2) / 2), "val:  %s" % (initialize_list[i])
-			val += initialize_list[i + 1]
+			field_array += "\"" + initialize_list[i + 1] + "\", "
 		#end_for
-		benchmark_file.write("\t{ .type = INSERT, .time = 0.0, .key = " + key + ", .rows = 0, .field = 0, .val = \"" + val + "\" },\n")
+		field_array += "}, "
+		benchmark_file.write("\t{ .type = INSERT, .time = 0.0, .key = " + key + ", .rows = 0, .field = 0, .field_array = " + field_array + " },\n")
 	#end_for
 	benchmark_file.write("\t{ .type = STOP },\n")
 	benchmark_file.write("};\n")
@@ -245,29 +243,33 @@ def process_initialize_benchmark_pair(workload):
 			assert (listlen == 2), "Unexpected read field length"
 			operation = "SELECT"
 			field = "-1" # Magic value:  field is N/A
-			val = fill1000 # in C++ 14, initializer size must exactly match declared size
+			field_array = "{\"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\"}"
 		elif (operation == "UPDATE"):
 			assert (listlen == 4), "Unexpected update field length"
 			field = benchmark_list[2]
-			val = benchmark_list[3] + fill900 # As above match size...
+			#val = benchmark_list[3] + fill900 # As above match size...
+
+			field_array = "{\"" + benchmark_list[3] + "\", \"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\"}"
+
 		elif (operation == "INSERT"):
 			assert (listlen == 22), "Unexpected insert field length"
 			field = "10" # Magic value:  all 10 (0-9), not #10
-			val = ""
+			field_array = "{ "
 			for i in range(2, 22, 2):
 				# Fields should be 0, 1, ... 9:
 				assert(int(initialize_list[i]) == (i - 2) / 2), "val:  %s" % (initialize_list[i])
-				val += initialize_list[i + 1]
+				field_array += "\"" + initialize_list[i + 1] + "\", "
 			#end_for
+			field_array += "}, "
 		elif (operation == "SCAN"):
 			assert (listlen == 2), "Unexpected scan field length"
 			field = "-1" # Magic value:  field is N/A
-			val = fill1000 # As above, match size...
+			field_array = "{\"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\"}"
 		else:
 			print("Unsupported benchmark operation")
 			sys.exit(1)
 		#end_if
-		benchmark_file.write("\t{ .type = " + operation + ", .time = 0.0, .key = " + key + ", .rows = 0, .field = " + field + ", .val = \"" + val + "\" },\n")
+		benchmark_file.write("\t{ .type = " + operation + ", .time = 0.0, .key = " + key + ", .rows = 0, .field = " + field + ", .field_array = " + field_array + " },\n")
 	#end_for
 	benchmark_file.write("\t{ .type = STOP },\n")
 	benchmark_file.write("};\n")

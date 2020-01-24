@@ -309,22 +309,21 @@ int update_data(void* storage, long key, int field, char* val) {
 
 int initialize_structure(void* storage) {
 
-	struct operation_node node;
+	enum operation optype;
 	int i;
 
 	printf("Initializing data structure\n");
 	i = 0;
 	while (true) {
-// TODO:  do not get entire struct
-		node = initialize_array[i];
-		if (node.type == STOP) {
+		optype = initialize_array[i].type;
+		if (optype == STOP) {
 			break;
 		}
-		if (node.type != INSERT) {
+		if (optype != INSERT) {
 			printf("Error:  expected Insert\n");
 			_exit(1);
 		}
-		put_data(storage, node.key, node.val);
+		put_data(storage, initialize_array[i].key, NULL);
 		i++;
 	}
 	printf("Finished\n");
@@ -427,7 +426,9 @@ int jitd_harness() {
 	timeval start;
 	timeval end;
 	int ms;
-	struct operation_node node;
+	enum operation optype;
+	long key;
+	int rows;
 	int i;
 	int j;
 	bool result;
@@ -487,37 +488,40 @@ int jitd_harness() {
 */
 
 		// Get next operation:
-		node = benchmark_array[i];
-
+//		node = benchmark_array[i];
 // TODO:  This needs to be a pointer.  Val is a big array.
+
+		optype = benchmark_array[i].type;
+		key = benchmark_array[i].key;
+		rows = benchmark_array[i].rows;
 
 		// Benchmark next operation:
 		time_start = gettime_ms();
-		if (node.type == STOP) {
+		if (optype == STOP) {
 			break;
 		}
-		else if (node.type == INSERT) {
-			put_data(storage, node.key, node.val);
+		else if (optype == INSERT) {
+			put_data(storage, key, NULL);
 		}
-		else if (node.type == SELECT) {
-			result = get_data(storage, node.key);
+		else if (optype == SELECT) {
+			result = get_data(storage, key);
 			// Basic sanity check
-			if (result != (bool)node.rows) {
-				printf("Unexpected get result on iteration %d:  %d, %d\n", i, result, node.rows);
+			if (result != (bool)rows) {
+				printf("Unexpected get result on iteration %d:  %d, %d\n", i, result, rows);
 				_exit(1);
 			}
 			// Re-fetch if original data returned multiple rows:
 /*
-			if (node.rows > 1) {
-				for (int j = 1; j < node.rows; j++) {
-					result = get_data(storage, node.key);
+			if (rows > 1) {
+				for (int j = 1; j < rows; j++) {
+					result = get_data(storage, key);
 				}
 			}
 */
-		} else if (node.type == DELETE) {
-			result = remove_data(storage, node.key);
-		} else if (node.type == UPDATE) {
-			result = update_data(storage, node.key, node.field, node.val);
+		} else if (optype == DELETE) {
+			result = remove_data(storage, key);
+		} else if (optype == UPDATE) {
+			result = update_data(storage, key, benchmark_array[i].field, NULL);
 		} else {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
@@ -532,19 +536,18 @@ int jitd_harness() {
 
 		output_array[i].time_start = time_start;
 		output_array[i].time_delta = time_delta;
-		output_array[i].type = node.type;
-		output_array[i].key = node.key;
-		output_array[i].rows = node.rows;
+		output_array[i].type = optype;
+		output_array[i].key = key;
+		output_array[i].rows = rows;
 		// Advance to next frame
 		i++;
-// TODO:  do not get entire struct
-		node = benchmark_array[i];
-		if (node.type == STOP) {
+		optype = benchmark_array[i].type;
+		if (optype == STOP) {
 			break;
 		}
 
 		// Get start time of the next operation:
-		time_next = time_base + (node.time * 1000.0);
+		time_next = time_base + (benchmark_array[i].time * 1000.0);
 		time_now = gettime_ms();
 
 		#ifdef STORAGE_JITD
