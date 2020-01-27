@@ -311,8 +311,15 @@ int populate_storage(void* storage) {
 
 	enum operation optype;
 	int i;
+	std::vector<Record> initialize_vector;
+	Record r;
+	long key;
 
-	printf("Initializing data structure\n");
+
+// TODO:  Check:  this does _not_ need to be shared, so local.
+
+	// Step 1:  Generate Vector of Records from static input array:
+	printf("Generating vector of input data\n");
 	i = 0;
 	while (true) {
 		optype = initialize_array[i].type;
@@ -323,10 +330,37 @@ int populate_storage(void* storage) {
 			printf("Error:  expected Insert\n");
 			_exit(1);
 		}
-		put_data(storage, initialize_array[i].key, NULL);
+		r.key = initialize_array[i].key;
+		initialize_vector.push_back(r);
 		i++;
 	}
+	// Paranoia check
+	if (i >= output_size) {
+		printf("Input data too large\n");
+		_exit(1);
+	}
 	printf("Finished\n");
+	// Step 2:  Populate data structure, using Vector:
+	printf("Initializing data structure\n");
+
+	#if defined (STORAGE_SQLITE) || defined (STORAGE_UOMAP)
+
+	for (i = 0; i < initialize_vector.size(); i++) {
+		r = initialize_vector.at(i);
+		put_data(storage, r.key, NULL);
+	}
+
+	#endif
+
+	#ifdef STORAGE_JITD
+
+	// TODO:  Jitd bulk insert call
+	//bulk_put_data(storage, initialize_vector);
+
+	#endif
+
+	printf("Finished\n");
+
 	return 0;
 
 }
