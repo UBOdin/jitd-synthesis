@@ -26,7 +26,7 @@
 #endif
 
 #ifdef STORAGE_SQLITE
-#define STMT_BUFLEN 256
+#define STMT_BUFLEN 2048
 #endif
 
 #ifdef STORAGE_UOMAP
@@ -77,7 +77,7 @@ void* create_storage() {
 	int result;
 	char filename[] = ":memory:"; // "testfile.db";  // TODO:  parameterize this
 	sqlite3_stmt* statement;
-	char create_table[] = "CREATE TABLE kvstore (key INTEGER PRIMARY KEY);";
+	char create_table[] = "CREATE TABLE kvstore (key INTEGER PRIMARY KEY, FIELD0 varchar(100), FIELD1 varchar(100), FIELD2 varchar(100), FIELD3 varchar(100), FIELD4 varchar(100), FIELD5 varchar(100), FIELD6 varchar(100), FIELD7 varchar(100), FIELD8 varchar(100), FIELD9 varchar(100);";
 
 	// Remove any preexisting datafile:
 	if (strcmp(filename, ":memory:") != 0) {
@@ -208,9 +208,6 @@ bool get_data(void* storage, long key) {
 
 int put_data(void* storage, long key, std::string* field_array) {
 
-
-
-
 	#ifdef STORAGE_SQLITE
 
 	sqlite3* ppDb = (sqlite3*)storage;
@@ -218,7 +215,9 @@ int put_data(void* storage, long key, std::string* field_array) {
 	int result;
 	sqlite3_stmt* statement;
 
-	snprintf(stmt_buffer, STMT_BUFLEN, "INSERT INTO kvstore (key) VALUES (%ld);", key);
+	std::string* & fa = field_array;
+
+	snprintf(stmt_buffer, STMT_BUFLEN, "INSERT INTO kvstore (key, FIELD0, FIELD1, FIELD2, FIELD3, FIELD4, FIELD5, FIELD6, FIELD7, FIELD8, FIELD9) VALUES (%ld);", key, );
 	result = sqlite3_prepare(ppDb, stmt_buffer, STMT_BUFLEN, &statement, NULL);
 	if (result != SQLITE_OK) {
 		printf("Error:  prepare insert\n");
@@ -339,6 +338,7 @@ int populate_storage(void* storage) {
 			_exit(1);
 		}
 		r.key = initialize_array[i].key;
+		r.field_array = initialize_array[i].field_array;
 		initialize_vector.push_back(r);
 		i++;
 	}
@@ -355,7 +355,7 @@ int populate_storage(void* storage) {
 
 	for (i = 0; i < initialize_vector.size(); i++) {
 		r = initialize_vector.at(i);
-		put_data(storage, r.key, NULL);
+		put_data(storage, r.key, r.field_array);
 	}
 
 	#endif
