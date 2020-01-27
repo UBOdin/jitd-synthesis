@@ -47,6 +47,14 @@ double gettime_us() {
 }
 
 
+double total_time(timeval &start, timeval &end) {
+
+	return (end.tv_sec - start.tv_sec) * 1000000.0 + (end.tv_usec - start.tv_usec);
+
+}
+
+
+
 #define errtrap(error) (__errtrap(result, error, __LINE__))
 void __errtrap(int result, const char* error, int line) {
 
@@ -198,7 +206,10 @@ bool get_data(void* storage, long key) {
 }
 
 
-int put_data(void* storage, long key, char* val) {
+int put_data(void* storage, long key, std::string* field_array) {
+
+
+
 
 	#ifdef STORAGE_SQLITE
 
@@ -300,7 +311,7 @@ int remove_data(void* storage, long key) {
 }
 
 
-int update_data(void* storage, long key, int field, char* val) {
+int update_data(void* storage, long key, int field_no, std::string* field_data) {
 
 	return 0;
 
@@ -314,9 +325,6 @@ int populate_storage(void* storage) {
 	std::vector<Record> initialize_vector;
 	Record r;
 	long key;
-
-
-// TODO:  Check:  this does _not_ need to be shared, so local.
 
 	// Step 1:  Generate Vector of Records from static input array:
 	printf("Generating vector of input data\n");
@@ -463,6 +471,8 @@ int jitd_harness() {
 	enum operation optype;
 	long key;
 	int rows;
+	int field;
+	std::string* field_array;
 	int i;
 	int j;
 	bool result;
@@ -528,6 +538,8 @@ int jitd_harness() {
 		optype = benchmark_array[i].type;
 		key = benchmark_array[i].key;
 		rows = benchmark_array[i].rows;
+		field = benchmark_array[i].field;
+		field_array = benchmark_array[i].field_array;
 
 		// Benchmark next operation:
 		time_start = gettime_us();
@@ -535,7 +547,7 @@ int jitd_harness() {
 			break;
 		}
 		else if (optype == INSERT) {
-			put_data(storage, key, NULL);
+			put_data(storage, key, field_array);
 		}
 		else if (optype == SELECT) {
 			result = get_data(storage, key);
@@ -555,7 +567,7 @@ int jitd_harness() {
 		} else if (optype == DELETE) {
 			result = remove_data(storage, key);
 		} else if (optype == UPDATE) {
-			result = update_data(storage, key, benchmark_array[i].field, NULL);
+			result = update_data(storage, key, field, NULL);
 		} else {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
@@ -633,6 +645,13 @@ int jitd_harness() {
 	printf("Overrun:  %d -- Ran out of work:  %d\n", break_overrun, break_no_work);
 	printf("End\n");
 	return 0;
+
+}
+
+
+int main() {
+
+	return jitd_harness();
 
 }
 
