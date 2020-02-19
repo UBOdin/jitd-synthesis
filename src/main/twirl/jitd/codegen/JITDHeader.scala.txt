@@ -121,18 +121,7 @@ class JITD {
     @for( mutator <- ctx.definition.mutators ) {
       @{RenderMutator.concurrent_queue_declaration( mutator, ctx )}
     }
-    JITD(JITDNode *root) : root(root) 
-    {
-     /***Works only on single node(array/sorted array) root***/
-     
-     @ctx.policyImplementation.init(ctx,ctx.policy.rule,"(this->root)")
-    }
-    JITD(std::shared_ptr<JITDNode> root) : root(root) 
-    {
-      /***Works only on single node(array/sorted array) root***/
-      jitd_root = std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(root));
-      @ctx.policyImplementation.init(ctx,ctx.policy.rule,"(this->root)")
-    }
+    
     JITD(std::shared_ptr<std::shared_ptr<JITDNode>> jitd_root) : jitd_root(jitd_root)
     {
       //atomic_store(&root,(*jitd_root));

@@ -124,12 +124,8 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 
       } else 
     }
-    if(op == "Return"){
     
-      return std::shared_ptr<JITD>(new JITD(node_stack.top()));
-
-    } else
-    if(op == "Return_version")
+    if(op == "Return")
     {
       return std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(node_stack.top()))));
     }

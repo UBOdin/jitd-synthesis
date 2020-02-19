@@ -122,15 +122,8 @@ int jitd_test(
       // comment, ignore
       
     ///////////////// MUTATOR OPERATIONS /////////////////
-    } CASE("init") {
-      timeval start, end;
-      RecordBuffer data;
-      load_records(data, toks);
-      gettimeofday(&start, NULL);
-      jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
-      gettimeofday(&end, NULL);
-      std::cout << "Init JITD: " << total_time(start, end) << " us" << std::endl;
-    } CASE("build") {
+    } 
+    CASE("build") {
       timeval start, end;
       gettimeofday(&start, NULL);
       jitd = assemble_jitd(input);
