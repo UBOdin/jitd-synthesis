@@ -51,7 +51,6 @@ case class Assign(name:String, v:Expression, atomic:Boolean = false) extends Sta
   def reassembleExpression(in: Seq[Expression]): Statement = Assign(name, in(0), atomic)
   def toString(prefix: String) = s"${prefix}$name = $v"
 }
-
 case class ExtractNode(name:String, v:Expression, nodeHandlers: Seq[(String, Statement)], onFail: Statement) extends Statement
 {
   def disasssembleStatement: Seq[Statement] = Seq(onFail) ++ nodeHandlers.map { _._2 }
@@ -111,7 +110,7 @@ case class Comment(msg:String) extends Statement
   def reassembleExpression(in: Seq[Expression]): Statement = this
   def toString(prefix: String) = prefix+"//rem: "+msg
 }
-case class commonFunction(name:String,op:String,v:Expression) extends Statement
+case class commonFunction(name:String,op:Expression,v:Expression) extends Statement
 {
   def disasssembleStatement: Seq[Statement] = Seq()
   def reassembleStatement(in: Seq[Statement]): Statement = this

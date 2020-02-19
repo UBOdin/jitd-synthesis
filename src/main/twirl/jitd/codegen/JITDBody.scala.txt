@@ -47,6 +47,8 @@ std::vector<float> search_time_vec_DeleteElemFromArray;
 
 @for( mutator <- ctx.definition.mutators ) {
 @{RenderFunction.body(ctx, MutatorToFunction(ctx.definition, mutator, "JITD::"))}
+@{RenderFunction.body(ctx, MutatorToFunctionAfter(ctx.definition, mutator, "JITD::after_"))}
+
 }
 
 ///////////////////// Policy Implementation ///////////////////// 
@@ -56,7 +58,7 @@ std::vector<float> search_time_vec_DeleteElemFromArray;
 bool JITD::do_organize()
 {
   //std::cout<<"calling do organize"<<std::endl;
-  @ctx.policyImplementation.doOrganize(ctx, "(this->root)")
+  @ctx.policyImplementation.doOrganize(ctx, "(*(this->jitd_root))")
 }
 ///////////////////// Set/PQ populate ///////////////////// 
 
@@ -94,8 +96,8 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
   std::shared_ptr<JITDNode> jitd_root_handle;
   while(getline(in, line)){
     std::basic_istringstream<char> toks(line);
+    int columns = 0;
     toks >> op;
-
     @for(node <- ctx.definition.nodes){
       if(op == "@node.name"){
         @for(field <- node.fields.reverse){
@@ -105,8 +107,9 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
           @{ field.t match {
             case TRecord() => s""
 
+            //case TArray(TRecord()) => s"load_records_from_file_ycsb(${field.name}, toks,columns);"
             case TArray(TRecord()) => s"load_records(${field.name}, toks);"
-            
+
             case TNodeRef() => s"${field.name} = node_stack.top(); node_stack.pop();"
 
             case TKey() => s"${field.name} = load_key(toks);"
@@ -125,6 +128,10 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
     
       return std::shared_ptr<JITD>(new JITD(node_stack.top()));
 
+    } else
+    if(op == "Return_version")
+    {
+      return std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(node_stack.top()))));
     }
     else {
       std::cerr << "Invalid assembly instruction '"<<op<<"'" << std::endl; 
@@ -137,44 +144,17 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 }
 void JITD::print_pq()
 {
-//std::cout<<"calling print_set"<<std::endl;
 
-  
-  if(!this->CrackArray_PQ.empty())
-  {
-    std::cout<<"CrackArray_PQ:" << this->CrackArray_PQ.size()<<std::endl;
-    
-  }
-  else
-  {
-    std::cout<<"CrackArray_PQ is Empty" <<std::endl;
-  }
-  
   
 }
 void JITD::check_pq()
 {
   
-    if(!this->CrackArray_PQ.empty())
-    { 
-        std::set<std::shared_ptr<JITDNode> *>::iterator it;
-      for(it = this->CrackArray_PQ.begin();it!=this->CrackArray_PQ.end();++it)
-      {
-        std::shared_ptr<JITDNode> * curr = *it;
-        std::cout<<"check_pq():The type of node in CrackArray_PQ is "<<curr->get()->type<<std::endl;
-       
-      }
-        
-    }
-    else
-    {
-      std::cout<<"Empty CrackArray_PQ"<<std::endl;
-    }
+    
    
     
 
 }
-
 void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix){ 
 
   switch(node->type){

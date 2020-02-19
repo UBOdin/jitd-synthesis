@@ -4,8 +4,7 @@
 @import jitd.Debug
 @(ctx:Render, transform:Transform, constraint:Expression, scoreFn:Expression)
 
-  long JITD::searchFor@{transform.name}(          // Return the "best" score available
-    std::shared_ptr<JITDNode> * &node,  // Pointer to the node we're currently examining      
+  long JITD::searchFor@{transform.name}(          // Return the "best" score available     
     std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
   

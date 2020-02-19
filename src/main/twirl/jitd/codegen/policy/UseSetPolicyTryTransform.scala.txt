@@ -12,11 +12,11 @@
   std::shared_ptr<JITDNode> target;
   timeval start, end;
 
-  std::shared_ptr<JITDNode> * rootHandleRef = &root;
+  //std::shared_ptr<JITDNode> * rootHandleRef = &(*jitd_root);
   
   gettimeofday(&start,NULL);
   long bestScore = searchFor@{transform}(
-    rootHandleRef,targetHandleRef
+  targetHandleRef
   );
   //check_set();
   //std::cout<<"SearchComplete:"<<std::endl;

@@ -13,7 +13,7 @@
   UpdateHandle doUpdate;
   timeval start, end;
   //std::cout << "Policy trying to find opportunities for @{transform}" << std::endl;
-  std::shared_ptr<JITDNode> * rootHandleRef = &root;
+  std::shared_ptr<JITDNode> * rootHandleRef = &(*jitd_root);
   gettimeofday(&start,NULL);
   long bestScore = searchFor@{transform}(
     rootHandleRef,targetHandleRef,

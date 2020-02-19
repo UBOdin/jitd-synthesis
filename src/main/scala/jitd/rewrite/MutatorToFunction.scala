@@ -16,25 +16,28 @@ object MutatorToFunction
           if(field.t.isInstanceOf[PrimType]) { FunctionArgType.Input } else { FunctionArgType.ConstInputRef }
         )
       }
-     // println(stmt1)
-    //var stmt = PqPolicyImplementation.Set_PQ_init_mutator(ctx,ctx.policy.rule,"remove",WrapNodeRef(Var("root")))
-    var stmt = commonFunction("SetPqErase(","",WrapNodeRef(Var("root")))
-    //var stmt = PqPolicyImplementation.Set_PQ_init_mutator(ctx,ctx.policy.rule,"remove",Var("root"))
+     
+    //var stmt = commonFunction("SetPqErase(",Var(""),WrapNodeRef(Var("root")))
+    
     val (constructor, new_root) = 
       MatchToStatement(
         definition,
         mutator.rewrite,
-        "new_root"
+        "new_root",true
       )
-
-    definition.typechecker.check("&root" -> THandleRef(), "root" -> TNodeRef()) {
+    //std::shared_ptr<std::shared_ptr<JITDNode>> new_root_ptr = std::shared_ptr(new std::shared_ptr(new_root));
+    val ptr_ptr_construct = Void(Var("std::shared_ptr<std::shared_ptr<JITDNode>> new_root_ptr = std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new_root))"))
+    val cq_element_declare = Void(Var("std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> cq_elem = std::make_pair((jitd_root),(new_root_ptr))"))
+    val cq_populate = Void(Var("this->"+mutator.name+"_cq.push(cq_elem)"))
+    definition.typechecker.check("&(*jitd_root)" -> THandleRef(), "(*jitd_root)" -> TNodeRef()) {
       FunctionDefinition(
         renderName,
         None,
         args,
-        //stmt++ 
-        stmt++constructor ++ Assign("&root", new_root, true) ++ stmt2
+        //constructor ++ Assign("&root", new_root, true) ++ cq_element_declare ++ cq_populate
+        Void(Var("pthread_mutex_lock(&lock);"))++constructor ++ ptr_ptr_construct ++ cq_element_declare ++ cq_populate ++ Void(Var("std::atomic_store(&jitd_root, new_root_ptr)")) ++ Void(Var("pthread_mutex_unlock(&lock);"))
       )
-    }
+      
+    } 
   }
 }

@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -15,7 +14,16 @@
 
 #include "test.hpp"
 #include "jitd_test.hpp"
-#define SEED_MAX 638645
+#include "tbb/concurrent_queue.h" 
+#define SEED_MAX 364785
+pthread_mutex_t lock; 
+typedef std::vector<Record> RecordBuffer;
+int jitd_test(
+  std::shared_ptr<JITD> &jitd,
+  std::istream &input, 
+  bool interactive, 
+  int per_op_sleep_ms
+);
 double total_time(timeval &start, timeval &end)
 {
   return (end.tv_sec - start.tv_sec) * 1000000.0 +
@@ -76,30 +84,32 @@ double total_time(timeval &start, timeval &end)
   
 // }
 
-// void run_test_thread(JITD<Record, JITD_TEST_POLICY> *jitd, string file, int per_op_sleep_ms)
-// {
-//   ifstream in(file);
-//   timeval start, end;
-//   gettimeofday(&start, NULL);
-//   std::cout << "Start[" << file << "]" << std::endl;
-//   int t = jitd_test(*jitd, in, false, per_op_sleep_ms);
-//   gettimeofday(&end, NULL);
-//   std::cout << "Time[" << file << "]: " << t << " s" << std::endl;
-// }
+void run_test_thread(std::shared_ptr<JITD> jitd, std::string file, int per_op_sleep_ms)
+{
+  std::ifstream in(file);
+  timeval start, end;
+  int t = 0;
+  gettimeofday(&start, NULL);
+  std::cout << "Start[" << file << "]" << std::endl;
+  t = jitd_test(jitd, in, false, per_op_sleep_ms);
+  gettimeofday(&end, NULL);
+  std::cout << "Time[" << file << "]: " << t << " s" << std::endl;
+}
 
 
-typedef std::vector<Record> RecordBuffer;
+
 
 
 int jitd_test(
+  std::shared_ptr<JITD> &jitd,
   std::istream &input, 
   bool interactive, 
   int per_op_sleep_ms
 ) {
   std::string line;
   std::vector<std::thread> threads;
-  std::shared_ptr<JITD> jitd;
-  
+  std::shared_ptr<std::shared_ptr<JITD>> jitd_root;
+  std::vector<Record> scan_buff;
   timeval global_start, global_end;
   gettimeofday(&global_start, NULL);
   
@@ -126,12 +136,24 @@ int jitd_test(
       jitd = assemble_jitd(input);
       gettimeofday(&end, NULL);
       std::cout << "Assemble JITD: " << total_time(start, end) << " us" << std::endl;
-    } CASE("insert") {
+    } 
+    CASE("spawn") {
+      std::string file;
+      toks >> file; 
+      threads.emplace_back(run_test_thread, std::ref(jitd), file, 0);
+
+    }
+    CASE("insert") {
       timeval start, end;
       RecordBuffer data;
+      //std::cout<<"Here"<<std::endl;
       load_records(data, toks);
+      //std::cout<<"Loaded data"<<std::endl;
       gettimeofday(&start, NULL);
+      //jitd->before_insert(data);
       jitd->insert(data);
+      jitd->after_insert(data);
+      //std::cout<<"size of crack_array"<<jitd->CrackArray_PQ.size()<<std::endl;
       gettimeofday(&end, NULL);
       std::cout << "Insert into JITD: " << total_time(start, end) << " us" << std::endl;
     }CASE("insert-singleton") {
@@ -140,18 +162,35 @@ int jitd_test(
       std::string op;
       toks >> op;
       int count, min, max;
+      std::vector<Record> vect_record;
       if(op == "random")
       {
         
-        std::cout<<"OP FOUND RANDOM"<<std::endl;
+        //std::cout<<"OP FOUND RANDOM"<<std::endl;
         toks >> count >> min >> max;
-        std::cout<<"count"<<count<<"max"<<max<<"min"<<min<<std::endl;
-        int max_minus_min = max - min;
-        gettimeofday(&start, NULL);
+        //std::cout<<"count"<<count<<"min"<<min<<"max"<<max<<std::endl;
+        int max_minus_min = std::abs(max - min);
+        
         for(int i = 0; i < count; i++){
           r.key = (rand() % max_minus_min)+min;
           r.value = (Value)0xDEADBEEF;
-          jitd->insert_singleton(r);
+          vect_record.push_back(r);
+          //jitd->insert_singleton(r);
+        }
+        RecordBuffer element;
+        element.push_back(*(vect_record.begin()));
+        std::vector<Record>::iterator it;
+        //std::vector<Record>::iterator begin;
+        //std::vector<Record>::iterator end;
+        gettimeofday(&start, NULL);
+        //std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(node_stack.top()))));
+        jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new ArrayNode(element)))));
+        
+        //for(int i=0;i<vect_record.size();i++)
+        for(it = vect_record.begin()+1;it!=vect_record.end();it++)
+        {
+          jitd->insert_singleton(*it);
+          jitd->after_insert_singleton(*it);
         } 
         gettimeofday(&end, NULL);
       }
@@ -159,7 +198,7 @@ int jitd_test(
       //gettimeofday(&start, NULL);
       //jitd->insert_singleton(data);
       //gettimeofday(&end, NULL);
-      std::cout << "Insert into JITD: " << total_time(start, end) << " us" << std::endl;
+      std::cout << "Insert_Singleton into JITD: " << total_time(start, end) << " us" << std::endl;
     } 
     CASE("remove_elements")
     {
@@ -167,22 +206,16 @@ int jitd_test(
       RecordBuffer data;
       load_records(data, toks);
       gettimeofday(&start, NULL);
+      //jitd->before_remove_elements(data);
       jitd->remove_elements(data);
+      jitd->after_remove_elements(data);
       gettimeofday(&end, NULL);
       std::cout << "Delete from JITD: " << total_time(start, end) << " us" << std::endl;
     }
-      CASE("remove") {
-      timeval start, end;
-      RecordBuffer data;
-      load_records(data, toks);
-      gettimeofday(&start, NULL);
-      jitd->remove(data);
-      gettimeofday(&end, NULL);
-      std::cout << "Delete from JITD: " << total_time(start, end) << " us" << std::endl;
-
+    
     ///////////////// POLICY OPERATIONS /////////////////    
 
-    } CASE("policy_act_once") {
+     CASE("policy_act_once") {
       timeval start, end;
       gettimeofday(&start, NULL);
       bool not_done = jitd->do_organize();
@@ -237,6 +270,55 @@ int jitd_test(
       gettimeofday(&end, NULL);
       std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end) << (not_done ? "" : " [done]") << " us" <<  std::endl;
     }
+    CASE("gen_scan")
+    {
+      long noofscans,max_scan_val;
+      toks >> noofscans >> max_scan_val;
+      std::cout<<"In gen scan"<<std::endl;
+      for(int i=0;i<noofscans;i++)
+      {
+        //cout<<i<<endl;
+        scan_buff.emplace_back(rand()%max_scan_val);
+        // scan_buff[i].key = rand()%1000000000;
+        // scan_buff[i].value = NULL;
+        //cout<<scan_buff[i].key<<",";
+        
+      }
+
+    } 
+    CASE("random_scan")
+    {
+
+      std::cout << "Switching to random point scan"<<std::endl;
+     
+      Record ret;
+      
+      timeval start_scan, end_scan;
+      double running_scan_time = 0;
+      double scan_time;
+      
+      long scan_buff_size = scan_buff.size();
+      gettimeofday(&start_scan, NULL);
+      for(int i=0;i<scan_buff_size;i++)
+      {
+       
+        if(jitd->get(scan_buff[i].key,ret))
+        {
+
+        }
+        else
+        {
+
+        }
+       
+      }
+      gettimeofday(&end_scan, NULL);
+      scan_time = total_time(start_scan, end_scan); 
+      //gettimeofday(&end_scan, NULL);
+       
+      std::cout << scan_buff_size <<" Scans JITD time in Random Mode: " << scan_time << " us" << std::endl;
+
+    }
     CASE("get") {
       Key key;
       Record ret;
@@ -247,7 +329,8 @@ int jitd_test(
         std::cout << "Get "<<key<<": Failed" << std::endl;
       }
 
-    // } CASE("scan") {
+    } 
+    //CASE("scan") {
     //   Iterator<Record> iter = jitd.iterator();
     //   timeval start, end;
     //   int idx = 0;
@@ -325,12 +408,15 @@ int jitd_test(
     //          << ((1000*1000*scan_count) / total_time(start, end))
     //          << " scans/sec" << std::endl;
     
-    // } CASE("spawn") {
-    //   string file;
+    // } 
+    // CASE("spawn") {
+    //   std::string file;
     //   toks >> file;
-    //   threads.emplace_back(run_test_thread, &jitd, file, 0);
+    //   std::thread t1(run_test_thread,&&jitd,file,0);
+    //   //threads.emplace_back(run_test_thread, &jitd, file, 0);
 
-    // } CASE("spawn_slow") {
+    // }
+    // CASE("spawn_slow") {
     //   int delay_ms;
     //   string file;
     //   toks >> delay_ms >> file;
@@ -354,7 +440,8 @@ int jitd_test(
     //   toks >> file;
     //   run_test_thread(&jitd, file, per_op_sleep_ms);
 
-    } CASE("time") {
+    //} 
+    CASE("time") {
       timeval end; 
       gettimeofday(&end, NULL);
       std::cout << "Time now: " << total_time(global_start, end)/(1000*1000) << std::endl;
@@ -430,11 +517,15 @@ int jitd_test(
     }
   }
   gettimeofday(&global_end, NULL);
-  
+  if (pthread_mutex_init(&lock, NULL) != 0) { 
+        std::cerr<<"\n mutex init has failed\n"<<std::endl; 
+        exit(-1);
+      }
   std::vector<std::thread>::iterator th;
   for(th = threads.begin(); th < threads.end(); ++th){
     th->join();
   }
+  pthread_mutex_destroy(&lock); 
   return total_time(global_start, global_end) / (1000*1000);
 }
 
@@ -444,6 +535,7 @@ int jitd_test(
 int main(int argc, char **argv)
 {
   std::istream *src;
+  std::shared_ptr<JITD> jitd;
   int i, t = 0;
   bool interactive = false;
   srand(SEED_MAX);
@@ -466,7 +558,7 @@ int main(int argc, char **argv)
         src = &srcF;
         interactive = false;
       }
-      t = jitd_test(*src, interactive, 0);
+      t = jitd_test(std::ref(jitd),*src, interactive, 0);
       std::cout << "Time[" << argv[i] << "]: " << t << " s" << std::endl;
       break;
     }
