@@ -35,7 +35,7 @@ object MutatorToFunctionAfter
 
     }
   
-    val cq_element_declare = Void(Var("std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> cq_elem")) ++ commonFunction(mutator.name+"_cq.pop(cq_elem",Var(""),Var(""))
+    //val cq_element_declare = Void(Var("std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> cq_elem")) ++ commonFunction(mutator.name+"_cq.pop(cq_elem",Var(""),Var(""))
     val stmt_maintenance_old_root = commonFunction("SetPqErase(",Var(""),WrapNodeRef(UnWrapHandle(Var("cq_elem.first"))))
     
     definition.typechecker.check("&(*jitd_root)" -> THandleRef(), "(*jitd_root)" -> TNodeRef()) {
@@ -43,7 +43,7 @@ object MutatorToFunctionAfter
         renderName,
         None,
         args,
-        cq_element_declare ++ stmt_maintenance_old_root ++ stmt_node_cast ++ stmt_maintenance_new_root
+        stmt_maintenance_old_root ++ stmt_node_cast ++ stmt_maintenance_new_root
         
       )
       

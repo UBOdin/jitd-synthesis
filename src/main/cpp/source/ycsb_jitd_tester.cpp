@@ -246,28 +246,18 @@ int jitd_test(
             *src >> field_no_string;
             field_no = std::stoi(field_no_string);
             *src >> value_string;
-            //std::cout<<"KEY  : "<< key <<std::endl;
-            //std::cout<<"VALUE STRING : "<< value_string <<std::endl;
+            
             if(ycsb_op_elem.fields != nullptr)
             {
-              //std::cout<<"NULL PTR"<<std::endl;
-              //ycsb_op_elem.ycsb_rec.values = new std::array<std::string,10>();
+              
               ycsb_op_elem.fields = new std::array<std::string,10>();
-              // for(int i=0;i<10;i++)
-              // {
-              //   std::cout<<"LOOP OVER HEAP ARRAY "<<(*(ycsb_op_elem.fields))[i];
-              // }
-              //(*((ycsb_op_elem.ycsb_rec).values))[field_no] = value_string;
+              
               (*(ycsb_op_elem.fields))[field_no] = value_string;
-              //std::cout<<"VALUE STRING AFTER : "<< ycsb_op_elem.ycsb_rec <<std::endl;
-              //std::cout<<"VALUE STRING AFTER : "<< ycsb_op_elem.ycsb_rec <<std::endl;
+              
             }
-            //(*((ycsb_op_elem.ycsb_rec).values))[field_no] = value_string;
-            //std::cout<<"VALUE STRING AFTER : "<< ycsb_op_elem.ycsb_rec <<std::endl;
-            //*(ycsb_op_elem.fields+field_no) = &value_string;
+            
             benchmark_vector.push_back(ycsb_op_elem);
-            //std::cout<<"PUSHED"<<std::endl;
-            //std::cout<<"total number of operations"<<benchmark_vector.size();
+            
           
           }
           else
@@ -322,7 +312,7 @@ int jitd_test(
                 old_data.push_back(ret);
 
                 jitd->remove_elements(old_data);
-                jitd->after_remove_elements(old_data);
+                
                 //std::cout<<"UPDATE:"<<std::endl;
                 for(int j = 0; j<10;j++)
                 {
@@ -337,11 +327,9 @@ int jitd_test(
                 }
                 ycsbrecordBuffer new_data;
                 new_data.push_back(ret);
-                //update_vector.push_back(std::make_pair(old_data,new_data));
+                
                 jitd->insert(new_data);
-                jitd->after_insert(new_data);
-                //jitd->print_debug();
-                //bool work = jitd->do_organize();
+                
 
                 
               }
@@ -514,7 +502,7 @@ int jitd_test(
                 old_data.push_back(ret);
                 std::cout<<"HERE";
                 jitd->remove_elements(old_data);
-                jitd->after_remove_elements(old_data);
+                
                 for(int j = 0; j<10;j++)
                 {
                   //std::string to_update = elem.fields[j];
@@ -531,7 +519,7 @@ int jitd_test(
                 //std::cout<<"PUSHED TO UPDATE VECTOR"<<std::endl;
                 //update_vector.push_back(std::make_pair(old_data,new_data));
                 jitd->insert(new_data);
-                jitd->after_insert(new_data);
+                
                 //std::cout<<"SIZE of update_vector after push_back"<<update_vector.size()<<std::endl;
 
                 
@@ -641,31 +629,7 @@ int jitd_test(
 
     ///////////////// POLICY OPERATIONS /////////////////    
 
-   // } 
-    CASE("policy_act_once") {
-      timeval start, end;
-      gettimeofday(&start, NULL);
-      bool not_done = jitd->do_organize();
-      gettimeofday(&end, NULL);
-      std::cout << "Policy Action: " << total_time(start, end) << " us" << (not_done ? "" : " [done]") << std::endl;
-
-    }
-    // CASE("policy_act_for") {
-    //   int target_steps;
-    //   timeval start, end;
-    //   bool not_done = true;
-    //   int steps_taken = 0;
-    //   toks >> target_steps;
-
-    //   gettimeofday(&start, NULL);
-    //   for(; steps_taken < target_steps && not_done; steps_taken++){
-    //     //std::cout<<"calling do organize"<<std::endl;
-    //     not_done = jitd->do_organize();
-    //   }
-    //   gettimeofday(&end, NULL);
-
-    //   std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end) << (not_done ? "" : " [done]") << " us" <<  std::endl;
-    // }
+   
     CASE("policy_act_until_done")
     {
       //std::cout<<"policy_act_until_done...."<<std::endl;
@@ -674,30 +638,11 @@ int jitd_test(
       bool not_done = true;
       int steps_taken = 0;
       gettimeofday(&start, NULL);
-      //std::vector<std::pair<ycsbrecordBuffer,ycsbrecordBuffer>>::iterator it = update_vector.begin();
-      //std::vector<std::pair<ycsbrecordBuffer,ycsbrecordBuffer>>::iterator end;
-      while(not_done)
-      {
-       not_done = jitd->do_organize(); 
-       steps_taken++;
-      }
+      steps_taken = jitd->background_process();
       gettimeofday(&end, NULL);
       std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end) << (not_done ? "" : " [done]") << " us" <<  std::endl;
     }
-    // } CASE("policy_act_until_done") {
-    //   bool more_work_to_do = true;
-    //   int steps_taken;
-    //   timeval start, end;
-    //   JITD_TEST_POLICY *policy = jitd.getPolicy();
-
-    //   gettimeofday(&start, NULL);
-    //   while(more_work_to_do){
-    //     steps_taken++;
-    //     more_work_to_do = policy->act();
-    //   }
-    //   gettimeofday(&end, NULL);
-    //   std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end) << " us" << std::endl;
-
+    
 
     // ///////////////// ACCESS OPERATIONS ///////////////// 
      
@@ -919,6 +864,7 @@ int jitd_test(
   for(th = threads.begin(); th < threads.end(); ++th){
     th->join();
   }
+  pthread_mutex_destroy(&(jitd->lock)); 
   return total_time(global_start, global_end) / (1000*1000);
 }
 

@@ -34,27 +34,60 @@ std::vector<float> search_time_vec_DeleteElemFromArray;
 ///////////////////// Transform Definitions ///////////////////// 
 
 @for(transform <- ctx.definition.transforms){
-@RenderFunction.body(ctx, TransformToFunction(ctx.definition, transform,"JITD::"))
+@RenderFunction.body(ctx, TransformToFunction(ctx.definition, transform,"JITD::"),false)
 }
 
 ///////////////////// Accessor Definitions ///////////////////// 
 
 @for( accessor <- ctx.definition.accessors ) {
-@{RenderFunction.body(ctx, AccessorToFunction(ctx.definition, accessor, "jitd_accessor_"))}
+@{RenderFunction.body(ctx, AccessorToFunction(ctx.definition, accessor, "jitd_accessor_"),false)}
 }
 
 ///////////////////// Mutator Definitions ///////////////////// 
 
 @for( mutator <- ctx.definition.mutators ) {
-@{RenderFunction.body(ctx, MutatorToFunction(ctx.definition, mutator, "JITD::"))}
-@{RenderFunction.body(ctx, MutatorToFunctionAfter(ctx.definition, mutator, "JITD::after_"))}
+@{RenderFunction.body(ctx, MutatorToFunction(ctx.definition, mutator, "JITD::"),false)}
+@{RenderFunction.body(ctx, MutatorToFunctionAfter(ctx.definition, mutator, "JITD::after_"),true)}
 
 }
 
 ///////////////////// Policy Implementation ///////////////////// 
 
 @ctx.policyImplementation.utilityFunctions(ctx)
-
+int JITD::background_process()
+{
+      
+      bool not_done = true;
+      int steps_taken = 0;
+      while(not_done || !this->common_cq.empty())
+      {
+       
+        mutatorCqElement pop_mce;
+        bool popped = this->common_cq.try_pop(pop_mce);
+        if(popped == true)
+        {
+          if(pop_mce.flag == 0)
+          {
+            this->after_insert(pop_mce.element);
+          }
+          else if(pop_mce.flag == 1)
+          {
+            this->after_remove_elements(pop_mce.element);
+          }
+          else
+          {
+            std::cerr<<"Invalid Mutator Operation"<<std::endl;
+          }
+       } 
+       else
+       {
+        not_done = this->do_organize(); 
+        steps_taken++;
+       }
+       
+      }
+  return steps_taken;    
+}
 bool JITD::do_organize()
 {
   //std::cout<<"calling do organize"<<std::endl;
@@ -178,152 +211,4 @@ void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string
       }
     }
   }
-}
-
-
-
-
-void print_time_vector_sum()
-{
-  
-  //std::cout<<"printing time vec sum"<<std::endl;
-  if(time_vec_PushDownAndCrack.size()!=0)
-  {
-    float sum_of_elems=0.0; 
-    //std::cout<<"The SearchForPushDownCrack Vec:";
-    for (auto& n : time_vec_PushDownAndCrack)
-    {
-      sum_of_elems += n;
-      //std::cout<<n<<",";
-    }
-    std::cout<<"\nTime for PushDownAndCrack "<<sum_of_elems<<"us"<<std::endl;
-  }
-  if(time_vec_CrackArray.size()!=0)
-  {
-    float sum_of_elems=0.0; 
-    //std::cout<<"The SearchForCrack Vec:";
-    for (auto& n : time_vec_CrackArray)
-    {
-      sum_of_elems += n;
-      //std::cout<<n<<",";
-    }
-    std::cout<<"\nTime for CrackArray "<<sum_of_elems<<"us"<<std::endl;
-  }
-  if(time_vec_PushDownDontDeleteElemBtree.size()!=0)
-  {
-    float sum_of_elems=0.0; 
-    //std::cout<<"The SearchForPushDownDeleteBtree Vec:";
-    for (auto& n : time_vec_PushDownDontDeleteElemBtree)
-    {
-      sum_of_elems += n;
-      //std::cout<<n<<",";
-    }
-    std::cout<<"\nTime for PushDownDontDeleteElemBtree "<<sum_of_elems<<"us"<<std::endl;
-  }
-  if(time_vec_PushDownDontDeleteElemConcat.size()!=0)
-  {
-    float sum_of_elems=0.0; 
-    //std::cout<<"The SearchForPushDownDeleteConcat Vec:";
-    for (auto& n : time_vec_PushDownDontDeleteElemConcat)
-    {
-      sum_of_elems += n;
-      //std::cout<<n<<",";
-    }
-    std::cout<<"\nTime for PushDownDontDeleteElemConcat "<<sum_of_elems<<"us"<<std::endl;
-  }
-  if(time_vec_SortArray.size()!=0)
-  {
-    float sum_of_elems=0.0;  
-    //std::cout<<"The SearchForSortArray Vec:";
-    for (auto& n : time_vec_SortArray)
-    {
-      sum_of_elems += n;
-      //std::cout<<n<<",";
-    }
-    std::cout<<"\nTime for SortArray "<<sum_of_elems<<"us"<<std::endl;
-  }
-  if(time_vec_DeleteElemFromSortedArray.size()!=0)
-  {
-    float sum_of_elems=0.0; 
-    //std::cout<<"The SearchForPushDownDeleteSortedArray Vec:";
-    for (auto& n : time_vec_DeleteElemFromSortedArray)
-    {
-      sum_of_elems += n;
-     //std::cout<<n<<",";
-    }
-    std::cout<<"\nTime for DeleteElemFromSortedArray "<<sum_of_elems<<"us"<<std::endl;
-  }
-  
-}
-void print_search_time_vector_sum()
-{
-  
-  //std::cout<<"printing time vec sum"<<std::endl;
-  if(search_time_vec_PushDownAndCrack.size()!=0)
-  {
-    float sum_of_elems=0.0; 
-    //std::cout<<"The SearchForPushDownCrack Vec:";
-    for (auto& n : search_time_vec_PushDownAndCrack)
-    {
-      sum_of_elems += n;
-      //std::cout<<n<<",";
-    }
-    std::cout<<"\nTime for search_PushDownAndCrack "<<sum_of_elems<<"us"<<std::endl;
-  }
-  if(search_time_vec_CrackArray.size()!=0)
-  {
-    float sum_of_elems=0.0; 
-    //std::cout<<"The SearchForCrack Vec:";
-    for (auto& n : search_time_vec_CrackArray)
-    {
-      sum_of_elems += n;
-      //std::cout<<n<<",";
-    }
-    std::cout<<"\nTime for search_CrackArray "<<sum_of_elems<<"us"<<std::endl;
-  }
-  if(search_time_vec_PushDownDontDeleteElemBtree.size()!=0)
-  {
-    float sum_of_elems=0.0; 
-    //std::cout<<"The SearchForPushDownDeleteBtree Vec:";
-    for (auto& n : search_time_vec_PushDownDontDeleteElemBtree)
-    {
-      sum_of_elems += n;
-      //std::cout<<n<<",";
-    }
-    std::cout<<"\nTime for search_PushDownDontDeleteElemBtree "<<sum_of_elems<<"us"<<std::endl;
-  }
-  if(search_time_vec_PushDownDontDeleteElemConcat.size()!=0)
-  {
-    float sum_of_elems=0.0; 
-    //std::cout<<"The SearchForPushDownDeleteConcat Vec:";
-    for (auto& n : search_time_vec_PushDownDontDeleteElemConcat)
-    {
-      sum_of_elems += n;
-      //std::cout<<n<<",";
-    }
-    std::cout<<"\nTime for search_PushDownDontDeleteElemConcat "<<sum_of_elems<<"us"<<std::endl;
-  }
-  if(search_time_vec_SortArray.size()!=0)
-  {
-    float sum_of_elems=0.0;  
-    //std::cout<<"The SearchForSortArray Vec:";
-    for (auto& n : search_time_vec_SortArray)
-    {
-      sum_of_elems += n;
-      //std::cout<<n<<",";
-    }
-    std::cout<<"\nTime for search_SortArray "<<sum_of_elems<<"us"<<std::endl;
-  }
-  if(search_time_vec_DeleteElemFromSortedArray.size()!=0)
-  {
-    float sum_of_elems=0.0; 
-    //std::cout<<"The SearchForPushDownDeleteSortedArray Vec:";
-    for (auto& n : search_time_vec_DeleteElemFromSortedArray)
-    {
-      sum_of_elems += n;
-     //std::cout<<n<<",";
-    }
-    std::cout<<"\nTime for search_DeleteElemFromSortedArray "<<sum_of_elems<<"us"<<std::endl;
-  }
-  
 }
