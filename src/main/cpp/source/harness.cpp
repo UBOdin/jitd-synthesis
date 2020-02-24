@@ -121,6 +121,7 @@ void* create_storage() {
 	data.push_back(r);
 */
 
+//TODO:  data was global
 	std::shared_ptr<JITD>* jitd = new std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
 
 	return (void*)jitd;
@@ -129,7 +130,7 @@ void* create_storage() {
 
 	#ifdef STORAGE_UOMAP
 
-	std::unordered_map<UOM_TYPE>* umap = new std::unordered_map<UOM_TYPE>;
+	std::unordered_map<long, std::string*>* umap = new std::unordered_map<long, std::string*>();
 
 	return (void*)umap;
 
@@ -247,18 +248,16 @@ int put_data(void* storage, long key, std::string* field_array) {
 
 	#ifdef STORAGE_UOMAP
 
-	std::unordered_map<UOM_TYPE>* umap = (std::unordered_map<UOM_TYPE>*)storage; 
-	std::pair<std::unordered_map<UOM_TYPE>::iterator, bool> result_pair;
-	std::pair<UOM_TYPE> data_pair;
+	std::unordered_map<long, std::string*>* umap = (std::unordered_map<long, std::string*>*)storage;
+	Record r;
 
-	//data_pair = std::make_pair<UOM_TYPE>(key, 9999);
-	data_pair.first = key;
-	data_pair.second = 9999;  // dummy
-	result_pair = umap->insert(data_pair);
-	if (result_pair.second == false) {
-		printf("Error:  duplicate uomap key\n");
-		_exit(1);
-	}
+// TODO:  get rid of Record
+// TODO:  minimize data_pair construction -- call with pointer to already created object?
+	std::pair<long, std::string*> data_pair;
+	data_pair.first = r.key;
+	data_pair.second = r.field_array;
+
+	umap->insert(data_pair);
 
 	#endif
 
@@ -351,11 +350,23 @@ int populate_storage(void* storage) {
 	// Step 2:  Populate data structure, using Vector:
 	printf("Initializing data structure\n");
 
-	#if defined (STORAGE_SQLITE) || defined (STORAGE_UOMAP)
+	#ifdef STORAGE_SQLITE
+
+	for (i = 0; i < initialize_vector.size(); i++) {
+		r = initialize_vector.at(i);
+		put_data(storage, r);
+	}
+
+	#endif
+
+	#ifdef STORAGE_UOMAP
+
+	std::unordered_map<long, std::string*>* umap = (std::unordered_map<long, std::string*>*)storage;
 
 	for (i = 0; i < initialize_vector.size(); i++) {
 		r = initialize_vector.at(i);
 		put_data(storage, r.key, r.field_array);
+
 	}
 
 	#endif
@@ -472,6 +483,7 @@ int jitd_harness() {
 	long key;
 	int rows;
 	int field;
+//	Record r;
 	std::string* field_array;
 	int i;
 	int j;
@@ -532,9 +544,6 @@ int jitd_harness() {
 */
 
 		// Get next operation:
-//		node = benchmark_array[i];
-// TODO:  This needs to be a pointer.  Val is a big array.
-
 		optype = benchmark_array[i].type;
 		key = benchmark_array[i].key;
 		rows = benchmark_array[i].rows;
