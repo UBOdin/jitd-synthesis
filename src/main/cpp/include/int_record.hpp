@@ -4,15 +4,68 @@
 
 typedef long int Key;
 typedef void *Value;
+typedef std::string ycsb_fields;
+
+struct old_Record {
+  Key   key;
+  Value value;
+//  std::string* field_array;
+
+  old_Record(Key key, Value _value) : key(key) { value = _value; }
+  old_Record(Key key) : key(key) { value = (void *)0xdeadbeef; }
+  old_Record() : key(0) { value = NULL; }
+
+/* 
+  Record(Key key) : key(key) {
+    field_array = NULL;
+  }
+  Record(Key key, std::string* fields) : key(key) {
+    field_array = fields;
+  }
+  Record() : key(0) {
+    field_array = NULL;
+  }
+*/
+
+  inline bool operator>(const old_Record &other) const {
+    return key > other.key;
+  }
+  inline bool operator<(const old_Record &other) const {
+    return key < other.key;
+  }
+  inline bool operator==(const old_Record &other) const {
+    return key == other.key;
+  }
+  inline bool operator>(const Key &other) const {
+    return key > other;
+  }
+  inline bool operator<(const Key &other) const {
+    return key < other;
+  }
+  inline bool operator==(const Key &other) const {
+    return key == other;
+  }
+};
 
 struct Record {
   Key   key;
-  Value value;
-  
-  Record(Key key, Value _value) : key(key) { value = _value; }
-  Record(Key key) : key(key) { value = (void *)0xdeadbeef; }
-  Record() : key(0) { value = NULL; }
-  
+//  Value value;
+  std::string* field_array;
+
+//  Record(Key key, Value _value) : key(key) { value = _value; }
+//  Record(Key key) : key(key) { value = (void *)0xdeadbeef; }
+//  Record() : key(0) { value = NULL; }
+ 
+  Record(Key key) : key(key) {
+    field_array = NULL;
+  }
+  Record(Key key, std::string* fields) : key(key) {
+    field_array = fields;
+  }
+  Record() : key(0) {
+    field_array = NULL;
+  }
+ 
   inline bool operator>(const Record &other) const {
     return key > other.key;
   }
@@ -44,7 +97,7 @@ inline bool operator <(const Key &a, const Record &b) {
 }
 
 inline std::ostream &operator<<(std::ostream &o, const Record &r){
-  o << "(" << r.key << " -> " << r.value << ")"; 
+  o << "(" << r.key << " -> " << "" << ")"; 
   return o;
 };
 
@@ -96,13 +149,13 @@ inline void append_singleton(Record &to, Record &from,std::vector<Record> &merge
 //     }
 //   } 
 // }
-inline void build_buffer(std::vector<Record> &to, int count, int min, int max)
+inline void build_buffer(std::vector<old_Record> &to, int count, int min, int max)
 {
   int max_minus_min = max - min;
   int temp = 0;
   int i=0;
  
-  Record r;
+  old_Record r;
   // while(temp <= max)
   // {
    
@@ -123,7 +176,7 @@ inline void build_buffer(std::vector<Record> &to, int count, int min, int max)
   }
 }
 
-inline void load_records(std::vector<Record> &to, std::istream &input)
+inline void load_records(std::vector<old_Record> &to, std::istream &input)
 {
   std::string op;
   input >> op;
@@ -135,7 +188,7 @@ inline void load_records(std::vector<Record> &to, std::istream &input)
     build_buffer(to, count, min, max);
     //std::cout<<"built buffer"<<std::endl;
   } else if(op == "explicit"){
-    Record r;
+    old_Record r;
     r.value = (Value)0xDEADBEEF;
     while(!input.eof()){
       input >> r.key;
