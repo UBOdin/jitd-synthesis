@@ -64,7 +64,7 @@ def unrollSet(
     pattern match {
       case MatchAny(_)=>Seq() 
       case MatchNode(nodeType, fields, _) => 
-        Seq( (extractName, nodeType, targetExpression, pattern) ) ++
+        Seq( (extractName, nodeType, targetExpression,pattern) ) ++
           fields.zip(definition.node(nodeType).fields).flatMap { 
             case (fieldPattern, fieldDefinition) =>
               //println((fieldDefinition).t)
@@ -213,18 +213,39 @@ def unrollSet(
   def constructorWithoutVarMapping(
     definition: Definition,
     pattern: ConstructorPattern,
-    target: VarName
+    target: VarName,
+    mutator_bool:Boolean
   ): (Statement, Expression) =
   {
     pattern match {
       case ConstructNode(node, fields, nameOption) => {
-          //println("Construct: "+node)
+          //println("Mutator?: "+mutator_bool)
           val nodeDefinition = definition.node(node)
           val nodeName = nameOption.getOrElse(target)
           //println(nodeName)
-          val (fieldConstructors, fieldExpressions) = 
+          if(mutator_bool == true){
+            val (fieldConstructors, fieldExpressions) = 
             fields.zip(nodeDefinition.fields).map { case (fieldPattern, fieldDefinition) =>
-              constructorWithoutVarMapping(definition, fieldPattern, nodeName+"_"+fieldDefinition.name)
+              constructorWithoutVarMapping(definition, fieldPattern, nodeName+"_"+fieldDefinition.name,false)
+            }.unzip
+          (
+            fieldConstructors.fold(Block(Seq())){ _ ++ _ } ++ 
+            Block(
+              Seq(
+                Comment(s"Assemble $target as a $node"),
+                Declare( nodeName, Some(TNode(node)), MakeNode(node, fieldExpressions))
+                //Declare( nodeName+"_ref", Some(TNodeRef()), WrapNode(Var(nodeName)))
+                
+                
+              )
+            ),
+            Var(nodeName+"_ref")
+          )
+          }
+          else{
+            val (fieldConstructors, fieldExpressions) = 
+            fields.zip(nodeDefinition.fields).map { case (fieldPattern, fieldDefinition) =>
+              constructorWithoutVarMapping(definition, fieldPattern, nodeName+"_"+fieldDefinition.name,mutator_bool)
             }.unzip
           (
             fieldConstructors.fold(Block(Seq())){ _ ++ _ } ++ 
@@ -239,13 +260,16 @@ def unrollSet(
             ),
             Var(nodeName+"_ref")
           )
+
+          }
+          
         }
       case AfterConstruct(child, code) => {
-        val (constructor, accessor) = constructorWithoutVarMapping(definition, child, target) 
+        val (constructor, accessor) = constructorWithoutVarMapping(definition, child, target,mutator_bool) 
         (constructor ++Comment(s"Handle post-processing for $target") ++ code, accessor)
       }
       case BeforeConstruct(code, child) => {
-        val (constructor, accessor) = constructorWithoutVarMapping(definition, child, target) 
+        val (constructor, accessor) = constructorWithoutVarMapping(definition, child, target,mutator_bool) 
         (Comment(s"Handle pre-processing for $target") ++ code ++ constructor, accessor)
       }
       case ConstructExpression(expression, _) =>
@@ -260,12 +284,13 @@ def unrollSet(
   def apply(
     definition: Definition,
     pattern: ConstructorPattern,
-    target: VarName
+    target: VarName,
+    mutator_bool: Boolean
   ): (Statement, Expression) =
   {
     //println(pattern)
     //println(varMappings(definition, pattern, target))
-    val (constructor, accessor) = constructorWithoutVarMapping(definition, pattern, target)
+    val (constructor, accessor) = constructorWithoutVarMapping(definition, pattern, target,mutator_bool)
     //println("MTS"+constructor)
     //println(InlineVars(constructor, varMappings(definition, pattern, target)))
     (

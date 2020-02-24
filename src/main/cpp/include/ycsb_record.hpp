@@ -1,37 +1,33 @@
+
 #include <algorithm>
 #include <vector>
+#include <fstream>
+#include <string>
+#include <array>
 
-typedef long int Key;
-typedef void *Value;
-//pthread_mutex_t lock; 
-struct Record {
-  Key   key;
-  Value value;
-//  std::string* field_array;
+typedef long Key;
+typedef int *Value;
+typedef std::string ycsbField;
+typedef std::vector<ycsbField> Values;
+typedef std::array<std::string,10>* Fields;
+//typedef std::shared_ptr<int> int_Value;
 
-  old_Record(Key key, Value _value) : key(key) { value = _value; }
-  old_Record(Key key) : key(key) { value = (void *)0xdeadbeef; }
-  old_Record() : key(0) { value = NULL; }
+struct Record{
+  Key key;
+  //ycsbField field;
+  Fields values;
+  //ycsb_record(Key key, ycsbField _field) : key(key) { field = _field; }
+  Record(Key key, std::array<std::string,10> &_values) : key(key){values = &_values; }
+  Record(Key key):key(key){values = nullptr;}
+  Record() : key(0) {values = nullptr;}
 
-/* 
-  Record(Key key) : key(key) {
-    field_array = NULL;
-  }
-  Record(Key key, std::string* fields) : key(key) {
-    field_array = fields;
-  }
-  Record() : key(0) {
-    field_array = NULL;
-  }
-*/
-
-  inline bool operator>(const old_Record &other) const {
+  inline bool operator>(const Record &other) const {
     return key > other.key;
   }
-  inline bool operator<(const old_Record &other) const {
+  inline bool operator<(const Record &other) const {
     return key < other.key;
   }
-  inline bool operator==(const old_Record &other) const {
+  inline bool operator==(const Record &other) const {
     return key == other.key;
   }
   inline bool operator>(const Key &other) const {
@@ -45,32 +41,21 @@ struct Record {
   }
 };
 
-struct Record {
+struct old_Record {
   Key   key;
-//  Value value;
-  std::string* field_array;
-
-//  Record(Key key, Value _value) : key(key) { value = _value; }
-//  Record(Key key) : key(key) { value = (void *)0xdeadbeef; }
-//  Record() : key(0) { value = NULL; }
- 
-  Record(Key key) : key(key) {
-    field_array = NULL;
-  }
-  Record(Key key, std::string* fields) : key(key) {
-    field_array = fields;
-  }
-  Record() : key(0) {
-    field_array = NULL;
-  }
- 
-  inline bool operator>(const Record &other) const {
+  Value  value;
+  //Values values;
+  old_Record(Key key, Value _value) : key(key) { std::cout<<"ACCEPTED"<<std::endl;value = _value; }
+  old_Record(Key key) : key(key) { value = (int *)0xdeadbeef; }
+  old_Record() : key(0) { value = NULL; }
+  
+  inline bool operator>(const old_Record &other) const {
     return key > other.key;
   }
-  inline bool operator<(const Record &other) const {
+  inline bool operator<(const old_Record &other) const {
     return key < other.key;
   }
-  inline bool operator==(const Record &other) const {
+  inline bool operator==(const old_Record &other) const {
     return key == other.key;
   }
   inline bool operator>(const Key &other) const {
@@ -95,11 +80,12 @@ inline bool operator <(const Key &a, const Record &b) {
 }
 
 inline std::ostream &operator<<(std::ostream &o, const Record &r){
-  o << "(" << r.key << " -> " << "" << ")"; 
+  o << "(" << r.key << " -> no. of values " << r.values->size()<< ")\n"; 
   return o;
 };
 
 inline bool record_scan(const std::vector<Record> &data, const Key &key, Record &result){
+
   auto last = std::end(data);
   for(auto curr = std::begin(data); curr != last; ++curr){
     if(*curr == key){ result = *curr; return true; }
@@ -130,9 +116,6 @@ inline void append(std::vector<Record> &to, std::vector<Record> &from){
 inline void append_singleton(Record &to, Record &from,std::vector<Record> &merged){
   merged.push_back(to);
   merged.push_back(from);
-}
-inline void append_singleton_to_array(std::vector<Record> &to, Record &from){
-  to.insert(std::end(to),from);
 }
 // inline void appendConcat(std::vector<Record> &to, std::vector<Record> &from)
 // { 
@@ -176,11 +159,141 @@ inline void build_buffer(std::vector<old_Record> &to, int count, int min, int ma
     to.push_back(r);
   }
 }
+// inline void load_array_to_read(std::istream &input,std::vector<Record> &read)
+// {
+//   std::string line;
+//   std::istringstream toks(line);
+//   std::string op;
+//   long key;
+//   std::string key_string;
+//   Record r;
+//   while(getline(input, line))
+//   {
+    
+    
+//     input >> op;
+//     if(op == "READ")i
+//     {
+//         input >> key_string;
+//         r.key = std::stol(key_string);
+//         //std::cout<<r.key<<std::endl;
+//         r.value = (Value)0xDEADBEEF;
+//         read.push_back(r);
+//     }
+//     else
+//     {
+//       std::cerr<<"Not an init value"<<std::endl;
+//     }
+//   }
+// }
 
+inline void load_from_file_ycsb(std::istream &input,std::vector<Record> &to,int columns)
+{
+  std::string line;
+  std::istringstream stream(line);
+  std::string op;
+  int key;
+  std::string key_string;
+  int line_count = 0;
+  int value;
+  std::string field_string;
+  //Record r;
+  int field;
+  
+
+  while(getline(input, line))
+  {
+    
+    
+    input >> op;
+    //line_count++;
+    //std::cout<<"OP : " <<op<<std::endl;
+    if(op == "INSERT")
+    {
+        input >> key_string;
+        //r.key = std::stol(key_string);
+        //std::cout<<"KEY :"<<r.key<<std::endl;
+        std::array<std::string,10>* ycsbvector = new std::array<std::string,10>();
+        //std::cout<<"YCSBRECORED SIZE"<<ycsbvector.size()<<std::endl;
+        for(int i=0;i<columns;i++)
+        {
+          std::string value_string;
+          std::string field_no_string;
+          int field_no;
+          input >> field_no_string;
+          //std::cout<<"FN STRING : "<<field_no_string<<std::endl;
+          field_no = std::stoi(field_no_string);
+          input >> value_string;
+          //std::cout<<"VALUE STRING : "<<value_string<<std::endl;
+          (*ycsbvector)[field_no] = value_string;
+          
+          
+        }
+        Record r(std::stol(key_string),*ycsbvector);
+        //r.values = &ycsbvector;
+        // if(r.values.size() > columns)
+        // {
+        //   std::cout<<"INSERTED VALUES "<<r.values.size()<<std::endl;
+        // }
+        
+        to.push_back(r);
+        //std::cout<<"LINE_COUNT: "<<line_count<<std::endl;
+       
+        
+    }
+    else
+    {
+      std::cerr<<"Not an init value"<<std::endl;
+    }
+  }
+  //std::cout<<"LINE_COUNT: "<<line_count<<std::endl;
+
+}
+inline void load_records_from_file_ycsb(std::vector<Record> &to, std::istream &input, int columns)
+{
+  std::string op;
+  input >> op;
+  if(op == "file")
+  {
+   // std::cout<<"A file to be opened"<<std::endl;
+    std::istream *src;
+    std::ifstream initFile;
+    std::string STRING;
+    std::string path;
+    input >> path;
+    //std::cout<<"PATH:"<<path<<std::endl; 
+    initFile.open(path,std::ios_base::in);
+    src = &initFile;
+    load_from_file_ycsb(*src,to,columns);
+    //initFile.close();
+    //std::sort(std::begin(to), std::end(to));
+    //std::cout<<"SIZE of INIT:"<<to.size()<<std::endl;
+  }
+  else {
+    std::cerr << "Invalid init_data command: " << op << std::endl;
+    exit(-1);
+  }
+}
 inline void load_records(std::vector<old_Record> &to, std::istream &input)
 {
   std::string op;
   input >> op;
+  // if(op == "file")
+  // {
+  //  // std::cout<<"A file to be opened"<<std::endl;
+  //   std::istream *src;
+  //   std::ifstream initFile;
+  //   std::string STRING;
+  //   std::string path;
+  //   input >> path;
+  //   //std::cout<<"PATH:"<<path<<std::endl; 
+  //   initFile.open(path,std::ios_base::in);
+  //   src = &initFile;
+  //   load_from_file(*src,to);
+  //   //std::sort(std::begin(to), std::end(to));
+  //   //std::cout<<"SIZE of INIT:"<<to.size()<<std::endl;
+  // }
+  // else 
   if(op == "random"){
     int count, min, max;
     //std::cout<<"in random"<<std::endl;
@@ -314,7 +427,7 @@ inline void delete_from_leaf(std::vector<Record> &to_delete,std::vector<Record> 
   }
   else
   {
-    std::cout<<"size 0 encountered"<<std::endl;
+    //std::cout<<"size 0 encountered"<<std::endl;
   }
   
 
@@ -323,8 +436,8 @@ inline Key pick_separator(const std::vector<Record> &source)
 {
   if(source.empty()) { return 0; }
   else { 
-    //std::cout<<"SIZE"<<source.size();
-    int index_to_pick = rand()%source.size();
-    //std::cout<<"INDEXX_TO_PICK"<<index_to_pick;
+    //std::cout<<"SIZE :"<<source.size()<<std::endl;
+    long index_to_pick = rand()%source.size();
+    //std::cout<<"INDEXX_TO_PICK :"<<index_to_pick<<" Key at index is :"<<source[index_to_pick].key<<std::endl;
     return source[index_to_pick].key; }
 }

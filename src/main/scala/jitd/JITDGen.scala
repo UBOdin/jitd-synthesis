@@ -63,8 +63,8 @@ object JITDGen {
 
     val compile = Seq(
       "g++", 
- 
-
+      "-pthread",
+      "-ltbb",
       "-std=c++11",
 
       "-o", conf.target()

@@ -13,7 +13,10 @@
 #include <ios>
 #include <functional>
 #include <sys/time.h>
-//std::vector<float> time_vec;
+#include <pthread.h>
+#include "tbb/concurrent_queue.h" 
+
+
 @for(include <- ctx.definition.includes) { 
 #include "@include"
 }
@@ -22,7 +25,7 @@
 } else {
   #define JITD_DEBUG(cmd)
 }
-
+ 
 ///////////////////// Structures ///////////////////// 
 
 @ctx.structTypedefs
@@ -44,7 +47,10 @@ class JITDNode {
 };
 
 typedef std::function<void(std::shared_ptr<JITDNode> &new_node)> UpdateHandle;
-
+struct mutatorCqElement{
+  int flag;
+  std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> element;
+};
 ///////////////////// Node Type Definitions ///////////////////// 
 
 @for(node <- ctx.definition.nodes){
@@ -82,9 +88,7 @@ typedef enum {
   }
 } JITDTransformType;
 
-//@for(transform <- ctx.definition.transforms){
-//  bool @{transform.name}(std::shared_ptr<JITDNode> * &targetHandleRef);
-//}
+
 
 ///////////////////// JITD Debug Methods ///////////////////// 
 
@@ -113,22 +117,20 @@ void print_search_time_vector_sum();
 class JITD {
   
   public:
+    pthread_mutex_t lock;
+
     @{RenderPattern.ComparatorClass(ctx,ctx.policy.rule);}
     @{RenderPattern.SetPqDeclare(ctx,ctx.policy.rule,true);}
-
-    JITD(JITDNode *root) : root(root) 
+    
+    tbb::concurrent_bounded_queue<mutatorCqElement> common_cq;
+    JITD(std::shared_ptr<std::shared_ptr<JITDNode>> jitd_root) : jitd_root(jitd_root)
     {
-     /***Works only on single node(array/sorted array) root***/
-     
-     @ctx.policyImplementation.init(ctx,ctx.policy.rule,"(this->root)")
+      if (pthread_mutex_init(&lock, NULL) != 0) { 
+        std::cerr<<"\n mutex init has failed\n"<<std::endl; 
+        exit(-1);
+      }
+      @ctx.policyImplementation.init(ctx,ctx.policy.rule,"(*(this->jitd_root))")
     }
-    JITD(std::shared_ptr<JITDNode> root) : root(root) 
-    {
-      /***Works only on single node(array/sorted array) root***/
-      
-      @ctx.policyImplementation.init(ctx,ctx.policy.rule,"(this->root)")
-    }
-
     
 
     @for(transform <- ctx.definition.transforms){
@@ -137,41 +139,35 @@ class JITD {
 
     @for( accessor <- ctx.definition.accessors ) {
       @{RenderAccessor.declaration( accessor, ctx, root = true )} {
-        return @RenderAccessor.renderCall( accessor, ctx, "root", "jitd_accessor_" );
+        return @RenderAccessor.renderCall( accessor, ctx, "*jitd_root", "jitd_accessor_" );
       }
     }
 
     @for( mutator <- ctx.definition.mutators ) {
-      @{RenderMutator.declaration( mutator, ctx )};
+      @{RenderMutator.declaration( mutator, ctx )}
     }
     
     
-    //void print_set();
-    //void check_set();
+   
     void print_pq();
     void check_pq();
     void SetPqErase(std::shared_ptr<JITDNode> * node_handle);
     void SetPqAdd(std::shared_ptr<JITDNode> * node_handle);
-    void print_debug() {print_JITD_node_structure(root, std::string("")); }
+    void print_debug() {print_JITD_node_structure(*jitd_root, std::string("")); }
     bool do_organize();
-    void print_time_vec() {print_time_vector_sum();}
-    void print_search_time_vec() {print_search_time_vector_sum();}
-    //void print_timing() {print_timing_vec();}
-    //void print_set_size() {print_set();}
-    //void check_set_intergrity(){check_set();};
+    int background_process();
     void check_pq_intergrity(){check_pq();};
     void print_pq_size() {print_pq();}
-   
     
     @for(transform <- ctx.definition.transforms){
-    long searchFor@{transform.name}(std::shared_ptr<JITDNode> * &node, std::shared_ptr<JITDNode> * &targetHandleRef);}
+    long searchFor@{transform.name}(std::shared_ptr<JITDNode> * &targetHandleRef);}
     
     
   private:
 
-    std::shared_ptr<JITDNode> root;
-    
-    void update_root(std::shared_ptr<JITDNode> &newRoot){ atomic_store(&root, newRoot); }
+    //std::shared_ptr<JITDNode> root;
+    std::shared_ptr<std::shared_ptr<JITDNode>> jitd_root;
+    //void update_root(std::shared_ptr<JITDNode> &newRoot){ atomic_store(&root, newRoot); }
 };
 
 

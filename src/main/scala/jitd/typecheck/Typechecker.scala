@@ -110,7 +110,8 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
       case Var(name) => {
         scope.get(name) match {
           case Some(t) => t
-          case None => error(s"Variable '$name' not in scope")
+          //case None => error(s"Variable '$name' not in scope")
+          case None => TNodeRef() //***IMPORTANT***Changed to handle Var(string)
         }
       }
       case WrapNode(target) => {
@@ -168,7 +169,7 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
       }
       case Assign(tgt, expr, false) => {
         val tgtType = scope.getOrElse(tgt, { error("Assignment to undefined variable: "+tgt) })
-
+        //val tgtType = exprType(expr)
         if(exprType(expr) != tgtType){
          error("Assignment to "+tgt+" of incorrect type")
         }
@@ -190,7 +191,7 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
         }
         scope
       }
-
+      
       case Declare(tgt, tOption, expr) => {
         if(scope contains tgt) {
           error("Overriding existing variable")

@@ -11,7 +11,7 @@ case class Definition(
   policies:Seq[Policy],
   policyImplementations: PolicyImplementation,
   functions:Seq[FunctionSignature],
-  keyType: String = "int",
+  keyType: String = "long",
   recordType: String = "Record",
   includes:Seq[String] = Seq()
 ) {

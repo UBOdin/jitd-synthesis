@@ -27,7 +27,8 @@ object TransformToFunction
       val (constructor, accessor) = MatchToStatement(
         definition,
         transform.to,
-        "to_ptr"
+        "to_ptr",
+        false
       )
       constructor ++Assign("target", (accessor), true)++stmt2
     }

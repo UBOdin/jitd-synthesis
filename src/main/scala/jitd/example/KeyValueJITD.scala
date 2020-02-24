@@ -16,6 +16,7 @@ object KeyValueJITD extends HardcodedDefinition {
   Def("array_copy",record.array, record.array, record.array)
   //Def("copy_delete_array_btree",record.array, key, record.array, record.array)
   Def("append", record.array, record.array)
+  Def("append_singleton_to_array", record.array, record)
   Def("append_singleton",record,record,record.array)
   //Def("appendConcat",record.array,record.array)
   Def("remove",record.array,record.array)
@@ -34,9 +35,10 @@ object KeyValueJITD extends HardcodedDefinition {
         NodeConstructor(Seq(),Seq("data".call()))
   )
   Node( "Concat",      "lhs"  -> node, "rhs" -> node )()
-  Node( "Delete",      "lhs"  -> node, "rhs" -> node )()
+  //Node( "Delete",      "lhs"  -> node, "rhs" -> node )()
   Node( "BTree",       "lhs"  -> node, "sep" -> key, "rhs" -> node )()
   Node( "DeleteElements",      "node"  -> node, "data" -> record.array )()
+  //Node( "DeleteSingleton",      "node"  -> node, "elem" -> record )()
 
   //////////////////////////////////////////////
 
@@ -52,8 +54,9 @@ object KeyValueJITD extends HardcodedDefinition {
     "SortedArray"  -> Return { "record_binary_search".call("data", "target", "result") }, 
     "Concat"       -> If( Delegate("lhs") ) { Return(true) } { Return { Delegate("rhs") } },
     "BTree"        -> If( "target" lt "sep" ) { Return { Delegate("lhs") } } { Return { Delegate("rhs") } },
-    "Delete"       -> If( Delegate("rhs") ) { Return(false) } { Return { Delegate("lhs") } },
+    //"Delete"       -> If( Delegate("rhs") ) { Return(false) } { Return { Delegate("lhs") } },
     "DeleteElements"  -> If( "record_scan".call("data","target","result") ) { Return(false) }{Return{Delegate("node")}}
+    //"DeleteSingleton"  -> If( "singleton_scan".call("elem","target","result") ) { Return(false) }{Return{Delegate("node")}}
     //if it returns true from rhs the element is a part of delete list so dont check lhs and get should return false as it is not a part of the structure.
   )
 
@@ -63,25 +66,36 @@ object KeyValueJITD extends HardcodedDefinition {
     "SortedArray" -> Return { ArraySize("data") },
     "Concat"      -> Return { Delegate( "lhs" ) plus Delegate("rhs") },
     "BTree"       -> Return { Delegate( "lhs" ) plus Delegate("rhs") },
-    "Delete"      -> Return { Delegate( "lhs" ) minus Delegate("rhs") },
-    "DeleteElements"      -> Return { Delegate( "node" ) minus ArraySize("data") }//check logic doesnt return a neg value.
+    //"Delete"      -> Return { Delegate( "lhs" ) minus Delegate("rhs") },
+    "DeleteElements"      -> Return { Delegate( "node" ) minus ArraySize("data") }
+    //"DeleteSingleton"      -> Return { Delegate( "node" ) minus IntConstant(1) }
+    //check logic doesnt return a neg value.
   //FIX THE SIZE FOR DELETE
   )
 
   //////////////////////////////////////////////
   Mutator("insert_singleton")("data" -> record ) {
-    "Concat".fromFields( "root", "Singleton".fromFields("data") )
+    "Concat".fromFields( "*jitd_root", "Singleton".fromFields("data") )
   }
 
   Mutator("insert")("data" -> record.array ) {
-    "Concat".fromFields( "root", "Array".fromFields("data") )
+    "Concat".fromFields( "*jitd_root", "Array".fromFields("data") )
   }
-  Mutator("remove")("data" -> record.array ) {
-    "Delete".fromFields("root","Array".fromFields("data") )
-  }
+  // Mutator("remove_singleton")("data" -> record ) {
+  //   "DeleteSingleton".fromFields("*jitd_root","data")
+  // }
+  // Mutator("remove")("data" -> record.array ) {
+  //   "Delete".fromFields("*jitd_root","Array".fromFields("data") )
+  // }
   Mutator("remove_elements")("data" -> record.array ) {
-    "DeleteElements".fromFields("root","data" )
+    "DeleteElements".fromFields("*jitd_root","data" )
   }
+  // Mutator("update")("old_data" -> record.array,"new_data" -> record.array){
+  //   "Concat".fromFields(("DeleteElements".fromFields("root","old_data")),"Array".fromFields("new_data"))
+  // }
+  // Mutator("remove_singleton_element")("elem" -> record) {
+  //   "DeleteSingleton".fromFields("root","elem" )
+  // }
   //////////////////////////////////////////////
 
   Transform("SortArray") {
@@ -166,7 +180,17 @@ object KeyValueJITD extends HardcodedDefinition {
     ) 
   }
 
-
+Transform("CollapseSingleInserts") {
+    "Concat" withFields( 
+      "Array".withFields( "lhs" ),
+      
+      "Singleton".withFields( "data" )
+    )
+  } {
+    "Array" fromFields("lhs" as "merged") andAfter (
+      "append_singleton_to_array".call("merged", "data") 
+    )
+  }
 
 
 
@@ -193,6 +217,7 @@ object KeyValueJITD extends HardcodedDefinition {
     )
   }
   InvertedTransform("PivotLeft", "PivotRight")
+
   //pushdown and crack can create a null array if no crack happens
   Transform("PushDownAndCrack") {
     "Concat" withFields(
@@ -214,25 +239,26 @@ object KeyValueJITD extends HardcodedDefinition {
   }
 
 
-  Transform("PushDownDontDeleteBtree")
-  {
-    "Delete" withFields(
-      "BTree" withFields( "a", "separator", "b" ),
-      "Array" withFields( "data" )
-    )
-  } {
-    "BTree" fromFields(
-      "Delete" fromFields( "a", "Array" fromFields(
+  // Transform("PushDownDontDeleteBtree")
+  // {
+  //   "Delete" withFields(
+  //     "BTree" withFields( "a", "separator", "b" ),
+  //     "Array" withFields( "data" )
+  //   )
+  // } {
+  //   "BTree" fromFields(
+  //     "Delete" fromFields( "a", "Array" fromFields(
         
-      ) as "lhs_partition"),
-      "separator",
-      "Delete" fromFields( "b", "Array" fromFields(
+  //     ) as "lhs_partition"),
+  //     "separator",
+  //     "Delete" fromFields( "b", "Array" fromFields(
           
-      ) as "rhs_partition")
-    ) andAfter(
-      "do_crack".call("data","separator", NodeSubscript(Var("lhs_partition"),"data"), NodeSubscript(Var("rhs_partition"),"data"))
-    ) 
-  }
+  //     ) as "rhs_partition")
+  //   ) andAfter(
+  //     "do_crack".call("data","separator", NodeSubscript(Var("lhs_partition"),"data"), NodeSubscript(Var("rhs_partition"),"data"))
+  //   ) 
+  // }
+  
   Transform("PushDownDontDeleteElemBtree")
   {
     "DeleteElements" withFields("BTree" withFields( "a", "separator", "b" ),"data")
@@ -243,24 +269,25 @@ object KeyValueJITD extends HardcodedDefinition {
       "DeleteElements" fromFields( "b", "data"))
     
   }
-  Transform("PushDownDontDeleteConcat")
-  {
-    "Delete" withFields(
-      "Concat" withFields( "a", "b" ),
-      "Array" withFields( "data" )
-    )
-  } {
-    "Concat" fromFields(
-      "Delete" fromFields( "a", "Array" fromFields(
+  // Transform("PushDownDontDeleteConcat")
+  // {
+  //   "Delete" withFields(
+  //     "Concat" withFields( "a", "b" ),
+  //     "Array" withFields( "data" )
+  //   )
+  // } {
+  //   "Concat" fromFields(
+  //     "Delete" fromFields( "a", "Array" fromFields(
         
-      ) as "lhs_partition"),
-      "Delete" fromFields( "b", "Array" fromFields(
+  //     ) as "lhs_partition"),
+  //     "Delete" fromFields( "b", "Array" fromFields(
           
-      ) as "rhs_partition")
-    ) andAfter(
-      "array_copy".call("data", NodeSubscript(Var("lhs_partition"),"data"), NodeSubscript(Var("rhs_partition"),"data"))
-    ) 
-  }
+  //     ) as "rhs_partition")
+  //   ) andAfter(
+  //     "array_copy".call("data", NodeSubscript(Var("lhs_partition"),"data"), NodeSubscript(Var("rhs_partition"),"data"))
+  //   ) 
+  // }
+ 
   Transform("PushDownDontDeleteElemConcat")
   {
     "DeleteElements" withFields("Concat" withFields( "a", "b" ),"data")
@@ -270,13 +297,13 @@ object KeyValueJITD extends HardcodedDefinition {
       "DeleteElements" fromFields( "b", "data"))
     
   }
-  Transform("DeleteFromSortedArray")
-  {
-    "Delete" withFields("SortedArray" withFields( "data1" ),"SortedArray" withFields( "data2" ))
-  } {
-    "SortedArray" fromFields( "data1" as "new_sorted_array_after_delete") andAfter(
-      "delete_from_leaf".call("new_sorted_array_after_delete", "data2")) 
-  }
+  // Transform("DeleteFromSortedArray")
+  // {
+  //   "Delete" withFields("SortedArray" withFields( "data1" ),"SortedArray" withFields( "data2" ))
+  // } {
+  //   "SortedArray" fromFields( "data1" as "new_sorted_array_after_delete") andAfter(
+  //     "delete_from_leaf".call("new_sorted_array_after_delete", "data2")) 
+  // }
   Transform("DeleteElemFromSortedArray")
   {
     "DeleteElements" withFields("SortedArray" withFields( "data1" ), "data2" )
@@ -284,13 +311,13 @@ object KeyValueJITD extends HardcodedDefinition {
     "SortedArray" fromFields( "data1" as "new_sorted_array_after_delete") andAfter(
       "delete_from_leaf".call("new_sorted_array_after_delete", "data2")) 
   }
-  Transform("DeleteFromArray")
-  {
-    "Delete" withFields("Array" withFields( "data1" ),"Array" withFields( "data2" ))
-  } {
-    "Array" fromFields( "data1" as "new_array_after_delete") andAfter(
-      "delete_from_leaf".call("new_array_after_delete", "data2")) 
-  }
+  // Transform("DeleteFromArray")
+  // {
+  //   "Delete" withFields("Array" withFields( "data1" ),"Array" withFields( "data2" ))
+  // } {
+  //   "Array" fromFields( "data1" as "new_array_after_delete") andAfter(
+  //     "delete_from_leaf".call("new_array_after_delete", "data2")) 
+  // }
   Transform("DeleteElemFromArray")
   {
     "DeleteElements" withFields("Array" withFields( "data1" ), "data2")
@@ -299,23 +326,26 @@ object KeyValueJITD extends HardcodedDefinition {
       "delete_from_leaf".call("new_array_after_delete", "data2")) 
   }
  
-  Policy("CrackSort")("crackAt" -> IntConstant(25),"null_data"-> IntConstant(0)) (
-    //"MergeUnSortedConcat"
-    //"PushDownAndCrack"            scoreBy { ArraySize("data") }
-       ("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
+  Policy("CrackSort")("crackAt" -> IntConstant(10),"null_data"-> IntConstant(0)) (
+      //("CollapseSingleInserts")
+      ("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
                                   scoreBy { ArraySize("data") })
-      //andThen("PushDownAndCrack" scoreBy { ArraySize("data") })
+      
+      //andThen ("PushDownDontDeleteConcat"          scoreBy { ArraySize("data") })
       //andThen ("PushDownDontDeleteElemBtree"          scoreBy { ArraySize("data") })
-      //andThen ("PushDownDontDeleteElemBtree"          scoreBy { ArraySize("data") })
-      //andThen ("PushDownDontDeleteConcat"            scoreBy { ArraySize("data") })
+      //andThen ("DeleteElemFromArray" scoreBy{ArraySize("data1")})
       //andThen ("PushDownDontDeleteElemConcat"          scoreBy { ArraySize("data") })
-       //("SortArray"        scoreBy { ArraySize("data") })
+       
       //andThen("PivotRight")
       //andThen ("MergeUnSortedBTrees")
       //andThen "MergeUnSortedConcatArray"
       //andThen ("MergeUnSortedConcatSingleton")
      //andThen "MergeDeleteNodes"
-     //andThen ("DeleteElemFromArray" scoreBy{ArraySize("data2")})
+     //andThen ("PushDownDontDeleteBtree"            scoreBy { ArraySize("data") })
+     //andThen ("DeleteFromSortedArray" scoreBy{ArraySize("data2")})
+     //andThen("PushDownAndCrack" scoreBy { ArraySize("data") })
+     //andThen("SortArray"        scoreBy { ArraySize("data") })
+     //andThen "MergeSortedConcat"
      //andThen ("DeleteElemFromSortedArray" scoreBy{ArraySize("data2")})
   )
 
