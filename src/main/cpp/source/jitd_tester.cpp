@@ -91,6 +91,7 @@ double total_time(timeval &start, timeval &end)
 // }
 
 
+typedef std::vector<old_Record> old_RecordBuffer;
 typedef std::vector<Record> RecordBuffer;
 
 
@@ -117,10 +118,10 @@ int jitd_test(
     ///////////////// MUTATOR OPERATIONS /////////////////
     } CASE("init") {
       timeval start, end;
-      RecordBuffer data;
+      old_RecordBuffer data;
       load_records(data, toks);
       gettimeofday(&start, NULL);
-      jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
+//      jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
       gettimeofday(&end, NULL);
       std::cout << "Init JITD: " << total_time(start, end) << " us" << std::endl;
     } CASE("build") {
@@ -131,15 +132,15 @@ int jitd_test(
       std::cout << "Assemble JITD: " << total_time(start, end) << " us" << std::endl;
     } CASE("insert") {
       timeval start, end;
-      RecordBuffer data;
+      old_RecordBuffer data;
       load_records(data, toks);
       gettimeofday(&start, NULL);
-      jitd->insert(data);
+//      jitd->insert(data);
       gettimeofday(&end, NULL);
       std::cout << "Insert into JITD: " << total_time(start, end) << " us" << std::endl;
     }CASE("insert-singleton") {
       timeval start, end;
-      Record r;
+      old_Record r;
       std::string op;
       toks >> op;
       int count, min, max;
@@ -154,7 +155,7 @@ int jitd_test(
         for(int i = 0; i < count; i++){
           r.key = (rand() % max_minus_min)+min;
           r.value = (Value)0xDEADBEEF;
-          jitd->insert_singleton(r);
+//          jitd->insert_singleton(r);
         } 
         gettimeofday(&end, NULL);
       }
@@ -167,19 +168,19 @@ int jitd_test(
     CASE("remove_elements")
     {
       timeval start, end;
-      RecordBuffer data;
+      old_RecordBuffer data;
       load_records(data, toks);
       gettimeofday(&start, NULL);
-      jitd->remove_elements(data);
+//      jitd->remove_elements(data);
       gettimeofday(&end, NULL);
       std::cout << "Delete from JITD: " << total_time(start, end) << " us" << std::endl;
     }
       CASE("remove") {
       timeval start, end;
-      RecordBuffer data;
+      old_RecordBuffer data;
       load_records(data, toks);
       gettimeofday(&start, NULL);
-      jitd->remove(data);
+//      jitd->remove(data);
       gettimeofday(&end, NULL);
       std::cout << "Delete from JITD: " << total_time(start, end) << " us" << std::endl;
 
