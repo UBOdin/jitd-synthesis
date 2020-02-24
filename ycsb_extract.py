@@ -206,6 +206,8 @@ def process_initialize_benchmark_pair(workload):
 	field = ""
 	field_array = ""
 
+	quit = 0
+
 	initialize_list_list = process_workload("initialize_" + workload)
 	benchmark_list_list = process_workload("benchmark_" + workload)
 
@@ -215,6 +217,12 @@ def process_initialize_benchmark_pair(workload):
 	benchmark_file.write("\n")
 	benchmark_file.write("struct operation_node initialize_array[] = {\n")
 	for initialize_list in initialize_list_list:
+
+		if (quit == 10):
+			break
+		#end_if
+		quit += 1
+
 		operation = initialize_list[0]
 		assert (len(initialize_list) == 22), "Unexpected initialize field length"
 		if (operation != "INSERT"):
@@ -235,7 +243,16 @@ def process_initialize_benchmark_pair(workload):
 	benchmark_file.write("};\n")
 	benchmark_file.write("\n")
 	benchmark_file.write("struct operation_node benchmark_array[] = {\n")
+
+	quit = 0
+
 	for benchmark_list in benchmark_list_list:
+
+		if (quit == 10):
+			break
+		#end_if
+		quit += 1
+
 		operation = benchmark_list[0]
 		key = benchmark_list[1]
 		listlen = len(benchmark_list)
