@@ -112,6 +112,7 @@ void* create_storage() {
 
 /*
 	std::shared_ptr<JITD> jitd;
+*/
 	std::vector<Record> data;
 	Record r;
 
@@ -119,10 +120,17 @@ void* create_storage() {
 	r.key = -9999999;  // dummy init key; will be popped later
 //	r.value = (Value)0xDEADBEEF;
 	data.push_back(r);
-*/
+
 
 //TODO:  data was global
-	std::shared_ptr<JITD>* jitd = new std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
+//	std::shared_ptr<JITD> jitd_stack = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
+//	std::shared_ptr<std::shared_ptr<JITDNode>> jitd_stack = std::shared_ptr<std::shared_ptr<JITDNode>>(new JITD(new ArrayNode(data)));
+
+	std::vector<Record> element;
+
+	std::shared_ptr<JITD> jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new ArrayNode(element)))));
+
+//	std::shared_ptr<JITD>* jitd = new std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
 
 	return (void*)jitd;
 
@@ -207,7 +215,7 @@ bool get_data(void* storage, long key) {
 }
 
 
-int put_data(void* storage, long key, std::string* field_array) {
+int put_data(void* storage, long key) {
 
 	#ifdef STORAGE_SQLITE
 
@@ -248,14 +256,15 @@ int put_data(void* storage, long key, std::string* field_array) {
 
 	#ifdef STORAGE_UOMAP
 
-	std::unordered_map<long, std::string*>* umap = (std::unordered_map<long, std::string*>*)storage;
-	Record r;
+	std::unordered_map<UOM_TYPE>* umap = (std::unordered_map<UOM_TYPE>*)storage;
 
 // TODO:  get rid of Record
 // TODO:  minimize data_pair construction -- call with pointer to already created object?
-	std::pair<long, std::string*> data_pair;
-	data_pair.first = r.key;
-	data_pair.second = r.field_array;
+// ^ globalize it?
+
+	std::pair<UOM_TYPE> data_pair;
+	data_pair.first = key;
+	data_pair.second = 9999;
 
 	umap->insert(data_pair);
 
@@ -309,7 +318,9 @@ int remove_data(void* storage, long key) {
 }
 
 
-int update_data(void* storage, long key, int field_no, std::string* field_data) {
+int update_data(void* storage, long key) {
+
+// TODO
 
 	return 0;
 
@@ -318,68 +329,24 @@ int update_data(void* storage, long key, int field_no, std::string* field_data) 
 
 int populate_storage(void* storage) {
 
-	enum operation optype;
+	struct operation_node node;
 	int i;
-	std::vector<Record> initialize_vector;
-	Record r;
-	long key;
 
-	// Step 1:  Generate Vector of Records from static input array:
-	printf("Generating vector of input data\n");
+	printf("Initializing data structure\n");
 	i = 0;
 	while (true) {
-		optype = initialize_array[i].type;
-		if (optype == STOP) {
+		node = initialize_array[i];
+		if (node.type == STOP) {
 			break;
 		}
-		if (optype != INSERT) {
+		if (node.type != INSERT) {
 			printf("Error:  expected Insert\n");
 			_exit(1);
 		}
-		r.key = initialize_array[i].key;
-		r.field_array = initialize_array[i].field_array;
-		initialize_vector.push_back(r);
+		put_data(storage, node.key);
 		i++;
 	}
-	// Paranoia check
-	if (i >= output_size) {
-		printf("Input data too large\n");
-		_exit(1);
-	}
 	printf("Finished\n");
-	// Step 2:  Populate data structure, using Vector:
-	printf("Initializing data structure\n");
-
-	#ifdef STORAGE_SQLITE
-
-	for (i = 0; i < initialize_vector.size(); i++) {
-		r = initialize_vector.at(i);
-		put_data(storage, r);
-	}
-
-	#endif
-
-	#ifdef STORAGE_UOMAP
-
-	std::unordered_map<long, std::string*>* umap = (std::unordered_map<long, std::string*>*)storage;
-
-	for (i = 0; i < initialize_vector.size(); i++) {
-		r = initialize_vector.at(i);
-		put_data(storage, r.key, r.field_array);
-
-	}
-
-	#endif
-
-	#ifdef STORAGE_JITD
-
-	// TODO:  Jitd bulk insert call
-	//bulk_put_data(storage, initialize_vector);
-
-	#endif
-
-	printf("Finished\n");
-
 	return 0;
 
 }
@@ -480,11 +447,10 @@ int jitd_harness() {
 	timeval end;
 	int ms;
 	enum operation optype;
-	long key;
 	int rows;
-	int field;
-//	Record r;
-	std::string* field_array;
+	int nkeys;
+	long key;
+	long* key_array;
 	int i;
 	int j;
 	bool result;
@@ -546,9 +512,6 @@ int jitd_harness() {
 		// Get next operation:
 		optype = benchmark_array[i].type;
 		key = benchmark_array[i].key;
-		rows = benchmark_array[i].rows;
-		field = benchmark_array[i].field;
-		field_array = benchmark_array[i].field_array;
 
 		// Benchmark next operation:
 		time_start = gettime_us();
@@ -556,9 +519,14 @@ int jitd_harness() {
 			break;
 		}
 		else if (optype == INSERT) {
-			put_data(storage, key, field_array);
+//			put_data(storage, key);
 		}
 		else if (optype == SELECT) {
+			rows = benchmark_array[i].rows;
+			nkeys = benchmark_array[i].nkeys;
+			key_array = benchmark_array[i].key_array;
+
+/*
 			result = get_data(storage, key);
 			// Basic sanity check
 			if (result != (bool)rows) {
@@ -566,17 +534,30 @@ int jitd_harness() {
 				_exit(1);
 			}
 			// Re-fetch if original data returned multiple rows:
-/*
 			if (rows > 1) {
 				for (int j = 1; j < rows; j++) {
 					result = get_data(storage, key);
 				}
 			}
 */
+
+
+printf("Select on line %d:  Rowcount = %d, key = %ld\n", i, rows, key);
+for (int i = 0; i < nkeys; i++) {
+	printf("Key # %d:  %ld\n", i, key_array[i]);
+}
+
+
 		} else if (optype == DELETE) {
-			result = remove_data(storage, key);
+//			result = remove_data(storage, key);
+printf("Delete on line %d:  key = %ld\n", i, key);
+
 		} else if (optype == UPDATE) {
-			result = update_data(storage, key, field, NULL);
+//			result = update_data(storage, key);
+		} else if (optype == UPSERT) {
+//
+printf("Upsert on line %d:  key = %ld\n", i, key);
+
 		} else {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
