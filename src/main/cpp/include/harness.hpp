@@ -1,13 +1,11 @@
 
-#include <string>
-
 enum operation {
 
 	INSERT,
 	SELECT,
 	DELETE,
 	UPDATE,
-	BULK,
+	UPSERT,
 	STOP,
 
 };
@@ -16,12 +14,13 @@ enum operation {
 
 struct operation_node {
 
+	int id;
 	enum operation type;
 	double time;
+	int rows;			// For select:  actual number of rows returned in ground truth
+	int nkeys;			// For select:  the number of keys requested
 	long key;
-	int rows;			// Sanity check for select:  actual number of rows returned in ground truth
-	int field;			// in YCSB:  which non-key column to modify
-	std::string field_array[10];
+	long* key_array;
 
 };
 
