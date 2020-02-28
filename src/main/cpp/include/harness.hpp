@@ -26,8 +26,8 @@ struct operation_node {
 
 struct output_node {
 
-	double time_start;
-	double time_delta;
+	long time_start;
+	long time_delta;
 	enum operation type;
 	long key;
 	int rows;

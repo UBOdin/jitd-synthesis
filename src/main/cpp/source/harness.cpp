@@ -36,13 +36,13 @@
 // N.b. struct Record.key -- long int; Record.value -- void*
 
 
-double gettime_us() {
+long gettime_us() {
 
 	timeval now;
 
 	gettimeofday(&now, NULL);
 
-	return now.tv_sec * 1000000.0 + now.tv_usec;
+	return now.tv_sec * 1000000 + now.tv_usec;
 
 }
 
@@ -451,7 +451,7 @@ int save_output() {
 	output_fd = result;
 
 	for (int i = 0; i < output_size; i++) {
-		snprintf(output_buffer, BUFFER_SIZE, "%f\t%f\t%d\t%ld\t%d\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key, output_array[i].rows);
+		snprintf(output_buffer, BUFFER_SIZE, "%ld\t%ld\t%d\t%ld\t%d\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key, output_array[i].rows);
 		result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
 		errtrap("write");
 	}
@@ -477,11 +477,11 @@ int jitd_harness() {
 	int i;
 	int j;
 	bool result;
-	double time_base;
-	double time_next;
-	double time_delta;
-	double time_now;
-	double time_start;
+	long time_base;
+	long time_next;
+	long time_delta;
+	long time_now;
+	long time_start;
 	int break_overrun = 0;
 	int break_no_work = 0;
 
@@ -515,7 +515,7 @@ int jitd_harness() {
 	gettimeofday(&start, NULL);
 
 	time_base = gettime_us();
-	printf("Start base time:  %f\n", time_base);
+	printf("Start base time:  %ld\n", time_base);
 
 	i = 0;
 	j = 0;
@@ -575,7 +575,7 @@ int jitd_harness() {
 		}
 
 		// Get start time of the next operation:
-		time_next = time_base + (benchmark_array[i].time * 1000000.0);
+		time_next = time_base + (benchmark_array[i].time * 1000000);
 		time_now = gettime_us();
 
 		#ifdef STORAGE_JITD
@@ -586,7 +586,7 @@ int jitd_harness() {
 
 		// If we have not yet reached the next start time, block until then:
 		if (time_now < time_next) {
-			ms = (time_next - time_now) / 1000.0;
+			ms = (time_next - time_now) / 1000;
 //			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 		}
 
@@ -605,7 +605,7 @@ int jitd_harness() {
 	#endif
 
 	printf("Result:  %d\n", result);
-	printf("End base time:  %f\n", time_base);
+	printf("End base time:  %ld\n", time_base);
 	printf("Overrun:  %d -- Ran out of work:  %d\n", break_overrun, break_no_work);
 	printf("End\n");
 	return 0;
