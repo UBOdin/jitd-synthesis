@@ -149,7 +149,7 @@ void* create_storage() {
 }
 
 
-bool get_data(void* storage, long key) {
+int get_data(void* storage, int nkeys, unsigned long* key_array) {
 
 
 	#ifdef STORAGE_SQLITE
@@ -182,7 +182,8 @@ bool get_data(void* storage, long key) {
 	}
 	result = sqlite3_finalize(statement);
 
-	return (bool)rowcount;
+	// TODO:  switch to running sum
+	return rowcount;
 
 	#endif
 
@@ -195,6 +196,7 @@ bool get_data(void* storage, long key) {
 
 	result = jitd->get(key, r);
 
+	// TODO:  switch to running sum
 	return result;
 
 	#endif
@@ -205,17 +207,25 @@ bool get_data(void* storage, long key) {
 	std::unordered_map<UOM_TYPE>::iterator key_iter;
 	std::unordered_map<UOM_TYPE>::iterator end_iter;
 
-	key_iter = umap->find(key);
-	end_iter = umap->end();
+	unsigned long key;
+	int value;
 
-	return !(key_iter == end_iter);
+	for (int i = 0; i < nkeys; i++) {
+		key = key_array[i];
+		key_iter = umap->find(key);
+		if (key_iter != umap->end()) {
+			value = key_iter->second;
+		}
+	}
+
+	return value;
 
 	#endif
 
 }
 
 
-int put_data(void* storage, long key) {
+int put_data(void* storage, unsigned long key) {
 
 	#ifdef STORAGE_SQLITE
 
@@ -258,10 +268,6 @@ int put_data(void* storage, long key) {
 
 	std::unordered_map<UOM_TYPE>* umap = (std::unordered_map<UOM_TYPE>*)storage;
 
-// TODO:  get rid of Record
-// TODO:  minimize data_pair construction -- call with pointer to already created object?
-// ^ globalize it?
-
 	std::pair<UOM_TYPE> data_pair;
 	data_pair.first = key;
 	data_pair.second = 9999;
@@ -275,7 +281,7 @@ int put_data(void* storage, long key) {
 }
 
 
-int remove_data(void* storage, long key) {
+int remove_data(void* storage, unsigned long key) {
 
 	#ifdef STORAGE_SQLITE
 
@@ -318,9 +324,26 @@ int remove_data(void* storage, long key) {
 }
 
 
-int update_data(void* storage, long key) {
+int update_data(void* storage, unsigned long key) {
 
-// TODO
+	return 0;
+
+}
+
+
+int upsert_data(void* storage, unsigned long key) {
+
+	bool result;
+
+	#ifdef STORAGE_UOMAP
+
+	std::unordered_map<UOM_TYPE>* umap = (std::unordered_map<UOM_TYPE>*)storage;
+
+	(*umap)[key] = 9999;
+
+	#endif
+
+//printf("Upsert on line %d:  key = %ld\n", i, key);
 
 	return 0;
 
@@ -400,7 +423,7 @@ int test_struct(void* storage) {
 			j++;
 		}
 		// Check whether target value is reported by the structure:
-		observed = get_data(storage, i);
+		observed = get_data(storage, 1, &node.key);
 		if (expected != observed) {
 			printf("structure test failure:  expected = %d; observed = %d on item %d\n", expected, observed, i);
 			_exit(1);
@@ -449,19 +472,16 @@ int jitd_harness() {
 	enum operation optype;
 	int rows;
 	int nkeys;
-	long key;
-	long* key_array;
+	unsigned long key;
+	unsigned long* key_array;
 	int i;
 	int j;
 	bool result;
 	double time_base;
-	double time_this;
-	double time_prev;
 	double time_next;
 	double time_delta;
 	double time_now;
 	double time_start;
-	double time_end;
 	int break_overrun = 0;
 	int break_no_work = 0;
 
@@ -494,7 +514,6 @@ int jitd_harness() {
 	printf("Starting operations\n");
 	gettimeofday(&start, NULL);
 
-	time_prev = 0;
 	time_base = gettime_us();
 	printf("Start base time:  %f\n", time_base);
 
@@ -502,12 +521,12 @@ int jitd_harness() {
 	j = 0;
 	while (true) {
 
-/*
+
 		if ((i % 100) == 0) {
-			printf("Iteration:  %d\n", i);
-			//break;
+//			printf("Iteration:  %d\n", i);
+//			break;
 		}
-*/
+
 
 		// Get next operation:
 		optype = benchmark_array[i].type;
@@ -519,45 +538,18 @@ int jitd_harness() {
 			break;
 		}
 		else if (optype == INSERT) {
-//			put_data(storage, key);
+			put_data(storage, key);
 		}
 		else if (optype == SELECT) {
 			rows = benchmark_array[i].rows;
 			nkeys = benchmark_array[i].nkeys;
-			key_array = benchmark_array[i].key_array;
-
-/*
-			result = get_data(storage, key);
-			// Basic sanity check
-			if (result != (bool)rows) {
-				printf("Unexpected get result on iteration %d:  %d, %d\n", i, result, rows);
-				_exit(1);
-			}
-			// Re-fetch if original data returned multiple rows:
-			if (rows > 1) {
-				for (int j = 1; j < rows; j++) {
-					result = get_data(storage, key);
-				}
-			}
-*/
-
-
-printf("Select on line %d:  Rowcount = %d, key = %ld\n", i, rows, key);
-for (int i = 0; i < nkeys; i++) {
-	printf("Key # %d:  %ld\n", i, key_array[i]);
-}
-
-
+			result += get_data(storage, nkeys, benchmark_array[i].key_array);
 		} else if (optype == DELETE) {
-//			result = remove_data(storage, key);
-printf("Delete on line %d:  key = %ld\n", i, key);
-
+			result = remove_data(storage, key);
 		} else if (optype == UPDATE) {
-//			result = update_data(storage, key);
+			result = update_data(storage, key);
 		} else if (optype == UPSERT) {
-//
-printf("Upsert on line %d:  key = %ld\n", i, key);
-
+			result = upsert_data(storage, key);
 		} else {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
@@ -588,33 +580,14 @@ printf("Upsert on line %d:  key = %ld\n", i, key);
 
 		#ifdef STORAGE_JITD
 
-		// Until we reach the next start time, do any jitds housecleaning remaining:
-		while (true) {
-			// Break if we have reached the next start time:
-			if (time_now >= time_next) {
-				break_overrun++;
-				break;
-			}
-			// Else, do more housecleaning:
-			result = jitd->do_organize();
-			time_now = gettime_us();
-			// Break if no more cleanup:
-			if (result == false) {
-				break_no_work++;
-				break;
-			}
-		}
+		// background thread
 
 		#endif
 
 		// If we have not yet reached the next start time, block until then:
-		// (i.e. no more housecleaning left)
 		if (time_now < time_next) {
-
-			ms = 0; //(time_next - time_now) / 10000000.0;  // Adjust to taste  TODO:  parameterize this
+			ms = (time_next - time_now) / 1000.0;
 //			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-
-//			time_base -= (time_next - time_now);
 		}
 
 	}
@@ -631,6 +604,7 @@ printf("Upsert on line %d:  key = %ld\n", i, key);
 	sqlite3_close((sqlite3*)storage);
 	#endif
 
+	printf("Result:  %d\n", result);
 	printf("End base time:  %f\n", time_base);
 	printf("Overrun:  %d -- Ran out of work:  %d\n", break_overrun, break_no_work);
 	printf("End\n");
