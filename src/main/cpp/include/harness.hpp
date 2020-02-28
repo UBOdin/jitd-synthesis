@@ -19,8 +19,8 @@ struct operation_node {
 	double time;
 	int rows;			// For select:  actual number of rows returned in ground truth
 	int nkeys;			// For select:  the number of keys requested
-	long key;
-	long* key_array;
+	unsigned long key;
+	unsigned long* key_array;
 
 };
 
