@@ -95,7 +95,16 @@ void run_test_thread(std::shared_ptr<JITD> jitd, std::string file, int per_op_sl
   gettimeofday(&end, NULL);
   std::cout << "Time[" << file << "]: " << t << " s" << std::endl;
 }
-
+void background_thread(std::shared_ptr<JITD> jitd)
+{
+   
+       int steps_taken = 0;
+       timeval start, end;
+       gettimeofday(&start, NULL);
+       steps_taken = jitd->organize_process();
+       gettimeofday(&end, NULL);
+       std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end)  << " us" <<  std::endl;  
+}
 
 
 
@@ -219,11 +228,18 @@ int jitd_test(
       bool not_done = true;
       int steps_taken = 0;
       gettimeofday(&start, NULL);
-      steps_taken = jitd->background_process();
+      steps_taken = jitd->organize_process();
       gettimeofday(&end, NULL);
       std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end) << (not_done ? "" : " [done]") << " us" <<  std::endl;
      }
-    
+    CASE("run_background_organize")
+    {
+     
+     
+     threads.emplace_back(background_thread,std::ref(jitd));
+     //jitd->print_debug();
+     
+    }
 
     // ///////////////// ACCESS OPERATIONS ///////////////// 
     
@@ -266,6 +282,54 @@ int jitd_test(
        
       }
       gettimeofday(&end_scan, NULL);
+      scan_time = total_time(start_scan, end_scan); 
+      //gettimeofday(&end_scan, NULL);
+       
+      std::cout << scan_buff_size <<" Scans JITD time in Random Mode: " << scan_time << " us" << std::endl;
+
+    }
+    CASE("thread_random_scan")
+    {
+
+      std::cout << "Switching to thread random point scan"<<std::endl;
+      long noofscans,max_scan_val;
+      double worker_sleep_time;
+      toks >> noofscans >> max_scan_val >> worker_sleep_time;
+      std::cout<<"In gen_scan"<<std::endl;
+      for(int i=0;i<noofscans;i++)
+      {
+        //cout<<i<<endl;
+        scan_buff.emplace_back(rand()%max_scan_val);
+        // scan_buff[i].key = rand()%1000000000;
+        // scan_buff[i].value = NULL;
+        //cout<<scan_buff[i].key<<",";
+        
+      }
+      Record ret;
+      
+      timeval start_scan, end_scan,one_scan;
+      double running_scan_time = 0;
+      double scan_time;
+      
+      long scan_buff_size = scan_buff.size();
+      gettimeofday(&start_scan, NULL);
+      for(int i=0;i<scan_buff_size;i++)
+      {
+       
+        if(jitd->get(scan_buff[i].key,ret))
+        {
+          //std::cout<<"FOUND KEY"<<std::endl;
+
+        }
+        else
+        {
+          //std::cout<<"NOT FOUND KEY"<<std::endl;
+        }
+        gettimeofday(&one_scan,NULL);
+       
+      }
+      gettimeofday(&end_scan, NULL);
+      double next_wake_up;
       scan_time = total_time(start_scan, end_scan); 
       //gettimeofday(&end_scan, NULL);
        
@@ -433,12 +497,7 @@ int jitd_test(
     }
   }
   gettimeofday(&global_end, NULL);
-  
-  // std::vector<std::thread>::iterator th;
-  // for(th = threads.begin(); th < threads.end(); ++th){
-  //   th->join();
-  // }
-  // pthread_mutex_destroy(&(jitd->lock)); 
+   
   return total_time(global_start, global_end) / (1000*1000);
 }
 

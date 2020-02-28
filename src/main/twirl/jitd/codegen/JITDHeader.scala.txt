@@ -155,7 +155,7 @@ class JITD {
     void SetPqAdd(std::shared_ptr<JITDNode> * node_handle);
     void print_debug() {print_JITD_node_structure(*jitd_root, std::string("")); }
     bool do_organize();
-    int background_process();
+    int organize_process();
     void check_pq_intergrity(){check_pq();};
     void print_pq_size() {print_pq();}
     
