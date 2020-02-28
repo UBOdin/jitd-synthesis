@@ -2,10 +2,14 @@
 # General variables:
 
 CC = g++
+#CC = export LD_LIBRARY_PATH=/opt/intel/compilers_and_libraries_2020.0.166/linux/tbb/lib/intel64/gcc4.8; g++
+
 #CFLAGS  = -g -Wall -std=c++14
-CFLAGS = -g -std=c++14
+CFLAGS = -g -std=c++14 -pthread #-ltbb # use -pthread, not -lpthread
+
 MAIN = jitd_harness  # name of executable
-INCLUDES = -I src/main/cpp/include -I target
+INCLUDES = -I src/main/cpp/include -I target -I /opt/intel/compilers_and_libraries_2020.0.166/linux/tbb/include
+TBB_LIBRARY = -L /opt/intel/compilers_and_libraries_2020.0.166/linux/tbb/lib/intel64/gcc4.8
 
 SOURCE = src/main/cpp/source
 HEADER = src/main/cpp/include
@@ -31,15 +35,15 @@ jitd_harness:  jitd_test.o harness.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness.o data.o -lsqlite3
 
 jitd_storage_jitd:  jitd_test.o harness_jitd.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness_jitd.o data.o
+	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness_jitd.o data.o $(TBB_LIBRARY) -ltbb
 	@echo built with jitd storage
 
 jitd_storage_sqlite:  jitd_test.o harness_sqlite.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness_sqlite.o data.o -lsqlite3
 	@echo built with sqlite storage
 
-jitd_storage_uomap::  jitd_test.o harness_uomap.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness_uomap.o data.o
+jitd_storage_uomap::  harness_uomap.o data.o
+	$(CC) $(CFLAGS) -o $(MAIN) harness_uomap.o data.o
 	@echo built with uomap storage
 
 jitd_test.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
