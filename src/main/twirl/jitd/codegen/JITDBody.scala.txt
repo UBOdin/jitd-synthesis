@@ -54,7 +54,7 @@ std::vector<float> search_time_vec_DeleteElemFromArray;
 ///////////////////// Policy Implementation ///////////////////// 
 
 @ctx.policyImplementation.utilityFunctions(ctx)
-int JITD::background_process()
+int JITD::organize_process()
 {
       
       bool not_done = true;

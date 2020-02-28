@@ -1,6 +1,6 @@
 build
-Array random 100000000 1 100000000
+Array random 1000 1 1000
 Return
-policy_act_until_done
-print_pq
-print_set
+dump
+run_background_organize
+run_threads

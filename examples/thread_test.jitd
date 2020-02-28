@@ -1,0 +1,7 @@
+build
+Array random 1000 1 1000
+Return
+dump
+spawn /Users/darshanabalakrishnan/Desktop/JITD_GitHub/jitd-synthesis/examples/thread_policy.jitd
+spawn /Users/darshanabalakrishnan/Desktop/JITD_GitHub/jitd-synthesis/examples/thread_scan.jitd
+run_threads

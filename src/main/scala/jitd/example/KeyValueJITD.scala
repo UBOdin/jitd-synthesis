@@ -326,7 +326,7 @@ Transform("CollapseSingleInserts") {
       "delete_from_leaf".call("new_array_after_delete", "data2")) 
   }
  
-  Policy("CrackSort")("crackAt" -> IntConstant(10),"null_data"-> IntConstant(0)) (
+  Policy("CrackSort")("crackAt" -> IntConstant(100),"null_data"-> IntConstant(0)) (
       //("CollapseSingleInserts")
       ("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
                                   scoreBy { ArraySize("data") })

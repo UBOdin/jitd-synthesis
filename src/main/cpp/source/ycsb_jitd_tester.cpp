@@ -167,7 +167,7 @@ int jitd_test(
       for(it = data.begin()+1;it != data.end();it++)
       {
         jitd->insert_singleton(*it);
-        jitd->after_insert_singleton(*it);
+        //jitd->after_insert_singleton(*it);
       }
 
     }
@@ -178,6 +178,14 @@ int jitd_test(
       //toks >> worker_sleep_time;
       threads.emplace_back(run_test_thread, std::ref(jitd), file, 0);
 
+    }
+    CASE("run_threads")
+    {
+      std::vector<std::thread>::iterator th;
+      for(th = threads.begin(); th < threads.end(); ++th){
+        th->join();
+      }
+      pthread_mutex_destroy(&(jitd->lock)); 
     }
     CASE("operation_data_ycsb")
     {
@@ -559,73 +567,7 @@ int jitd_test(
       }
       
     }
-    //   CASE("init") {
-    //   timeval start, end;
-    //   old_RecordBuffer data;
-    //   load_records(data, toks);
-    //   gettimeofday(&start, NULL);
-    //   //jitd = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
-    //   gettimeofday(&end, NULL);
-    //   std::cout << "Init JITD: " << total_time(start, end) << " us" << std::endl;
-    // } CASE("build") {
-    //   timeval start, end;
-    //   gettimeofday(&start, NULL);
-    //   jitd = assemble_jitd(input);
-    //   gettimeofday(&end, NULL);
-    //   std::cout << "Assemble JITD: " << total_time(start, end) << " us" << std::endl;
-    // } CASE("insert") {
-    //   timeval start, end;
-    //   old_RecordBuffer data;
-    //   load_records(data, toks);
-    //   gettimeofday(&start, NULL);
-    //   //jitd->insert(data);
-    //   gettimeofday(&end, NULL);
-    //   std::cout << "Insert into JITD: " << total_time(start, end) << " us" << std::endl;
-    // }CASE("insert-singleton") {
-    //   timeval start, end;
-    //   old_Record r;
-    //   std::string op;
-    //   toks >> op;
-    //   int count, min, max;
-    //   if(op == "random")
-    //   {
-        
-    //     std::cout<<"OP FOUND RANDOM"<<std::endl;
-    //     toks >> count >> min >> max;
-    //     std::cout<<"count"<<count<<"max"<<max<<"min"<<min<<std::endl;
-    //     int max_minus_min = max - min;
-    //     gettimeofday(&start, NULL);
-    //     for(int i = 0; i < count; i++){
-    //       r.key = (rand() % max_minus_min)+min;
-    //       r.value = (Value)0xDEADBEEF;
-    //       //jitd->insert_singleton(r);
-    //     } 
-    //     gettimeofday(&end, NULL);
-    //   }
-    //   //load_records_singleton(data, toks);
-    //   //gettimeofday(&start, NULL);
-    //   //jitd->insert_singleton(data);
-    //   //gettimeofday(&end, NULL);
-    //   std::cout << "Insert into JITD: " << total_time(start, end) << " us" << std::endl;
-    // } 
-    // CASE("remove_elements")
-    // {
-    //   timeval start, end;
-    //   old_RecordBuffer data;
-    //   load_records(data, toks);
-    //   gettimeofday(&start, NULL);
-    //   //jitd->remove_elements(data);
-    //   gettimeofday(&end, NULL);
-    //   std::cout << "Delete from JITD: " << total_time(start, end) << " us" << std::endl;
-    // }
-    //   CASE("remove") {
-    //   timeval start, end;
-    //   old_RecordBuffer data;
-    //   load_records(data, toks);
-    //   gettimeofday(&start, NULL);
-    //   //jitd->remove(data);
-    //   gettimeofday(&end, NULL);
-    //   std::cout << "Delete from JITD: " << total_time(start, end) << " us" << std::endl;
+    
 
     ///////////////// POLICY OPERATIONS /////////////////    
 
@@ -800,10 +742,7 @@ int jitd_test(
       
     ///////////////// OOOPS /////////////////
     }
-    // CASE("dump_with_set")
-    // {
-    //   jitd->print_nodes_with_ref();
-    // }
+    
     CASE("print_time_log")
     {
       jitd->print_time_vec();
@@ -812,21 +751,7 @@ int jitd_test(
     {
       jitd->print_search_time_vec();
     }
-    // CASE("print_timing")
-    // {
-    //   jitd->print_timing();
-    // } 
-    // CASE("print_set")
-    // {
-    //   std::cout<<"Printing Set:-"<<std::endl;
-    //   jitd->print_set_size();
-    // }
     
-    // CASE("check_set")
-    // {
-    //   std::cout<<"Checking set integrity: "<<std::endl;
-    //   jitd->check_set_intergrity();
-    // }
     CASE("check_pq")
     {
       std::cout<<"Checking PQ integrity: "<<std::endl;
@@ -837,18 +762,7 @@ int jitd_test(
       std::cout<<"Printing PQ:-"<<std::endl;
       jitd->print_pq_size();
     }
-    // CASE("make_set")
-    // {
-    //   //std::cout<<"calling make_set"<<std::endl;
-    //   jitd->make_set();
-
-    // }
-    // CASE("make_pq")
-    // {
-    //   //std::cout<<"calling make_set"<<std::endl;
-    //   jitd->make_pq();
-
-    // }
+   
     else {
       std::cerr << "Invalid Test Operation: " << op << std::endl;
       exit(-1);
@@ -860,11 +774,7 @@ int jitd_test(
   }
   gettimeofday(&global_end, NULL);
   
-  std::vector<std::thread>::iterator th;
-  for(th = threads.begin(); th < threads.end(); ++th){
-    th->join();
-  }
-  pthread_mutex_destroy(&(jitd->lock)); 
+  
   return total_time(global_start, global_end) / (1000*1000);
 }
 
