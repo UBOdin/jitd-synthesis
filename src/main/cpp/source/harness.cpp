@@ -17,8 +17,18 @@
 #include "harness.hpp"
 #include "conf.hpp"
 
+#define TIME_EACH_OP
+
 #ifdef STORAGE_SQLITE
 #include "sqlite3.h"
+#endif
+
+#ifdef STORAGE_JITD
+
+Record r;
+std::vector<Record> element;
+std::shared_ptr<JITD> jitd;
+
 #endif
 
 #ifdef STORAGE_UOMAP
@@ -110,29 +120,12 @@ void* create_storage() {
 
 	#ifdef STORAGE_JITD
 
-/*
-	std::shared_ptr<JITD> jitd;
-*/
-	std::vector<Record> data;
-	Record r;
-
-	// Init data template to push:
-	r.key = -9999999;  // dummy init key; will be popped later
+	r.key = 999999;
 //	r.value = (Value)0xDEADBEEF;
-	data.push_back(r);
+	element.push_back(r);
+	jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new ArrayNode(element)))));
 
-
-//TODO:  data was global
-//	std::shared_ptr<JITD> jitd_stack = std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
-//	std::shared_ptr<std::shared_ptr<JITDNode>> jitd_stack = std::shared_ptr<std::shared_ptr<JITDNode>>(new JITD(new ArrayNode(data)));
-
-	std::vector<Record> element;
-
-	std::shared_ptr<JITD> jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new ArrayNode(element)))));
-
-//	std::shared_ptr<JITD>* jitd = new std::shared_ptr<JITD>(new JITD(new ArrayNode(data)));
-
-	return (void*)jitd;
+	return NULL;
 
 	#endif
 
@@ -189,15 +182,17 @@ int get_data(void* storage, int nkeys, unsigned long* key_array) {
 
 	#ifdef STORAGE_JITD
 
-	std::shared_ptr<JITD> jitd = storage;
-	std::vector<Record> data;
-	Record r;
-	bool result;
+	unsigned long key;
+	int value = 0;
 
-	result = jitd->get(key, r);
+	for (int i = 0; i < nkeys; i++) {
+		key = key_array[i];
+		if (jitd->get(key, r) == true) {
+			value++;
+		}
+	}
 
-	// TODO:  switch to running sum
-	return result;
+	return value;
 
 	#endif
 
@@ -253,14 +248,10 @@ int put_data(void* storage, unsigned long key) {
 
 	#ifdef STORAGE_JITD
 
-	std::shared_ptr<JITD> jitd = storage;
-	std::vector<Record> data;
-	Record r;
-
 	r.key = key;
-	data.pop_back();
-	data.push_back(r);
-	jitd->insert(data);
+	element.pop_back();
+	element.push_back(r);
+	jitd->insert(element);
 
 	#endif
 
@@ -307,8 +298,10 @@ int remove_data(void* storage, unsigned long key) {
 
 	#ifdef STORAGE_JITD
 
-	printf("Remove unsupported on JITD\n");
-	_exit(1);
+	r.key = key;
+	element.pop_back();
+	element.push_back(r);
+	jitd->remove_elements(element);
 
 	#endif
 
@@ -335,6 +328,20 @@ int upsert_data(void* storage, unsigned long key) {
 
 	bool result;
 
+	#ifdef STORAGE_JITD
+
+	result = jitd->get(key, r);
+	if (result == true) {
+		// (change value)
+	} else {
+		r.key = key;
+		element.pop_back();
+		element.push_back(r);
+		jitd->insert(element);
+	}
+
+	#endif
+
 	#ifdef STORAGE_UOMAP
 
 	std::unordered_map<UOM_TYPE>* umap = (std::unordered_map<UOM_TYPE>*)storage;
@@ -342,8 +349,6 @@ int upsert_data(void* storage, unsigned long key) {
 	(*umap)[key] = 9999;
 
 	#endif
-
-//printf("Upsert on line %d:  key = %ld\n", i, key);
 
 	return 0;
 
@@ -522,8 +527,8 @@ int jitd_harness() {
 	while (true) {
 
 
-		if ((i % 100) == 0) {
-//			printf("Iteration:  %d\n", i);
+		if ((i % 1000) == 0) {
+			printf("Iteration:  %d\n", i);
 //			break;
 		}
 
@@ -533,7 +538,9 @@ int jitd_harness() {
 		key = benchmark_array[i].key;
 
 		// Benchmark next operation:
+		#ifdef TIME_EACH_OP
 		time_start = gettime_us();
+		#endif
 		if (optype == STOP) {
 			break;
 		}
@@ -554,7 +561,9 @@ int jitd_harness() {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
 		}
+		#ifdef TIME_EACH_OP
 		time_delta = gettime_us() - time_start;
+		#endif
 
 		// Save out operation time:
 		if (i >= output_size) {
@@ -574,15 +583,11 @@ int jitd_harness() {
 			break;
 		}
 
+		#ifdef TIME_EACH_OP
+
 		// Get start time of the next operation:
 		time_next = time_base + (benchmark_array[i].time * 1000000);
 		time_now = gettime_us();
-
-		#ifdef STORAGE_JITD
-
-		// background thread
-
-		#endif
 
 		// If we have not yet reached the next start time, block until then:
 		if (time_now < time_next) {
@@ -590,10 +595,13 @@ int jitd_harness() {
 //			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 		}
 
+		#endif
+
 	}
 
 	gettimeofday(&end, NULL);
 	std::cout << "Total runtime: " << total_time(start, end) << " us" << std::endl;
+	std::cout << "In seconds:  " << total_time(start, end) / 1000000.0 << std::endl;
 
 	// Failsafe:  if input < output:
 	if (i < output_size) {
