@@ -499,8 +499,6 @@ int jitd_harness() {
 	long time_delta;
 	long time_now;
 	long time_start;
-	int break_overrun = 0;
-	int break_no_work = 0;
 
 	#ifdef STORAGE_SQLITE
 	printf("Using SQLite storage\n");
@@ -626,7 +624,6 @@ int jitd_harness() {
 
 	printf("Result:  %d\n", result);
 	printf("End base time:  %ld\n", time_base);
-	printf("Overrun:  %d -- Ran out of work:  %d\n", break_overrun, break_no_work);
 	printf("End\n");
 	return 0;
 
