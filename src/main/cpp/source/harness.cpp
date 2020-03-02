@@ -85,6 +85,8 @@ void __errtrap(int result, const char* error, int line) {
 
 void* create_storage() {
 
+	struct operation_node node;
+	int i = 0;
 
 	#ifdef STORAGE_SQLITE
 
@@ -126,12 +128,22 @@ void* create_storage() {
 
 	#ifdef STORAGE_JITD
 
-// TODO:  change to bulk populate
 	struct storage_jitd_struct* storage_jitd = new storage_jitd_struct();
 
-	storage_jitd->r.key = 999999;
-//	storage_jitd->r.value = (Value)0xDEADBEEF;
-	storage_jitd->element.push_back(storage_jitd->r);
+	while (true) {
+		node = initialize_array[i];
+		if (node.type == STOP) {
+			break;
+		}
+		if (node.type != INSERT) {
+			printf("Error:  expected Insert\n");
+			_exit(1);
+		}
+		storage_jitd->r.key = node.key;
+		storage_jitd->r.value = NULL;
+		storage_jitd->element.push_back(storage_jitd->r);
+		i++;
+	}
 	storage_jitd->jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new ArrayNode(storage_jitd->element)))));
 
 	return storage_jitd;
@@ -141,6 +153,21 @@ void* create_storage() {
 	#ifdef STORAGE_UOMAP
 
 	struct storage_uomap_struct* storage_uomap = new storage_uomap_struct();
+
+	while (true) {
+		node = initialize_array[i];
+		if (node.type == STOP) {
+			break;
+		}
+		if (node.type != INSERT) {
+			printf("Error:  expected Insert\n");
+			_exit(1);
+		}
+		storage_uomap->data_pair.first = node.key;
+		storage_uomap->data_pair.second = 9999;
+		storage_uomap->umap.insert(storage_uomap->data_pair);
+		i++;
+	}
 
 	return storage_uomap;
 
@@ -365,31 +392,6 @@ int upsert_data(void* storage, unsigned long key) {
 }
 
 
-int populate_storage(void* storage) {
-
-	struct operation_node node;
-	int i;
-
-	printf("Initializing data structure\n");
-	i = 0;
-	while (true) {
-		node = initialize_array[i];
-		if (node.type == STOP) {
-			break;
-		}
-		if (node.type != INSERT) {
-			printf("Error:  expected Insert\n");
-			_exit(1);
-		}
-		put_data(storage, node.key);
-		i++;
-	}
-	printf("Finished\n");
-	return 0;
-
-}
-
-
 int test_struct(void* storage) {
 
 	struct operation_node node;
@@ -507,10 +509,10 @@ int jitd_harness() {
 	#ifdef STORAGE_UOMAP
 	printf("Using UOMap storage\n");
 	#endif
-	// Initialize bare storage structure:
+	// Initialize and populate structure:
+	printf("Creating and initializing data structure\n");
 	storage = create_storage();
-	// Pre-populate structure with existing keys:
-	populate_storage(storage);
+	printf("Finished\n");
 	// Basic structural integrity check:
 //	test_struct(storage);
 	// Block :30 to stabilize system:
