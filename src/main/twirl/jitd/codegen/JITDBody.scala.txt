@@ -54,11 +54,32 @@ std::vector<float> search_time_vec_DeleteElemFromArray;
 ///////////////////// Policy Implementation ///////////////////// 
 
 @ctx.policyImplementation.utilityFunctions(ctx)
+int JITD::organize_wait()
+{
+  
+    int t = 0;
+    std::unique_lock<std::mutex> lck(this->exit_mtx);
+    timeval start, end;
+    while(this->exit_flag != true)
+       {
+
+          std::cout<<"Entered While"<<std::endl;
+          t += this->organize_process();
+          this->exit_cv.wait(lck);
+
+          //this->exit_cv.wait(lck,std::bind(&JITD::organize_process,this));
+          
+       } 
+   
+       
+  return t;
+}
 int JITD::organize_process()
 {
       
       bool not_done = true;
       int steps_taken = 0;
+      
       while(not_done || !this->common_cq.empty())
       {
        
@@ -86,6 +107,7 @@ int JITD::organize_process()
        }
        
       }
+     
   return steps_taken;    
 }
 bool JITD::do_organize()
