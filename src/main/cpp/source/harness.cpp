@@ -1,5 +1,4 @@
 
-#include <memory>
 #include <thread>
 
 #include <errno.h>
@@ -17,34 +16,40 @@
 #include "harness.hpp"
 #include "conf.hpp"
 
-#ifdef STORAGE_SQLITE
-#include "sqlite3.h"
-#endif
-
-#ifdef STORAGE_UOMAP
-#include <unordered_map>
-#endif
-
 #define TIME_EACH_OP
 
 #ifdef STORAGE_SQLITE
-#define STMT_BUFLEN 2048
-#endif
 
-#ifdef STORAGE_UOMAP
-#define UOM_TYPE long, int
+#include "sqlite3.h"
+
+#define STMT_BUFLEN 2048
+
 #endif
 
 #ifdef STORAGE_JITD
+
 struct storage_jitd_struct {
 	Record r;
 	std::vector<Record> element;
 	std::shared_ptr<JITD> jitd;
 };
+
 #endif
 
+#ifdef STORAGE_UOMAP
 
-// N.b. struct Record.key -- long int; Record.value -- void*
+#include <unordered_map>
+
+#define UOM_TYPE long, int
+
+struct storage_uomap_struct {
+	std::unordered_map<UOM_TYPE>::iterator key_iter;
+	std::unordered_map<UOM_TYPE>::iterator end_iter;
+	std::pair<UOM_TYPE> data_pair;
+	std::unordered_map<UOM_TYPE> umap;
+};
+
+#endif
 
 
 long gettime_us() {
@@ -121,7 +126,8 @@ void* create_storage() {
 
 	#ifdef STORAGE_JITD
 
-	struct storage_jitd_struct* storage_jitd = (struct storage_jitd_struct*)malloc(sizeof(struct storage_jitd_struct));
+// TODO:  change to bulk populate
+	struct storage_jitd_struct* storage_jitd = new storage_jitd_struct();
 
 	storage_jitd->r.key = 999999;
 //	storage_jitd->r.value = (Value)0xDEADBEEF;
@@ -134,19 +140,19 @@ void* create_storage() {
 
 	#ifdef STORAGE_UOMAP
 
-	std::unordered_map<long, std::string*>* umap = new std::unordered_map<long, std::string*>();
+	struct storage_uomap_struct* storage_uomap = new storage_uomap_struct();
 
-	return (void*)umap;
+	return storage_uomap;
 
 	#endif
-
-	return 0;
 
 }
 
 
 int get_data(void* storage, int nkeys, unsigned long* key_array) {
 
+	unsigned long key;
+	int value = 0;
 
 	#ifdef STORAGE_SQLITE
 
@@ -185,8 +191,6 @@ int get_data(void* storage, int nkeys, unsigned long* key_array) {
 
 	#ifdef STORAGE_JITD
 
-	unsigned long key;
-	int value = 0;
 	struct storage_jitd_struct* storage_jitd = (struct storage_jitd_struct*)storage;
 
 	for (int i = 0; i < nkeys; i++) {
@@ -196,30 +200,24 @@ int get_data(void* storage, int nkeys, unsigned long* key_array) {
 		}
 	}
 
-	return value;
-
 	#endif
 
 	#ifdef STORAGE_UOMAP
 
-	std::unordered_map<UOM_TYPE>* umap = (std::unordered_map<UOM_TYPE>*)storage;
-	std::unordered_map<UOM_TYPE>::iterator key_iter;
-	std::unordered_map<UOM_TYPE>::iterator end_iter;
+	struct storage_uomap_struct* storage_uomap = (struct storage_uomap_struct*)storage;
 
-	unsigned long key;
-	int value;
-
+	storage_uomap->end_iter = storage_uomap->umap.end();
 	for (int i = 0; i < nkeys; i++) {
 		key = key_array[i];
-		key_iter = umap->find(key);
-		if (key_iter != umap->end()) {
-			value = key_iter->second;
+		storage_uomap->key_iter = storage_uomap->umap.find(key);
+		if (storage_uomap->key_iter != storage_uomap->end_iter) {
+			value += storage_uomap->key_iter->second;
 		}
 	}
 
-	return value;
-
 	#endif
+
+	return value;
 
 }
 
@@ -264,13 +262,12 @@ int put_data(void* storage, unsigned long key) {
 
 	#ifdef STORAGE_UOMAP
 
-	std::unordered_map<UOM_TYPE>* umap = (std::unordered_map<UOM_TYPE>*)storage;
+	struct storage_uomap_struct* storage_uomap = (struct storage_uomap_struct*)storage;
 
-	std::pair<UOM_TYPE> data_pair;
-	data_pair.first = key;
-	data_pair.second = 9999;
+	storage_uomap->data_pair.first = key;
+	storage_uomap->data_pair.second = 9999;
 
-	umap->insert(data_pair);
+	storage_uomap->umap.insert(storage_uomap->data_pair);
 
 	#endif
 
@@ -317,8 +314,9 @@ int remove_data(void* storage, unsigned long key) {
 
 	#ifdef STORAGE_UOMAP
 
-	std::unordered_map<UOM_TYPE>* umap = (std::unordered_map<UOM_TYPE>*)storage;
-	umap->erase(key);
+	struct storage_uomap_struct* storage_uomap = (struct storage_uomap_struct*)storage;
+
+	storage_uomap->umap.erase(key);
 
 	#endif
 
@@ -356,9 +354,9 @@ int upsert_data(void* storage, unsigned long key) {
 
 	#ifdef STORAGE_UOMAP
 
-	std::unordered_map<UOM_TYPE>* umap = (std::unordered_map<UOM_TYPE>*)storage;
+	struct storage_uomap_struct* storage_uomap = (struct storage_uomap_struct*)storage;
 
-	(*umap)[key] = 9999;
+	storage_uomap->umap[key] = 9999;
 
 	#endif
 
