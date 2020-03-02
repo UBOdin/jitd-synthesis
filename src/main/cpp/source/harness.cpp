@@ -17,23 +17,15 @@
 #include "harness.hpp"
 #include "conf.hpp"
 
-#define TIME_EACH_OP
-
 #ifdef STORAGE_SQLITE
 #include "sqlite3.h"
-#endif
-
-#ifdef STORAGE_JITD
-
-Record r;
-std::vector<Record> element;
-std::shared_ptr<JITD> jitd;
-
 #endif
 
 #ifdef STORAGE_UOMAP
 #include <unordered_map>
 #endif
+
+#define TIME_EACH_OP
 
 #ifdef STORAGE_SQLITE
 #define STMT_BUFLEN 2048
@@ -42,6 +34,15 @@ std::shared_ptr<JITD> jitd;
 #ifdef STORAGE_UOMAP
 #define UOM_TYPE long, int
 #endif
+
+#ifdef STORAGE_JITD
+struct storage_jitd_struct {
+	Record r;
+	std::vector<Record> element;
+	std::shared_ptr<JITD> jitd;
+};
+#endif
+
 
 // N.b. struct Record.key -- long int; Record.value -- void*
 
@@ -120,12 +121,14 @@ void* create_storage() {
 
 	#ifdef STORAGE_JITD
 
-	r.key = 999999;
-//	r.value = (Value)0xDEADBEEF;
-	element.push_back(r);
-	jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new ArrayNode(element)))));
+	struct storage_jitd_struct* storage_jitd = (struct storage_jitd_struct*)malloc(sizeof(struct storage_jitd_struct));
 
-	return NULL;
+	storage_jitd->r.key = 999999;
+//	storage_jitd->r.value = (Value)0xDEADBEEF;
+	storage_jitd->element.push_back(storage_jitd->r);
+	storage_jitd->jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new ArrayNode(storage_jitd->element)))));
+
+	return storage_jitd;
 
 	#endif
 
@@ -184,10 +187,11 @@ int get_data(void* storage, int nkeys, unsigned long* key_array) {
 
 	unsigned long key;
 	int value = 0;
+	struct storage_jitd_struct* storage_jitd = (struct storage_jitd_struct*)storage;
 
 	for (int i = 0; i < nkeys; i++) {
 		key = key_array[i];
-		if (jitd->get(key, r) == true) {
+		if (storage_jitd->jitd->get(key, storage_jitd->r) == true) {
 			value++;
 		}
 	}
@@ -248,10 +252,13 @@ int put_data(void* storage, unsigned long key) {
 
 	#ifdef STORAGE_JITD
 
-	r.key = key;
-	element.pop_back();
-	element.push_back(r);
-	jitd->insert(element);
+	struct storage_jitd_struct* storage_jitd = (struct storage_jitd_struct*)storage;
+
+	storage_jitd->r.key = key;
+	storage_jitd->r.value = NULL;
+	storage_jitd->element.clear();
+	storage_jitd->element.push_back(storage_jitd->r);
+	storage_jitd->jitd->insert(storage_jitd->element);
 
 	#endif
 
@@ -298,10 +305,13 @@ int remove_data(void* storage, unsigned long key) {
 
 	#ifdef STORAGE_JITD
 
-	r.key = key;
-	element.pop_back();
-	element.push_back(r);
-	jitd->remove_elements(element);
+	struct storage_jitd_struct* storage_jitd = (struct storage_jitd_struct*)storage;
+
+	storage_jitd->r.key = key;
+	storage_jitd->r.value = NULL;
+	storage_jitd->element.clear();
+	storage_jitd->element.push_back(storage_jitd->r);
+	storage_jitd->jitd->remove_elements(storage_jitd->element);
 
 	#endif
 
@@ -330,15 +340,17 @@ int upsert_data(void* storage, unsigned long key) {
 
 	#ifdef STORAGE_JITD
 
-	result = jitd->get(key, r);
+	struct storage_jitd_struct* storage_jitd = (struct storage_jitd_struct*)storage;
+
+	result = storage_jitd->jitd->get(key, storage_jitd->r);
+	storage_jitd->r.key = key;
+	storage_jitd->r.value = NULL;
+	storage_jitd->element.clear();
+	storage_jitd->element.push_back(storage_jitd->r);
 	if (result == true) {
-		// (change value)
-	} else {
-		r.key = key;
-		element.pop_back();
-		element.push_back(r);
-		jitd->insert(element);
+		storage_jitd->jitd->remove_elements(storage_jitd->element);
 	}
+	storage_jitd->jitd->insert(storage_jitd->element);
 
 	#endif
 
