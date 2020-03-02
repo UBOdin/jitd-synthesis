@@ -200,7 +200,7 @@ int jitd_client_op(
   return total_time(global_start, global_end) / (1000*1000);
 }
 
-void run_client_thread(std::shared_ptr<JITD> jitd, std::string file, int per_op_sleep_ms)
+void client_thread(std::shared_ptr<JITD> jitd, std::string file, int per_op_sleep_ms)
 {
   std::ifstream in(file);
   timeval start, end;
@@ -284,7 +284,7 @@ int jitd_test(
     CASE("spawn") {
       std::string file;
       toks >> file; 
-      threads.emplace_back(run_client_thread, std::ref(jitd), file, 0);
+      threads.emplace_back(client_thread, std::ref(jitd), file, 0);
 
     }
     CASE("run_threads")
