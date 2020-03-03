@@ -15,8 +15,8 @@
 #include <sys/time.h>
 #include <pthread.h>
 #include "tbb/concurrent_queue.h" 
-
-
+#include <condition_variable>
+#include<mutex>
 @for(include <- ctx.definition.includes) { 
 #include "@include"
 }
@@ -119,6 +119,10 @@ class JITD {
   public:
     pthread_mutex_t lock;
 
+    std::mutex exit_mtx;
+    std::condition_variable exit_cv;
+    bool exit_flag = false;
+
     @{RenderPattern.ComparatorClass(ctx,ctx.policy.rule);}
     @{RenderPattern.SetPqDeclare(ctx,ctx.policy.rule,true);}
     
@@ -129,6 +133,7 @@ class JITD {
         std::cerr<<"\n mutex init has failed\n"<<std::endl; 
         exit(-1);
       }
+
       @ctx.policyImplementation.init(ctx,ctx.policy.rule,"(*(this->jitd_root))")
     }
     
@@ -156,6 +161,7 @@ class JITD {
     void print_debug() {print_JITD_node_structure(*jitd_root, std::string("")); }
     bool do_organize();
     int organize_process();
+    int organize_wait();
     void check_pq_intergrity(){check_pq();};
     void print_pq_size() {print_pq();}
     
