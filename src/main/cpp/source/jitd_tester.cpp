@@ -583,10 +583,6 @@ int jitd_test(
 
 int main(int argc, char **argv)
 {
-
-  jitd_harness();
-  return 0;
-
   std::istream *src;
   std::shared_ptr<JITD> jitd;
   int i, t = 0;
