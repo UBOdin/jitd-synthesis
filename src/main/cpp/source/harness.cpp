@@ -28,6 +28,8 @@
 
 #ifdef STORAGE_JITD
 
+#define STORAGE_HANDLE struct storage_jitd_struct*
+
 struct storage_jitd_struct {
 	Record r;
 	std::vector<Record> element;
@@ -41,6 +43,7 @@ struct storage_jitd_struct {
 #include <unordered_map>
 
 #define UOM_TYPE long, int
+#define STORAGE_HANDLE struct storage_uomap_struct*
 
 struct storage_uomap_struct {
 	std::unordered_map<UOM_TYPE>::iterator key_iter;
@@ -83,7 +86,7 @@ void __errtrap(int result, const char* error, int line) {
 }
 
 
-void* create_storage() {
+STORAGE_HANDLE create_storage() {
 
 	struct operation_node node;
 	int i = 0;
@@ -128,7 +131,7 @@ void* create_storage() {
 
 	#ifdef STORAGE_JITD
 
-	struct storage_jitd_struct* storage_jitd = new storage_jitd_struct();
+	STORAGE_HANDLE storage = new storage_jitd_struct();
 
 	while (true) {
 		node = initialize_array[i];
@@ -139,20 +142,20 @@ void* create_storage() {
 			printf("Error:  expected Insert\n");
 			_exit(1);
 		}
-		storage_jitd->r.key = node.key;
-		storage_jitd->r.value = NULL;
-		storage_jitd->element.push_back(storage_jitd->r);
+		storage->r.key = node.key;
+		storage->r.value = NULL;
+		storage->element.push_back(storage->r);
 		i++;
 	}
-	storage_jitd->jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new ArrayNode(storage_jitd->element)))));
+	storage->jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new ArrayNode(storage->element)))));
 
-	return storage_jitd;
+	return storage;
 
 	#endif
 
 	#ifdef STORAGE_UOMAP
 
-	struct storage_uomap_struct* storage_uomap = new storage_uomap_struct();
+	STORAGE_HANDLE storage = new storage_uomap_struct();
 
 	while (true) {
 		node = initialize_array[i];
@@ -163,20 +166,20 @@ void* create_storage() {
 			printf("Error:  expected Insert\n");
 			_exit(1);
 		}
-		storage_uomap->data_pair.first = node.key;
-		storage_uomap->data_pair.second = 9999;
-		storage_uomap->umap.insert(storage_uomap->data_pair);
+		storage->data_pair.first = node.key;
+		storage->data_pair.second = 9999;
+		storage->umap.insert(storage->data_pair);
 		i++;
 	}
 
-	return storage_uomap;
+	return storage;
 
 	#endif
 
 }
 
 
-int get_data(void* storage, int nkeys, unsigned long* key_array) {
+int get_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
 
 	unsigned long key;
 	int value = 0;
@@ -218,11 +221,9 @@ int get_data(void* storage, int nkeys, unsigned long* key_array) {
 
 	#ifdef STORAGE_JITD
 
-	struct storage_jitd_struct* storage_jitd = (struct storage_jitd_struct*)storage;
-
 	for (int i = 0; i < nkeys; i++) {
 		key = key_array[i];
-		if (storage_jitd->jitd->get(key, storage_jitd->r) == true) {
+		if (storage->jitd->get(key, storage->r) == true) {
 			value++;
 		}
 	}
@@ -231,14 +232,12 @@ int get_data(void* storage, int nkeys, unsigned long* key_array) {
 
 	#ifdef STORAGE_UOMAP
 
-	struct storage_uomap_struct* storage_uomap = (struct storage_uomap_struct*)storage;
-
-	storage_uomap->end_iter = storage_uomap->umap.end();
+	storage->end_iter = storage->umap.end();
 	for (int i = 0; i < nkeys; i++) {
 		key = key_array[i];
-		storage_uomap->key_iter = storage_uomap->umap.find(key);
-		if (storage_uomap->key_iter != storage_uomap->end_iter) {
-			value += storage_uomap->key_iter->second;
+		storage->key_iter = storage->umap.find(key);
+		if (storage->key_iter != storage->end_iter) {
+			value += storage->key_iter->second;
 		}
 	}
 
@@ -249,7 +248,7 @@ int get_data(void* storage, int nkeys, unsigned long* key_array) {
 }
 
 
-int put_data(void* storage, unsigned long key) {
+int put_data(STORAGE_HANDLE storage, unsigned long key) {
 
 	#ifdef STORAGE_SQLITE
 
@@ -277,24 +276,20 @@ int put_data(void* storage, unsigned long key) {
 
 	#ifdef STORAGE_JITD
 
-	struct storage_jitd_struct* storage_jitd = (struct storage_jitd_struct*)storage;
-
-	storage_jitd->r.key = key;
-	storage_jitd->r.value = NULL;
-	storage_jitd->element.clear();
-	storage_jitd->element.push_back(storage_jitd->r);
-	storage_jitd->jitd->insert(storage_jitd->element);
+	storage->r.key = key;
+	storage->r.value = NULL;
+	storage->element.clear();
+	storage->element.push_back(storage->r);
+	storage->jitd->insert(storage->element);
 
 	#endif
 
 	#ifdef STORAGE_UOMAP
 
-	struct storage_uomap_struct* storage_uomap = (struct storage_uomap_struct*)storage;
+	storage->data_pair.first = key;
+	storage->data_pair.second = 9999;
 
-	storage_uomap->data_pair.first = key;
-	storage_uomap->data_pair.second = 9999;
-
-	storage_uomap->umap.insert(storage_uomap->data_pair);
+	storage->umap.insert(storage->data_pair);
 
 	#endif
 
@@ -303,7 +298,7 @@ int put_data(void* storage, unsigned long key) {
 }
 
 
-int remove_data(void* storage, unsigned long key) {
+int remove_data(STORAGE_HANDLE storage, unsigned long key) {
 
 	#ifdef STORAGE_SQLITE
 
@@ -329,21 +324,17 @@ int remove_data(void* storage, unsigned long key) {
 
 	#ifdef STORAGE_JITD
 
-	struct storage_jitd_struct* storage_jitd = (struct storage_jitd_struct*)storage;
-
-	storage_jitd->r.key = key;
-	storage_jitd->r.value = NULL;
-	storage_jitd->element.clear();
-	storage_jitd->element.push_back(storage_jitd->r);
-	storage_jitd->jitd->remove_elements(storage_jitd->element);
+	storage->r.key = key;
+	storage->r.value = NULL;
+	storage->element.clear();
+	storage->element.push_back(storage->r);
+	storage->jitd->remove_elements(storage->element);
 
 	#endif
 
 	#ifdef STORAGE_UOMAP
 
-	struct storage_uomap_struct* storage_uomap = (struct storage_uomap_struct*)storage;
-
-	storage_uomap->umap.erase(key);
+	storage->umap.erase(key);
 
 	#endif
 
@@ -352,38 +343,34 @@ int remove_data(void* storage, unsigned long key) {
 }
 
 
-int update_data(void* storage, unsigned long key) {
+int update_data(STORAGE_HANDLE storage, unsigned long key) {
 
 	return 0;
 
 }
 
 
-int upsert_data(void* storage, unsigned long key) {
+int upsert_data(STORAGE_HANDLE storage, unsigned long key) {
 
 	bool result;
 
 	#ifdef STORAGE_JITD
 
-	struct storage_jitd_struct* storage_jitd = (struct storage_jitd_struct*)storage;
-
-	result = storage_jitd->jitd->get(key, storage_jitd->r);
-	storage_jitd->r.key = key;
-	storage_jitd->r.value = NULL;
-	storage_jitd->element.clear();
-	storage_jitd->element.push_back(storage_jitd->r);
+	result = storage->jitd->get(key, storage->r);
+	storage->r.key = key;
+	storage->r.value = NULL;
+	storage->element.clear();
+	storage->element.push_back(storage->r);
 	if (result == true) {
-		storage_jitd->jitd->remove_elements(storage_jitd->element);
+		storage->jitd->remove_elements(storage->element);
 	}
-	storage_jitd->jitd->insert(storage_jitd->element);
+	storage->jitd->insert(storage->element);
 
 	#endif
 
 	#ifdef STORAGE_UOMAP
 
-	struct storage_uomap_struct* storage_uomap = (struct storage_uomap_struct*)storage;
-
-	storage_uomap->umap[key] = 9999;
+	storage->umap[key] = 9999;
 
 	#endif
 
@@ -392,7 +379,7 @@ int upsert_data(void* storage, unsigned long key) {
 }
 
 
-int test_struct(void* storage) {
+int test_struct(STORAGE_HANDLE storage) {
 
 	struct operation_node node;
 	int i;
@@ -482,7 +469,7 @@ int save_output() {
 
 int jitd_harness() {
 
-	void* storage;
+	STORAGE_HANDLE storage;
 	timeval start;
 	timeval end;
 	int ms;
