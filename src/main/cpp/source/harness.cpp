@@ -467,7 +467,24 @@ int save_output() {
 }
 
 
-int jitd_harness() {
+#ifdef STORAGE_JITD
+void run_worker_thread(STORAGE_HANDLE storage) {
+
+	int steps_taken;
+	uintptr_t tid;
+
+	tid = pthread_self();
+	printf("Worker thread starting:  TID = %p\n", (void*)tid);
+	steps_taken = storage->jitd->organize_wait();
+	printf("Worker thread exiting.  Steps taken:  %d\n", steps_taken);
+
+	return;
+
+}
+#endif
+
+
+int main() {
 
 	STORAGE_HANDLE storage;
 	timeval start;
@@ -512,6 +529,11 @@ int jitd_harness() {
 	}
 	printf("wait sum:  %f\n", sum);
 */
+
+	#ifdef STORAGE_JITD
+	// Kick off background worker thread:
+	std::thread worker_thread(run_worker_thread, storage);
+	#endif
 
 	printf("Starting operations\n");
 	gettimeofday(&start, NULL);
@@ -609,6 +631,18 @@ int jitd_harness() {
 	sqlite3_close((sqlite3*)storage);
 	#endif
 
+	#ifdef STORAGE_JITD
+	// Wakeup worker thread and get thread metadata:
+	printf("Waking worker thread\n");
+	storage->jitd->exit_mtx.lock();
+	storage->jitd->exit_flag = true;
+	storage->jitd->exit_cv.notify_all();
+	storage->jitd->exit_mtx.unlock();
+	printf("Blocking on worker thread exit\n");
+	worker_thread.join();
+	printf("Worker thread exited\n");
+	#endif
+
 	printf("Result:  %d\n", result);
 	printf("End base time:  %ld\n", time_base);
 	printf("End\n");
@@ -616,10 +650,4 @@ int jitd_harness() {
 
 }
 
-
-int main() {
-
-	return jitd_harness();
-
-}
 
