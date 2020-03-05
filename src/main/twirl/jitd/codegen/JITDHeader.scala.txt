@@ -47,6 +47,7 @@ class JITDNode {
 };
 
 typedef std::function<void(std::shared_ptr<JITDNode> &new_node)> UpdateHandle;
+
 struct mutatorCqElement{
   int flag;
   std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> element;
@@ -119,9 +120,9 @@ class JITD {
   public:
     pthread_mutex_t lock;
 
-    std::mutex exit_mtx;
-    std::condition_variable exit_cv;
-    bool exit_flag = false;
+    //std::mutex exit_mtx;
+    //std::condition_variable exit_cv;
+    //bool exit_flag = false;
 
     @{RenderPattern.ComparatorClass(ctx,ctx.policy.rule);}
     @{RenderPattern.SetPqDeclare(ctx,ctx.policy.rule,true);}
@@ -162,6 +163,7 @@ class JITD {
     bool do_organize();
     int organize_process();
     int organize_wait();
+    void process_cq(mutatorCqElement &pop_mce);
     void check_pq_intergrity(){check_pq();};
     void print_pq_size() {print_pq();}
     

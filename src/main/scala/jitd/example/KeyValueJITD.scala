@@ -343,7 +343,7 @@ Transform("CollapseSingleInserts") {
      //andThen "MergeDeleteNodes"
      //andThen ("PushDownDontDeleteBtree"            scoreBy { ArraySize("data") })
      //andThen ("DeleteFromSortedArray" scoreBy{ArraySize("data2")})
-     //andThen("PushDownAndCrack" scoreBy { ArraySize("data") })
+     andThen("PushDownAndCrack" scoreBy { ArraySize("data") })
      //andThen("SortArray"        scoreBy { ArraySize("data") })
      //andThen "MergeSortedConcat"
      //andThen ("DeleteElemFromSortedArray" scoreBy{ArraySize("data2")})

@@ -33,7 +33,7 @@ object MutatorToFunction
     val falg_setter = if(mutator.name contains "insert"){Void(Var("mce.flag = 0"))}else{Void(Var("mce.flag = 1"))}
     val common_cq_element_declare = Void(Var("mutatorCqElement mce"))
     val common_cq_element_assign = Void(Var("mce.element = std::make_pair((jitd_root),(new_root_ptr))"))
-    val common_cq_populate = Void(Var("this->common_cq.try_push(mce)"))
+    val common_cq_populate = Void(Var("this->common_cq.push(mce)"))
     
     //val cq_populate = Void(Var("this->"+mutator.name+"_cq.push(cq_elem)"))
     definition.typechecker.check("&(*jitd_root)" -> THandleRef(), "(*jitd_root)" -> TNodeRef()) {

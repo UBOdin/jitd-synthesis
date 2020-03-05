@@ -54,22 +54,56 @@ std::vector<float> search_time_vec_DeleteElemFromArray;
 ///////////////////// Policy Implementation ///////////////////// 
 
 @ctx.policyImplementation.utilityFunctions(ctx)
+void JITD::process_cq(mutatorCqElement &pop_mce)
+{
+      if(pop_mce.flag == 0)
+          {
+            this->after_insert(pop_mce.element);
+          }
+      else if(pop_mce.flag == 1)
+          {
+            this->after_remove_elements(pop_mce.element);
+          }
+      else
+          {
+            std::cerr<<"Invalid Mutator Operation"<<std::endl;
+            
+          }
+   
+}
 int JITD::organize_wait()
 {
   
     int t = 0;
-    std::unique_lock<std::mutex> lck(this->exit_mtx);
-    timeval start, end;
-    while(this->exit_flag != true)
-       {
-
-          std::cout<<"Entered While"<<std::endl;
-          t += this->organize_process();
-          this->exit_cv.wait(lck);
-
-          //this->exit_cv.wait(lck,std::bind(&JITD::organize_process,this));
+   
+    bool not_done = true;
+    while(true)
+    {
+      if(this->common_cq.empty() && not_done == true)
+      {
+        not_done = this->do_organize();
+        t++;
+      }
+      else
+      {
+        mutatorCqElement pop_mce;
+        this->common_cq.pop(pop_mce);
+        if(pop_mce.flag == 2)
+        {
           
-       } 
+          return t;
+        }
+        else
+        {
+          this->process_cq(pop_mce);
+          not_done = true;
+          
+        }
+      }
+      
+    
+    }   
+    
    
        
   return t;

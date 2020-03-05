@@ -187,6 +187,12 @@ int jitd_client_op(
       gettimeofday(&end, NULL);
       std::cout << "Delete from JITD: " << total_time(start, end) << " us" << std::endl;
     }
+    CASE("sleep") {
+      int ms;
+      toks >> ms;
+      std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+      
+    }
     
     else {
       std::cerr << "Invalid Test Operation: " << op << std::endl;
@@ -202,6 +208,9 @@ int jitd_client_op(
 
 void client_thread(std::shared_ptr<JITD> jitd, std::string file, int per_op_sleep_ms)
 {
+  std::cout<<"1....."<<std::endl;
+  jitd->print_debug();
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   std::ifstream in(file);
   timeval start, end;
   int t = 0;
@@ -210,16 +219,23 @@ void client_thread(std::shared_ptr<JITD> jitd, std::string file, int per_op_slee
   t = jitd_client_op(jitd, in, false, per_op_sleep_ms);
   gettimeofday(&end, NULL);
   std::cout << "Time[" << file << "]: " << t << " s" << std::endl;
-
+  std::cout<<"2....."<<std::endl;
+  jitd->print_debug();
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  std::cout<<"3....."<<std::endl;
+  jitd->print_debug();
+  mutatorCqElement mce;
+  mce.flag = 2;
+  jitd->common_cq.push(mce);
   //Test: do_organize gets called until exit_flag is set.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  jitd->exit_cv.notify_all();
-  std::cout<<"Notified dont exit"<<std::endl;
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  std::unique_lock<std::mutex> lck(jitd->exit_mtx);
-  jitd->exit_flag = true;
-  jitd->exit_cv.notify_all();
-  std::cout<<"Notified exit"<<std::endl;
+   
+  // jitd->exit_cv.notify_all();
+  // std::cout<<"Notified dont exit"<<std::endl;
+  // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // std::unique_lock<std::mutex> lck(jitd->exit_mtx);
+  // jitd->exit_flag = true;
+  // jitd->exit_cv.notify_all();
+  // std::cout<<"Notified exit"<<std::endl;
   //jitd->print_debug();
   
 }
@@ -239,8 +255,9 @@ void background_thread(std::shared_ptr<JITD> jitd)
        // } 
        steps_taken = jitd->organize_wait();
        gettimeofday(&end, NULL);
-       //jitd->print_debug();
+       
        std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end)  << " us" <<  std::endl; 
+       //jitd->print_debug();
        // while(jitd->exit_flag != true)
        // {
        //  jitd->cv.wait(lck);
@@ -297,9 +314,12 @@ int jitd_test(
     }
     CASE("run_background_organize")
     {
-     
-     
+      // mutatorCqElement start;
+      // start.flag = 2;
+      // jitd->common_cq.push(start);
       threads.emplace_back(background_thread,std::ref(jitd));
+
+      
       // std::thread jitd_organizer(background_thread,std::ref(jitd));
       // jitd_organizer.join();
       // jitd->print_debug();

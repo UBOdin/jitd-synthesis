@@ -1,1 +1,4 @@
+insert random 1 100
 random_scan 300 1000
+sleep 300
+insert random 1 100
