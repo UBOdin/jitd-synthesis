@@ -56,11 +56,11 @@ std::vector<float> search_time_vec_DeleteElemFromArray;
 @ctx.policyImplementation.utilityFunctions(ctx)
 void JITD::process_cq(mutatorCqElement &pop_mce)
 {
-      if(pop_mce.flag == 0)
+      if(pop_mce.flag == INSERT)
           {
             this->after_insert(pop_mce.element);
           }
-      else if(pop_mce.flag == 1)
+      else if(pop_mce.flag == REMOVE)
           {
             this->after_remove_elements(pop_mce.element);
           }
@@ -71,6 +71,7 @@ void JITD::process_cq(mutatorCqElement &pop_mce)
           }
    
 }
+
 int JITD::organize_wait()
 {
   
@@ -87,8 +88,9 @@ int JITD::organize_wait()
       else
       {
         mutatorCqElement pop_mce;
+        
         this->common_cq.pop(pop_mce);
-        if(pop_mce.flag == 2)
+        if(pop_mce.flag == EXIT)
         {
           
           return t;

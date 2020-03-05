@@ -31,6 +31,12 @@
 @ctx.structTypedefs
 
 ///////////////////// Base Node Meta ///////////////////// 
+typedef enum{
+  EXIT,
+  INSERT,
+  REMOVE
+}ClientInstruction;
+
 
 typedef enum { 
   @for(node <- ctx.definition.nodes) {

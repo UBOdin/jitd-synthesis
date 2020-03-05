@@ -219,16 +219,14 @@ void client_thread(std::shared_ptr<JITD> jitd, std::string file, int per_op_slee
   t = jitd_client_op(jitd, in, false, per_op_sleep_ms);
   gettimeofday(&end, NULL);
   std::cout << "Time[" << file << "]: " << t << " s" << std::endl;
-  std::cout<<"2....."<<std::endl;
-  jitd->print_debug();
+  
+  
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  std::cout<<"3....."<<std::endl;
-  jitd->print_debug();
   mutatorCqElement mce;
-  mce.flag = 2;
+  mce.flag = EXIT;
   jitd->common_cq.push(mce);
   //Test: do_organize gets called until exit_flag is set.
-   
+  jitd->print_debug(); 
   // jitd->exit_cv.notify_all();
   // std::cout<<"Notified dont exit"<<std::endl;
   // std::this_thread::sleep_for(std::chrono::milliseconds(100));

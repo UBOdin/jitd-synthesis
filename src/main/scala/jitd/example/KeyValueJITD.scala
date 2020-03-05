@@ -332,7 +332,7 @@ Transform("CollapseSingleInserts") {
                                   scoreBy { ArraySize("data") })
       
       //andThen ("PushDownDontDeleteConcat"          scoreBy { ArraySize("data") })
-      //andThen ("PushDownDontDeleteElemBtree"          scoreBy { ArraySize("data") })
+      andThen ("PushDownDontDeleteElemBtree"          scoreBy { ArraySize("data") })
       //andThen ("DeleteElemFromArray" scoreBy{ArraySize("data1")})
       //andThen ("PushDownDontDeleteElemConcat"          scoreBy { ArraySize("data") })
        

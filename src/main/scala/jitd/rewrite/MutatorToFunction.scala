@@ -30,7 +30,7 @@ object MutatorToFunction
     val ptr_ptr_construct = Void(Var("std::shared_ptr<std::shared_ptr<JITDNode>> new_root_ptr = std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new_root))"))
     //val cq_element_declare = Void(Var("std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> cq_elem = std::make_pair((jitd_root),(new_root_ptr))"))
     
-    val falg_setter = if(mutator.name contains "insert"){Void(Var("mce.flag = 0"))}else{Void(Var("mce.flag = 1"))}
+    val falg_setter = if(mutator.name contains "insert"){Void(Var("mce.flag = INSERT"))}else{Void(Var("mce.flag = REMOVE"))}
     val common_cq_element_declare = Void(Var("mutatorCqElement mce"))
     val common_cq_element_assign = Void(Var("mce.element = std::make_pair((jitd_root),(new_root_ptr))"))
     val common_cq_populate = Void(Var("this->common_cq.push(mce)"))
