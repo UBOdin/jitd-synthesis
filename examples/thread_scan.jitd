@@ -1,5 +1,7 @@
-insert random 1 100
-remove_elements random 1 100
-random_scan 300 1000
-sleep 300
-insert random 1 100
+insert random 1 101 200
+remove_elements random 1 101 200
+random_scan 1000 100
+sleep 500
+insert random 50 201 300
+random_scan 1000 100
+sleep 50

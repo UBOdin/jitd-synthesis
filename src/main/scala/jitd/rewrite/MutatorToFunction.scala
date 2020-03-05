@@ -33,7 +33,7 @@ object MutatorToFunction
     val falg_setter = if(mutator.name contains "insert"){Void(Var("mce.flag = INSERT"))}else{Void(Var("mce.flag = REMOVE"))}
     val common_cq_element_declare = Void(Var("mutatorCqElement mce"))
     val common_cq_element_assign = Void(Var("mce.element = std::make_pair((jitd_root),(new_root_ptr))"))
-    val common_cq_populate = Void(Var("this->common_cq.push(mce)"))
+    val common_cq_populate = Void(Var("this->work_queue.push(mce)"))
     
     //val cq_populate = Void(Var("this->"+mutator.name+"_cq.push(cq_elem)"))
     definition.typechecker.check("&(*jitd_root)" -> THandleRef(), "(*jitd_root)" -> TNodeRef()) {
@@ -42,9 +42,9 @@ object MutatorToFunction
         None,
         args,
         //constructor ++ Assign("&root", new_root, true) ++ cq_element_declare ++ cq_populate
-        Void(Var("pthread_mutex_lock(&lock);"))++constructor ++ ptr_ptr_construct ++
+        Void(Var("pthread_mutex_lock(&this->lock)"))++constructor ++ ptr_ptr_construct ++
         common_cq_element_declare++falg_setter++common_cq_element_assign++common_cq_populate++ 
-        Void(Var("std::atomic_store(&jitd_root, new_root_ptr)")) ++ Void(Var("pthread_mutex_unlock(&lock);"))
+        Void(Var("std::atomic_store(&jitd_root, new_root_ptr)")) ++ Void(Var("pthread_mutex_unlock(&this->lock)"))
       )
       
     } 

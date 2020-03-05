@@ -126,14 +126,12 @@ class JITD {
   public:
     pthread_mutex_t lock;
 
-    //std::mutex exit_mtx;
-    //std::condition_variable exit_cv;
-    //bool exit_flag = false;
+
 
     @{RenderPattern.ComparatorClass(ctx,ctx.policy.rule);}
     @{RenderPattern.SetPqDeclare(ctx,ctx.policy.rule,true);}
     
-    tbb::concurrent_bounded_queue<mutatorCqElement> common_cq;
+    tbb::concurrent_bounded_queue<mutatorCqElement> work_queue;
     JITD(std::shared_ptr<std::shared_ptr<JITDNode>> jitd_root) : jitd_root(jitd_root)
     {
       if (pthread_mutex_init(&lock, NULL) != 0) { 
@@ -167,7 +165,6 @@ class JITD {
     void SetPqAdd(std::shared_ptr<JITDNode> * node_handle);
     void print_debug() {print_JITD_node_structure(*jitd_root, std::string("")); }
     bool do_organize();
-    int organize_process();
     int organize_wait();
     void process_cq(mutatorCqElement &pop_mce);
     void check_pq_intergrity(){check_pq();};

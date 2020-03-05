@@ -1,5 +1,5 @@
 build
-Array random 1000 1 1000
+Array random 100 1 100
 Return
 dump
 run_background_organize
