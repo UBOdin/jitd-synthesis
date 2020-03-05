@@ -326,13 +326,13 @@ Transform("CollapseSingleInserts") {
       "delete_from_leaf".call("new_array_after_delete", "data2")) 
   }
  
-  Policy("CrackSort")("crackAt" -> IntConstant(100),"null_data"-> IntConstant(0)) (
+  Policy("CrackSort")("crackAt" -> IntConstant(10),"null_data"-> IntConstant(0)) (
       //("CollapseSingleInserts")
-      ("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
-                                  scoreBy { ArraySize("data") })
+      //("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
+                                  //scoreBy { ArraySize("data") })
       
       //andThen ("PushDownDontDeleteConcat"          scoreBy { ArraySize("data") })
-      //andThen ("PushDownDontDeleteElemBtree"          scoreBy { ArraySize("data") })
+      ("PushDownDontDeleteElemBtree"          scoreBy { ArraySize("data") })
       //andThen ("DeleteElemFromArray" scoreBy{ArraySize("data1")})
       //andThen ("PushDownDontDeleteElemConcat"          scoreBy { ArraySize("data") })
        
@@ -343,7 +343,9 @@ Transform("CollapseSingleInserts") {
      //andThen "MergeDeleteNodes"
      //andThen ("PushDownDontDeleteBtree"            scoreBy { ArraySize("data") })
      //andThen ("DeleteFromSortedArray" scoreBy{ArraySize("data2")})
-     //andThen("PushDownAndCrack" scoreBy { ArraySize("data") })
+     andThen("PushDownAndCrack" scoreBy { ArraySize("data") })
+     andThen("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
+                                  scoreBy { ArraySize("data") })
      //andThen("SortArray"        scoreBy { ArraySize("data") })
      //andThen "MergeSortedConcat"
      //andThen ("DeleteElemFromSortedArray" scoreBy{ArraySize("data2")})
