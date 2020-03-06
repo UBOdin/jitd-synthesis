@@ -34,6 +34,7 @@ struct storage_jitd_struct {
 	Record r;
 	std::vector<Record> element;
 	std::shared_ptr<JITD> jitd;
+	bool exit;
 };
 
 #endif
@@ -132,6 +133,7 @@ STORAGE_HANDLE create_storage() {
 	#ifdef STORAGE_JITD
 
 	STORAGE_HANDLE storage = new storage_jitd_struct();
+	storage->exit = false;
 
 	while (true) {
 		node = initialize_array[i];
@@ -148,6 +150,18 @@ STORAGE_HANDLE create_storage() {
 		i++;
 	}
 	storage->jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new ArrayNode(storage->element)))));
+
+	int steps_taken;
+	int steps_total;
+	while (true) {
+		steps_taken = storage->jitd->organize_process();
+		steps_total += steps_taken;
+		printf("Steps taken:  %d, %d\n", steps_taken, steps_total);
+		if (steps_taken == 1) {
+			break;
+		}
+	}
+	printf("Organized initial jitd structure.  Steps taken:  %d\n", steps_total);
 
 	return storage;
 
@@ -475,7 +489,14 @@ void run_worker_thread(STORAGE_HANDLE storage) {
 
 	tid = pthread_self();
 	printf("Worker thread starting:  TID = %p\n", (void*)tid);
-	steps_taken = storage->jitd->organize_wait();
+
+	// busy wait for now:
+	while (true) {
+		if (storage->exit == true) {
+			break;
+		}
+		steps_taken += storage->jitd->organize_process();
+	}
 	printf("Worker thread exiting.  Steps taken:  %d\n", steps_taken);
 
 	return;
@@ -532,7 +553,7 @@ int main() {
 
 	#ifdef STORAGE_JITD
 	// Kick off background worker thread:
-	std::thread worker_thread(run_worker_thread, storage);
+//	std::thread worker_thread(run_worker_thread, storage);
 	#endif
 
 	printf("Starting operations\n");
@@ -549,6 +570,11 @@ int main() {
 		if ((i % 1000) == 0) {
 			printf("Iteration:  %d\n", i);
 //			break;
+		}
+
+		if (i == 20) {
+			storage->jitd->print_debug();
+			_exit(0);
 		}
 
 
@@ -610,7 +636,7 @@ int main() {
 
 		// If we have not yet reached the next start time, block until then:
 		if (time_now < time_next) {
-			ms = (time_next - time_now) / 1000;
+			ms = 1; //(time_next - time_now) / 1000;
 //			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 		}
 
@@ -634,12 +660,9 @@ int main() {
 	#ifdef STORAGE_JITD
 	// Wakeup worker thread and get thread metadata:
 	printf("Waking worker thread\n");
-	storage->jitd->exit_mtx.lock();
-	storage->jitd->exit_flag = true;
-	storage->jitd->exit_cv.notify_all();
-	storage->jitd->exit_mtx.unlock();
+	storage->exit = true;
 	printf("Blocking on worker thread exit\n");
-	worker_thread.join();
+//	worker_thread.join();
 	printf("Worker thread exited\n");
 	#endif
 
