@@ -56,7 +56,7 @@ std::vector<float> search_time_vec_DeleteElemFromArray;
 @ctx.policyImplementation.utilityFunctions(ctx)
 void JITD::process_cq(mutatorCqElement &pop_mce)
 {
-      if(pop_mce.flag == INJECT)
+      if(pop_mce.flag == INSERT)
           {
             this->after_insert(pop_mce.element);
           }
