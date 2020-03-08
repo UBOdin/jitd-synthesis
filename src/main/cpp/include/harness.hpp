@@ -25,6 +25,7 @@ struct operation_node {
 	double time;
 	int rows;			// For select:  actual number of rows returned in ground truth
 	int nkeys;			// For select:  the number of keys requested
+	unsigned long value;		// For Insert / Upsert:  the value to be inserted
 	unsigned long key;
 	unsigned long* key_array;
 
