@@ -16,6 +16,8 @@
 #include "harness.hpp"
 #include "conf.hpp"
 
+using namespace harness;
+
 #define TIME_EACH_OP
 
 #ifdef STORAGE_SQLITE
@@ -138,7 +140,7 @@ STORAGE_HANDLE create_storage() {
 		if (node.type == STOP) {
 			break;
 		}
-		if (node.type != INSERT) {
+		if (node.type != harness::INSERT) {
 			printf("Error:  expected Insert\n");
 			_exit(1);
 		}
@@ -162,7 +164,7 @@ STORAGE_HANDLE create_storage() {
 		if (node.type == STOP) {
 			break;
 		}
-		if (node.type != INSERT) {
+		if (node.type != harness::INSERT) {
 			printf("Error:  expected Insert\n");
 			_exit(1);
 		}
@@ -563,7 +565,7 @@ int main() {
 		if (optype == STOP) {
 			break;
 		}
-		else if (optype == INSERT) {
+		else if (optype == harness::INSERT) {
 			put_data(storage, key);
 		}
 		else if (optype == SELECT) {
@@ -634,12 +636,15 @@ int main() {
 	#ifdef STORAGE_JITD
 	// Wakeup worker thread and get thread metadata:
 	printf("Waking worker thread\n");
-	storage->jitd->exit_mtx.lock();
-	storage->jitd->exit_flag = true;
-	storage->jitd->exit_cv.notify_all();
-	storage->jitd->exit_mtx.unlock();
+	mutatorCqElement mce;
+	mce.flag = EXIT;
+	mce.element = std::make_pair(nullptr,nullptr);
+	pthread_mutex_lock(&storage->jitd->lock);
+	storage->jitd->work_queue.push(mce);
+	pthread_mutex_unlock(&storage->jitd->lock);
 	printf("Blocking on worker thread exit\n");
 	worker_thread.join();
+	delete storage;
 	printf("Worker thread exited\n");
 	#endif
 

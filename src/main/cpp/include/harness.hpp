@@ -1,4 +1,8 @@
 
+// N.b. using namespace to resolve enum collision (INSERT)
+
+namespace harness {
+
 enum operation {
 
 	INSERT,
@@ -10,12 +14,14 @@ enum operation {
 
 };
 
+}
+
 // N.b. initializer field order must match that of structure declaration in C++
 
 struct operation_node {
 
 	int id;
-	enum operation type;
+	harness::operation type;
 	double time;
 	int rows;			// For select:  actual number of rows returned in ground truth
 	int nkeys;			// For select:  the number of keys requested
@@ -28,7 +34,7 @@ struct output_node {
 
 	long time_start;
 	long time_delta;
-	enum operation type;
+	harness::operation type;
 	long key;
 	int rows;
 
