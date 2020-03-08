@@ -31,22 +31,22 @@ CONF_H = $(HEADER)/conf.hpp
 default: $(MAIN)
 	@echo Build successful
 
-jitd_allatonce:  
+jitd_allatonce.exe:
 	@echo "#define STORAGE_JITD" > $(CONF_H)
 	$(CC) $(CFLAGS) -o $(MAIN) $(JITD_TEST_C) $(HARNESS_C) $(DATA_C) $(INCLUDES) $(TBB_LIBRARY) -ltbb
 	
-jitd_harness:  jitd_test.o harness.o data.o
+jitd_harness.exe:  jitd_test.o harness.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness.o data.o -lsqlite3
 
-jitd_storage_jitd:  jitd_test.o harness_jitd.o data.o
+jitd_storage_jitd.exe:  jitd_test.o harness_jitd.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness_jitd.o data.o $(TBB_LIBRARY) -ltbb
 	@echo built with jitd storage
 
-jitd_storage_sqlite:  jitd_test.o harness_sqlite.o data.o
+jitd_storage_sqlite.exe:  jitd_test.o harness_sqlite.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness_sqlite.o data.o -lsqlite3
 	@echo built with sqlite storage
 
-jitd_storage_uomap::  harness_uomap.o data.o
+jitd_storage_uomap.exe:  harness_uomap.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) harness_uomap.o data.o
 	@echo built with uomap storage
 
