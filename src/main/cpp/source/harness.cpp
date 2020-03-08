@@ -134,6 +134,7 @@ STORAGE_HANDLE create_storage() {
 	#ifdef STORAGE_JITD
 
 	STORAGE_HANDLE storage = new storage_jitd_struct();
+	bool not_done = true;
 
 	while (true) {
 		node = initialize_array[i];
@@ -150,6 +151,13 @@ STORAGE_HANDLE create_storage() {
 		i++;
 	}
 	storage->jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new ArrayNode(storage->element)))));
+
+	i = 0;
+	while (not_done == true) {
+		not_done = storage->jitd->do_organize();
+		i++;
+	}
+	printf("Initial Organization Steps:  %d\n", i);
 
 	return storage;
 
