@@ -33,7 +33,7 @@
 ///////////////////// Base Node Meta ///////////////////// 
 typedef enum{
   EXIT,
-  INSERT,
+  INJECT,
   REMOVE
 }ClientInstruction;
 
