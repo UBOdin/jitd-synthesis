@@ -566,20 +566,18 @@ int main() {
 		#endif
 		if (optype == STOP) {
 			break;
-		}
-		else if (optype == harness::INSERT) {
+		} else if (optype == harness::INSERT) {
 			put_data(storage, key, value);
-		}
-		else if (optype == SELECT) {
-			rows = benchmark_array[i].rows;
+		} else if (optype == SELECT) {
 			nkeys = benchmark_array[i].nkeys;
-			result += get_data(storage, nkeys, benchmark_array[i].key_array);
+			key_array = benchmark_array[i].key_array;
+			result += get_data(storage, nkeys, key_array);
 		} else if (optype == DELETE) {
-			result = remove_data(storage, key);
+			result += remove_data(storage, key);
 		} else if (optype == UPDATE) {
-			result = update_data(storage, key, value);
+			result += update_data(storage, key, value);
 		} else if (optype == UPSERT) {
-			result = upsert_data(storage, key, value);
+			result += upsert_data(storage, key, value);
 		} else {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
