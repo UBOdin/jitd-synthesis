@@ -146,12 +146,13 @@ STORAGE_HANDLE create_storage() {
 			_exit(1);
 		}
 		storage->r.key = node.key;
-		storage->r.value = NULL;
+		storage->r.value = node.value;
 		storage->element.push_back(storage->r);
 		i++;
 	}
 	storage->jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new ArrayNode(storage->element)))));
 
+	// Organize initial jitd structure until it reaches a stable state:
 	i = 0;
 	while (not_done == true) {
 		not_done = storage->jitd->do_organize();
@@ -177,7 +178,7 @@ STORAGE_HANDLE create_storage() {
 			_exit(1);
 		}
 		storage->data_pair.first = node.key;
-		storage->data_pair.second = 9999;
+		storage->data_pair.second = node.value;
 		storage->umap.insert(storage->data_pair);
 		i++;
 	}
@@ -258,7 +259,8 @@ int get_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
 }
 
 
-int put_data(STORAGE_HANDLE storage, unsigned long key) {
+// NOTE:  For now, we leave undefined the issue of inserting duplicate keys
+int put_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) {
 
 	#ifdef STORAGE_SQLITE
 
@@ -287,7 +289,7 @@ int put_data(STORAGE_HANDLE storage, unsigned long key) {
 	#ifdef STORAGE_JITD
 
 	storage->r.key = key;
-	storage->r.value = NULL;
+	storage->r.value = value;
 	storage->element.clear();
 	storage->element.push_back(storage->r);
 	storage->jitd->insert(storage->element);
@@ -297,7 +299,7 @@ int put_data(STORAGE_HANDLE storage, unsigned long key) {
 	#ifdef STORAGE_UOMAP
 
 	storage->data_pair.first = key;
-	storage->data_pair.second = 9999;
+	storage->data_pair.second = value;
 
 	storage->umap.insert(storage->data_pair);
 
@@ -335,7 +337,7 @@ int remove_data(STORAGE_HANDLE storage, unsigned long key) {
 	#ifdef STORAGE_JITD
 
 	storage->r.key = key;
-	storage->r.value = NULL;
+	storage->r.value = 0;
 	storage->element.clear();
 	storage->element.push_back(storage->r);
 	storage->jitd->remove_elements(storage->element);
@@ -353,14 +355,14 @@ int remove_data(STORAGE_HANDLE storage, unsigned long key) {
 }
 
 
-int update_data(STORAGE_HANDLE storage, unsigned long key) {
+int update_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) {
 
 	return 0;
 
 }
 
 
-int upsert_data(STORAGE_HANDLE storage, unsigned long key) {
+int upsert_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) {
 
 	bool result;
 
@@ -368,7 +370,7 @@ int upsert_data(STORAGE_HANDLE storage, unsigned long key) {
 
 	result = storage->jitd->get(key, storage->r);
 	storage->r.key = key;
-	storage->r.value = NULL;
+	storage->r.value = value;
 	storage->element.clear();
 	storage->element.push_back(storage->r);
 	if (result == true) {
@@ -380,7 +382,7 @@ int upsert_data(STORAGE_HANDLE storage, unsigned long key) {
 
 	#ifdef STORAGE_UOMAP
 
-	storage->umap[key] = 9999;
+	storage->umap[key] = value;
 
 	#endif
 
@@ -505,6 +507,7 @@ int main() {
 	int nkeys;
 	unsigned long key;
 	unsigned long* key_array;
+	unsigned long value;
 	int i;
 	int j;
 	bool result;
@@ -532,13 +535,6 @@ int main() {
 	// Block :30 to stabilize system:
 	printf("Waiting -- stabilize system\n");
 //	std::this_thread::sleep_for(std::chrono::milliseconds(30 * 1000));
-/*
-	double sum;
-	for (double k = 0; k < 1000 * 1000 * 1000; k++) {
-			sum += sin(k);
-	}
-	printf("wait sum:  %f\n", sum);
-*/
 
 	#ifdef STORAGE_JITD
 	// Kick off background worker thread:
@@ -555,16 +551,14 @@ int main() {
 	j = 0;
 	while (true) {
 
-
 		if ((i % 1000) == 0) {
 			printf("Iteration:  %d\n", i);
-//			break;
 		}
-
 
 		// Get next operation:
 		optype = benchmark_array[i].type;
 		key = benchmark_array[i].key;
+		value = benchmark_array[i].value;
 
 		// Benchmark next operation:
 		#ifdef TIME_EACH_OP
@@ -574,7 +568,7 @@ int main() {
 			break;
 		}
 		else if (optype == harness::INSERT) {
-			put_data(storage, key);
+			put_data(storage, key, value);
 		}
 		else if (optype == SELECT) {
 			rows = benchmark_array[i].rows;
@@ -583,9 +577,9 @@ int main() {
 		} else if (optype == DELETE) {
 			result = remove_data(storage, key);
 		} else if (optype == UPDATE) {
-			result = update_data(storage, key);
+			result = update_data(storage, key, value);
 		} else if (optype == UPSERT) {
-			result = upsert_data(storage, key);
+			result = upsert_data(storage, key, value);
 		} else {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
@@ -619,10 +613,14 @@ int main() {
 		time_now = gettime_us();
 
 		// If we have not yet reached the next start time, block until then:
-		if (time_now < time_next) {
-			ms = (time_next - time_now) / 1000;
+//		if (time_now < time_next) {
+//			ms = (time_next - time_now) / 1000;
 //			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-		}
+//		}
+
+		// Fixed sleep for now:
+		ms = 1;
+		std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 
 		#endif
 
