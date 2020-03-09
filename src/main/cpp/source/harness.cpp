@@ -357,6 +357,32 @@ int remove_data(STORAGE_HANDLE storage, unsigned long key) {
 
 int update_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) {
 
+	#ifdef STORAGE_JITD
+
+	bool result;
+
+	result = storage->jitd->get(key, storage->r);
+	storage->r.key = key;
+	storage->r.value = value;
+	storage->element.clear();
+	storage->element.push_back(storage->r);
+	if (result == true) {
+		storage->jitd->remove_elements(storage->element);
+		storage->jitd->insert(storage->element);
+	}
+
+	#endif
+
+	#ifdef STORAGE_UOMAP
+
+	storage->key_iter = storage->umap.find(key);
+	storage->end_iter = storage->umap.end();
+	if (storage->key_iter != storage->end_iter) {
+		storage->key_iter->second = value;
+	}
+
+	#endif
+
 	return 0;
 
 }
@@ -364,9 +390,9 @@ int update_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 
 int upsert_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) {
 
-	bool result;
-
 	#ifdef STORAGE_JITD
+
+	bool result;
 
 	result = storage->jitd->get(key, storage->r);
 	storage->r.key = key;
