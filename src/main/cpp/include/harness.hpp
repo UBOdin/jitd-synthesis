@@ -41,9 +41,29 @@ struct output_node {
 
 };
 
-int jitd_harness();
+#ifdef STORAGE_JITD
+
+struct storage_jitd_struct {
+	Record r;
+	std::vector<Record> element;
+	std::shared_ptr<JITD> jitd;
+};
+
+#endif
+
+#ifdef STORAGE_UOMAP
+
+struct storage_uomap_struct {
+	std::unordered_map<UOM_TYPE>::iterator key_iter;
+	std::unordered_map<UOM_TYPE>::iterator end_iter;
+	std::pair<UOM_TYPE> data_pair;
+	std::unordered_map<UOM_TYPE> umap;
+};
+
+#endif
 
 // Machine-generated static data:
+
 extern struct operation_node initialize_array[];
 extern struct operation_node benchmark_array[];
 extern struct output_node output_array[];

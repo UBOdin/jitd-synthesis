@@ -13,10 +13,7 @@
 
 #include "jitd_test.hpp"
 #include "test.hpp"
-#include "harness.hpp"
 #include "conf.hpp"
-
-using namespace harness;
 
 #define TIME_EACH_OP
 
@@ -46,12 +43,6 @@ using namespace harness;
 	storage->jitd->remove_elements(storage->element); \
 } )
 
-struct storage_jitd_struct {
-	Record r;
-	std::vector<Record> element;
-	std::shared_ptr<JITD> jitd;
-};
-
 #endif
 
 #ifdef STORAGE_UOMAP
@@ -61,14 +52,11 @@ struct storage_jitd_struct {
 #define UOM_TYPE long, int
 #define STORAGE_HANDLE struct storage_uomap_struct*
 
-struct storage_uomap_struct {
-	std::unordered_map<UOM_TYPE>::iterator key_iter;
-	std::unordered_map<UOM_TYPE>::iterator end_iter;
-	std::pair<UOM_TYPE> data_pair;
-	std::unordered_map<UOM_TYPE> umap;
-};
-
 #endif
+
+#include "harness.hpp"
+
+using namespace harness;
 
 
 long gettime_us() {
