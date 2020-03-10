@@ -146,7 +146,7 @@ STORAGE_HANDLE create_storage() {
 			_exit(1);
 		}
 		storage->r.key = node.key;
-		storage->r.value = node.value;
+		storage->r.value = new int(node.value);
 		storage->element.push_back(storage->r);
 		i++;
 	}
@@ -235,7 +235,7 @@ int get_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
 	for (int i = 0; i < nkeys; i++) {
 		key = key_array[i];
 		if (storage->jitd->get(key, storage->r) == true) {
-			value++;
+			value++;  // FIXME:  Sum actual values, not count
 		}
 	}
 
@@ -289,7 +289,7 @@ int put_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) {
 	#ifdef STORAGE_JITD
 
 	storage->r.key = key;
-	storage->r.value = value;
+	storage->r.value = new int(value);
 	storage->element.clear();
 	storage->element.push_back(storage->r);
 	storage->jitd->insert(storage->element);
@@ -336,11 +336,15 @@ int remove_data(STORAGE_HANDLE storage, unsigned long key) {
 
 	#ifdef STORAGE_JITD
 
-	storage->r.key = key;
-	storage->r.value = 0;
-	storage->element.clear();
-	storage->element.push_back(storage->r);
-	storage->jitd->remove_elements(storage->element);
+	bool result;
+
+	result = storage->jitd->get(key, storage->r);
+	if (result == true) {
+		delete((unsigned long*)storage->r.value);
+		storage->element.clear();
+		storage->element.push_back(storage->r);
+		storage->jitd->remove_elements(storage->element);
+	}
 
 	#endif
 
@@ -362,12 +366,14 @@ int update_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 	bool result;
 
 	result = storage->jitd->get(key, storage->r);
-	storage->r.key = key;
-	storage->r.value = value;
-	storage->element.clear();
-	storage->element.push_back(storage->r);
 	if (result == true) {
+		delete((unsigned long*)storage->r.value);
+		storage->element.clear();
+		storage->element.push_back(storage->r);
 		storage->jitd->remove_elements(storage->element);
+		storage->r.value = new int(value);
+		storage->element.clear();
+		storage->element.push_back(storage->r);
 		storage->jitd->insert(storage->element);
 	}
 
@@ -395,14 +401,22 @@ int upsert_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 	bool result;
 
 	result = storage->jitd->get(key, storage->r);
-	storage->r.key = key;
-	storage->r.value = value;
-	storage->element.clear();
-	storage->element.push_back(storage->r);
 	if (result == true) {
+		delete((unsigned long*)storage->r.value);
+		storage->element.clear();
+		storage->element.push_back(storage->r);
 		storage->jitd->remove_elements(storage->element);
+		storage->r.value = new int(value);
+		storage->element.clear();
+		storage->element.push_back(storage->r);
+		storage->jitd->insert(storage->element);
+	} else {
+		storage->r.key = key;
+		storage->r.value = new int(value);
+		storage->element.clear();
+		storage->element.push_back(storage->r);
+		storage->jitd->insert(storage->element);
 	}
-	storage->jitd->insert(storage->element);
 
 	#endif
 
