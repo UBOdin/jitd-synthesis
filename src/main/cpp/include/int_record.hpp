@@ -2,15 +2,15 @@
 #include <vector>
 
 typedef long int Key;
-typedef long int Value;
+typedef void *Value;
 //pthread_mutex_t lock; 
 struct Record {
   Key   key;
   Value value;
   
   Record(Key key, Value _value) : key(key) { value = _value; }
-  Record(Key key) : key(key) { value = 0; }
-  Record() : key(0) { value = 0; }
+  Record(Key key) : key(key) { value = (void *)0xdeadbeef; }
+  Record() : key(0) { value = NULL; }
   
   inline bool operator>(const Record &other) const {
     return key > other.key;
@@ -120,7 +120,7 @@ inline void build_buffer(std::vector<Record> &to, int count, int min, int max)
   for(int i = 0; i < count; i++){
      
     r.key = (rand() % max_minus_min)+min;
-    r.value = 0;
+    r.value = (Value)0xDEADBEEF;
     to.push_back(r);
   }
 }
@@ -138,7 +138,7 @@ inline void load_records(std::vector<Record> &to, std::istream &input)
     //std::cout<<"built buffer"<<std::endl;
   } else if(op == "explicit"){
     Record r;
-    r.value = 0;
+    r.value = (Value)0xDEADBEEF;
     while(!input.eof()){
       input >> r.key;
       to.push_back(r);
