@@ -32,29 +32,25 @@ using namespace harness;
 
 #define STORAGE_HANDLE struct storage_jitd_struct*
 
+#define JITD_INSERT_VALUE(storage, value) ( { \
+	storage->r.value = new int(value); \
+	storage->element.clear(); \
+	storage->element.push_back(storage->r); \
+	storage->jitd->insert(storage->element); \
+} )
+
+#define JITD_REMOVE_VALUE(storage) ( { \
+	delete((unsigned long*)storage->r.value); \
+	storage->element.clear(); \
+	storage->element.push_back(storage->r); \
+	storage->jitd->remove_elements(storage->element); \
+} )
+
 struct storage_jitd_struct {
 	Record r;
 	std::vector<Record> element;
 	std::shared_ptr<JITD> jitd;
 };
-
-inline void jitd_insert_value(STORAGE_HANDLE storage, unsigned long value) {
-
-	storage->r.value = new int(value);
-	storage->element.clear();
-	storage->element.push_back(storage->r);
-	storage->jitd->insert(storage->element);
-
-}
-
-inline void jitd_remove_value(STORAGE_HANDLE storage) {
-
-	delete((unsigned long*)storage->r.value);
-	storage->element.clear();
-	storage->element.push_back(storage->r);
-	storage->jitd->remove_elements(storage->element);
-
-}
 
 #endif
 
@@ -307,7 +303,7 @@ int put_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) {
 	#ifdef STORAGE_JITD
 
 	storage->r.key = key;
-	jitd_insert_value(storage, value);
+	JITD_INSERT_VALUE(storage, value);
 
 	#endif
 
@@ -356,7 +352,7 @@ int remove_data(STORAGE_HANDLE storage, unsigned long key) {
 	// TODO:  Confirm whether key presence should be checked first
 	result = storage->jitd->get(key, storage->r);
 	if (result == true) {
-		jitd_remove_value(storage);
+		JITD_REMOVE_VALUE(storage);
 	}
 
 	#endif
@@ -380,8 +376,8 @@ int update_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 
 	result = storage->jitd->get(key, storage->r);
 	if (result == true) {
-		jitd_remove_value(storage);
-		jitd_insert_value(storage, value);
+		JITD_REMOVE_VALUE(storage);
+		JITD_INSERT_VALUE(storage, value);
 	}
 
 	#endif
@@ -409,11 +405,11 @@ int upsert_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 
 	result = storage->jitd->get(key, storage->r);
 	if (result == true) {
-		jitd_remove_value(storage);
-		jitd_insert_value(storage, value);
+		JITD_REMOVE_VALUE(storage);
+		JITD_INSERT_VALUE(storage, value);
 	} else {
 		storage->r.key = key;
-		jitd_insert_value(storage, value);
+		JITD_INSERT_VALUE(storage, value);
 	}
 
 	#endif
