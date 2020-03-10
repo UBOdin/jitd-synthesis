@@ -211,7 +211,7 @@ STORAGE_HANDLE create_storage() {
 int get_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
 
 	unsigned long key;
-	int value = 0;
+	unsigned long value = 0;
 
 	#ifdef STORAGE_SQLITE
 
@@ -253,7 +253,7 @@ int get_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
 	for (int i = 0; i < nkeys; i++) {
 		key = key_array[i];
 		if (storage->jitd->get(key, storage->r) == true) {
-			value++;  // FIXME:  Sum actual values, not count
+			value += *(unsigned long*)storage->r.value;
 		}
 	}
 
