@@ -35,9 +35,6 @@ jitd_allatonce:
 	@echo "#define STORAGE_JITD" > $(CONF_H)
 	$(CC) $(CFLAGS) -o $(MAIN) $(JITD_TEST_C) $(HARNESS_C) $(DATA_C) $(INCLUDES) $(TBB_LIBRARY) -ltbb
 	
-jitd_harness:  jitd_test.o harness.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness.o data.o -lsqlite3
-
 jitd_storage_jitd:  jitd_test.o harness_jitd.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness_jitd.o data.o $(TBB_LIBRARY) -ltbb
 	@echo built with jitd storage
@@ -52,9 +49,6 @@ jitd_storage_uomap:  harness_uomap.o data.o
 
 jitd_test.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
 	$(CC) $(CFLAGS) -c $(JITD_TEST_C) $(INCLUDES)
-
-harness.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
-	$(CC) $(CFLAGS) -c $(HARNESS_C) $(INCLUDES)
 
 harness_jitd.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_JITD" > $(CONF_H)
