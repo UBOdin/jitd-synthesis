@@ -38,6 +38,24 @@ struct storage_jitd_struct {
 	std::shared_ptr<JITD> jitd;
 };
 
+inline void jitd_insert_value(STORAGE_HANDLE storage, unsigned long value) {
+
+	storage->r.value = new int(value);
+	storage->element.clear();
+	storage->element.push_back(storage->r);
+	storage->jitd->insert(storage->element);
+
+}
+
+inline void jitd_remove_value(STORAGE_HANDLE storage) {
+
+	delete((unsigned long*)storage->r.value);
+	storage->element.clear();
+	storage->element.push_back(storage->r);
+	storage->jitd->remove_elements(storage->element);
+
+}
+
 #endif
 
 #ifdef STORAGE_UOMAP
@@ -289,10 +307,7 @@ int put_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) {
 	#ifdef STORAGE_JITD
 
 	storage->r.key = key;
-	storage->r.value = new int(value);
-	storage->element.clear();
-	storage->element.push_back(storage->r);
-	storage->jitd->insert(storage->element);
+	jitd_insert_value(storage, value);
 
 	#endif
 
@@ -338,12 +353,10 @@ int remove_data(STORAGE_HANDLE storage, unsigned long key) {
 
 	bool result;
 
+	// TODO:  Confirm whether key presence should be checked first
 	result = storage->jitd->get(key, storage->r);
 	if (result == true) {
-		delete((unsigned long*)storage->r.value);
-		storage->element.clear();
-		storage->element.push_back(storage->r);
-		storage->jitd->remove_elements(storage->element);
+		jitd_remove_value(storage);
 	}
 
 	#endif
@@ -367,14 +380,8 @@ int update_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 
 	result = storage->jitd->get(key, storage->r);
 	if (result == true) {
-		delete((unsigned long*)storage->r.value);
-		storage->element.clear();
-		storage->element.push_back(storage->r);
-		storage->jitd->remove_elements(storage->element);
-		storage->r.value = new int(value);
-		storage->element.clear();
-		storage->element.push_back(storage->r);
-		storage->jitd->insert(storage->element);
+		jitd_remove_value(storage);
+		jitd_insert_value(storage, value);
 	}
 
 	#endif
@@ -402,20 +409,11 @@ int upsert_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 
 	result = storage->jitd->get(key, storage->r);
 	if (result == true) {
-		delete((unsigned long*)storage->r.value);
-		storage->element.clear();
-		storage->element.push_back(storage->r);
-		storage->jitd->remove_elements(storage->element);
-		storage->r.value = new int(value);
-		storage->element.clear();
-		storage->element.push_back(storage->r);
-		storage->jitd->insert(storage->element);
+		jitd_remove_value(storage);
+		jitd_insert_value(storage, value);
 	} else {
 		storage->r.key = key;
-		storage->r.value = new int(value);
-		storage->element.clear();
-		storage->element.push_back(storage->r);
-		storage->jitd->insert(storage->element);
+		jitd_insert_value(storage, value);
 	}
 
 	#endif
