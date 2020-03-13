@@ -12,20 +12,34 @@
     int count = 0;
     long bestScore = -1;
     long curr_score = -1;
-    timeval start1, end1, start2, end2;
-    //gettimeofday(&start1,NULL);
+   
+    
     if(!(this->@{transform.name}_PQ).empty())
     {
-    //gettimeofday(&end1,NULL);
-    //float totalTime1 = (end1.tv_sec - start1.tv_sec) * 1000000.0 + (end1.tv_usec - start1.tv_usec);
-    //@{transform.name}_empty.push_back(totalTime1);
+    
       std::set< std::shared_ptr<JITDNode> * >::iterator it;
-      //gettimeofday(&start2,NULL);
+      
       it = (this->@{transform.name}_PQ).begin();
-      //gettimeofday(&end2,NULL);
-      //float totalTime2 = (end2.tv_sec - start2.tv_sec) * 1000000.0 + (end2.tv_usec - start2.tv_usec);
-      //@{transform.name}_begin.push_back(totalTime2);
-          JITDNode *iter_node = (*it)->get();
+          #ifdef DEBUG
+          assert(*it!=NULL);
+          #endif
+          /*
+          std::shared_ptr<JITDNode> * pspjn = *it;
+          
+          #ifdef DEBUG
+          assert(pspjn!=NULL);
+          #endif
+
+          std::shared_ptr<JITDNode> spjn = *pspjn;
+
+          #ifdef DEBUG
+          assert(spjn!=NULL);
+          #endif
+          
+          JITDNode *iter_node = (spjn).get();
+          */
+
+           JITDNode *iter_node = (*it)->get();
           
           
           @{RenderPattern.test(ctx, transform.from, "iter_node", "return -1;")}

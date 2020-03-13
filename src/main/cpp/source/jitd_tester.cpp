@@ -116,7 +116,7 @@ int jitd_client_op(
       load_records(data, toks);
       //std::cout<<"Loaded data"<<std::endl;
       gettimeofday(&start, NULL);
-      
+      //std::cout<<"Starting Insert in JITD"<<std::endl;
       jitd->insert(data);
       
       //std::cout<<"size of crack_array"<<jitd->CrackArray_PQ.size()<<std::endl;
@@ -135,10 +135,30 @@ int jitd_client_op(
       gettimeofday(&end, NULL);
       std::cout << "Delete from JITD: " << total_time(start, end) << " us" << std::endl;
     }
+    CASE("policy_act_until_done")
+    {
+      int steps_taken =0;
+      timeval start, end;
+      bool not_done = true;
+      gettimeofday(&start, NULL);
+      while(not_done)
+      {
+       not_done = jitd->organize_wait(); 
+       steps_taken++;
+      }
+       gettimeofday(&end, NULL);
+       
+       std::cout << "Policy_act_until_done " << steps_taken << " Actions: " << total_time(start, end)  << " us" <<  std::endl;
+    }
     CASE("sleep") {
       int ms;
       toks >> ms;
       std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+      
+    }
+    CASE("dump") {
+      
+      jitd->print_debug();
       
     }
     
@@ -171,7 +191,7 @@ void client_thread(std::shared_ptr<JITD> jitd, std::string file, int per_op_slee
   //EXIT SIGNAL IS PASSED FROM CLIENT TO WORKER 
   mutatorCqElement mce;
   mce.flag = EXIT;
-  std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> element = std::make_pair(nullptr,nullptr);
+  std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> element; //= std::make_pair(nullptr,nullptr);
   mce.element = element;
   pthread_mutex_lock(&jitd->lock);
   jitd->work_queue.push(mce);
@@ -230,6 +250,31 @@ int jitd_test(
       gettimeofday(&end, NULL);
       std::cout << "Assemble JITD: " << total_time(start, end) << " us" << std::endl;
     } 
+    // CASE("insert") {
+    //   timeval start, end;
+    //   RecordBuffer data;
+    //   //std::cout<<"Here"<<std::endl;
+    //   load_records(data, toks);
+    //   //std::cout<<"Loaded data"<<std::endl;
+    //   gettimeofday(&start, NULL);
+    //   //std::cout<<"Starting Insert in JITD"<<std::endl;
+    //   jitd->insert(data);
+      
+    //   //std::cout<<"size of crack_array"<<jitd->CrackArray_PQ.size()<<std::endl;
+    //   gettimeofday(&end, NULL);
+    //   std::cout << "Insert into JITD: " << total_time(start, end) << " us" << std::endl;
+    // }
+    // CASE("exit")
+    // {
+    //   //EXIT SIGNAL IS PASSED FROM CLIENT TO WORKER 
+    //   mutatorCqElement mce;
+    //   mce.flag = EXIT;
+    //   std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> element = std::make_pair(nullptr,nullptr);
+    //   mce.element = element;
+    //   pthread_mutex_lock(&jitd->lock);
+    //   jitd->work_queue.push(mce);
+    //   pthread_mutex_unlock(&jitd->lock);
+    // }
     CASE("spawn") {
       std::string file;
       toks >> file; 
@@ -253,6 +298,7 @@ int jitd_test(
     
      
     }
+
     
     CASE("time") {
       timeval end; 

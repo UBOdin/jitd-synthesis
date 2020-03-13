@@ -3,5 +3,5 @@ Array random 100 1 100
 Return
 dump
 run_background_organize
-spawn /Users/darshanabalakrishnan/Desktop/JITD_GitHub/jitd-synthesis/examples/thread_scan.jitd
+spawn ./examples/thread_scan.jitd
 run_threads

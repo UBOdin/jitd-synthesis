@@ -15,7 +15,7 @@ object RenderFunction
         if(mutator == false){s"${if(const){"const "}else{""}}${ctx.cType(t)} ${if(byRef){"&"}else{""}}${name} " }else{s"std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> &cq_elem"}   
     }.mkString(",")+")\n"+indent+"{\n"+ "/***std::cout<<\" The transform applied is:"+s"${fn.name}"+"\""+"<<std::endl;***/"+ "\n"+ 
     //s"timeval start,end;\n" + "float totalTime;\n"+
-      ctx.statement(fn.body, indent+"  ")+
+      ctx.statement(fn.body, indent+"  ")+ 
     "\n"+indent+"}"
   }
 

@@ -1,0 +1,6 @@
+init_data_ycsb 10 file ./examples/ycsb_tsv_initialize_b_1000.tsv
+dump
+print_pq
+check_pq
+spawn ./examples/thread_ycsb_a_policy.jitd
+spawn ./examples/thread_ycsb_a_worker.jitd

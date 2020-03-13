@@ -1,0 +1,2 @@
+operation_data_ycsb file ./examples/ycsb_bench_small.jitd
+dump
