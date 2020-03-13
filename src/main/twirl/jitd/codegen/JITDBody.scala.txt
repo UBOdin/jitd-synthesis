@@ -230,6 +230,29 @@ void JITD::check_pq()
         
   }
   
+if(!this->JITD_NODE_Concat_set.empty())
+  { 
+        std::set<std::shared_ptr<JITDNode> *>::iterator it;
+      for(it = this->JITD_NODE_Concat_set.begin();it!=this->JITD_NODE_Concat_set.end();++it)
+      {
+          assertm("JITD_NODE_Concat_set",(*it!=NULL));
+
+          std::shared_ptr<JITDNode> * curr = *it;
+
+          assertm("JITD_NODE_Concat_set",(*curr!=NULL));
+          //assertm("JITD_NODE_Concat_set",((*curr).get()!=NULL));
+          assertm("JITD_NODE_Concat_set",(curr->get()!=NULL));
+          
+            
+              //std::cout<<"check_pq():The type of node in JITD_NODE_Concat_set is "<<curr->get()->type<<std::endl;
+            
+          
+          
+        
+       
+      }
+      }
+  
 }
 
 void JITD::initialize_struts(std::shared_ptr<JITDNode>* node)
