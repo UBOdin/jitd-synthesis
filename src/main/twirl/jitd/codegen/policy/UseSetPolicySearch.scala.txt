@@ -18,9 +18,28 @@
       std::set< std::shared_ptr<JITDNode> * >::iterator it;
       for(it = (this->@{RenderPattern.setGen(ctx, transform.from)}).begin(); it!=(this->@{RenderPattern.setGen(ctx, transform.from)}).end(); ++it)
       {
+          #ifdef DEBUG
+          assert(*it!=NULL);
+          #endif
+          /*
+          std::shared_ptr<JITDNode> * pspjn = *it;
           
-          JITDNode *iter_node = (*it)->get();
+          #ifdef DEBUG
+          assert(pspjn!=NULL);
+          #endif
+
+          std::shared_ptr<JITDNode> spjn = *pspjn;
+
+          #ifdef DEBUG
+          assert(spjn!=NULL);
+          #endif
           
+          JITDNode *iter_node = (spjn).get();
+          */
+
+           JITDNode *iter_node = (*it)->get();
+          
+
            @{RenderPattern.test(ctx, transform.from, "iter_node", "continue;")}
           
            if(@{ctx.expression(InlineVars(constraint, 

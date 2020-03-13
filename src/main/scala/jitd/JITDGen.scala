@@ -64,9 +64,7 @@ object JITDGen {
     val compile = Seq(
       "g++", 
       "-pthread",
-      "-ltbb",
       "-std=c++11",
-
       "-o", conf.target()
     ) ++ (
       if(conf.debugSymbols()) { Seq("-g") } else { Seq() } 
@@ -82,6 +80,8 @@ object JITDGen {
       "-I", "src/main/cpp/include",
       "-I", "target",
       bodyFile.toString, 
+      //"-I/home/csgrad/dbalakri/tbbsrc/tbb-tbb_2020/include -Wl,-rpath,/home/csgrad/dbalakri/tbbsrc/tbb-tbb_2020/build/linux_intel64_gcc_cc5.4.0_libc2.23_kernel4.4.0_release -L/home/csgrad/dbalakri/tbbsrc/tbb-tbb_2020/build/linux_intel64_gcc_cc5.4.0_libc2.23_kernel4.4.0_release",
+      "-ltbb",
       conf.main()
     )
 

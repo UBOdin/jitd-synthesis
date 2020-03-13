@@ -2,5 +2,6 @@ build
 Array random 10000 1 20000
 Return
 dump
-policy_act_for 1619
-print_time_log
+policy_act_until_done
+print_set
+print_pq

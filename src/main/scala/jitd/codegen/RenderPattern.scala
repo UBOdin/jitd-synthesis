@@ -18,7 +18,9 @@ object RenderPattern
         val node = ctx.definition.nodesByName(nodeName)
         val targetReal = target+"_real"
         //val here = "\"HERE\""
-        
+        s"#ifdef DEBUG\n"+
+        s"assert(${target}!=NULL);\n"+
+        s"#endif\n"+
         s"if(${target}->type != ${node.enumName}){$onFailure }\n"+
         s"${node.renderName} *${targetReal} = (${node.renderName} *)${target};\n"+
         fields.zip(node.fields).map { 
@@ -65,7 +67,7 @@ object RenderPattern
               }
               else
               {
-                val extract = MatchToStatement.unrollSet(ctx.definition,pattern,"",(Var("")))
+                val extract = MatchToStatement.unrollSet(ctx.definition,pattern,"",(Var("")),(Var("")))
                 if(trackablesets(extract(0)._2.toString))
                 {
                   ""
@@ -164,6 +166,8 @@ object RenderPattern
                 s"  JITDNode * e2_node_ptr = (*e2).get();\n"+
                 s"  ${node.renderName} * e1_node_ptr_real = (${node.renderName} *)e1_node_ptr;\n"+
                 s"  ${node.renderName} * e2_node_ptr_real = (${node.renderName} *)e2_node_ptr;\n"+
+                s"  assert(e1_node_ptr_real!=NULL);\n"+
+                s"  assert(e2_node_ptr_real!=NULL);\n"+
                 s"  e1_score = "+ ctx.expression(InlineVars(scoreFn, varMapping(ctx, pattern, "e1_node_ptr")++ctx.policy.varMapping))+";\n"+
                 s"  e2_score = "+ ctx.expression(InlineVars(scoreFn, varMapping(ctx, pattern, "e2_node_ptr")++ctx.policy.varMapping))+";\n"+
                 s"  if(e1_score == e2_score){\n"+

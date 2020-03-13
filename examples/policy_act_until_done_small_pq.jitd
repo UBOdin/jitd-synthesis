@@ -1,10 +1,13 @@
 build
-Array random 25 1 100
+Array random 50 1 50
+Array random 50 101 150
+BTree 100
+Array random 1 151 200
+Concat 
+Array random 1 151 200
+Concat
 Return
 dump
-policy_act_until_done
-dump
-check_pq
-print_pq
-check_set
-print_set
+run_background_organize
+spawn ./examples/thread_scan_pq.jitd
+run_threads

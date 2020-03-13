@@ -97,7 +97,7 @@ object KeyValueJITD extends HardcodedDefinition {
   //   "DeleteSingleton".fromFields("root","elem" )
   // }
   //////////////////////////////////////////////
-
+/*
   Transform("SortArray") {
     "Array" withFields( "data" )
   } {
@@ -105,7 +105,7 @@ object KeyValueJITD extends HardcodedDefinition {
       "std::sort".call( Begin("sorted"), End("sorted") )
     )
   }
-
+*/
   Transform("CrackArray") {
     "Array" withFields( "data" )
   } {
@@ -122,7 +122,8 @@ object KeyValueJITD extends HardcodedDefinition {
     )
   }
 
-  Transform("MergeSortedBTrees") {
+/*  
+ Transform("MergeSortedBTrees") {
     "BTree" withFields( 
       "SortedArray".withFields( "lhs" ),
       Any,
@@ -133,17 +134,7 @@ object KeyValueJITD extends HardcodedDefinition {
       "append".call("merged", "rhs")
     )
   }
-// Transform("MergeUnSortedBTrees") {
-//     "BTree" withFields( 
-//       "Array".withFields( "lhs" ),
-//       Any,
-//       "Array".withFields( "rhs" )
-//     )
-//   } {
-//     "Array" fromFields("lhs" as "merged") andAfter (
-//       "append".call("merged", "rhs")
-//     )
-//   }
+
 
   Transform("MergeSortedConcat") {
     "Concat" withFields( 
@@ -195,17 +186,7 @@ Transform("CollapseSingleInserts") {
 
 
 
-  // Transform("MergeDeleteNodes") {
-  //   "Delete" withFields( 
-  //     "Array".withFields( "lhs" ),
-  //     Any,
-  //     "Array".withFields( "rhs" )
-  //   )
-  // } {
-  //   "Array" fromFields("lhs" as "deleted") andAfter (
-  //     "remove".call("deleted", "rhs")
-  //   )
-  // }
+
   Transform("PivotLeft") {
     "BTree" withFields( "a", "sep1", 
       "BTree" withFields( "b", "sep2", "c" ) 
@@ -217,6 +198,7 @@ Transform("CollapseSingleInserts") {
     )
   }
   InvertedTransform("PivotLeft", "PivotRight")
+*/
 
   //pushdown and crack can create a null array if no crack happens
   Transform("PushDownAndCrack") {
@@ -239,26 +221,7 @@ Transform("CollapseSingleInserts") {
   }
 
 
-  // Transform("PushDownDontDeleteBtree")
-  // {
-  //   "Delete" withFields(
-  //     "BTree" withFields( "a", "separator", "b" ),
-  //     "Array" withFields( "data" )
-  //   )
-  // } {
-  //   "BTree" fromFields(
-  //     "Delete" fromFields( "a", "Array" fromFields(
-        
-  //     ) as "lhs_partition"),
-  //     "separator",
-  //     "Delete" fromFields( "b", "Array" fromFields(
-          
-  //     ) as "rhs_partition")
-  //   ) andAfter(
-  //     "do_crack".call("data","separator", NodeSubscript(Var("lhs_partition"),"data"), NodeSubscript(Var("rhs_partition"),"data"))
-  //   ) 
-  // }
-  
+/*
   Transform("PushDownDontDeleteElemBtree")
   {
     "DeleteElements" withFields("BTree" withFields( "a", "separator", "b" ),"data")
@@ -269,24 +232,7 @@ Transform("CollapseSingleInserts") {
       "DeleteElements" fromFields( "b", "data"))
     
   }
-  // Transform("PushDownDontDeleteConcat")
-  // {
-  //   "Delete" withFields(
-  //     "Concat" withFields( "a", "b" ),
-  //     "Array" withFields( "data" )
-  //   )
-  // } {
-  //   "Concat" fromFields(
-  //     "Delete" fromFields( "a", "Array" fromFields(
-        
-  //     ) as "lhs_partition"),
-  //     "Delete" fromFields( "b", "Array" fromFields(
-          
-  //     ) as "rhs_partition")
-  //   ) andAfter(
-  //     "array_copy".call("data", NodeSubscript(Var("lhs_partition"),"data"), NodeSubscript(Var("rhs_partition"),"data"))
-  //   ) 
-  // }
+ 
  
   Transform("PushDownDontDeleteElemConcat")
   {
@@ -297,13 +243,8 @@ Transform("CollapseSingleInserts") {
       "DeleteElements" fromFields( "b", "data"))
     
   }
-  // Transform("DeleteFromSortedArray")
-  // {
-  //   "Delete" withFields("SortedArray" withFields( "data1" ),"SortedArray" withFields( "data2" ))
-  // } {
-  //   "SortedArray" fromFields( "data1" as "new_sorted_array_after_delete") andAfter(
-  //     "delete_from_leaf".call("new_sorted_array_after_delete", "data2")) 
-  // }
+ 
+
   Transform("DeleteElemFromSortedArray")
   {
     "DeleteElements" withFields("SortedArray" withFields( "data1" ), "data2" )
@@ -311,13 +252,8 @@ Transform("CollapseSingleInserts") {
     "SortedArray" fromFields( "data1" as "new_sorted_array_after_delete") andAfter(
       "delete_from_leaf".call("new_sorted_array_after_delete", "data2")) 
   }
-  // Transform("DeleteFromArray")
-  // {
-  //   "Delete" withFields("Array" withFields( "data1" ),"Array" withFields( "data2" ))
-  // } {
-  //   "Array" fromFields( "data1" as "new_array_after_delete") andAfter(
-  //     "delete_from_leaf".call("new_array_after_delete", "data2")) 
-  // }
+
+  
   Transform("DeleteElemFromArray")
   {
     "DeleteElements" withFields("Array" withFields( "data1" ), "data2")
@@ -325,14 +261,14 @@ Transform("CollapseSingleInserts") {
     "Array" fromFields( "data1" as "new_array_after_delete") andAfter(
       "delete_from_leaf".call("new_array_after_delete", "data2")) 
   }
- 
+ */
   Policy("CrackSort")("crackAt" -> IntConstant(10),"null_data"-> IntConstant(0)) (
       //("CollapseSingleInserts")
       //("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
                                   //scoreBy { ArraySize("data") })
       
       //andThen ("PushDownDontDeleteConcat"          scoreBy { ArraySize("data") })
-      ("PushDownDontDeleteElemBtree"          scoreBy { ArraySize("data") })
+      //("PushDownDontDeleteElemBtree"          scoreBy { ArraySize("data") })
       //andThen ("DeleteElemFromArray" scoreBy{ArraySize("data1")})
       //andThen ("PushDownDontDeleteElemConcat"          scoreBy { ArraySize("data") })
        
@@ -343,11 +279,11 @@ Transform("CollapseSingleInserts") {
      //andThen "MergeDeleteNodes"
      //andThen ("PushDownDontDeleteBtree"            scoreBy { ArraySize("data") })
      //andThen ("DeleteFromSortedArray" scoreBy{ArraySize("data2")})
-     andThen("PushDownAndCrack" scoreBy { ArraySize("data") })
+     ("PushDownAndCrack")
      andThen("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
                                   scoreBy { ArraySize("data") })
      //andThen("SortArray"        scoreBy { ArraySize("data") })
-     //andThen "MergeSortedConcat"
+     //andThen "MergeSortedBTrees"
      //andThen ("DeleteElemFromSortedArray" scoreBy{ArraySize("data2")})
   )
 

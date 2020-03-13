@@ -17,8 +17,8 @@ object PqPolicyImplementation extends PolicyImplementation
   def init(ctx:Render,rule:PolicyRule,root:String):String = 
   {
     s"std::shared_ptr<JITDNode> *root_handle = &"++root++";"+
-    //s"setInit(root_handle);"+
-    PQ_init(ctx,rule,"emplace(",Var("root_handle")).toString
+    s"initialize_struts(root_handle);"
+    //PQ_init(ctx,rule,"emplace(",Var("root_handle"),Var("root_handle")).toString
     //setpqAdd(ctx,definition,handlerefbool,to,toTarget,mutator)
 
   }
@@ -49,11 +49,11 @@ object PqPolicyImplementation extends PolicyImplementation
 
 
 //Only supports an initial Array/SortedArray Node
-  def PQ_init(ctx:Render,rule:PolicyRule,op:String,root:Expression,rootpattern:Option[MatchPattern]=None): Statement = 
+  def PQ_init(ctx:Render,rule:PolicyRule,op:String,root:Expression,unwraproot:Expression,rootpattern:Option[MatchPattern]=None): Statement = 
     {
       rule match {
       case TieredPolicy(Seq()) => Comment(s"")
-      case TieredPolicy(policies) => Block(policies.map{PQ_init(ctx,_,op,root,rootpattern)}) 
+      case TieredPolicy(policies) => Block(policies.map{PQ_init(ctx,_,op,root,unwraproot,rootpattern)}) 
       case TransformPolicy(unique_name,name, _, scoreFn) => 
         {
             val transform_name = unique_name
@@ -66,7 +66,7 @@ object PqPolicyImplementation extends PolicyImplementation
 
                   if (eligibility == true) 
                   {
-                      commonFunction("this->"+transform_name+"_PQ.",Var(op),root)//The Statement that transalates to Eg:CrackArray_PQ.emplace(&target)
+                      Macro("#ifdef DEBUG")++commonFunction("assert(",unwraproot,Var("!=NULL"))++ Macro("#endif")++commonFunction("this->"+transform_name+"_PQ.",Var(op),root)//The Statement that transalates to Eg:CrackArray_PQ.emplace(&target)
                       //Void(FunctionCall("this->"+transform_name+"_PQ."+op,Seq(root)))
                   }
                   else
@@ -117,11 +117,11 @@ object PqPolicyImplementation extends PolicyImplementation
 
     val extract = 
       if(handlerefbool == true)//UnrollSet has been modified to return (varName,NodeType,Expression,MatchPattern)
-        {MatchToStatement.unrollSet(definition,to.toMatchPattern,toNodeVar,(Var(target)))}
+        {MatchToStatement.unrollSet(definition,to.toMatchPattern,toNodeVar,(Var(target)),(Var(target)))}
       else
-        {MatchToStatement.unrollSet(definition,to.toMatchPattern,toNodeVar,WrapNodeRef(Var(target)))}
+        {MatchToStatement.unrollSet(definition,to.toMatchPattern,toNodeVar,WrapNodeRef(Var(target)),(Var(target)))}
 
-    val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4)) 
+    val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4,getVarNameandType._5)) 
     val setseqStmt = eachVarName.map(vnnt => 
                                       vnnt._4 match{
                                               case MatchNode(nodeType, fields, _) =>
@@ -129,7 +129,7 @@ object PqPolicyImplementation extends PolicyImplementation
                                                 val hasSet = trackable(vnnt._2.toString)
                                                 if(hasSet == true)
                                                 {
-                                                  Comment(s"SET ADD")
+                                                  Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
                                                   commonFunction("this->JITD_NODE_"+vnnt._2+"_set.",Var("emplace("),vnnt._3)
                                                   //Void(FunctionCall("this->JITD_NODE_"+vnnt._2+"_set.emplace",Seq(vnnt._3)))
                                                 }
@@ -144,11 +144,13 @@ object PqPolicyImplementation extends PolicyImplementation
                                                   if(mutator == true)
                                                   {
 
+                                                    Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
                                                     commonFunction("SetPqAdd(",Var(""),vnnt._3) ++commonFunction("std::atomic_store(",vnnt._3,Var(", *(cq_elem.first)"))
                                                 
                                                   }
                                                   else
                                                   {
+                                                    Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
                                                     commonFunction("SetPqAdd(",Var(""),vnnt._3)
                                                 //Void(FunctionCall("SetPqAdd",Seq(vnnt._3)))
 
@@ -161,7 +163,7 @@ object PqPolicyImplementation extends PolicyImplementation
                                               {
                                                 if (fields.forall{_.isInstanceOf[MatchAny]}) //lets call nodes without decendents as standalone.This condition is to make sure only standalone
                                                 {
-                                                    PQ_init(ctx,rule,"emplace(",vnnt._3,Some(vnnt._4))//Function to populate what all PQs are there in the JITD structure based on the ctx.policy.rule 
+                                                    PQ_init(ctx,rule,"emplace(",vnnt._3,vnnt._5,Some(vnnt._4))//Function to populate what all PQs are there in the JITD structure based on the ctx.policy.rule 
                                                                                                       //and what operation is invoked on the PQ on what expression(expression for the node).
                                                 }
                                                 else
@@ -192,11 +194,11 @@ object PqPolicyImplementation extends PolicyImplementation
     val rule = ctx.policy.rule
     val extract = 
       if(handlerefbool == true)
-        {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",Var("target"))}
+        {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",Var("target"),Var("target"))}
       else
-        {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",WrapNodeRef(Var("target")))}
+        {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",WrapNodeRef(Var("target")),Var("target"))}
     
-    val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4))
+    val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4,getVarNameandType._5))
     //val setseqStmt = eachVarName.map(vnnt => commonFunction("//SetPqErase( "+vnnt._2,"->",vnnt._3))
     //val setseqStmt = eachVarName.map(vnnt => commonFunction("","SetPqErase(",vnnt._3)
     val setseqStmt = eachVarName.map(vnnt => 
@@ -207,6 +209,7 @@ object PqPolicyImplementation extends PolicyImplementation
                                                 if(hasSet == true)
                                                 {
                                                   //Comment(s"SET Remove")
+                                                  Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
                                                   commonFunction("this->JITD_NODE_"+vnnt._2+"_set.",Var("erase("),vnnt._3)
                                                   //Void(FunctionCall("this->JITD_NODE_"+vnnt._2+"_set.erase",Seq(vnnt._3)))
                                                 }
@@ -218,7 +221,7 @@ object PqPolicyImplementation extends PolicyImplementation
                                               }
                                               case MatchAny(_) => 
                                                 {
-                                                  
+                                                    Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
                                                     commonFunction("SetPqErase(",Var(""),vnnt._3)
                                                   
                                                 }
@@ -230,7 +233,7 @@ object PqPolicyImplementation extends PolicyImplementation
                                               {
                                                 if (fields.forall{_.isInstanceOf[MatchAny]}) //lets call nodes without decendents as standalone.This condition is to make sure only standalone
                                                 {
-                                                    PQ_init(ctx,rule,"erase(",vnnt._3,Some(vnnt._4))//Function to populate what all PQs are there in the JITD structure based on the ctx.policy.rule 
+                                                    PQ_init(ctx,rule,"erase(",vnnt._3,vnnt._5,Some(vnnt._4))//Function to populate what all PQs are there in the JITD structure based on the ctx.policy.rule 
                                                                                                       //and what operation is invoked on the PQ on what expression(expression for the node).
                                                 }
                                                 else

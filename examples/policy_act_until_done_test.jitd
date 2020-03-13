@@ -1,6 +1,12 @@
 build
-Array random 100000 1 200000
+Array random 50 0 50
 Return
 dump
+print_pq
+check_pq
 policy_act_until_done
-print_time_log
+dump
+remove_elements random 2 0 50
+dump
+policy_act_until_done
+dump

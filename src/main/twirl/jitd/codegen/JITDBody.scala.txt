@@ -8,24 +8,7 @@
 #include <sstream>
 #include "runtime.hpp"
 #include "@headerFile"
-std::vector<float> time_vec_PushDownAndCrack;
-std::vector<float> time_vec_CrackArray;
-std::vector<float> time_vec_PushDownDontDeleteElemBtree;
-std::vector<float> time_vec_PushDownDontDeleteElemConcat;
-std::vector<float> time_vec_SortArray;
-std::vector<float> time_vec_DeleteElemFromSortedArray;
-std::vector<float> time_vec_MergeSortedBTrees;
-std::vector<float> time_vec_MergeSortedConcat;
-std::vector<float> time_vec_DeleteElemFromArray;
-std::vector<float> search_time_vec_PushDownAndCrack;
-std::vector<float> search_time_vec_CrackArray;
-std::vector<float> search_time_vec_PushDownDontDeleteElemBtree;
-std::vector<float> search_time_vec_PushDownDontDeleteElemConcat;
-std::vector<float> search_time_vec_SortArray;
-std::vector<float> search_time_vec_DeleteElemFromSortedArray;
-std::vector<float> search_time_vec_MergeSortedBTrees;
-std::vector<float> search_time_vec_MergeSortedConcat;
-std::vector<float> search_time_vec_DeleteElemFromArray;
+
 
 //#define JITD_DEBUG_POLICY true;
 //std::shared_ptr<JITDNode> * rootHandleRef;
@@ -54,23 +37,7 @@ std::vector<float> search_time_vec_DeleteElemFromArray;
 ///////////////////// Policy Implementation ///////////////////// 
 
 @ctx.policyImplementation.utilityFunctions(ctx)
-void JITD::process_cq(mutatorCqElement &pop_mce)
-{
-      if(pop_mce.flag == INSERT)
-          {
-            this->after_insert(pop_mce.element);
-          }
-      else if(pop_mce.flag == REMOVE)
-          {
-            this->after_remove_elements(pop_mce.element);
-          }
-      else
-          {
-            std::cerr<<"Invalid Mutator Operation"<<std::endl;
-            
-          }
-   
-}
+
 
 int JITD::organize_wait()
 {
@@ -80,11 +47,14 @@ int JITD::organize_wait()
     bool not_done = true;
     while(true)
     {
+
       if(this->work_queue.empty() && not_done == true)
       {
         
         not_done = this->do_organize();
         t++;
+        //std::cout<<"JITD_PRINT and node_done  ="<<not_done;
+        //this->print_debug();
       }
       else
       {
@@ -93,16 +63,24 @@ int JITD::organize_wait()
         this->work_queue.pop(pop_mce);
         if(pop_mce.flag == EXIT)
         {
-          
           return t;
+        }
+        else if(pop_mce.flag == INSERT)
+        {
+            this->after_insert(pop_mce.element);
+            not_done = true;
+        } 
+        else if(pop_mce.flag == REMOVE)
+        {
+            this->after_remove_elements(pop_mce.element);
+            not_done = true;
         }
         else
         {
-          
-          this->process_cq(pop_mce);
-          not_done = true;
-          
+          std::cerr<<"Invalid Mutator Operation"<<std::endl;
+          exit(-1);
         }
+        
       }
       
     
@@ -122,27 +100,49 @@ bool JITD::do_organize()
 
 void JITD::SetPqErase(std::shared_ptr<JITDNode> * node_handle)
 {
+  #ifdef DEBUG
+    assert(node_handle!=NULL);
+  #endif
   std::shared_ptr<JITDNode> node_ptr = std::atomic_load((node_handle));
-  switch(node_ptr->type){
+   #ifdef DEBUG
+    assert(node_ptr!=NULL);
+  #endif
+  switch((node_ptr)->type){
     @for(node <- ctx.definition.nodes) {
       case @node.enumName : {
           @{RenderPattern.SetPopulate(ctx,ctx.policy.rule,"erase","node_handle",s"${node.name}",s"${node.enumName}");}
           @{RenderPattern.PQPopulate(ctx,ctx.policy.rule,"erase","node_handle",s"${node.name}",s"${node.enumName}");}
           };break;
         }
+        default:{std::cerr << "Unhandled Node Type in get" << std::endl;
+        exit(-1);};break;
       }
+      #ifdef DEBUG
+        check_pq();
+      #endif 
 }
 void JITD::SetPqAdd(std::shared_ptr<JITDNode> * node_handle)
 {
+ #ifdef DEBUG
+    assert(node_handle!=NULL);
+  #endif
   std::shared_ptr<JITDNode> node_ptr = std::atomic_load((node_handle));
-  switch(node_ptr->type){
+   #ifdef DEBUG
+    assert(node_ptr!=NULL);
+  #endif
+  switch((node_ptr)->type){
     @for(node <- ctx.definition.nodes) {
       case @node.enumName : {
           @{RenderPattern.SetPopulate(ctx,ctx.policy.rule,"emplace","node_handle",s"${node.name}",s"${node.enumName}");}
           @{RenderPattern.PQPopulate(ctx,ctx.policy.rule,"emplace","node_handle",s"${node.name}",s"${node.enumName}");}
           };break;
         }
+      default:{std::cerr << "Unhandled Node Type in get" << std::endl;
+      exit(-1);};break;
       }
+      #ifdef DEBUG
+        check_pq();
+      #endif  
 }
 ///////////////////// Debugging Utilities ///////////////////// 
 
@@ -185,7 +185,7 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
     
     if(op == "Return")
     {
-      return std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(node_stack.top()))));
+      return std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(std::make_shared<std::shared_ptr<JITDNode>>(std::shared_ptr<JITDNode>(node_stack.top())))));
     }
     else {
       std::cerr << "Invalid assembly instruction '"<<op<<"'" << std::endl; 
@@ -204,10 +204,58 @@ void JITD::print_pq()
 void JITD::check_pq()
 {
   
-    
-   
-    
+  if(!this->CrackArray_PQ.empty())
+  { 
+        std::set<std::shared_ptr<JITDNode> *>::iterator it;
+      for(it = this->CrackArray_PQ.begin();it!=this->CrackArray_PQ.end();++it)
+      {
+        
+          assertm("CrackArray_PQ",(*it!=NULL));
 
+          std::shared_ptr<JITDNode> * curr = *it;
+
+          assertm("CrackArray_PQ",(*curr!=NULL));
+          //assertm("CrackArray_PQ",((*curr).get()!=NULL));
+          assertm("CrackArray_PQ",(curr->get()!=NULL));
+          
+          
+            //std::cout<<"check_pq():The type of node in CrackArray_PQ is "<<curr->get()->type<<std::endl;
+            
+          
+          
+        
+        
+       
+      }
+        
+  }
+  
+}
+
+void JITD::initialize_struts(std::shared_ptr<JITDNode>* node)
+{
+  std::shared_ptr<JITDNode> target_root_lock = std::atomic_load((node));
+  switch(target_root_lock->type)
+  {
+    @for(node <- ctx.definition.nodes) {
+      case @node.enumName : {
+      @{RenderPattern.SetPopulate(ctx,ctx.policy.rule,"emplace","node",s"${node.name}",s"${node.enumName}");}
+      @{RenderPattern.PQPopulate(ctx,ctx.policy.rule,"emplace","node",s"${node.name}",s"${node.enumName}");}
+      @node.renderName *node_real = (@node.renderName *)target_root_lock.get();
+        @{  val children = node.fields.filter { _.t == TNodeRef() }
+            if(children.size > 0){
+              
+              children.map { f => 
+                "initialize_struts(&(node_real->"+f.name+"));\n"
+              }.mkString
+            } else { "" }
+        } 
+        break;      
+      }
+
+    }
+
+  }
 }
 void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix){ 
 

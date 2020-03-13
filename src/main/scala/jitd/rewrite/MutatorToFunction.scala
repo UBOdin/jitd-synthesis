@@ -27,12 +27,12 @@ object MutatorToFunction
       )
 
     //std::shared_ptr<std::shared_ptr<JITDNode>> new_root_ptr = std::shared_ptr(new std::shared_ptr(new_root));
-    val ptr_ptr_construct = Void(Var("std::shared_ptr<std::shared_ptr<JITDNode>> new_root_ptr = std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new_root))"))
+    val ptr_ptr_construct = Void(Var("std::shared_ptr<std::shared_ptr<JITDNode>> new_root_ptr = std::shared_ptr<std::shared_ptr<JITDNode>>(std::make_shared<std::shared_ptr<JITDNode>>(std::shared_ptr<JITDNode>(new_root)))"))
     //val cq_element_declare = Void(Var("std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> cq_elem = std::make_pair((jitd_root),(new_root_ptr))"))
     
     val falg_setter = if(mutator.name contains "insert"){Void(Var("mce.flag = INSERT"))}else{Void(Var("mce.flag = REMOVE"))}
     val common_cq_element_declare = Void(Var("mutatorCqElement mce"))
-    val common_cq_element_assign = Void(Var("mce.element = std::make_pair((jitd_root),(new_root_ptr))"))
+    val common_cq_element_assign = Void(Var("(mce.element).first = jitd_root")) ++ Void(Var("(mce.element).second = new_root_ptr"))//std::make_pair((jitd_root),(new_root_ptr))"))
     val common_cq_populate = Void(Var("this->work_queue.push(mce)"))
     
     //val cq_populate = Void(Var("this->"+mutator.name+"_cq.push(cq_elem)"))

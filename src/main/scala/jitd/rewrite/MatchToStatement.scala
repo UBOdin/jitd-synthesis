@@ -55,16 +55,17 @@ def unrollSet(
     definition: Definition,
     pattern: MatchPattern, 
     extractName: VarName, 
-    targetExpression: Expression
+    targetExpression: Expression,
+    unwrapExp:Expression
   ): 
-    Seq[ (VarName, NodeType, Expression, MatchPattern) ] =
+    Seq[ (VarName, NodeType, Expression, MatchPattern,Expression) ] =
   {
      
     //println(fieldPattern)
     pattern match {
       case MatchAny(_)=>Seq() 
       case MatchNode(nodeType, fields, _) => 
-        Seq( (extractName, nodeType, targetExpression,pattern) ) ++
+        Seq( (extractName, nodeType, targetExpression,pattern,unwrapExp) ) ++
           fields.zip(definition.node(nodeType).fields).flatMap { 
             case (fieldPattern, fieldDefinition) =>
               //println((fieldDefinition).t)
@@ -73,7 +74,8 @@ def unrollSet(
                 fieldPattern, 
                 extractName + "_" + fieldDefinition.name,
                 WrapNodeRef(NodeSubscript(Var(extractName), fieldDefinition.name)),
-                fieldDefinition
+                fieldDefinition,
+                NodeSubscript(Var(extractName), fieldDefinition.name)
               )
 
           } 
@@ -85,9 +87,10 @@ def unrollSet(
     pattern: MatchPattern, 
     extractName: VarName, 
     targetExpression: Expression,
-    fieldDef:Field
+    fieldDef:Field,
+    unwrapExp:Expression
   ): 
-    Seq[ (VarName, NodeType, Expression, MatchPattern) ] =
+    Seq[ (VarName, NodeType, Expression, MatchPattern,Expression) ] =
   {
      
     
@@ -97,14 +100,14 @@ def unrollSet(
           
           if(fieldDef.t == TNodeRef())
           {
-            Seq((extractName,fieldDef.t.toString,targetExpression,pattern))
+            Seq((extractName,fieldDef.t.toString,targetExpression,pattern,unwrapExp))
           }
           else
           {
             Seq()
           }
       case MatchNode(nodeType, fields, _) => 
-        Seq( (extractName, nodeType, targetExpression, pattern) ) ++
+        Seq( (extractName, nodeType, targetExpression, pattern,unwrapExp) ) ++
           fields.zip(definition.node(nodeType).fields).flatMap { 
             case (fieldPattern, fieldDefinition) =>
               //println((fieldDefinition).t)
@@ -113,7 +116,8 @@ def unrollSet(
                 fieldPattern, 
                 extractName + "_" + fieldDefinition.name,
                 WrapNodeRef(NodeSubscript(Var(extractName), fieldDefinition.name)),
-                fieldDefinition
+                fieldDefinition,
+                NodeSubscript(Var(extractName), fieldDefinition.name)
               )
 
           } 

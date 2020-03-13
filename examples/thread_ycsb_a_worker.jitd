@@ -1,0 +1,2 @@
+operation_data_ycsb file ./examples/ycsb_tsv_benchmark_b_1000.tsv 
+dump

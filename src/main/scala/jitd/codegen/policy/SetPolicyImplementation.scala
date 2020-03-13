@@ -29,9 +29,9 @@ object SetPolicyImplementation extends PolicyImplementation
     //val fromMapping = MatchToStatement.varMappings(definition, fromNode, fromNodeVar+"_root") 
     val extract = 
       if(handlerefbool == true)
-        {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",Var("target"))}
+        {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",Var("target"),Var("target"))}
       else
-        {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",WrapNodeRef(Var("target")))}
+        {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",WrapNodeRef(Var("target")),Var("target"))}
     
     //println("IN UNROLL SET: "+extract.map(_._3))
     val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3))
@@ -48,9 +48,9 @@ object SetPolicyImplementation extends PolicyImplementation
     //println(to.toMatchPattern)
     val extract = 
       if(handlerefbool == true)
-        {MatchToStatement.unrollSet(definition,to.toMatchPattern,toNodeVar,(Var(target)))}
+        {MatchToStatement.unrollSet(definition,to.toMatchPattern,toNodeVar,(Var(target)),(Var(target)))}
       else
-        {MatchToStatement.unrollSet(definition,to.toMatchPattern,toNodeVar,WrapNodeRef(Var(target)))}
+        {MatchToStatement.unrollSet(definition,to.toMatchPattern,toNodeVar,WrapNodeRef(Var(target)),(Var(target)))}
 
     val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3)) 
    

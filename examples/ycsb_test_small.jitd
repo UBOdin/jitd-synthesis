@@ -1,0 +1,4 @@
+init_data_ycsb_single 10 file ./examples/ycsb_init_small.jitd
+print_pq
+check_pq
+dump

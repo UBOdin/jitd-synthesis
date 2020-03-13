@@ -93,6 +93,9 @@ class RenderStatement(
       case Comment(msg) => {
           indent+"/*** "+msg+" ***/\n"
         }
+      case Macro(msg) => {
+        indent+msg+"\n"
+      }
         
       
     }
