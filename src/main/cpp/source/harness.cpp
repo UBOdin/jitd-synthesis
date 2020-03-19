@@ -29,14 +29,14 @@
 
 #define STORAGE_HANDLE struct storage_jitd_struct*
 
-#define JITD_INSERT_VALUE(storage, value) ( { \
+#define JITD_INSERT_VALUE ( { \
 	storage->r.value = new int(value); \
 	storage->element.clear(); \
 	storage->element.push_back(storage->r); \
 	storage->jitd->insert(storage->element); \
 } )
 
-#define JITD_REMOVE_VALUE(storage) ( { \
+#define JITD_REMOVE_VALUE ( { \
 	delete((unsigned long*)storage->r.value); \
 	storage->element.clear(); \
 	storage->element.push_back(storage->r); \
@@ -291,7 +291,7 @@ int put_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) {
 	#ifdef STORAGE_JITD
 
 	storage->r.key = key;
-	JITD_INSERT_VALUE(storage, value);
+	JITD_INSERT_VALUE;
 
 	#endif
 
@@ -340,7 +340,7 @@ int remove_data(STORAGE_HANDLE storage, unsigned long key) {
 	// TODO:  Confirm whether key presence should be checked first
 	result = storage->jitd->get(key, storage->r);
 	if (result == true) {
-		JITD_REMOVE_VALUE(storage);
+		JITD_REMOVE_VALUE;
 	}
 
 	#endif
@@ -364,8 +364,8 @@ int update_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 
 	result = storage->jitd->get(key, storage->r);
 	if (result == true) {
-		JITD_REMOVE_VALUE(storage);
-		JITD_INSERT_VALUE(storage, value);
+		JITD_REMOVE_VALUE;
+		JITD_INSERT_VALUE;
 	}
 
 	#endif
@@ -393,11 +393,11 @@ int upsert_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 
 	result = storage->jitd->get(key, storage->r);
 	if (result == true) {
-		JITD_REMOVE_VALUE(storage);
-		JITD_INSERT_VALUE(storage, value);
+		JITD_REMOVE_VALUE;
+		JITD_INSERT_VALUE;
 	} else {
 		storage->r.key = key;
-		JITD_INSERT_VALUE(storage, value);
+		JITD_INSERT_VALUE;
 	}
 
 	#endif
