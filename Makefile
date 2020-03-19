@@ -31,6 +31,10 @@ CONF_H = $(HEADER)/conf.hpp
 default: $(MAIN)
 	@echo Build successful
 
+quick:  jitd_test.o
+	$(CC) $(CFLAGS) -o quick.exe $(SOURCE)/quick.cpp $(JITD_TEST_C) $(INCLUDES) $(TBB_LIBRARY) -ltbb
+	@echo quick build
+
 jitd_allatonce:
 	@echo "#define STORAGE_JITD" > $(CONF_H)
 	$(CC) $(CFLAGS) -o $(MAIN) $(JITD_TEST_C) $(HARNESS_C) $(DATA_C) $(INCLUDES) $(TBB_LIBRARY) -ltbb
