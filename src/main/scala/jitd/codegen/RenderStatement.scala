@@ -36,6 +36,9 @@ class RenderStatement(
       
       case ExtractNode(name, v, matchers, onFail) => {
         //indent+s"check_set();\n"+
+            // indent+s"#ifdef DEBUG\n"+
+            // indent+s"check_pq();\n"+
+            // indent+s"#endif\n"+
             indent+s"// Extract ${renderExpression(v)} into ${matchers.map { _._1 }.mkString(" or ")}\n"+  
             indent+s"${ctx.cType(TNodeRef())} "+name+"_lock = std::atomic_load(("+renderExpression(v)+"));\n"+
             //indent+s"std::cout<<"+here+"<<"+name+"_lock.get()->type<<std::endl;\n"+   

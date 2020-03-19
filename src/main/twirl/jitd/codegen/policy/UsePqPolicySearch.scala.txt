@@ -20,10 +20,11 @@
       std::set< std::shared_ptr<JITDNode> * >::iterator it;
       
       it = (this->@{transform.name}_PQ).begin();
-          #ifdef DEBUG
+          
+          /*#ifdef DEBUG
           assert(*it!=NULL);
           #endif
-          /*
+          
           std::shared_ptr<JITDNode> * pspjn = *it;
           
           #ifdef DEBUG

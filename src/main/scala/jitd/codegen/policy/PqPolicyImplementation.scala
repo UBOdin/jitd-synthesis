@@ -66,7 +66,8 @@ object PqPolicyImplementation extends PolicyImplementation
 
                   if (eligibility == true) 
                   {
-                      Macro("#ifdef DEBUG")++commonFunction("assert(",unwraproot,Var("!=NULL"))++ Macro("#endif")++commonFunction("this->"+transform_name+"_PQ.",Var(op),root)//The Statement that transalates to Eg:CrackArray_PQ.emplace(&target)
+                      //Macro("#ifdef DEBUG")++commonFunction("assert(",unwraproot,Var("!=NULL"))++Macro("#endif")++
+                      commonFunction("this->"+transform_name+"_PQ.",Var(op),root)//The Statement that transalates to Eg:CrackArray_PQ.emplace(&target)
                       //Void(FunctionCall("this->"+transform_name+"_PQ."+op,Seq(root)))
                   }
                   else
@@ -129,7 +130,7 @@ object PqPolicyImplementation extends PolicyImplementation
                                                 val hasSet = trackable(vnnt._2.toString)
                                                 if(hasSet == true)
                                                 {
-                                                  Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
+                                                  //Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
                                                   commonFunction("this->JITD_NODE_"+vnnt._2+"_set.",Var("emplace("),vnnt._3)
                                                   //Void(FunctionCall("this->JITD_NODE_"+vnnt._2+"_set.emplace",Seq(vnnt._3)))
                                                 }
@@ -144,13 +145,13 @@ object PqPolicyImplementation extends PolicyImplementation
                                                   if(mutator == true)
                                                   {
 
-                                                    Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
-                                                    commonFunction("SetPqAdd(",Var(""),vnnt._3) ++commonFunction("std::atomic_store(",vnnt._3,Var(", *(cq_elem.first)"))
+                                                    //Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
+                                                    commonFunction("std::atomic_store(",vnnt._3,Var(", *(cq_elem.first)"))++commonFunction("SetPqAdd(",Var(""),vnnt._3)
                                                 
                                                   }
                                                   else
                                                   {
-                                                    Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
+                                                    //Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
                                                     commonFunction("SetPqAdd(",Var(""),vnnt._3)
                                                 //Void(FunctionCall("SetPqAdd",Seq(vnnt._3)))
 
@@ -209,7 +210,7 @@ object PqPolicyImplementation extends PolicyImplementation
                                                 if(hasSet == true)
                                                 {
                                                   //Comment(s"SET Remove")
-                                                  Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
+                                                  //Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
                                                   commonFunction("this->JITD_NODE_"+vnnt._2+"_set.",Var("erase("),vnnt._3)
                                                   //Void(FunctionCall("this->JITD_NODE_"+vnnt._2+"_set.erase",Seq(vnnt._3)))
                                                 }
@@ -221,7 +222,7 @@ object PqPolicyImplementation extends PolicyImplementation
                                               }
                                               case MatchAny(_) => 
                                                 {
-                                                    Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
+                                                    //Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
                                                     commonFunction("SetPqErase(",Var(""),vnnt._3)
                                                   
                                                 }

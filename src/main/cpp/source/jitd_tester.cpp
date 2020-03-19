@@ -56,10 +56,10 @@ int jitd_client_op(
     CASE("random_scan")
     {
 
-      std::cout << "Switching to random point scan"<<std::endl;
+      //std::cout << "Switching to random point scan"<<std::endl;
       long noofscans,max_scan_val;
       toks >> noofscans >> max_scan_val;
-      std::cout<<"In gen_scan"<<std::endl;
+      //std::cout<<"In gen_scan"<<std::endl;
       for(int i=0;i<noofscans;i++)
       {
         //cout<<i<<endl;
@@ -112,7 +112,7 @@ int jitd_client_op(
     CASE("insert") {
       timeval start, end;
       RecordBuffer data;
-      //std::cout<<"Here"<<std::endl;
+      
       load_records(data, toks);
       //std::cout<<"Loaded data"<<std::endl;
       gettimeofday(&start, NULL);
@@ -121,7 +121,8 @@ int jitd_client_op(
       
       //std::cout<<"size of crack_array"<<jitd->CrackArray_PQ.size()<<std::endl;
       gettimeofday(&end, NULL);
-      std::cout << "Insert into JITD: " << total_time(start, end) << " us" << std::endl;
+      std::cout<<"INSERTED..."<<std::endl;
+      //std::cout << "Insert into JITD: " << total_time(start, end) << " us" << std::endl;
     }
     CASE("remove_elements")
     {
@@ -181,7 +182,8 @@ void client_thread(std::shared_ptr<JITD> jitd, std::string file, int per_op_slee
   std::ifstream in(file);
   timeval start, end;
   int t = 0;
-  std::cout << "Start[" << file << "]" << std::endl;
+  std::cout << "Start:"<< std::this_thread::get_id()<<"[" << file << "]" << std::endl;
+  //std::cout <<"client_thread ID:"<<std::this_thread::get_id()<<std::endl;
   gettimeofday(&start, NULL);
   t = jitd_client_op(jitd, in, false, per_op_sleep_ms);
   gettimeofday(&end, NULL);
@@ -316,8 +318,14 @@ int jitd_test(
       
       jitd->print_debug();
       
-    ///////////////// OOOPS /////////////////
+
     }
+    // CASE("dump_viz") {
+      
+    //   jitd->print_debug_viz();
+      
+   
+    // }
     
     else {
       std::cerr << "Invalid Test Operation: " << op << std::endl;
