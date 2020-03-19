@@ -262,7 +262,7 @@ inline void delete_from_leaf(std::vector<Record> &to_delete,std::vector<Record> 
   }
   else
   {
-    std::cout<<"size 0 encountered"<<std::endl;
+    std::cout<<"Delete:size 0 encountered"<<std::endl;
   }
   
 

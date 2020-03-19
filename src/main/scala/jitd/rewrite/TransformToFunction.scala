@@ -30,7 +30,7 @@ object TransformToFunction
         "to_ptr",
         false
       )
-      constructor ++Assign("target", (accessor), true)++stmt2
+      constructor ++Assign("target", (accessor), true)++stmt2 //++ Macro("#ifdef DEBUG")++ Void(Var("check_pq()"))++ Macro("#endif")
     }
     definition.typechecker.check {//checks to see if its correct and returns same 
       FunctionDefinition(

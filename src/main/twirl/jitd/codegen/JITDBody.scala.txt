@@ -69,11 +69,13 @@ int JITD::organize_wait()
         {
             this->after_insert(pop_mce.element);
             not_done = true;
+            //this->print_debug();
         } 
         else if(pop_mce.flag == REMOVE)
         {
             this->after_remove_elements(pop_mce.element);
             not_done = true;
+            //this->print_debug();
         }
         else
         {
@@ -118,7 +120,7 @@ void JITD::SetPqErase(std::shared_ptr<JITDNode> * node_handle)
         exit(-1);};break;
       }
       #ifdef DEBUG
-        check_pq();
+        //check_pq();
       #endif 
 }
 void JITD::SetPqAdd(std::shared_ptr<JITDNode> * node_handle)
@@ -141,7 +143,7 @@ void JITD::SetPqAdd(std::shared_ptr<JITDNode> * node_handle)
       exit(-1);};break;
       }
       #ifdef DEBUG
-        check_pq();
+        //check_pq();
       #endif  
 }
 ///////////////////// Debugging Utilities ///////////////////// 
@@ -206,20 +208,22 @@ void JITD::check_pq()
   
   if(!this->CrackArray_PQ.empty())
   { 
-        std::set<std::shared_ptr<JITDNode> *>::iterator it;
+      std::set<std::shared_ptr<JITDNode> *>::iterator it;
+      std::cout<<"SIZE OF CRACK PQ"<<CrackArray_PQ.size()<<"."<<std::endl;
       for(it = this->CrackArray_PQ.begin();it!=this->CrackArray_PQ.end();++it)
       {
         
           assertm("CrackArray_PQ",(*it!=NULL));
 
           std::shared_ptr<JITDNode> * curr = *it;
+          std::cout<<"Address of shared_ptr: "<<*curr<<std::endl;
 
           assertm("CrackArray_PQ",(*curr!=NULL));
           //assertm("CrackArray_PQ",((*curr).get()!=NULL));
           assertm("CrackArray_PQ",(curr->get()!=NULL));
           
           
-            //std::cout<<"check_pq():The type of node in CrackArray_PQ is "<<curr->get()->type<<std::endl;
+            
             
           
           
@@ -232,19 +236,21 @@ void JITD::check_pq()
   
 if(!this->JITD_NODE_Concat_set.empty())
   { 
-        std::set<std::shared_ptr<JITDNode> *>::iterator it;
+      std::set<std::shared_ptr<JITDNode> *>::iterator it;
+      std::cout<<"SIZE OF CONCAT SET"<<JITD_NODE_Concat_set.size()<<"."<<std::endl;
       for(it = this->JITD_NODE_Concat_set.begin();it!=this->JITD_NODE_Concat_set.end();++it)
       {
           assertm("JITD_NODE_Concat_set",(*it!=NULL));
 
           std::shared_ptr<JITDNode> * curr = *it;
+          std::cout<<"Address of shared_ptr: "<<*curr<<std::endl;
 
           assertm("JITD_NODE_Concat_set",(*curr!=NULL));
           //assertm("JITD_NODE_Concat_set",((*curr).get()!=NULL));
           assertm("JITD_NODE_Concat_set",(curr->get()!=NULL));
           
             
-              //std::cout<<"check_pq():The type of node in JITD_NODE_Concat_set is "<<curr->get()->type<<std::endl;
+              
             
           
           
@@ -308,3 +314,5 @@ void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string
     }
   }
 }
+
+

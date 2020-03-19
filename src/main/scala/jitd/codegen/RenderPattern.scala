@@ -18,9 +18,9 @@ object RenderPattern
         val node = ctx.definition.nodesByName(nodeName)
         val targetReal = target+"_real"
         //val here = "\"HERE\""
-        s"#ifdef DEBUG\n"+
-        s"assert(${target}!=NULL);\n"+
-        s"#endif\n"+
+        // s"#ifdef DEBUG\n"+
+        // s"assert(${target}!=NULL);\n"+
+        // s"#endif\n"+
         s"if(${target}->type != ${node.enumName}){$onFailure }\n"+
         s"${node.renderName} *${targetReal} = (${node.renderName} *)${target};\n"+
         fields.zip(node.fields).map { 
