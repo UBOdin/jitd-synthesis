@@ -316,3 +316,36 @@ void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string
 }
 
 
+void print_JITD_node_structure_viz(std::shared_ptr<JITDNode> node,std::shared_ptr<JITDNode> parent){ 
+
+  switch(node->type){
+    @for(node <- ctx.definition.nodes) {
+      case @node.enumName : {
+        @node.renderName *node_real = (@node.renderName *)node.get();
+        switch(parent->type){
+          @for(node <- ctx.definition.nodes) {
+          case @node.enumName : {
+              std::cout << "@{node.name}(addr:"<<node_real<<")[] -> ";
+
+          break;}
+
+          }
+        }
+
+        std::cout << "@{node.name}(addr:"<<node_real<<")[] "<<std::endl;
+        
+
+        @{  val children = node.fields.filter { _.t == TNodeRef() }
+            if(children.size > 0){
+              "std::cout << std::endl;\n"+
+              children.map { f => 
+                "print_JITD_node_structure_viz(node_real->"+f.name+",node);\n"
+              }.mkString
+            } else { "" }
+        } 
+        //std::cout << " ]" << std::endl;
+        break;
+      }
+    }
+  }
+}

@@ -47,7 +47,7 @@ class HardcodedDefinition
   var mutators = List[jitd.spec.Mutator]()
   var transforms = List[jitd.spec.Transform]()
   var policies = List[jitd.spec.Policy]()
-  var policyImplementations = jitd.codegen.policy.SetPolicyImplementation
+  var policyImplementations = jitd.codegen.policy.PqPolicyImplementation
   def Def(ret: Type, name: String, args:Type*) 
   {
     functionSignatures = jitd.typecheck.FunctionSignature(name, args, ret) :: functionSignatures

@@ -16,14 +16,14 @@
     {
       
       std::set< std::shared_ptr<JITDNode> * >::iterator it;
-      for(it = (this->@{RenderPattern.setGen(ctx, transform.from)}).begin(); it!=(this->@{RenderPattern.setGen(ctx, transform.from)}).end(); ++it)
-      {
+      it = (this->@{RenderPattern.setGen(ctx, transform.from)}).begin(); 
+      
         
 
            JITDNode *iter_node = (*it)->get();
           
 
-           @{RenderPattern.test(ctx, transform.from, "iter_node", "continue;")}
+           @{RenderPattern.test(ctx, transform.from, "iter_node", "return -1;")}
           
            if(@{ctx.expression(InlineVars(constraint, 
             RenderPattern.varMapping(ctx, transform.from, "iter_node")++
@@ -35,17 +35,9 @@
           ))};
           }
 
-          if(best_score>curr_score)
-          {
-            //std::cout<<"BESTSCORE: "<<best_score<<std::endl;
-            curr_score = best_score;
+          targetHandleRef = (*it);
             
-            targetHandleRef = (*it);
-            return best_score;
-            
-          
-      }
-    }
+    
 
 
 

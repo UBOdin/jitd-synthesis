@@ -103,6 +103,7 @@ typedef enum {
 class JITD;
 std::shared_ptr<JITD> assemble_jitd(std::istream &in);
 void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix);
+void print_JITD_node_structure_viz(std::shared_ptr<JITDNode> node,std::shared_ptr<JITDNode> parent);
 void print_time_vector_sum();
 void print_search_time_vector_sum();
    
@@ -165,7 +166,7 @@ class JITD {
     void SetPqErase(std::shared_ptr<JITDNode> * node_handle);
     void SetPqAdd(std::shared_ptr<JITDNode> * node_handle);
     void print_debug() {print_JITD_node_structure(*jitd_root, std::string("")); }
-    //void print_debug_viz() {print_JITD_node_structure_viz(*jitd_root); }
+    void print_debug_viz() {print_JITD_node_structure_viz(*jitd_root,*jitd_root); }
     bool do_organize();
     int organize_wait();
     
