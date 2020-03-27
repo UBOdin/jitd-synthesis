@@ -5,7 +5,8 @@ CC = g++
 #CC = export LD_LIBRARY_PATH=/opt/intel/compilers_and_libraries_2020.0.166/linux/tbb/lib/intel64/gcc4.8; g++
 
 #CFLAGS  = -g -Wall -std=c++14
-CFLAGS = -g -std=c++14 -pthread #-fwhole-program -flto -O2 # use -pthread, not -lpthread
+#CFLAGS = -g -std=c++14 -pthread #-fwhole-program -flto -O2 # use -pthread, not -lpthread
+CFLAGS = -g -std=c++14 -pthread #-fwhole-program -flto -O2 -DTBB_USE_THREADING_TOOLS
 
 MAIN = jitd_harness.exe  # name of executable
 INCLUDES = -I src/main/cpp/include -I target -I /opt/intel/compilers_and_libraries_2020.0.166/linux/tbb/include

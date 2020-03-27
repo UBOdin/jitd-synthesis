@@ -577,6 +577,12 @@ int main() {
 			printf("Iteration:  %d\n", i);
 		}
 
+
+		if (i == 70) {
+			break;
+		}
+
+
 		// Get next operation:
 		optype = benchmark_array[i].type;
 		key = benchmark_array[i].key;
@@ -661,15 +667,39 @@ int main() {
 
 	#ifdef STORAGE_JITD
 	// Wakeup worker thread and get thread metadata:
+//printf("Blocking for worker to finish\n");
+//std::this_thread::sleep_for(std::chrono::milliseconds(1000 * 10));
+
 	printf("Waking worker thread\n");
+
 	mutatorCqElement mce;
+
 	mce.flag = EXIT;
 	mce.element = std::make_pair(nullptr,nullptr);
 	pthread_mutex_lock(&storage->jitd->lock);
 	storage->jitd->work_queue.push(mce);
 	pthread_mutex_unlock(&storage->jitd->lock);
+
 	printf("Blocking on worker thread exit\n");
 	worker_thread.join();
+
+	printf("Starting cleanup.  Main thread TID:  %d\n", getpid());
+	long start_time = gettime_us();
+	long diff_time;
+	bool not_done;
+	i = 0;
+	while (true) {
+		not_done = storage->jitd->do_organize();
+		if (not_done == false) {
+			break;
+		}
+		i++;
+	}
+	diff_time = gettime_us() - start_time;
+	printf("Finished cleanup.  Steps:  %d  Time (s):  %f\n", i, (double)diff_time / 1000000.0);
+
+//	storage->jitd->print_debug();
+
 	delete storage;
 	printf("Worker thread exited\n");
 	#endif
