@@ -81,6 +81,10 @@ object JITDGen {
       "-I", "target",
       bodyFile.toString, 
       //"-I/home/csgrad/dbalakri/tbbsrc/tbb-tbb_2020/include -Wl,-rpath,/home/csgrad/dbalakri/tbbsrc/tbb-tbb_2020/build/linux_intel64_gcc_cc5.4.0_libc2.23_kernel4.4.0_release -L/home/csgrad/dbalakri/tbbsrc/tbb-tbb_2020/build/linux_intel64_gcc_cc5.4.0_libc2.23_kernel4.4.0_release",
+
+      "-I", "/opt/intel/compilers_and_libraries_2020.0.166/linux/tbb/include",
+      "-L", "/opt/intel/compilers_and_libraries_2020.0.166/linux/tbb/lib/intel64/gcc4.8",
+
       "-ltbb",
       conf.main()
     )
