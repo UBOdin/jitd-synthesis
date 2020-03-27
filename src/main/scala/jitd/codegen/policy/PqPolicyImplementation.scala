@@ -282,12 +282,15 @@ object PqPolicyImplementation extends PolicyImplementation
             }
             else
             {
-              UseSetPolicySearch(  // Generated via Twirl template
+              
+                UseSetPolicySearch(  // Generated via Twirl template
                     ctx, 
                     ctx.definition.transform(name), 
                     constraint, 
                     scoreFn
                     ).toString
+              
+              
             }
 
           } 

@@ -269,7 +269,7 @@ Transform("CollapseSingleInserts") {
                                   //scoreBy { ArraySize("data") })
       
       //andThen ("PushDownDontDeleteConcat"          scoreBy { ArraySize("data") })
-      ("PushDownDontDeleteElemBtree"          scoreBy { ArraySize("data") })
+      ("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
       //andThen ("DeleteElemFromArray" scoreBy{ArraySize("data1")})
       //andThen ("PushDownDontDeleteElemConcat"          scoreBy { ArraySize("data") })
        
@@ -284,7 +284,7 @@ Transform("CollapseSingleInserts") {
      andThen("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
                                   scoreBy { ArraySize("data") })
      andThen "MergeUnSortedConcatArray"
-     andThen ("DeleteElemFromArray" scoreBy{ArraySize("data1")})
+     andThen ("DeleteElemFromArray" )
      //andThen("SortArray"        scoreBy { ArraySize("data") })
      //andThen "MergeSortedBTrees"
      //andThen ("DeleteElemFromSortedArray" scoreBy{ArraySize("data2")})

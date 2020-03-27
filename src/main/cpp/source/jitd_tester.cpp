@@ -98,6 +98,19 @@ int jitd_client_op(
       std::cout << scan_buff_size <<" Scans JITD time in Random Mode: " << scan_time << " us" << std::endl;
       
     }
+    CASE("bulk_insert")
+    {
+      int operation_count;
+      toks >> operation_count;
+      RecordBuffer data;
+      load_records(data, toks);
+      for(int i=0;i<operation_count;i++)
+      {
+
+        jitd->insert(data);
+      }
+      //jitd->print_debug();
+    }
     CASE("get") {
       Key key;
       Record ret;
@@ -121,7 +134,7 @@ int jitd_client_op(
       
       //std::cout<<"size of crack_array"<<jitd->CrackArray_PQ.size()<<std::endl;
       gettimeofday(&end, NULL);
-      std::cout<<"INSERTED..."<<std::endl;
+     //std::cout<<"INSERTED..."<<std::endl;
       //std::cout << "Insert into JITD: " << total_time(start, end) << " us" << std::endl;
     }
     CASE("remove_elements")
@@ -215,7 +228,7 @@ void background_thread(std::shared_ptr<JITD> jitd)
        gettimeofday(&end, NULL);
        
        std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end)  << " us" <<  std::endl; 
-       jitd->print_debug();
+       jitd->print_debug_viz();
        
 }
 
