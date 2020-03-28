@@ -249,7 +249,7 @@ inline void delete_from_leaf(std::vector<Record> &to_delete,std::vector<Record> 
   //TODO: optimize begin and end
   if(to_delete.size()!=0 && from_delete.size()!=0)
   {
-    for(int i = 0; i < from_delete.size(); i++)
+    for(int i = 0; i < from_delete.size(); ++i)
     {
       auto iter = std::find(std::begin(to_delete),std::end(to_delete),from_delete[i]);
       if(iter != std::end(to_delete))
