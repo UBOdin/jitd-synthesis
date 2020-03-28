@@ -53,9 +53,9 @@ int JITD::organize_wait()
         
         not_done = this->do_organize();
         t++;
-        std::cout<<"JITD_PRINT ";
-        this->print_debug();
-        check_pq();
+        //std::cout<<"JITD_PRINT ";
+        //this->print_debug();
+        //check_pq();
       }
       else
       {
@@ -70,15 +70,15 @@ int JITD::organize_wait()
         {
             this->after_insert(pop_mce.element);
             not_done = true;
-            std::cout<<"INSERT_PRINT ";
-            this->print_debug();
+            //std::cout<<"INSERT_PRINT ";
+            //this->print_debug();
         } 
         else if(pop_mce.flag == REMOVE)
         {
             this->after_remove_elements(pop_mce.element);
             not_done = true;
-            std::cout<<"DELETE_PRINT ";
-            this->print_debug();
+            //std::cout<<"DELETE_PRINT ";
+            //this->print_debug();
         }
         else
         {

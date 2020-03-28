@@ -275,7 +275,7 @@ Transform("CollapseSingleInserts") {
 
   Policy("CrackSort")("crackAt" -> IntConstant(10),"null_data"-> IntConstant(0)) (
       ("CollapseConcatArray")
-      andThen("MergeUnSortedConcatArray" scoreBy{IntConstant(0)})
+      
       //("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
                                   //scoreBy { ArraySize("data") })
       
@@ -293,7 +293,7 @@ Transform("CollapseSingleInserts") {
      //andThen ("DeleteFromSortedArray" scoreBy{ArraySize("data2")})
      andThen("PushDownAndCrack" scoreBy{IntConstant(0)})
      andThen("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
-     //andThen("CollapseConcatArray" scoreBy{IntConstant(0)}
+     andThen("MergeUnSortedConcatArray" scoreBy{IntConstant(0)})
      andThen ("DeleteElemFromArray" scoreBy{IntConstant(0)})
      andThen("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
                                   scoreBy { ArraySize("data") })
