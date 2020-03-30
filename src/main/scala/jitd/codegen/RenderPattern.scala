@@ -9,9 +9,13 @@ object RenderPattern
   //Try using immutable
   var trackablesets = scala.collection.mutable.Set[String]()
   var trackablepq = scala.collection.mutable.Set[String]()
-  def test(ctx:Render, pattern:MatchPattern, target:String, onFailure:String): String =
+  def test(ctx:Render, pattern:MatchPattern, target:String, onFailure:String,score_root_pattern_set:Option[String]=None): String =
   {
-    val recur = (newPattern:MatchPattern, newTarget:String) => test(ctx, newPattern, newTarget, onFailure)
+    //val root_pattern = score_root_pattern.getOrElse{(None)}
+    var string_append = ""
+    val root_pattern_set = score_root_pattern_set.getOrElse{""}
+
+    val recur = (newPattern:MatchPattern, newTarget:String) => test(ctx, newPattern, newTarget, onFailure,score_root_pattern_set)
 
     pattern match {
       case MatchNode(nodeName, fields, name) => { 
@@ -21,6 +25,12 @@ object RenderPattern
         // s"#ifdef DEBUG\n"+
         // s"assert(${target}!=NULL);\n"+
         // s"#endif\n"+
+        //s"//${root_pattern_set}\n"+
+        if(!((root_pattern_set.toString).isEmpty))
+        {
+
+          string_append = s"${root_pattern_set}.erase(*it);check_pq();/*${root_pattern_set}.emplace_hint(${root_pattern_set}.end(),*it);check_pq();*/"
+        }
         s"if(${target}->type != ${node.enumName}){$onFailure }\n"+
         s"${node.renderName} *${targetReal} = (${node.renderName} *)${target};\n"+
         fields.zip(node.fields).map { 
@@ -166,8 +176,8 @@ object RenderPattern
                 s"  JITDNode * e2_node_ptr = (*e2).get();\n"+
                 s"  ${node.renderName} * e1_node_ptr_real = (${node.renderName} *)e1_node_ptr;\n"+
                 s"  ${node.renderName} * e2_node_ptr_real = (${node.renderName} *)e2_node_ptr;\n"+
-                s"  assert(e1_node_ptr_real!=NULL);\n"+
-                s"  assert(e2_node_ptr_real!=NULL);\n"+
+                //s"  assert(e1_node_ptr_real!=NULL);\n"+
+                //s"  assert(e2_node_ptr_real!=NULL);\n"+
                 s"  e1_score = "+ ctx.expression(InlineVars(scoreFn, varMapping(ctx, pattern, "e1_node_ptr")++ctx.policy.varMapping))+";\n"+
                 s"  e2_score = "+ ctx.expression(InlineVars(scoreFn, varMapping(ctx, pattern, "e2_node_ptr")++ctx.policy.varMapping))+";\n"+
                 s"  if(e1_score == e2_score){\n"+

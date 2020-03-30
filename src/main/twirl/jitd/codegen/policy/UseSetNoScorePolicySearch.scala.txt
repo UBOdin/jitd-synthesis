@@ -4,31 +4,37 @@
 @import jitd.Debug
 @(ctx:Render, transform:Transform, constraint:Expression, scoreFn:Expression)
 
+/*
+bool JITD::noMatch@{transform.name}(std::shared_ptr<JITDNode> * &node)
+{
+  JITDNode *iter_node = (node)->get();
+  @{RenderPattern.test(ctx, transform.from, "iter_node", "return true;")}
+  return false;
+}*/
+
+
+
   long JITD::searchFor@{transform.name}(          // Return the "best" score available 
     std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
   
-    //std::cout<<"STARTING TRANSFORM@transform.name"<<std::endl;
+    std::cout<<"STARTING search@transform.name"<<std::endl;
     int count = 0;
     long best_score = -1;
     long curr_score = -1;
     if(!(this->@{RenderPattern.setGen(ctx, transform.from)}).empty())
     {
+      
       std::set< std::shared_ptr<JITDNode> * >::iterator it;
-      std::set< std::shared_ptr<JITDNode> * >::iterator begin_it = (this->@{RenderPattern.setGen(ctx, transform.from)}).begin();
-      std::set< std::shared_ptr<JITDNode> * >::iterator end_it = (this->@{RenderPattern.setGen(ctx, transform.from)}).end();
-      for(it = begin_it; it!= end_it; ++it)
-      {
-        
-
-           JITDNode *iter_node = (*it)->get();
+      it = (this->@{RenderPattern.setGen(ctx, transform.from)}).begin(); 
+       JITDNode *iter_node = (*it)->get();
           
-
-           @{RenderPattern.test(ctx, transform.from, "iter_node", "continue;")}
+            
+          @{RenderPattern.test(ctx, transform.from, "iter_node", "return -1;",Some(RenderPattern.setGen(ctx, transform.from)))}
           
-           if(@{ctx.expression(InlineVars(constraint, 
+          if(@{ctx.expression(InlineVars(constraint, 
             RenderPattern.varMapping(ctx, transform.from, "iter_node")++
-            ctx.policy.varMapping
+             ctx.policy.varMapping
           ))}){
             best_score = @{ctx.expression(InlineVars(scoreFn, 
             RenderPattern.varMapping(ctx, transform.from, "iter_node")++
@@ -36,22 +42,8 @@
           ))};
           }
 
-          if(best_score>curr_score)
-          {
-            //std::cout<<"BESTSCORE: "<<best_score<<std::endl;
-            curr_score = best_score;
-            
-            targetHandleRef = (*it);
-            return best_score;
-            
-          
-      }
+          targetHandleRef = (*it);  
+
     }
-
-
-
-
-}
     return best_score;
-  
   }

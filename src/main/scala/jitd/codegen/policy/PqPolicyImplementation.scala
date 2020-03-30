@@ -282,14 +282,22 @@ object PqPolicyImplementation extends PolicyImplementation
             }
             else
             {
-              
+              // if(scoreFn == IntConstant(0))
+              // {
+              //   UseSetNoScorePolicySearch(ctx, 
+              //       ctx.definition.transform(name), 
+              //       constraint, 
+              //       scoreFn).toString
+              // }
+              // else
+              // {
                 UseSetPolicySearch(  // Generated via Twirl template
                     ctx, 
                     ctx.definition.transform(name), 
                     constraint, 
                     scoreFn
                     ).toString
-              
+                //}
               
             }
 

@@ -159,6 +159,16 @@ object KeyValueJITD extends HardcodedDefinition {
       "append".call("merged", "rhs") 
     )
   }
+  Transform("CollapseConcatArray"){
+    "Concat" withFields(
+      "Concat" withFields("a","Array".withFields("data1")),
+      "Array".withFields( "data2" )
+    )
+  }{
+    "Concat" fromFields("a",
+      "Array" fromFields("data2" as "merged")
+    ) andAfter("append".call("merged","data1"))
+  }
   /*
   Transform("MergeUnSortedConcatSingleton") {
     "Concat" withFields( 
@@ -264,12 +274,13 @@ Transform("CollapseSingleInserts") {
   }
 
   Policy("CrackSort")("crackAt" -> IntConstant(10),"null_data"-> IntConstant(0)) (
-      //("CollapseSingleInserts")
+      ("CollapseConcatArray")
+      
       //("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
                                   //scoreBy { ArraySize("data") })
       
       //andThen ("PushDownDontDeleteConcat"          scoreBy { ArraySize("data") })
-      ("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
+      //("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
       //andThen ("DeleteElemFromArray" scoreBy{ArraySize("data1")})
       //andThen ("PushDownDontDeleteElemConcat"          scoreBy { ArraySize("data") })
        
@@ -280,11 +291,14 @@ Transform("CollapseSingleInserts") {
      //andThen "MergeDeleteNodes"
      //andThen ("PushDownDontDeleteBtree"            scoreBy { ArraySize("data") })
      //andThen ("DeleteFromSortedArray" scoreBy{ArraySize("data2")})
-     andThen("PushDownAndCrack")
+     andThen("PushDownAndCrack" scoreBy{IntConstant(0)})
+     andThen("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
+     andThen("MergeUnSortedConcatArray" scoreBy{IntConstant(0)})
+     andThen ("DeleteElemFromArray" scoreBy{IntConstant(0)})
      andThen("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
                                   scoreBy { ArraySize("data") })
-     andThen "MergeUnSortedConcatArray"
-     andThen ("DeleteElemFromArray" )
+     
+     //andThen ("DeleteElemFromArray" )
      //andThen("SortArray"        scoreBy { ArraySize("data") })
      //andThen "MergeSortedBTrees"
      //andThen ("DeleteElemFromSortedArray" scoreBy{ArraySize("data2")})

@@ -53,8 +53,9 @@ int JITD::organize_wait()
         
         not_done = this->do_organize();
         t++;
-        //std::cout<<"JITD_PRINT and node_done  ="<<not_done;
+        //std::cout<<"JITD_PRINT ";
         //this->print_debug();
+        //check_pq();
       }
       else
       {
@@ -69,12 +70,14 @@ int JITD::organize_wait()
         {
             this->after_insert(pop_mce.element);
             not_done = true;
+            //std::cout<<"INSERT_PRINT ";
             //this->print_debug();
         } 
         else if(pop_mce.flag == REMOVE)
         {
             this->after_remove_elements(pop_mce.element);
             not_done = true;
+            //std::cout<<"DELETE_PRINT ";
             //this->print_debug();
         }
         else
@@ -146,6 +149,25 @@ void JITD::SetPqAdd(std::shared_ptr<JITDNode> * node_handle)
         //check_pq();
       #endif  
 }
+/*
+bool JITD::noMatch(std::shared_ptr<JITDNode> * node_handle)
+{
+
+  std::shared_ptr<JITDNode> node_ptr = std::atomic_load((node_handle));
+  JITDNode *iter_node = (node_handle)->get();
+  bool erased = false;
+  switch((node_ptr)->type){
+    @for(node <- ctx.definition.nodes) {
+      case @node.enumName : {
+          break;
+        }
+        }
+      default:{std::cerr << "Unhandled Node Type in noMatch" << std::endl;
+      exit(-1);};break;
+      }
+    return erased;   
+
+}*/
 ///////////////////// Debugging Utilities ///////////////////// 
 
 std::shared_ptr<JITD> assemble_jitd(std::istream &in)
@@ -292,7 +314,7 @@ void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string
     @for(node <- ctx.definition.nodes) {
       case @node.enumName : {
         @node.renderName *node_real = (@node.renderName *)node.get();
-        std::cout << prefix << "@{node.name}[ "
+        std::cout << prefix << "@{node.name}(addr:"<<node_real<<")[ "
         @{ node.fields.filter { _.t != TNodeRef() }
             .map { f => 
                 "<< \"" + f.name + "=\" << " +

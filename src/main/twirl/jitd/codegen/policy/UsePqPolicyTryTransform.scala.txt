@@ -10,14 +10,17 @@
   @{ctx.cType(TNodeRef())} * targetHandleRef;
   
   //std::shared_ptr<JITDNode> target;
- 
+  //std::cout<<"Before calling searchFor@{transform}" <<std::endl;
+  //this->print_debug();
+  //check_pq();
+
   long bestScore = searchFor@{transform}(
     targetHandleRef
   );
-  
+  //std::cout<<"After calling searchFor@{transform} Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
-   
+    //std::cout<<"Candidate shared_ptr for @{transform}: "<<(*targetHandleRef)<<std::endl;
     @{transform}(targetHandleRef);
     
     @onSuccess
