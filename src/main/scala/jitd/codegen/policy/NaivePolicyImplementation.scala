@@ -12,7 +12,7 @@ object NaivePolicyImplementation extends PolicyImplementation
 
   def init(ctx:Render,rule:PolicyRule,root:String): String = ""
   
-
+  def onMatchPattern(ctx:Render,rule:PolicyRule):String = ""
   // Render two blocks of code to be run just before/after a JITD rewrite
   // happens.  [from] is replaced by [to].  
   def onRewriteSet(ctx:Render,

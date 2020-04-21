@@ -31,7 +31,7 @@ abstract class PolicyImplementation
   ): (Statement, Statement)
   // Render a block of code to be run when an idle cycle is available.
   def utilityFunctions(ctx:Render): String
-
+  def onMatchPattern(ctx:Render,rule:PolicyRule):String
   // Render a block of code to be run when an idle cycle is available.
   def doOrganize(ctx:Render, root:String): String
 }

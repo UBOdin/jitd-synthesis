@@ -33,7 +33,9 @@
 @{RenderFunction.body(ctx, MutatorToFunctionAfter(ctx.definition, mutator, "JITD::after_"),true)}
 
 }
+///////////////////// OnMatch Transforms /////////////////////
 
+@ctx.policyImplementation.onMatchPattern(ctx,ctx.policy.rule)
 ///////////////////// Policy Implementation ///////////////////// 
 
 @ctx.policyImplementation.utilityFunctions(ctx)
@@ -55,7 +57,7 @@ int JITD::organize_wait()
         t++;
         //std::cout<<"JITD_PRINT ";
         //this->print_debug();
-        //check_pq();
+        //this->check_view();
       }
       else
       {
@@ -72,6 +74,8 @@ int JITD::organize_wait()
             not_done = true;
             //std::cout<<"INSERT_PRINT ";
             //this->print_debug();
+            //this->check_view();
+            
         } 
         else if(pop_mce.flag == REMOVE)
         {
@@ -79,6 +83,8 @@ int JITD::organize_wait()
             not_done = true;
             //std::cout<<"DELETE_PRINT ";
             //this->print_debug();
+            //this->check_view();
+            
         }
         else
         {
@@ -149,25 +155,70 @@ void JITD::SetPqAdd(std::shared_ptr<JITDNode> * node_handle)
         //check_pq();
       #endif  
 }
-/*
-bool JITD::noMatch(std::shared_ptr<JITDNode> * node_handle)
+void JITD::viewAdd(std::shared_ptr<JITDNode>* node_handle)
 {
-
+  if(node_handle == NULL){return;}
+  bool matched = false;
   std::shared_ptr<JITDNode> node_ptr = std::atomic_load((node_handle));
-  JITDNode *iter_node = (node_handle)->get();
-  bool erased = false;
   switch((node_ptr)->type){
     @for(node <- ctx.definition.nodes) {
       case @node.enumName : {
-          break;
-        }
-        }
-      default:{std::cerr << "Unhandled Node Type in noMatch" << std::endl;
-      exit(-1);};break;
+        @{RenderPattern.ViewCall(ctx,ctx.policy.rule,s"${node.name}","emplace","node_handle");}
+        break;
       }
-    return erased;   
 
-}*/
+    }
+
+  }
+
+}
+void JITD::viewErase(std::shared_ptr<JITDNode>* node_handle)
+{
+  if(node_handle == NULL){return;}
+  bool matched = false;
+  std::shared_ptr<JITDNode> node_ptr = std::atomic_load((node_handle));
+  switch((node_ptr)->type){
+    @for(node <- ctx.definition.nodes) {
+      case @node.enumName : {
+        @{RenderPattern.ViewCall(ctx,ctx.policy.rule,s"${node.name}","erase","node_handle");}
+        break;
+      
+      }
+
+    }
+
+  }
+  
+}
+
+void JITD::fixMap(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr<JITDNode>* parent)
+{
+  std::shared_ptr<JITDNode> node_ptr = std::atomic_load((node_handle));
+  switch((node_ptr)->type){
+  @for(node <- ctx.definition.nodes) {
+    case @node.enumName : {
+      @node.renderName *node_real = (@node.renderName *)node_ptr.get();
+      std::unordered_multimap <std::shared_ptr<JITDNode> *, std::shared_ptr<JITDNode> *> :: iterator iter;
+
+      @{  val children = node.fields.filter { _.t == TNodeRef() }
+            
+              
+              children.map { f => 
+                "iter = this->childParentMap.find(&(node_real->"+f.name+"));\n"+ 
+                "if(iter!=this->childParentMap.end()){\n"+
+                "iter->second = parent;\n"+
+                "}\n"
+              }.mkString
+           
+        }
+      break;
+    }
+
+  }
+
+  }
+}
+
 ///////////////////// Debugging Utilities ///////////////////// 
 
 std::shared_ptr<JITD> assemble_jitd(std::istream &in)
@@ -220,72 +271,108 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
   std::cerr << "Reached end of build with no Return" << std::endl; 
   exit(-1); 
 }
+void JITD:: check_view()
+{
+ //std::set<std::shared_ptr<JITDNode>* >::iterator it;
+  //@for(transform <- ctx.definition.transforms){
+  //if(!(this->@{transform.name}_View).empty())
+  //{
+  //  for(it = (this->@{transform.name}_View).begin();it!=(this->@{transform.name}_View).end();++it)
+  //  {
+  //        std::shared_ptr<JITDNode> * curr = *it;
+  //        std::cout<<"Address of curr: "<<curr<<"Address of node in @{transform.name}_View(*curr): "<<*curr<<std::endl;
+  //  }
+  //}
+
+ //}
+
+}
 void JITD::print_pq()
 {
 
   
 }
-void JITD::check_pq()
+std::shared_ptr<JITDNode> * JITD::getParent(std::shared_ptr<JITDNode> * &target)
 {
-  
-  if(!this->CrackArray_PQ.empty())
-  { 
-      std::set<std::shared_ptr<JITDNode> *>::iterator it;
-      std::cout<<"SIZE OF CRACK PQ"<<CrackArray_PQ.size()<<"."<<std::endl;
-      for(it = this->CrackArray_PQ.begin();it!=this->CrackArray_PQ.end();++it)
-      {
-        
-          assertm("CrackArray_PQ",(*it!=NULL));
-
-          std::shared_ptr<JITDNode> * curr = *it;
-          std::cout<<"Address of shared_ptr: "<<*curr<<std::endl;
-
-          assertm("CrackArray_PQ",(*curr!=NULL));
-          //assertm("CrackArray_PQ",((*curr).get()!=NULL));
-          assertm("CrackArray_PQ",(curr->get()!=NULL));
-          
-          
-            
-            
-          
-          
-        
-        
-       
-      }
-        
+  std::unordered_multimap <std::shared_ptr<JITDNode> *, std::shared_ptr<JITDNode> *> :: iterator iter; 
+  iter = this->childParentMap.find(target);
+  if(iter!=childParentMap.end())
+  {
+    //parent = (iter->second);
+    return iter->second;
+  }
+  else
+  {
+    //parent = NULL;
+    return NULL;
   }
   
-if(!this->JITD_NODE_Concat_set.empty())
-  { 
-      std::set<std::shared_ptr<JITDNode> *>::iterator it;
-      std::cout<<"SIZE OF CONCAT SET"<<JITD_NODE_Concat_set.size()<<"."<<std::endl;
-      for(it = this->JITD_NODE_Concat_set.begin();it!=this->JITD_NODE_Concat_set.end();++it)
-      {
-          assertm("JITD_NODE_Concat_set",(*it!=NULL));
-
-          std::shared_ptr<JITDNode> * curr = *it;
-          std::cout<<"Address of shared_ptr: "<<*curr<<std::endl;
-
-          assertm("JITD_NODE_Concat_set",(*curr!=NULL));
-          //assertm("JITD_NODE_Concat_set",((*curr).get()!=NULL));
-          assertm("JITD_NODE_Concat_set",(curr->get()!=NULL));
-          
-            
-              
-            
-          
-          
-        
-       
-      }
-      }
-  
 }
-
-void JITD::initialize_struts(std::shared_ptr<JITDNode>* node)
+void JITD::print_map()
+{
+  std::unordered_multimap <std::shared_ptr<JITDNode> *, std::shared_ptr<JITDNode> *> :: iterator itr; 
+  for (itr = childParentMap.begin(); itr != childParentMap.end(); ++itr) 
+    { 
+        if(itr->first != NULL)
+        {
+          std::shared_ptr<JITDNode> node = *(itr->first);
+          if(node!=NULL)
+          {
+            switch(node->type)
+            {
+              @for(node <- ctx.definition.nodes) {
+                case @node.enumName : {
+                  @node.renderName *node_real = (@node.renderName *)node.get();
+                  std::cout <<itr->first<< ":@{node.name}(addr:"<<node_real<<")-> ";
+                  break;
+                }
+              }
+            }
+          }
+          else
+          {
+            std::cout<<  '\t' << "node is NULL" << '\n';
+          }
+        
+        }
+        else
+        {
+            std::cout<<  '\t' << "iter->first is NULL" << '\n';
+        }
+        if(itr->second != NULL)
+        {
+          std::shared_ptr<JITDNode> parent = *(itr->second);
+          if(parent!=NULL)
+          {
+            switch(parent->type)
+            {
+              @for(node <- ctx.definition.nodes) {
+                case @node.enumName : {
+                  @node.renderName *parent_real = (@node.renderName *)parent.get();
+                  std::cout <<itr->second<<'\t'<< ":@{node.name}(addr:"<<parent_real<<") "<<'\n';
+                  break;
+                }
+              }
+            }
+          }
+          else
+          {
+            std::cout<<  '\t' << "parent is NULL" << '\n';
+          }
+          
+        }
+        else
+        {
+          std::cout<<  '\t' << "iter->second is NULL" << '\n'; 
+        }
+    } 
+    std::cout << std::endl; 
+}
+void JITD::initialize_struts(std::shared_ptr<JITDNode>* node,std::shared_ptr<JITDNode>* parent)
 {
   std::shared_ptr<JITDNode> target_root_lock = std::atomic_load((node));
+  this->childParentMap.emplace(node,parent);
+  viewAdd(node);
   switch(target_root_lock->type)
   {
     @for(node <- ctx.definition.nodes) {
@@ -297,7 +384,7 @@ void JITD::initialize_struts(std::shared_ptr<JITDNode>* node)
             if(children.size > 0){
               
               children.map { f => 
-                "initialize_struts(&(node_real->"+f.name+"));\n"
+                "initialize_struts(&(node_real->"+f.name+"),node);\n"
               }.mkString
             } else { "" }
         } 

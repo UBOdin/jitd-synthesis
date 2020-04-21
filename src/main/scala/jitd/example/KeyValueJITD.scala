@@ -106,6 +106,7 @@ object KeyValueJITD extends HardcodedDefinition {
     )
   }
 */
+
   Transform("CrackArray") {
     "Array" withFields( "data" )
   } {
@@ -148,6 +149,7 @@ object KeyValueJITD extends HardcodedDefinition {
     ) andAfter ("std::sort".call(Begin("merged"),End("merged")) )
   }
   */
+
   Transform("MergeUnSortedConcatArray") {
     "Concat" withFields( 
       "Array".withFields( "lhs" ),
@@ -159,6 +161,8 @@ object KeyValueJITD extends HardcodedDefinition {
       "append".call("merged", "rhs") 
     )
   }
+  
+  /*
   Transform("CollapseConcatArray"){
     "Concat" withFields(
       "Concat" withFields("a","Array".withFields("data1")),
@@ -169,6 +173,7 @@ object KeyValueJITD extends HardcodedDefinition {
       "Array" fromFields("data2" as "merged")
     ) andAfter("append".call("merged","data1"))
   }
+  */
   /*
   Transform("MergeUnSortedConcatSingleton") {
     "Concat" withFields( 
@@ -212,6 +217,7 @@ Transform("CollapseSingleInserts") {
 */
 
   //pushdown and crack can create a null array if no crack happens
+  
   Transform("PushDownAndCrack") {
     "Concat" withFields(
       "BTree" withFields( "a", "separator", "b" ),
@@ -243,7 +249,7 @@ Transform("CollapseSingleInserts") {
       "DeleteElements" fromFields( "b", "data"))
     
   }
- 
+
 /* 
   Transform("PushDownDontDeleteElemConcat")
   {
@@ -264,7 +270,8 @@ Transform("CollapseSingleInserts") {
       "delete_from_leaf".call("new_sorted_array_after_delete", "data2")) 
   }
 
-*/  
+*/
+ 
   Transform("DeleteElemFromArray")
   {
     "DeleteElements" withFields("Array" withFields( "data1" ), "data2")
@@ -274,31 +281,15 @@ Transform("CollapseSingleInserts") {
   }
 
   Policy("CrackSort")("crackAt" -> IntConstant(10),"null_data"-> IntConstant(0)) (
-      ("CollapseConcatArray")
-      
-      //("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
-                                  //scoreBy { ArraySize("data") })
-      
-      //andThen ("PushDownDontDeleteConcat"          scoreBy { ArraySize("data") })
-      //("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
-      //andThen ("DeleteElemFromArray" scoreBy{ArraySize("data1")})
-      //andThen ("PushDownDontDeleteElemConcat"          scoreBy { ArraySize("data") })
-       
-      //andThen("PivotRight")
-      //andThen ("MergeUnSortedBTrees")
-      
-      //andThen ("MergeUnSortedConcatSingleton")
-     //andThen "MergeDeleteNodes"
-     //andThen ("PushDownDontDeleteBtree"            scoreBy { ArraySize("data") })
-     //andThen ("DeleteFromSortedArray" scoreBy{ArraySize("data2")})
-     andThen("PushDownAndCrack" scoreBy{IntConstant(0)})
-     andThen("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
-     andThen("MergeUnSortedConcatArray" scoreBy{IntConstant(0)})
-     andThen ("DeleteElemFromArray" scoreBy{IntConstant(0)})
-     andThen("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
-                                  scoreBy { ArraySize("data") })
      
-     //andThen ("DeleteElemFromArray" )
+      ("PushDownAndCrack" scoreBy{IntConstant(0)})
+      andThen("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
+      andThen("MergeUnSortedConcatArray" scoreBy{IntConstant(0)})
+      andThen("DeleteElemFromArray" scoreBy{IntConstant(0)})
+      andThen("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
+                              scoreBy { ArraySize("data") })
+     
+    
      //andThen("SortArray"        scoreBy { ArraySize("data") })
      //andThen "MergeSortedBTrees"
      //andThen ("DeleteElemFromSortedArray" scoreBy{ArraySize("data2")})

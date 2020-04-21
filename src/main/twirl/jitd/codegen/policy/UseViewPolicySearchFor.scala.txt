@@ -1,0 +1,51 @@
+@import jitd.spec._
+@import jitd.codegen._
+@import jitd.rewrite.InlineVars
+@import jitd.Debug
+@(ctx:Render, transform:Transform, constraint:Expression, scoreFn:Expression)
+
+  long JITD::searchFor@{transform.name}(          // Return the "best" score available     
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+  
+
+    int count = 0;
+    long bestScore = -1;
+    long curr_score = -1;
+   
+    
+    if(!(this->@{transform.name}_View).empty())
+    {
+    
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      
+      it = (this->@{transform.name}_View).begin();
+          
+         
+
+           JITDNode *iter_node = (*it)->get();
+          
+          
+          @{RenderPattern.test(ctx, transform.from, "iter_node", "return -1;")}
+
+          if(@{ctx.expression(InlineVars(constraint, 
+            RenderPattern.varMapping(ctx, transform.from, "iter_node")++
+            ctx.policy.varMapping
+          ))}){
+            bestScore = @{ctx.expression(InlineVars(scoreFn, 
+            RenderPattern.varMapping(ctx, transform.from, "iter_node")++
+            ctx.policy.varMapping
+          ))};
+          targetHandleRef = (*it);
+          }
+
+          
+      
+    }
+
+
+
+
+
+    return bestScore;
+  }

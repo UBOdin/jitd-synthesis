@@ -230,6 +230,7 @@ void background_thread(std::shared_ptr<JITD> jitd)
        std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end)  << " us" <<  std::endl; 
        jitd->print_debug();
        
+       
 }
 
 
@@ -330,7 +331,6 @@ int jitd_test(
     } CASE("dump") {
       
       jitd->print_debug();
-      
 
     }
     // CASE("dump_viz") {

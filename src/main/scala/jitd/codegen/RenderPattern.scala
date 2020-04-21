@@ -48,6 +48,76 @@ object RenderPattern
     
 
   }
+
+  def NodeMatchTransformPattern(ctx:Render,pattern:MatchPattern,target:String,onFailure:String):String = 
+  {
+    val recur = (newPattern:MatchPattern, newTarget:String) => NodeMatchTransformPattern(ctx, newPattern, newTarget, onFailure)
+
+    pattern match {
+      case MatchNode(nodeName, fields, name) => { 
+        val node = ctx.definition.nodesByName(nodeName)
+        val targetReal = target+"_real"
+        s"if(${target}->type != ${node.enumName}){$onFailure }\n"+
+        s"${node.renderName} *${targetReal} = (${node.renderName} *)${target};\n"+
+        fields.zip(node.fields).map { 
+          case (fieldPattern:MatchNode, fieldDefinition) =>
+            val newTargetName = targetReal+"_"+fieldDefinition.name
+            recur(fieldPattern, newTargetName)
+            s"JITDNode *${newTargetName} = ${targetReal}->${fieldDefinition.name}.get();\n"+
+            recur(fieldPattern, newTargetName)
+          case (fieldPattern, fieldDefinition) => ""
+        }.mkString
+
+    }
+      case MatchAny(name) => ""
+
+  }
+}
+  def ViewCall(ctx:Render,rule:PolicyRule,nodeName:String,op:String,node:String):String = 
+  {
+    rule match {
+      case TieredPolicy(Seq()) => ""
+      case TieredPolicy(policies) => policies.map{ViewCall(ctx,_,nodeName,op,node)}.mkString
+      case TransformPolicy(unique_name,name, _, scoreFn) =>
+      {
+        val transform_name = name
+        val pattern = ctx.definition.transform(name).from
+        pattern match{
+          case MatchNode(nodeType, fields, _) => 
+          {
+            // println(nodeType)
+            // println(nodeName)
+            // s"//onMatch${transform_name}"
+            
+              if(nodeType == nodeName)
+               {
+                  if(op == "erase")
+                  {
+                    s"this->${transform_name}_View.${op}(${node});\n"
+
+                  }
+                  else
+                  {
+                    s"matched = this->match${transform_name}(${node});\n"+
+                    s"if(matched == true){\n"+
+                    s"this->${transform_name}_View.${op}(${node});\n"+
+                    s"}\n"
+                  }
+                  
+               }
+               else
+               {
+                  ""
+               }
+
+            
+             
+          }
+          //case MatchAny(_) => ""
+        }
+      } 
+    }
+  }
   
   def SetPqDeclare(ctx:Render,rule:PolicyRule,init:Boolean): String = 
   {
@@ -67,7 +137,8 @@ object RenderPattern
                 if(init == true)
                 {
 
-                   s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_PQ;\n"
+                   s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_PQ;\n"+
+                   s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_View;\n"
                    //s"void ${transfrom_name}_add(std::shared_ptr<JITDNode> * node);\n"
                 }
                 else
@@ -80,12 +151,13 @@ object RenderPattern
                 val extract = MatchToStatement.unrollSet(ctx.definition,pattern,"",(Var("")),(Var("")))
                 if(trackablesets(extract(0)._2.toString))
                 {
-                  ""
+                  s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
                 }
                 else
                 {
                   trackablesets.add(extract(0)._2.toString)
-                  s"std::set<std::shared_ptr<JITDNode> *> JITD_NODE_${extract(0)._2.toString}_set;\n"
+                  s"std::set<std::shared_ptr<JITDNode> *> JITD_NODE_${extract(0)._2.toString}_set;\n"+
+                  s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
                   //s"void set_${extract(0)._2.toString}_add(std::shared_ptr<JITDNode> * node);\n"
                 }
                 

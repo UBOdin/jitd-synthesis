@@ -66,6 +66,24 @@ class RenderStatement(
         //s"totalTime = (end.tv_sec - start.tv_sec) * 1000000.0 + (end.tv_usec - start.tv_usec);\n"+
         //s"CrackArray_emplace.push_back(totalTime);"
       }
+      case commonFunctionSpecial(function,op,Some(v)) =>{
+        
+        //s"gettimeofday(&start,NULL);\n"+
+      
+        indent+function+renderExpression(op)+","+renderExpression(v)+");\n"
+        //s"gettimeofday(&end,NULL);\n"+
+        //s"totalTime = (end.tv_sec - start.tv_sec) * 1000000.0 + (end.tv_usec - start.tv_usec);\n"+
+        //s"CrackArray_emplace.push_back(totalTime);"
+      }
+      case commonFunctionSpecial(function,op,None) =>{
+        
+        //s"gettimeofday(&start,NULL);\n"+
+      
+        indent+function+renderExpression(op)+");\n"
+        //s"gettimeofday(&end,NULL);\n"+
+        //s"totalTime = (end.tv_sec - start.tv_sec) * 1000000.0 + (end.tv_usec - start.tv_usec);\n"+
+        //s"CrackArray_emplace.push_back(totalTime);"
+      }
       
       case Void(v) => {
           indent + renderExpression(v)+";\n"

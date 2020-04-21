@@ -126,3 +126,11 @@ case class commonFunction(name:String,op:Expression,v:Expression) extends Statem
   def reassembleExpression(in: Seq[Expression]): Statement = this
   def toString(prefix: String) = s"${name}${op}${v});"
 }
+case class commonFunctionSpecial(name:String,op:Expression,v:Option[Expression]=None) extends Statement
+{
+  def disasssembleStatement: Seq[Statement] = Seq()
+  def reassembleStatement(in: Seq[Statement]): Statement = this
+  def disasssembleExpression: Seq[Expression] = Seq()
+  def reassembleExpression(in: Seq[Expression]): Statement = this
+  def toString(prefix: String) = s"${name}${op}${v});"
+}

@@ -1,0 +1,15 @@
+@import jitd.spec._
+@import jitd.codegen._
+@import jitd.rewrite.InlineVars
+@import jitd.Debug
+@(ctx:Render, transform:Transform, constraint:Expression, scoreFn:Expression)
+
+bool JITD::match@{transform.name}(std::shared_ptr<JITDNode> * &targetHandleRef) 
+{ 
+	
+	std::shared_ptr<JITDNode> target_root = std::atomic_load(targetHandleRef);
+	JITDNode * target_root_lock = target_root.get();
+	@{RenderPattern.NodeMatchTransformPattern(ctx,transform.from,"target_root_lock","return false;")}
+
+	return true;
+}
