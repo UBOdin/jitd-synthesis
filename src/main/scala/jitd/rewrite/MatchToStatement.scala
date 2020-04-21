@@ -58,25 +58,31 @@ def unrollSet(
     targetExpression: Expression,
     unwrapExp:Expression
   ): 
-    Seq[ (VarName, NodeType, Expression, MatchPattern,Expression) ] =
+    Seq[ (VarName, NodeType, Expression, MatchPattern,Expression,Expression) ] =
   {
      
-    //println(fieldPattern)
+   var parentTgtExp = targetExpression
     pattern match {
       case MatchAny(_)=>Seq() 
       case MatchNode(nodeType, fields, _) => 
-        Seq( (extractName, nodeType, targetExpression,pattern,unwrapExp) ) ++
+        Seq( (extractName, nodeType, targetExpression,pattern,unwrapExp,parentTgtExp) ) ++
           fields.zip(definition.node(nodeType).fields).flatMap { 
             case (fieldPattern, fieldDefinition) =>
-              //println((fieldDefinition).t)
-              unrollSet(
-                definition, 
-                fieldPattern, 
-                extractName + "_" + fieldDefinition.name,
-                WrapNodeRef(NodeSubscript(Var(extractName), fieldDefinition.name)),
-                fieldDefinition,
-                NodeSubscript(Var(extractName), fieldDefinition.name)
+              {
+                
+                unrollSet(
+                  definition, 
+                  fieldPattern, 
+                  extractName + "_" + fieldDefinition.name,
+                  WrapNodeRef(NodeSubscript(Var(extractName), fieldDefinition.name)),
+                  targetExpression,//Var(target)
+                  fieldDefinition,
+                  NodeSubscript(Var(extractName), fieldDefinition.name)
               )
+
+              }
+              
+
 
           } 
 
@@ -87,38 +93,44 @@ def unrollSet(
     pattern: MatchPattern, 
     extractName: VarName, 
     targetExpression: Expression,
+    parentExpression:Expression,
     fieldDef:Field,
     unwrapExp:Expression
   ): 
-    Seq[ (VarName, NodeType, Expression, MatchPattern,Expression) ] =
+    Seq[ (VarName, NodeType, Expression, MatchPattern,Expression,Expression) ] =
   {
      
-    
+    var parentTgtExp = parentExpression
     pattern match {
       case MatchAny(_)                    =>
           //println(fieldDef)
           
           if(fieldDef.t == TNodeRef())
           {
-            Seq((extractName,fieldDef.t.toString,targetExpression,pattern,unwrapExp))
+            Seq((extractName,fieldDef.t.toString,targetExpression,pattern,unwrapExp,parentTgtExp))
           }
           else
           {
             Seq()
           }
       case MatchNode(nodeType, fields, _) => 
-        Seq( (extractName, nodeType, targetExpression, pattern,unwrapExp) ) ++
+        Seq( (extractName, nodeType, targetExpression,pattern,unwrapExp,parentTgtExp) ) ++
           fields.zip(definition.node(nodeType).fields).flatMap { 
             case (fieldPattern, fieldDefinition) =>
-              //println((fieldDefinition).t)
+              {
+                parentTgtExp = targetExpression  
               unrollSet(
                 definition, 
                 fieldPattern, 
                 extractName + "_" + fieldDefinition.name,
                 WrapNodeRef(NodeSubscript(Var(extractName), fieldDefinition.name)),
+                parentTgtExp,
                 fieldDefinition,
                 NodeSubscript(Var(extractName), fieldDefinition.name)
               )
+
+              }
+              
 
           } 
 
