@@ -335,13 +335,7 @@ int remove_data(STORAGE_HANDLE storage, unsigned long key) {
 
 	#ifdef STORAGE_JITD
 
-	bool result;
-
-	// TODO:  Confirm whether key presence should be checked first
-	result = storage->jitd->get(key, storage->r);
-	if (result == true) {
-		JITD_REMOVE_VALUE;
-	}
+	JITD_REMOVE_VALUE;
 
 	#endif
 
