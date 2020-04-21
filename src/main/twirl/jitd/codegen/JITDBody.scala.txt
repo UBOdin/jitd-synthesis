@@ -101,7 +101,33 @@ int JITD::organize_wait()
        
   return t;
 }
+void JITD::initialize_struts(std::shared_ptr<JITDNode>* node,std::shared_ptr<JITDNode>* parent)
+{
+  std::shared_ptr<JITDNode> target_root_lock = std::atomic_load((node));
+  this->childParentMap.emplace(node,parent);
+  viewAdd(node);
+  switch(target_root_lock->type)
+  {
+    @for(node <- ctx.definition.nodes) {
+      case @node.enumName : {
+      @{RenderPattern.SetPopulate(ctx,ctx.policy.rule,"emplace","node",s"${node.name}",s"${node.enumName}");}
+      @{RenderPattern.PQPopulate(ctx,ctx.policy.rule,"emplace","node",s"${node.name}",s"${node.enumName}");}
+      @node.renderName *node_real = (@node.renderName *)target_root_lock.get();
+        @{  val children = node.fields.filter { _.t == TNodeRef() }
+            if(children.size > 0){
+              
+              children.map { f => 
+                "initialize_struts(&(node_real->"+f.name+"),node);\n"
+              }.mkString
+            } else { "" }
+        } 
+        break;      
+      }
 
+    }
+
+  }
+}
 bool JITD::do_organize()
 {
   
@@ -190,7 +216,22 @@ void JITD::viewErase(std::shared_ptr<JITDNode>* node_handle)
   }
   
 }
-
+std::shared_ptr<JITDNode> * JITD::getParent(std::shared_ptr<JITDNode> * &target)
+{
+  std::unordered_multimap <std::shared_ptr<JITDNode> *, std::shared_ptr<JITDNode> *> :: iterator iter; 
+  iter = this->childParentMap.find(target);
+  if(iter!=childParentMap.end())
+  {
+    //parent = (iter->second);
+    return iter->second;
+  }
+  else
+  {
+    //parent = NULL;
+    return NULL;
+  }
+  
+}
 void JITD::fixMap(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr<JITDNode>* parent)
 {
   std::shared_ptr<JITDNode> node_ptr = std::atomic_load((node_handle));
@@ -271,6 +312,8 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
   std::cerr << "Reached end of build with no Return" << std::endl; 
   exit(-1); 
 }
+
+
 void JITD:: check_view()
 {
  //std::set<std::shared_ptr<JITDNode>* >::iterator it;
@@ -292,22 +335,7 @@ void JITD::print_pq()
 
   
 }
-std::shared_ptr<JITDNode> * JITD::getParent(std::shared_ptr<JITDNode> * &target)
-{
-  std::unordered_multimap <std::shared_ptr<JITDNode> *, std::shared_ptr<JITDNode> *> :: iterator iter; 
-  iter = this->childParentMap.find(target);
-  if(iter!=childParentMap.end())
-  {
-    //parent = (iter->second);
-    return iter->second;
-  }
-  else
-  {
-    //parent = NULL;
-    return NULL;
-  }
-  
-}
+
 void JITD::print_map()
 {
   std::unordered_multimap <std::shared_ptr<JITDNode> *, std::shared_ptr<JITDNode> *> :: iterator itr; 
@@ -368,33 +396,7 @@ void JITD::print_map()
     } 
     std::cout << std::endl; 
 }
-void JITD::initialize_struts(std::shared_ptr<JITDNode>* node,std::shared_ptr<JITDNode>* parent)
-{
-  std::shared_ptr<JITDNode> target_root_lock = std::atomic_load((node));
-  this->childParentMap.emplace(node,parent);
-  viewAdd(node);
-  switch(target_root_lock->type)
-  {
-    @for(node <- ctx.definition.nodes) {
-      case @node.enumName : {
-      @{RenderPattern.SetPopulate(ctx,ctx.policy.rule,"emplace","node",s"${node.name}",s"${node.enumName}");}
-      @{RenderPattern.PQPopulate(ctx,ctx.policy.rule,"emplace","node",s"${node.name}",s"${node.enumName}");}
-      @node.renderName *node_real = (@node.renderName *)target_root_lock.get();
-        @{  val children = node.fields.filter { _.t == TNodeRef() }
-            if(children.size > 0){
-              
-              children.map { f => 
-                "initialize_struts(&(node_real->"+f.name+"),node);\n"
-              }.mkString
-            } else { "" }
-        } 
-        break;      
-      }
 
-    }
-
-  }
-}
 void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix){ 
 
   switch(node->type){
@@ -423,8 +425,41 @@ void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string
     }
   }
 }
+void jitd_get_depth(std::shared_ptr<JITDNode> node, int depth, int &maxdepth)
+{
+  if(node != NULL)
+  {
+  switch(node->type){
+  @for(node <- ctx.definition.nodes) {
+    case @node.enumName : {
+        @node.renderName *node_real = (@node.renderName *)node.get();
+        @{  val children = node.fields.filter { _.t == TNodeRef() }
+            if(children.size > 0){
+              children.map { f => 
+                  if(f.name == "rhs")
+                  {
+                    "jitd_get_depth(node_real->"+f.name+",depth,maxdepth);\n"
 
+                  }
+                  else
+                  {
+                    "jitd_get_depth(node_real->"+f.name+",++depth,maxdepth);\n"+
+                    "if(depth > maxdepth){\n"+
+                    "maxdepth = depth;\n"+
+                    "}\n"
 
+                  }
+                
+              }.mkString
+            } else { "" }
+        }
+        break; 
+      }
+    }
+
+  }
+ } 
+}
 void print_JITD_node_structure_viz(std::shared_ptr<JITDNode> node,std::shared_ptr<JITDNode> parent){ 
 
   switch(node->type){

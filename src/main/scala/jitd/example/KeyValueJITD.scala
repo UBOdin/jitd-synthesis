@@ -72,7 +72,15 @@ object KeyValueJITD extends HardcodedDefinition {
     //check logic doesnt return a neg value.
   //FIX THE SIZE FOR DELETE
   )
-
+  // Accessor("depth",int)()()(
+  //   "Singleton"  -> Return{IntConstant(1)},
+  //   "Array"       -> Return { IntConstant(1) },
+  //   "SortedArray" -> Return { IntConstant(1) },
+  //   "Concat"      -> Return { Delegate( "lhs" ) plus Delegate("rhs") minus IntConstant(1) },
+  //   "BTree"       -> Return { Delegate( "lhs" ) plus Delegate("rhs") minus IntConstant(1)},
+  //   //"Delete"      -> Return { Delegate( "lhs" ) minus Delegate("rhs") },
+  //   "DeleteElements"      -> Return { Delegate( "node" )}
+  // )
   //////////////////////////////////////////////
   Mutator("insert_singleton")("data" -> record ) {
     "Concat".fromFields( "*jitd_root", "Singleton".fromFields("data") )
@@ -280,12 +288,12 @@ Transform("CollapseSingleInserts") {
       "delete_from_leaf".call("new_array_after_delete", "data2")) 
   }
 
-  Policy("CrackSort")("crackAt" -> IntConstant(10),"null_data"-> IntConstant(0)) (
+  Policy("CrackSort")("crackAt" -> IntConstant(35),"null_data"-> IntConstant(0)) (
      
       ("PushDownAndCrack" scoreBy{IntConstant(0)})
       andThen("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
-      andThen("MergeUnSortedConcatArray" scoreBy{IntConstant(0)})
-      andThen("DeleteElemFromArray" scoreBy{IntConstant(0)})
+      //andThen("MergeUnSortedConcatArray" scoreBy{IntConstant(0)})
+      //andThen("DeleteElemFromArray" scoreBy{IntConstant(0)})
       andThen("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
                               scoreBy { ArraySize("data") })
      
