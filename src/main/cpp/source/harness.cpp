@@ -578,7 +578,7 @@ int main() {
 		}
 
 
-		if (i == 70) {
+		if (i == 300) {
 			break;
 		}
 
@@ -597,9 +597,22 @@ int main() {
 		} else if (optype == harness::INSERT) {
 			put_data(storage, key, value);
 		} else if (optype == SELECT) {
+
 			nkeys = benchmark_array[i].nkeys;
-			key_array = benchmark_array[i].key_array;
-			result += get_data(storage, nkeys, key_array);
+			if (nkeys > 1) {
+				key_array = benchmark_array[i].key_array;
+				result += get_data(storage, nkeys, key_array);
+			} else if (nkeys == 1) {
+				key_array = &benchmark_array[i].key;  // FIXME:  kludge...
+				result += get_data(storage, nkeys, key_array);
+			} else if (nkeys == -1) {
+				// TODO:  Return all rows (iterator)
+				//printf("Return all\n");
+			} else {
+				printf("Error:  Unexpected keycount\n");
+				_exit(1);
+			}
+
 		} else if (optype == DELETE) {
 			result += remove_data(storage, key);
 		} else if (optype == UPDATE) {
@@ -682,7 +695,7 @@ int main() {
 
 	printf("Blocking on worker thread exit\n");
 	worker_thread.join();
-
+/*
 	printf("Starting cleanup.  Main thread TID:  %d\n", getpid());
 	long start_time = gettime_us();
 	long diff_time;
@@ -693,11 +706,14 @@ int main() {
 		if (not_done == false) {
 			break;
 		}
+		if ((i % 1000) == 0) {
+			printf("Cleanup iteration:  %d\n", i);
+		}
 		i++;
 	}
 	diff_time = gettime_us() - start_time;
 	printf("Finished cleanup.  Steps:  %d  Time (s):  %f\n", i, (double)diff_time / 1000000.0);
-
+*/
 //	storage->jitd->print_debug();
 
 	delete storage;
