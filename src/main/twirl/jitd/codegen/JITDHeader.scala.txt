@@ -106,6 +106,7 @@ class JITD;
 std::shared_ptr<JITD> assemble_jitd(std::istream &in);
 void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix);
 void print_JITD_node_structure_viz(std::shared_ptr<JITDNode> node,std::shared_ptr<JITDNode> parent);
+void jitd_get_depth(std::shared_ptr<JITDNode> node,int depth, int &maxdepth);
 void print_time_vector_sum();
 void print_search_time_vector_sum();
    
@@ -182,6 +183,7 @@ class JITD {
     void fixMap(std::shared_ptr<JITDNode> * node_handle,std::shared_ptr<JITDNode> * parent);
     
     void print_debug() {print_JITD_node_structure(*jitd_root, std::string("")); }
+    void get_depth(int depth,int &maxdepth) {jitd_get_depth(*jitd_root,depth,maxdepth);}
     void print_debug_viz() {print_JITD_node_structure_viz(*jitd_root,*jitd_root); }
     bool do_organize();
     int organize_wait();

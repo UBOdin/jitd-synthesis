@@ -175,7 +175,11 @@ int jitd_client_op(
       jitd->print_debug();
       
     }
-    
+    CASE("depth")
+    {
+      //int depth = jitd->get_depth();
+      //std::cout<<"The depth of the tree is "<<depth<<std::endl;
+    }
     else {
       std::cerr << "Invalid Test Operation: " << op << std::endl;
       exit(-1);
@@ -229,6 +233,11 @@ void background_thread(std::shared_ptr<JITD> jitd)
        
        std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end)  << " us" <<  std::endl; 
        jitd->print_debug();
+
+       int depth =1;
+       int maxdepth = 0;
+        jitd->get_depth(depth,maxdepth);
+       std::cout<<"Maxdepth is of JITD structure: "<<maxdepth<<std::endl;
        
        
 }
