@@ -38,6 +38,8 @@ struct output_node {
 	harness::operation type;
 	long key;
 	int rows;
+	int nkeys;
+	int depth;
 
 };
 
