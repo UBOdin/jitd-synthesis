@@ -37,6 +37,7 @@
 } )
 
 #define JITD_REMOVE_VALUE ( { \
+	delete((unsigned long*)storage->r.value); \
 	storage->element.clear(); \
 	storage->element.push_back(storage->r); \
 	storage->jitd->remove_elements(storage->element); \
@@ -137,14 +138,8 @@ STORAGE_HANDLE create_storage() {
 	STORAGE_HANDLE storage = new storage_jitd_struct();
 	bool not_done = true;
 
-int k = 0;
 	while (true) {
 		node = initialize_array[i];
-k++;
-if (k == 3) {
-	break;
-}
-
 		if (node.type == STOP) {
 			break;
 		}
@@ -314,7 +309,16 @@ int put_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) {
 }
 
 
-int remove_data(STORAGE_HANDLE storage, unsigned long key) {
+int get_data(STORAGE_HANDLE storage, unsigned long key) {
+
+	return get_data(storage, 1, &key);
+
+}
+
+
+int remove_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
+
+	unsigned long key;
 
 	#ifdef STORAGE_SQLITE
 
@@ -340,17 +344,30 @@ int remove_data(STORAGE_HANDLE storage, unsigned long key) {
 
 	#ifdef STORAGE_JITD
 
-	JITD_REMOVE_VALUE;
+	for (int i = 0; i < nkeys; i++) {
+		key = key_array[i];
+		JITD_REMOVE_VALUE;
+	}
 
 	#endif
 
 	#ifdef STORAGE_UOMAP
 
-	storage->umap.erase(key);
+	for (int i = 0; i < nkeys; i++) {
+		key = key_array[i];
+		storage->umap.erase(key);
+	}
 
 	#endif
 
 	return 0;
+
+}
+
+
+int remove_data(STORAGE_HANDLE storage, unsigned long key) {
+
+	return remove_data(storage, 1, &key);
 
 }
 
@@ -488,7 +505,7 @@ int save_output() {
 	output_fd = result;
 
 	for (int i = 0; i < output_size; i++) {
-		snprintf(output_buffer, BUFFER_SIZE, "%ld\t%ld\t%d\t%ld\t%d\t%d\t%d\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key, output_array[i].rows, output_array[i].nkeys, output_array[i].depth);
+		snprintf(output_buffer, BUFFER_SIZE, "%ld\t%ld\t%d\t%ld\t%d\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key, output_array[i].rows);
 		result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
 		errtrap("write");
 	}
@@ -524,12 +541,11 @@ int main() {
 	timeval end;
 	int ms;
 	enum operation optype;
-	int rows = 0;
+	int rows;
 	int nkeys;
 	unsigned long key;
 	unsigned long* key_array;
 	unsigned long value;
-	int depth;
 	int i;
 	int j;
 	bool result;
@@ -575,21 +591,13 @@ int main() {
 
 		if ((i % 1000) == 0) {
 			printf("Iteration:  %d\n", i);
-			depth = 0;
-			#ifdef STORAGE_JITD
-			storage->jitd->get_depth(1, depth);
-			#endif
-		} else {
-			depth = -1;
 		}
 
-		nkeys = benchmark_array[i].nkeys;
-	
-/*
+
 		if (i == 300) {
 			break;
 		}
-*/
+
 
 		// Get next operation:
 		optype = benchmark_array[i].type;
@@ -605,14 +613,12 @@ int main() {
 		} else if (optype == harness::INSERT) {
 			put_data(storage, key, value);
 		} else if (optype == SELECT) {
-
 			nkeys = benchmark_array[i].nkeys;
 			if (nkeys > 1) {
 				key_array = benchmark_array[i].key_array;
 				result += get_data(storage, nkeys, key_array);
 			} else if (nkeys == 1) {
-				key_array = &benchmark_array[i].key;  // FIXME:  kludge...
-				result += get_data(storage, nkeys, key_array);
+				result += get_data(storage, key);
 			} else if (nkeys == -1) {
 				// TODO:  Return all rows (iterator)
 				//printf("Return all\n");
@@ -620,9 +626,17 @@ int main() {
 				printf("Error:  Unexpected keycount\n");
 				_exit(1);
 			}
-
 		} else if (optype == DELETE) {
-			result += remove_data(storage, key);
+			nkeys = benchmark_array[i].nkeys;
+			if (nkeys > 1) {
+				key_array = benchmark_array[i].key_array;
+				result += remove_data(storage, nkeys, key_array);
+			} else if (nkeys == 1) {
+				result += remove_data(storage, key);
+			} else {
+				printf("Error:  Unexpected keycount\n");
+				_exit(1);
+			}
 		} else if (optype == UPDATE) {
 			result += update_data(storage, key, value);
 		} else if (optype == UPSERT) {
@@ -640,13 +654,12 @@ int main() {
 			printf("Error:  output overflow\n");
 			_exit(1);
 		}
+
 		output_array[i].time_start = time_start;
 		output_array[i].time_delta = time_delta;
 		output_array[i].type = optype;
 		output_array[i].key = key;
 		output_array[i].rows = rows;
-		output_array[i].nkeys = nkeys;
-		output_array[i].depth = depth;
 		// Advance to next frame
 		i++;
 		optype = benchmark_array[i].type;
@@ -725,6 +738,7 @@ int main() {
 */
 //	storage->jitd->print_debug();
 
+	delete storage;
 	printf("Worker thread exited\n");
 	#endif
 
