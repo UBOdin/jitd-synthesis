@@ -316,18 +316,18 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 
 void JITD:: check_view()
 {
- //std::set<std::shared_ptr<JITDNode>* >::iterator it;
-  //@for(transform <- ctx.definition.transforms){
-  //if(!(this->@{transform.name}_View).empty())
-  //{
-  //  for(it = (this->@{transform.name}_View).begin();it!=(this->@{transform.name}_View).end();++it)
-  //  {
-  //        std::shared_ptr<JITDNode> * curr = *it;
-  //        std::cout<<"Address of curr: "<<curr<<"Address of node in @{transform.name}_View(*curr): "<<*curr<<std::endl;
-  //  }
-  //}
+ std::set<std::shared_ptr<JITDNode>* >::iterator it;
+  @for(transform <- ctx.definition.transforms){
+  if(!(this->@{transform.name}_View).empty())
+  {
+    for(it = (this->@{transform.name}_View).begin();it!=(this->@{transform.name}_View).end();++it)
+     {
+          std::shared_ptr<JITDNode> * curr = *it;
+          std::cout<<"Address of curr: "<<curr<<"Address of node in @{transform.name}_View(*curr): "<<*curr<<std::endl;
+    }
+  }
 
- //}
+ }
 
 }
 void JITD::print_pq()
