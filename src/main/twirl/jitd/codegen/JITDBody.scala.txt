@@ -70,7 +70,7 @@ int JITD::organize_wait()
         }
         else if(pop_mce.flag == INSERT)
         {
-            this->after_insert(pop_mce.element);
+            this->after_insert_singleton(pop_mce.element);
             not_done = true;
             //std::cout<<"INSERT_PRINT ";
             //this->print_debug();
@@ -79,7 +79,7 @@ int JITD::organize_wait()
         } 
         else if(pop_mce.flag == REMOVE)
         {
-            this->after_remove_elements(pop_mce.element);
+            this->after_remove_singleton(pop_mce.element);
             not_done = true;
             //std::cout<<"DELETE_PRINT ";
             //this->print_debug();
