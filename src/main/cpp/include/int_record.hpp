@@ -54,15 +54,19 @@ inline bool record_scan(const std::vector<Record> &data, const Key &key, Record 
   }
   return false;
 }
-// inline bool record_scan(const std::vector<Record> &data,const Key &key){
-//   Record dummy;
-//   return record_scan(data,key,dummy);
-// }
+
   
 inline bool singleton_scan(const Record &data, const Key &key, Record &result){
   // auto last = std::end(data);
   // for(auto curr = std::begin(data); curr != last; ++curr){
     if(data == key){ result = data; return true; }
+  //}
+  return false;
+}
+inline bool key_cmp(const Record &data, const Key &key){
+  // auto last = std::end(data);
+  // for(auto curr = std::begin(data); curr != last; ++curr){
+    if(data.key < key){ return true; }
   //}
   return false;
 }
@@ -75,29 +79,14 @@ inline bool record_binary_search(const std::vector<Record> &data, const Key &key
 inline void append(std::vector<Record> &to, std::vector<Record> &from){
   to.insert(std::end(to), std::begin(from), std::end(from));
 }
-inline void append_singleton(Record &to, Record &from,std::vector<Record> &merged){
-  merged.push_back(to);
-  merged.push_back(from);
-}
+
 inline void append_singleton_to_array(std::vector<Record> &to, Record &from){
-  to.insert(std::end(to),from);
+  if(from.key!=-1)
+  {
+    to.insert(std::end(to),from);
+  }
 }
-// inline void appendConcat(std::vector<Record> &to, std::vector<Record> &from)
-// { 
-//   to.insert(std::end(to), std::begin(from), std::end(from));
-//   std::sort(std::begin(to),std::end(to));
-// }
-// inline void remove(std::vector<Record> &to_delete, std::vector<Record> &from_delete)
-// {
-//   for(int i = 0; i < from_delete.size(); i++)
-//   {
-//     auto iter = std::find(to_delete.begin(),to_delete.end(),from_delete[i]);
-//     if(iter != to_delete.end())
-//     {
-//       to_delete.erase(iter);
-//     }
-//   } 
-// }
+
 inline void build_buffer(std::vector<Record> &to, int count, int min, int max)
 {
   int max_minus_min = max - min;
@@ -177,72 +166,30 @@ inline void do_crack(
     else           { rhs.push_back(*curr); }
   }
 }
-inline void array_copy(
-
-  const std::vector<Record> &source,  
-  std::vector<Record> &lhs, 
-  std::vector<Record> &rhs
+inline void do_crack_singleton(
+  const Record &source, 
+  Key sep, 
+  Record &lhs, 
+  Record &rhs
 ){
-  //std::cout<<"Doing copy"<<std::endl;
-  // std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
-
-  auto end = std::end(source);
-  for(auto curr = std::begin(source); curr != end; ++curr)
-  {
-    // std::cout << "  Check: " << curr->key << std::endl;
-    lhs.push_back(*curr); 
-    rhs.push_back(*curr); 
-  }
-
+  //std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
+  
+    //std::cout << "  Check: " << curr->key;
+  lhs.key = -1;
+  rhs.key = -1;
+    if(source < sep){ lhs = source; }
+    else           { rhs = source; }
+}
+inline void do_crack_singleton_one(
+  const Record &source, 
+  Key sep, 
+  Record &data
+){
+  //std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
+  
+    //std::cout << "  Check: " << curr->key;
+    data = source; 
 } 
-// inline void copy_delete_array_btree(
-
-//   const std::vector<Record> &source, 
-//   Key sep, 
-//   std::vector<Record> &lhs, 
-//   std::vector<Record> &rhs
-// ){
-//   //std::cout<<"Doing copy"<<std::endl;
-//   // std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
-  
-//   for(auto curr = std::begin(source); curr < std::end(source); ++curr)
-//   {
-//     // std::cout << "  Check: " << curr->key << std::endl;
-//     if(*curr<sep)
-//     {
-//       lhs.emplace_back(*curr);
-//     }
-//     else
-//     {
-//       rhs.emplace_back(*curr); 
-//     }
-  
-//   }
-
-// } 
-// inline void delete_from_sorted_array(std::vector<Record> &to_delete,std::vector<Record> &from_delete)
-// {
-//   //std::cout<<"in deleting";
-//   if(to_delete.size()!=0 && from_delete.size()!=0)
-//   {
-//     for(int i = 0; i < from_delete.size(); i++)
-//     {
-//       auto iter = std::find(std::begin(to_delete),std::end(to_delete),from_delete[i]);
-//       if(iter != std::end(to_delete))
-//       {
-//         to_delete.erase(iter);
-     
-//       }
-//     } 
-
-//   }
-//   else
-//   {
-//     std::cout<<"size 0 encountered"<<std::endl;
-//   }
-  
-
-// }
 inline void delete_from_leaf(std::vector<Record> &to_delete,std::vector<Record> &from_delete)
 {
   //std::cout<<"in deleting";
@@ -262,7 +209,27 @@ inline void delete_from_leaf(std::vector<Record> &to_delete,std::vector<Record> 
   }
   else
   {
-    std::cout<<"Delete:size 0 encountered"<<std::endl;
+    //std::cout<<"Delete:size 0 encountered"<<std::endl;
+  }
+  
+
+}
+inline void delete_singleton_from_leaf(std::vector<Record> &to_delete,Record &from_delete)
+{
+  //std::cout<<"in deleting";
+  //TODO: optimize begin and end
+  if(to_delete.size()!=0)
+  {
+      auto iter = std::find(std::begin(to_delete),std::end(to_delete),from_delete);
+      if(iter != std::end(to_delete))
+      {
+        to_delete.erase(iter);
+     
+      }
+  }
+  else
+  {
+    //std::cout<<"Delete:size 0 encountered"<<std::endl;
   }
   
 

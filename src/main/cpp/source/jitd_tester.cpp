@@ -137,6 +137,55 @@ int jitd_client_op(
      //std::cout<<"INSERTED..."<<std::endl;
       std::cout << "Insert into JITD: " << total_time(start, end) << " us" << std::endl;
     }
+    CASE("insert_singleton") {
+      timeval start, end;
+      int value;
+      Record data;
+      
+      toks >> value;
+      data.key = value;
+      data.value = (Value)0xDEADBEEF;
+      
+      gettimeofday(&start, NULL);
+      //std::cout<<"Starting Insert in JITD"<<std::endl;
+      jitd->insert_singleton(data);
+      
+      //std::cout<<"size of crack_array"<<jitd->CrackArray_PQ.size()<<std::endl;
+      gettimeofday(&end, NULL);
+     //std::cout<<"INSERTED..."<<std::endl;
+      std::cout << "Insert_singleton into JITD: " << total_time(start, end) << " us" << std::endl;
+      std::this_thread::sleep_for(std::chrono::microseconds(1000));
+      //std::cout<<"Loaded data"<<std::endl;
+      //jitd->print_debug();
+      //jitd->print_map();
+      //jitd->check_view();
+      //std::cout<<"Concat set size"<<jitd->JITD_NODE_Concat_set.size()<<std::endl;
+    }
+    CASE("remove_singleton") {
+      timeval start, end;
+      int value;
+      Record data;
+      
+      toks >> value;
+      data.key = value;
+      data.value = (Value)0xDEADBEEF;
+      
+      //std::cout<<"Loaded data"<<std::endl;
+      gettimeofday(&start, NULL);
+      //std::cout<<"Starting Insert in JITD"<<std::endl;
+      jitd->remove_singleton(data);
+      
+      //std::cout<<"size of crack_array"<<jitd->CrackArray_PQ.size()<<std::endl;
+      gettimeofday(&end, NULL);
+     //std::cout<<"INSERTED..."<<std::endl;
+      std::cout << "Remove_singleton into JITD: " << total_time(start, end) << " us" << std::endl;
+      std::this_thread::sleep_for(std::chrono::microseconds(1000));
+      //std::cout<<"Loaded data"<<std::endl;
+      //jitd->print_debug();
+      //jitd->print_map();
+      //jitd->check_view();
+      //std::cout<<"Concat set size"<<jitd->JITD_NODE_Concat_set.size()<<std::endl;
+    }
     CASE("remove_elements")
     {
       timeval start, end;
@@ -167,7 +216,7 @@ int jitd_client_op(
     CASE("sleep") {
       int ms;
       toks >> ms;
-      std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+      std::this_thread::sleep_for(std::chrono::microseconds(ms));
       
     }
     CASE("dump") {
