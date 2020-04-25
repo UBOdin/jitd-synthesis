@@ -101,6 +101,31 @@ int JITD::organize_wait()
        
   return t;
 }
+void JITD::initialize_struts_view(std::shared_ptr<JITDNode>* node,std::shared_ptr<JITDNode>* parent)
+{
+  std::shared_ptr<JITDNode> target_root_lock = std::atomic_load((node));
+  this->childParentMap.emplace(node,parent);
+  viewAdd(node);
+  switch(target_root_lock->type)
+  {
+    @for(node <- ctx.definition.nodes) {
+      case @node.enumName : {
+      @node.renderName *node_real = (@node.renderName *)target_root_lock.get();
+        @{  val children = node.fields.filter { _.t == TNodeRef() }
+            if(children.size > 0){
+              
+              children.map { f => 
+                "initialize_struts(&(node_real->"+f.name+"),node);\n"
+              }.mkString
+            } else { "" }
+        } 
+        break;      
+      }
+
+    }
+
+  }
+}
 void JITD::initialize_struts(std::shared_ptr<JITDNode>* node,std::shared_ptr<JITDNode>* parent)
 {
   std::shared_ptr<JITDNode> target_root_lock = std::atomic_load((node));

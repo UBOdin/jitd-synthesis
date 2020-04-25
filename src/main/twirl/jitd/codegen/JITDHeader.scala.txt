@@ -199,6 +199,7 @@ class JITD {
     bool match@{transform.name}(std::shared_ptr<JITDNode> * &targetHandleRef);}
 
     void initialize_struts(std::shared_ptr<JITDNode>* node, std::shared_ptr<JITDNode>* parent);
+    void initialize_struts_view(std::shared_ptr<JITDNode>* node, std::shared_ptr<JITDNode>* parent);
     
     
   private:

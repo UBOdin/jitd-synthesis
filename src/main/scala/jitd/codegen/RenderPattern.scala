@@ -138,7 +138,7 @@ object RenderPattern
                 {
 
                    s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_PQ;\n"+
-                   s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_View;\n"
+                   s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
                    //s"void ${transfrom_name}_add(std::shared_ptr<JITDNode> * node);\n"
                 }
                 else
@@ -172,6 +172,7 @@ object RenderPattern
   }
   
  } 
+ 
  def PQPopulate(ctx:Render,rule:PolicyRule,op:String,node_name:String,node_type:String,node_enumName:String):String = 
  {
   rule match {
@@ -191,6 +192,7 @@ object RenderPattern
               if (fields.forall{_.isInstanceOf[MatchAny]} && node_type.equals(nodeName))
               {
                 s"this->"+transfrom_name+"_PQ."+op+"("+node_name+");\n" //Assumption: If there is a PQ there cannot be a set
+                
               }
               else
               {
