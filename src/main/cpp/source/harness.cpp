@@ -31,15 +31,12 @@
 
 #define JITD_INSERT_VALUE ( { \
 	storage->r.value = new int(value); \
-	storage->element.clear(); \
-	storage->element.push_back(storage->r); \
-	storage->jitd->insert(storage->element); \
+	storage->jitd->insert_singleton(storage->r); \
 } )
 
 #define JITD_REMOVE_VALUE ( { \
-	storage->element.clear(); \
-	storage->element.push_back(storage->r); \
-	storage->jitd->remove_elements(storage->element); \
+	delete((unsigned long*)storage->r.value); \
+	storage->jitd->remove_singleton(storage->r); \
 } )
 
 #endif
@@ -308,13 +305,6 @@ int put_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) {
 }
 
 
-int get_data(STORAGE_HANDLE storage, unsigned long key) {
-
-	return get_data(storage, 1, &key);
-
-}
-
-
 int remove_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
 
 	unsigned long key;
@@ -360,13 +350,6 @@ int remove_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
 	#endif
 
 	return 0;
-
-}
-
-
-int remove_data(STORAGE_HANDLE storage, unsigned long key) {
-
-	return remove_data(storage, 1, &key);
 
 }
 
@@ -504,7 +487,7 @@ int save_output() {
 	output_fd = result;
 
 	for (int i = 0; i < output_size; i++) {
-		snprintf(output_buffer, BUFFER_SIZE, "%ld\t%ld\t%d\t%ld\t%d\t%d\t%d\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key, output_array[i].rows, output_array[i].nkeys, output_array[i].depth);
+		snprintf(output_buffer, BUFFER_SIZE, "%ld\t%ld\t%d\t%ld\t%d\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key, output_array[i].rows);
 		result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
 		errtrap("write");
 	}
@@ -540,12 +523,11 @@ int main() {
 	timeval end;
 	int ms;
 	enum operation optype;
-	int rows = 0;
+	int rows;
 	int nkeys;
 	unsigned long key;
 	unsigned long* key_array;
 	unsigned long value;
-	int depth;
 	int i;
 	int j;
 	bool result;
@@ -591,26 +573,19 @@ int main() {
 
 		if ((i % 1000) == 0) {
 			printf("Iteration:  %d\n", i);
-			depth = 0;
-			#ifdef STORAGE_JITD
-			storage->jitd->get_depth(1, depth);
-			#endif
-		} else {
-			depth = -1;
 		}
 
-		nkeys = benchmark_array[i].nkeys;
 
-/*
 		if (i == 300) {
 			break;
 		}
-*/
+
 
 		// Get next operation:
 		optype = benchmark_array[i].type;
 		key = benchmark_array[i].key;
 		value = benchmark_array[i].value;
+		nkeys = benchmark_array[i].nkeys;
 
 		// Benchmark next operation:
 		#ifdef TIME_EACH_OP
@@ -621,30 +596,22 @@ int main() {
 		} else if (optype == harness::INSERT) {
 			put_data(storage, key, value);
 		} else if (optype == SELECT) {
-			nkeys = benchmark_array[i].nkeys;
-			if (nkeys > 1) {
+			if (nkeys == 1) {
+				key_array = &benchmark_array[i].key;
+			} else if (nkeys > 1) {
 				key_array = benchmark_array[i].key_array;
-				result += get_data(storage, nkeys, key_array);
-			} else if (nkeys == 1) {
-				result += get_data(storage, key);
 			} else if (nkeys == -1) {
 				// TODO:  Return all rows (iterator)
 				//printf("Return all\n");
-			} else {
-				printf("Error:  Unexpected keycount\n");
-				_exit(1);
 			}
+			result += get_data(storage, nkeys, key_array);
 		} else if (optype == DELETE) {
-			nkeys = benchmark_array[i].nkeys;
-			if (nkeys > 1) {
+			if (nkeys == 1) {
+				key_array = &benchmark_array[i].key;
+			} else if (nkeys > 1) {
 				key_array = benchmark_array[i].key_array;
-				result += remove_data(storage, nkeys, key_array);
-			} else if (nkeys == 1) {
-				result += remove_data(storage, key);
-			} else {
-				printf("Error:  Unexpected keycount\n");
-				_exit(1);
 			}
+			result += remove_data(storage, nkeys, key_array);
 		} else if (optype == UPDATE) {
 			result += update_data(storage, key, value);
 		} else if (optype == UPSERT) {
@@ -668,8 +635,6 @@ int main() {
 		output_array[i].type = optype;
 		output_array[i].key = key;
 		output_array[i].rows = rows;
-		output_array[i].nkeys = nkeys;
-		output_array[i].depth = depth;
 		// Advance to next frame
 		i++;
 		optype = benchmark_array[i].type;
@@ -748,6 +713,7 @@ int main() {
 */
 //	storage->jitd->print_debug();
 
+	delete storage;
 	printf("Worker thread exited\n");
 	#endif
 
