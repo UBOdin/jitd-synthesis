@@ -22,10 +22,15 @@
   
     //std::cout<<"Candidate shared_ptr for @{transform}: "<<(*targetHandleRef)<<std::endl;
     
+      
       @{transform}(targetHandleRef);
     
     @onSuccess
-  } else { 
+  } 
+  
+  
+  
+  else { 
     @onFail 
   }
 

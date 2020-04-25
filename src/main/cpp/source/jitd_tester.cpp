@@ -154,7 +154,7 @@ int jitd_client_op(
       gettimeofday(&end, NULL);
      //std::cout<<"INSERTED..."<<std::endl;
       std::cout << "Insert_singleton into JITD: " << total_time(start, end) << " us" << std::endl;
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      std::this_thread::sleep_for(std::chrono::microseconds(1000));
       //std::cout<<"Loaded data"<<std::endl;
       //jitd->print_debug();
       //jitd->print_map();
@@ -179,7 +179,7 @@ int jitd_client_op(
       gettimeofday(&end, NULL);
      //std::cout<<"INSERTED..."<<std::endl;
       std::cout << "Remove_singleton into JITD: " << total_time(start, end) << " us" << std::endl;
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      std::this_thread::sleep_for(std::chrono::microseconds(1000));
       //std::cout<<"Loaded data"<<std::endl;
       //jitd->print_debug();
       //jitd->print_map();
@@ -216,7 +216,7 @@ int jitd_client_op(
     CASE("sleep") {
       int ms;
       toks >> ms;
-      std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+      std::this_thread::sleep_for(std::chrono::microseconds(ms));
       
     }
     CASE("dump") {
