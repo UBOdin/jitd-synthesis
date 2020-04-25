@@ -487,7 +487,7 @@ int save_output() {
 	output_fd = result;
 
 	for (int i = 0; i < output_size; i++) {
-		snprintf(output_buffer, BUFFER_SIZE, "%ld\t%ld\t%d\t%ld\t%d\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key, output_array[i].rows);
+		snprintf(output_buffer, BUFFER_SIZE, "%ld\t%ld\t%d\t%ld\t%d\t%d\t%d\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key, output_array[i].rows, output_array[i].nkeys, output_array[i].depth);
 		result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
 		errtrap("write");
 	}
@@ -523,11 +523,12 @@ int main() {
 	timeval end;
 	int ms;
 	enum operation optype;
-	int rows;
+	int rows = 0;
 	int nkeys;
 	unsigned long key;
 	unsigned long* key_array;
 	unsigned long value;
+	int depth;
 	int i;
 	int j;
 	bool result;
@@ -573,13 +574,19 @@ int main() {
 
 		if ((i % 1000) == 0) {
 			printf("Iteration:  %d\n", i);
+			depth = 0;
+			#ifdef STORAGE_JITD
+			storage->jitd->get_depth(1, depth);
+			#endif
+		} else {
+			depth = -1;
 		}
 
-
+/*
 		if (i == 300) {
 			break;
 		}
-
+*/
 
 		// Get next operation:
 		optype = benchmark_array[i].type;
@@ -635,6 +642,8 @@ int main() {
 		output_array[i].type = optype;
 		output_array[i].key = key;
 		output_array[i].rows = rows;
+		output_array[i].nkeys = nkeys;
+		output_array[i].depth = depth;
 		// Advance to next frame
 		i++;
 		optype = benchmark_array[i].type;
