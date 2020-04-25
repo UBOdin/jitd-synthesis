@@ -21,7 +21,8 @@
   if(bestScore >= 0) {
   
     //std::cout<<"Candidate shared_ptr for @{transform}: "<<(*targetHandleRef)<<std::endl;
-    @{transform}(targetHandleRef);
+    
+      @{transform}(targetHandleRef);
     
     @onSuccess
   } else { 

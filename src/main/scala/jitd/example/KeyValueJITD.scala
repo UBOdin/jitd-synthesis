@@ -14,12 +14,14 @@ object KeyValueJITD extends HardcodedDefinition {
   Def(bool, "singleton_scan",          record, key, record)
   Def("do_crack", record.array, key, record.array, record.array)
   Def("do_crack_singleton", record, key, record, record)
+  Def("do_crack_singleton_one", record, key, record)
   Def("append", record.array, record.array)
   Def("append_singleton_to_array", record.array, record)
   Def("remove",record.array,record.array)
   Def("delete_from_leaf",record.array,record.array)
   Def("delete_singleton_from_leaf",record.array,record)
   Def(key, "pick_separator", record.array)
+  Def(bool, "key_cmp",record,key)
 
   //////////////////////////////////////////////
   Node( "Singleton",       "elem" -> record)(
@@ -43,6 +45,7 @@ object KeyValueJITD extends HardcodedDefinition {
   def End(t:Expression)              = "std::end".call(t)
   def ArraySize(t:Expression)        = "array_size".call(t)
   def BlankArray                     = "std::vector<Record>".call()
+  def Key_Cmp(t1:Expression,t2:Expression) = "key_cmp".call(t1,t2)
   //////////////////////////////////////////////
 
   Accessor("get")( "target"  -> key )( "result"  -> record )(
@@ -210,7 +213,7 @@ object KeyValueJITD extends HardcodedDefinition {
     )
   }
 */
-  Transform("PushDownSingleton") {
+Transform("PushDownSingleton") {
     "Concat" withFields(
       "BTree" withFields( "a", "separator", "b" ),
       "Singleton" withFields( "data" )
@@ -228,7 +231,35 @@ object KeyValueJITD extends HardcodedDefinition {
       "do_crack_singleton".call("data", "separator", NodeSubscript(Var("lhs_partition"),"elem"), NodeSubscript(Var("rhs_partition"),"elem"))
     )
   }
-
+  Transform("PushDownSingletonLeft") {
+    "Concat" withFields(
+      "BTree" withFields( "a", "separator", "b" ),
+      "Singleton" withFields( "data" )
+    )
+  }{"BTree" fromFields(
+      "Concat" fromFields( "a", "Singleton" fromFields(
+        
+      )as "lhs_partition"),
+      "separator",
+       "b" 
+    ) andAfter(
+      "do_crack_singleton_one".call("data", "separator", NodeSubscript(Var("lhs_partition"),"elem"))
+    )}
+    
+Transform("PushDownSingletonRight") {
+    "Concat" withFields(
+      "BTree" withFields( "a", "separator", "b" ),
+      "Singleton" withFields( "data" )
+    )
+  }{"BTree" fromFields(
+      "a",
+      "separator",
+      "Concat" fromFields( "b", "Singleton" fromFields(
+          
+      )as "rhs_partition")
+    ) andAfter(
+      "do_crack_singleton_one".call("data", "separator", NodeSubscript(Var("rhs_partition"),"elem"))
+    )}
 /*
   Transform("PushDownDontDeleteElemBtree")
   {
@@ -291,8 +322,8 @@ Transform("DeleteSingletonFromArray")
   }
 
   Policy("CrackSort")("crackAt" -> IntConstant(10),"null_data"-> IntConstant(0)) (
-     
-      ("PushDownSingleton" scoreBy{IntConstant(0)})
+      ("PushDownSingletonLeft"  onlyIf { Key_Cmp("data","separator") eq BoolConstant(true) } scoreBy{IntConstant(0)})
+      andThen("PushDownSingletonRight"  onlyIf { Key_Cmp("data","separator") eq BoolConstant(false) } scoreBy{IntConstant(0)})
       andThen("PushDownDontDeleteSingletonBtree" scoreBy{IntConstant(0)})
       andThen("MergeUnSortedConcatArrayandSingleton" scoreBy{IntConstant(0)})
       andThen("DeleteSingletonFromArray" scoreBy{IntConstant(0)})

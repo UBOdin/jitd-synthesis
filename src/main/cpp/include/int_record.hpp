@@ -54,15 +54,19 @@ inline bool record_scan(const std::vector<Record> &data, const Key &key, Record 
   }
   return false;
 }
-// inline bool record_scan(const std::vector<Record> &data,const Key &key){
-//   Record dummy;
-//   return record_scan(data,key,dummy);
-// }
+
   
 inline bool singleton_scan(const Record &data, const Key &key, Record &result){
   // auto last = std::end(data);
   // for(auto curr = std::begin(data); curr != last; ++curr){
     if(data == key){ result = data; return true; }
+  //}
+  return false;
+}
+inline bool key_cmp(const Record &data, const Key &key){
+  // auto last = std::end(data);
+  // for(auto curr = std::begin(data); curr != last; ++curr){
+    if(data.key < key){ return true; }
   //}
   return false;
 }
@@ -170,6 +174,17 @@ inline void do_crack_singleton(
     //std::cout << "  Check: " << curr->key;
     if(source < sep){ lhs = source; }
     else           { rhs = source; }
+}
+inline void do_crack_singleton_one(
+  const Record &source, 
+  Key sep, 
+  Record &data
+){
+  //std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
+  
+    //std::cout << "  Check: " << curr->key;
+    
+    data = source; 
 } 
 inline void delete_from_leaf(std::vector<Record> &to_delete,std::vector<Record> &from_delete)
 {
