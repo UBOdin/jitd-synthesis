@@ -81,7 +81,10 @@ inline void append(std::vector<Record> &to, std::vector<Record> &from){
 }
 
 inline void append_singleton_to_array(std::vector<Record> &to, Record &from){
-  to.insert(std::end(to),from);
+  if(from.key!=0)
+  {
+    to.insert(std::end(to),from);
+  }
 }
 
 inline void build_buffer(std::vector<Record> &to, int count, int min, int max)
@@ -172,6 +175,7 @@ inline void do_crack_singleton(
   //std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
   
     //std::cout << "  Check: " << curr->key;
+  
     if(source < sep){ lhs = source; }
     else           { rhs = source; }
 }

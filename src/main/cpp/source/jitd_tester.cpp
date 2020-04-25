@@ -145,7 +145,7 @@ int jitd_client_op(
       toks >> value;
       data.key = value;
       data.value = (Value)0xDEADBEEF;
-      //std::cout<<"Loaded data"<<std::endl;
+      
       gettimeofday(&start, NULL);
       //std::cout<<"Starting Insert in JITD"<<std::endl;
       jitd->insert_singleton(data);
@@ -154,6 +154,8 @@ int jitd_client_op(
       gettimeofday(&end, NULL);
      //std::cout<<"INSERTED..."<<std::endl;
       std::cout << "Insert_singleton into JITD: " << total_time(start, end) << " us" << std::endl;
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      //std::cout<<"Loaded data"<<std::endl;
       //jitd->print_debug();
       //jitd->print_map();
       //jitd->check_view();
@@ -167,6 +169,7 @@ int jitd_client_op(
       toks >> value;
       data.key = value;
       data.value = (Value)0xDEADBEEF;
+      
       //std::cout<<"Loaded data"<<std::endl;
       gettimeofday(&start, NULL);
       //std::cout<<"Starting Insert in JITD"<<std::endl;
@@ -176,6 +179,8 @@ int jitd_client_op(
       gettimeofday(&end, NULL);
      //std::cout<<"INSERTED..."<<std::endl;
       std::cout << "Remove_singleton into JITD: " << total_time(start, end) << " us" << std::endl;
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      //std::cout<<"Loaded data"<<std::endl;
       //jitd->print_debug();
       //jitd->print_map();
       //jitd->check_view();
