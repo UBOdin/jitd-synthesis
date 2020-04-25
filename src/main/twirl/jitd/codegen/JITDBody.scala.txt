@@ -128,6 +128,7 @@ void JITD::initialize_struts_view(std::shared_ptr<JITDNode>* node,std::shared_pt
 }
 void JITD::initialize_struts(std::shared_ptr<JITDNode>* node,std::shared_ptr<JITDNode>* parent)
 {
+  
   std::shared_ptr<JITDNode> target_root_lock = std::atomic_load((node));
   this->childParentMap.emplace(node,parent);
   viewAdd(node);
@@ -152,6 +153,7 @@ void JITD::initialize_struts(std::shared_ptr<JITDNode>* node,std::shared_ptr<JIT
     }
 
   }
+
 }
 bool JITD::do_organize()
 {

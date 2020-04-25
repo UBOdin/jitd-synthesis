@@ -118,7 +118,28 @@ object RenderPattern
       } 
     }
   }
+   def ViewDeclare(ctx:Render,rule:PolicyRule,init:Boolean): String = 
+  {
+    rule match {
+      case TieredPolicy(Seq()) => ""
+      case TieredPolicy(policies) => policies.map{ViewDeclare(ctx,_,true)}.mkString 
+        
+      case TransformPolicy(unique_name,name, _, scoreFn) => 
+        {
+          val transfrom_name = name
+
+          
+          
+           s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
+
+          
+          
+        }
+    
+  }
   
+ } 
+ 
   def SetPqDeclare(ctx:Render,rule:PolicyRule,init:Boolean): String = 
   {
     rule match {
@@ -137,9 +158,9 @@ object RenderPattern
                 if(init == true)
                 {
 
-                   s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_PQ;\n"+
-                   s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
-                   //s"void ${transfrom_name}_add(std::shared_ptr<JITDNode> * node);\n"
+                   s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_PQ;\n"
+                   //s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
+                   
                 }
                 else
                 {
@@ -151,14 +172,14 @@ object RenderPattern
                 val extract = MatchToStatement.unrollSet(ctx.definition,pattern,"",(Var("")),(Var("")))
                 if(trackablesets(extract(0)._2.toString))
                 {
-                  s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
+                  ""//s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
                 }
                 else
                 {
                   trackablesets.add(extract(0)._2.toString)
-                  s"std::set<std::shared_ptr<JITDNode> *> JITD_NODE_${extract(0)._2.toString}_set;\n"+
-                  s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
-                  //s"void set_${extract(0)._2.toString}_add(std::shared_ptr<JITDNode> * node);\n"
+                  s"std::set<std::shared_ptr<JITDNode> *> JITD_NODE_${extract(0)._2.toString}_set;\n"
+                  //s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
+                  
                 }
                 
                 
