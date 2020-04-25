@@ -81,7 +81,7 @@ inline void append(std::vector<Record> &to, std::vector<Record> &from){
 }
 
 inline void append_singleton_to_array(std::vector<Record> &to, Record &from){
-  if(from.key!=0)
+  if(from.key!=-1)
   {
     to.insert(std::end(to),from);
   }
@@ -175,7 +175,8 @@ inline void do_crack_singleton(
   //std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
   
     //std::cout << "  Check: " << curr->key;
-  
+  lhs.key = -1;
+  rhs.key = -1;
     if(source < sep){ lhs = source; }
     else           { rhs = source; }
 }
@@ -187,7 +188,6 @@ inline void do_crack_singleton_one(
   //std::cout << "Crack(" << sep << ") ->" << source[0].key << ", " <<  source[1].key << " ... " << (source.size()-2) << " more" << std::endl;
   
     //std::cout << "  Check: " << curr->key;
-    
     data = source; 
 } 
 inline void delete_from_leaf(std::vector<Record> &to_delete,std::vector<Record> &from_delete)
