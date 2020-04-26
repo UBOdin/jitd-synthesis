@@ -74,10 +74,7 @@ object ViewPolicyImplementation extends PolicyImplementation
   // {
 
   // }
-  def applyStatement(elem:scala.collection.mutable.Set[String]):Statement=
-  {
-    Block(elem.toSeq.map(Comment(_)))
-  }
+ 
   def viewErase(ctx:Render,definition:Definition,handlerefbool:Boolean,fromNode:MatchPattern,fromNodeVar:String,mutator:Boolean):Statement =
   {
     val rule = ctx.policy.rule
@@ -145,9 +142,7 @@ object ViewPolicyImplementation extends PolicyImplementation
                                                 else{
                                                   Block(Seq())
                                                 }
-                                                //println(elem.getClass)
-                                                
-                                                //commonFunction("viewErase(",vnnt._3,Var(""))
+                                          
                                                 
                                                   
                                               }
