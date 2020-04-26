@@ -75,23 +75,6 @@ object RenderPattern
 
   }
 }
-// def findnodeTransformMap(ctx:Render,rule:PolicyRule):HashMap()
-// {
-//   var nodeTransformMap = new scala.collection.mutable.HashMap[String,scala.collection.mutable.Set[String]] with scala.collection.mutable.MultiMap[String,String]
-//   rule match {
-//       case TieredPolicy(Seq()) => nodeTransformMap
-//       case TieredPolicy(policies) => policies.map{findnodeTransformMap(ctx,_,)}.mkString 
-        
-//       case TransformPolicy(unique_name,name, _, scoreFn) => 
-//         {
-//           val transfrom_name = name
-//           val pattern = ctx.definition.transform(name).from
-//           pattern match {
-//             case MatchNode(nodeType, fields, _) => {
-//              nodeTransformMap.addBinding(nodeType,transfrom_name)
-//             }
-//           }
-// }
   def ViewCall(ctx:Render,rule:PolicyRule,nodeName:String,op:String,node:String):String = 
   {
     rule match {
@@ -165,8 +148,29 @@ object RenderPattern
               //nodeTransformMap += nodeTransformMap.get(nodeType).map(elem => nodeType-> elem.add(transfrom_name))
             }
           }
-          //println(nodeTransformMap)
-          s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
+          val eligibility = PqPolicyImplementation.eligible(pattern)
+              //println(trackablesets)
+              if (eligibility == true)
+              {
+                if(init == true)
+                {
+
+                   //s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_PQ;\n"
+                   s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_View;\n"
+                   
+                }
+                else
+                {
+                   ""
+                }
+              }
+              else
+              {
+                s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
+                
+                
+              } 
+         
 
           
           
