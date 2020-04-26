@@ -1,5 +1,5 @@
 package jitd.codegen
-
+import scala.collection.mutable.Set
 import jitd.spec._
 import jitd.rewrite.InlineVars
 import jitd.rewrite.MatchToStatement
@@ -8,6 +8,8 @@ object RenderPattern
 {
   //Try using immutable
   var trackablesets = scala.collection.mutable.Set[String]()
+  
+  var nodeTransformMap = scala.collection.mutable.Map[String,scala.collection.mutable.Set[String]]()
   var trackablepq = scala.collection.mutable.Set[String]()
   def test(ctx:Render, pattern:MatchPattern, target:String, onFailure:String,score_root_pattern_set:Option[String]=None): String =
   {
@@ -73,6 +75,23 @@ object RenderPattern
 
   }
 }
+// def findnodeTransformMap(ctx:Render,rule:PolicyRule):HashMap()
+// {
+//   var nodeTransformMap = new scala.collection.mutable.HashMap[String,scala.collection.mutable.Set[String]] with scala.collection.mutable.MultiMap[String,String]
+//   rule match {
+//       case TieredPolicy(Seq()) => nodeTransformMap
+//       case TieredPolicy(policies) => policies.map{findnodeTransformMap(ctx,_,)}.mkString 
+        
+//       case TransformPolicy(unique_name,name, _, scoreFn) => 
+//         {
+//           val transfrom_name = name
+//           val pattern = ctx.definition.transform(name).from
+//           pattern match {
+//             case MatchNode(nodeType, fields, _) => {
+//              nodeTransformMap.addBinding(nodeType,transfrom_name)
+//             }
+//           }
+// }
   def ViewCall(ctx:Render,rule:PolicyRule,nodeName:String,op:String,node:String):String = 
   {
     rule match {
@@ -127,10 +146,27 @@ object RenderPattern
       case TransformPolicy(unique_name,name, _, scoreFn) => 
         {
           val transfrom_name = name
-
-          
-          
-           s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
+          val pattern = ctx.definition.transform(name).from
+          pattern match {
+            case MatchNode(nodeType, fields, _) => {
+              //println(nodeType)
+              //nodeTransformMap.addBinding(nodeType,transfrom_name)
+              //val elem = scala.collection.mutable.Set[String]()
+              var elem = nodeTransformMap.getOrElse(nodeType,Set())
+              if(elem.isEmpty)
+              {
+                nodeTransformMap += (nodeType -> Set(transfrom_name))
+              }
+              else{
+                //println(elem)
+                elem += transfrom_name
+                nodeTransformMap.update(nodeType,elem)
+              }
+              //nodeTransformMap += nodeTransformMap.get(nodeType).map(elem => nodeType-> elem.add(transfrom_name))
+            }
+          }
+          //println(nodeTransformMap)
+          s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
 
           
           
@@ -152,7 +188,7 @@ object RenderPattern
 
           val pattern = ctx.definition.transform(name).from
           val eligibility = PqPolicyImplementation.eligible(pattern)
-          
+              //println(trackablesets)
               if (eligibility == true)
               {
                 if(init == true)

@@ -5,86 +5,25 @@ import jitd.spec._
 import jitd.codegen.policy.txt._
 import jitd.rewrite._
 import jitd.codegen.RenderPattern
+import jitd.codegen.RenderStatement
 import util.control.Breaks._
 import jitd.codegen.RenderExpression
 object ViewPolicyImplementation extends PolicyImplementation
 {
-  var trackable = RenderPattern.trackablesets//try making this immuatble
-  //var trackable = Set("Array","SortedArray","Concat","Delete","BTree","DeleteElements")
+  var node_transform = RenderPattern.nodeTransformMap
+  //println(node_transform)  
   // Render field definitions for the JITD object
   def state(ctx:Render): String = "//std::cout<<\"STATE CALLED\"<<std::endl;"
   //Pre-conditoin: All support structures are empty
   def init(ctx:Render,rule:PolicyRule,root:String):String = 
   {
-    s"std::shared_ptr<JITDNode> *root_handle = &"++root++";"+
-    s"initialize_struts_view(root_handle,NULL);"
+    s"std::shared_ptr<JITDNode> *root_handle = &"++root++";\n"+
+    s"initialize_struts_view(root_handle,NULL);\n"
     //PQ_init(ctx,rule,"emplace(",Var("root_handle"),Var("root_handle")).toString
     //setpqAdd(ctx,definition,handlerefbool,to,toTarget,mutator)
 
   }
-  //Post-condition: support structures correctly ref root and all its decendents appear in the sets corresponding to theeir type.
-  //every node reachable from root and its desendants is a part of all PQs that it is eligible for.
   
-  def eligible(pattern:MatchPattern):Boolean = 
-  {
-     pattern match{
-              case MatchNode(nodeType, fields, _) =>
-              {
-                  //println(nodeType)
-                  if (fields.forall{_.isInstanceOf[MatchAny]}) 
-                  {
-                      true
-                  }
-                  else
-                  {
-                    false
-                  }
-              }
-              case MatchAny(_) => false
-
-            }
-  }
- 
-  
-
-
-//Only supports an initial Array/SortedArray Node
-  def PQ_init(ctx:Render,rule:PolicyRule,op:String,root:Expression,unwraproot:Expression,rootpattern:Option[MatchPattern]=None): Statement = 
-    {
-      rule match {
-      case TieredPolicy(Seq()) => Comment(s"")
-      case TieredPolicy(policies) => Block(policies.map{PQ_init(ctx,_,op,root,unwraproot,rootpattern)}) 
-      case TransformPolicy(unique_name,name, _, scoreFn) => 
-        {
-            val transform_name = unique_name
-            val pattern = ctx.definition.transform(name).from 
-            val compatible = Pattern.compatible(pattern,rootpattern.getOrElse{MatchAny()})
-            
-            val eligibility = eligible(pattern)
-            if(compatible ==true)
-            {   
-
-                  if (eligibility == true) 
-                  {
-                      //Macro("#ifdef DEBUG")++commonFunction("assert(",unwraproot,Var("!=NULL"))++Macro("#endif")++
-                      commonFunction("this->"+transform_name+"_PQ.",Var(op),root)//The Statement that transalates to Eg:CrackArray_PQ.emplace(&target)
-                      //Void(FunctionCall("this->"+transform_name+"_PQ."+op,Seq(root)))
-                  }
-                  else
-                  {
-                    Block(Seq())
-                  }
-            }
-            else
-            {
-              Block(Seq())
-            }        
-        }
-        
-      }
-    }
-    
-   
   def onRewriteSet(ctx:Render, 
     definition:Definition,
     mutator: Boolean,
@@ -135,9 +74,14 @@ object ViewPolicyImplementation extends PolicyImplementation
   // {
 
   // }
+  def applyStatement(elem:scala.collection.mutable.Set[String]):Statement=
+  {
+    Block(elem.toSeq.map(Comment(_)))
+  }
   def viewErase(ctx:Render,definition:Definition,handlerefbool:Boolean,fromNode:MatchPattern,fromNodeVar:String,mutator:Boolean):Statement =
   {
     val rule = ctx.policy.rule
+    //println(node_transform)
     val extract = 
       if(handlerefbool == true)
         {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",Var("target"),Var("target"))}
@@ -145,17 +89,31 @@ object ViewPolicyImplementation extends PolicyImplementation
         {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",WrapNodeRef(Var("target")),Var("target"))}
     
     val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4,getVarNameandType._5))
-    val viewseqStmt = eachVarName.map(vnnt => commonFunction("viewErase(",vnnt._3,Var("")))
-                                      // vnnt._4 match{
-                                      //         case MatchNode(nodeType, fields, _) =>
-                                      //         {
-                                      //           //Void(FunctionCall("viewErase",Seq(vnnt._3)))
-
-                                      //           commonFunction("viewErase(",vnnt._3,Var(""))
+    val viewseqStmt = eachVarName.map(vnnt => {
+                                      vnnt._4 match{
+                                              case MatchNode(nodeType, fields, _) =>
+                                              {
+                                                
+                                                val elem = node_transform.getOrElse(nodeType,scala.collection.mutable.Set())
+                                                if(!(elem.isEmpty))
+                                                {
                                                   
-                                      //         }
-                                      //         case MatchAny(_) => Block(Seq()) //commonFunction("","SetPqAdd(",vnnt._3)
-                                      //       })
+                                                
+                                                  Block(elem.toSeq.map(x => commonFunction("this->"+x+"_View.erase(",vnnt._3,Var(""))))
+                                                  
+                                                }
+                                                else{
+                                                  Block(Seq())
+                                                }
+                                                //println(elem.getClass)
+                                                
+                                                //commonFunction("viewErase(",vnnt._3,Var(""))
+                                                
+                                                  
+                                              }
+                                              case MatchAny(_) => commonFunction("viewErase(",vnnt._3,Var("")) 
+                                            } 
+                                          })
 
     return Block(viewseqStmt)
   }
@@ -171,7 +129,31 @@ object ViewPolicyImplementation extends PolicyImplementation
         {MatchToStatement.unrollSet(definition,to.toMatchPattern,toNodeVar,WrapNodeRef(Var(target)),(Var(target)))}
 
     val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4,getVarNameandType._5)) 
-    val viewseqStmt = eachVarName.map(vnnt => commonFunction("viewAdd(",vnnt._3,Var("")))
+    val viewseqStmt = eachVarName.map(vnnt => {
+                                      vnnt._4 match{
+                                              case MatchNode(nodeType, fields, _) =>
+                                              {
+                                                
+                                                val elem = node_transform.getOrElse(nodeType,scala.collection.mutable.Set())
+                                                if(!(elem.isEmpty))
+                                                {
+                                                  
+                                                
+                                                  Block(elem.toSeq.map(x => commonFunction("this->"+x+"_View.emplace(",vnnt._3,Var(""))))
+                                                  
+                                                }
+                                                else{
+                                                  Block(Seq())
+                                                }
+                                                //println(elem.getClass)
+                                                
+                                                //commonFunction("viewErase(",vnnt._3,Var(""))
+                                                
+                                                  
+                                              }
+                                              case MatchAny(_) => commonFunction("viewAdd(",vnnt._3,Var("")) 
+                                            } 
+                                          })
                                       
     return Block(viewseqStmt)
   
@@ -351,35 +333,12 @@ object ViewPolicyImplementation extends PolicyImplementation
       case TieredPolicy(policies) => policies.map { utilityFunctions(ctx, _) }.mkString
       case TransformPolicy(unique_name,name, constraint, scoreFn) =>
         
-        val pattern_from = ctx.definition.transform(name).from
-        //println(pattern_from)
-        pattern_from match{
-          case MatchNode(nodeType, fields, _) =>
-          {
-            if (fields.forall{_.isInstanceOf[MatchAny]})
-            {
-              UseViewPolicySearchFor(  // Generated via Twirl template
+        UseViewPolicySearchFor(  // Generated via Twirl template
                     ctx, 
                     ctx.definition.transform(name), 
                     constraint, 
                     scoreFn
                     ).toString
-            }
-            else
-            {
-              
-                UseViewPolicySearchFor(  // Generated via Twirl template
-                    ctx, 
-                    ctx.definition.transform(name), 
-                    constraint, 
-                    scoreFn
-                    ).toString
-                
-              
-            }
-
-          } 
-        }
         
     }
 
@@ -395,18 +354,11 @@ object ViewPolicyImplementation extends PolicyImplementation
       case TieredPolicy(policies) => policies.map { onMatchPattern(ctx, _) }.mkString
       case TransformPolicy(unique_name,name, constraint, scoreFn) =>
         {
-          val pattern_from = ctx.definition.transform(name).from
-          pattern_from match{
-            case MatchNode(nodeType, fields, _) =>
-              {
-                ViewOnMatchPattern(ctx, 
+          ViewOnMatchPattern(ctx, 
                     ctx.definition.transform(name), 
                     constraint, 
                     scoreFn
                     ).toString
-              }
-
-          }
         }
 
     }

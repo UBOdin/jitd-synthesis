@@ -10,14 +10,16 @@ import jitd.codegen.RenderExpression
 object PqPolicyImplementation extends PolicyImplementation
 {
   var trackable = RenderPattern.trackablesets//try making this immuatble
+  //println(trackable)
   //var trackable = Set("Array","SortedArray","Concat","Delete","BTree","DeleteElements")
   // Render field definitions for the JITD object
   def state(ctx:Render): String = "//std::cout<<\"STATE CALLED\"<<std::endl;"
   //Pre-conditoin: All support structures are empty
   def init(ctx:Render,rule:PolicyRule,root:String):String = 
   {
-    s"std::shared_ptr<JITDNode> *root_handle = &"++root++";"+
-    s"initialize_struts(root_handle,NULL);"
+    s"std::shared_ptr<JITDNode> *root_handle = &"++root++";\n"+
+    s"initialize_struts(root_handle,NULL);\n"+
+    s"initialize_struts_view(root_handle,NULL);\n"
     //PQ_init(ctx,rule,"emplace(",Var("root_handle"),Var("root_handle")).toString
     //setpqAdd(ctx,definition,handlerefbool,to,toTarget,mutator)
 
