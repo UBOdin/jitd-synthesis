@@ -30,12 +30,10 @@
 #define STORAGE_HANDLE struct storage_jitd_struct*
 
 #define JITD_INSERT_VALUE ( { \
-	storage->r.value = new int(value); \
 	storage->jitd->insert_singleton(storage->r); \
 } )
 
 #define JITD_REMOVE_VALUE ( { \
-	delete((unsigned long*)storage->r.value); \
 	storage->jitd->remove_singleton(storage->r); \
 } )
 
@@ -91,6 +89,9 @@ STORAGE_HANDLE create_storage() {
 	struct operation_node node;
 	int i = 0;
 
+int k = 0;
+int kmax = 30000;
+
 	#ifdef STORAGE_SQLITE
 
 	sqlite3* ppDb;
@@ -135,6 +136,12 @@ STORAGE_HANDLE create_storage() {
 	bool not_done = true;
 
 	while (true) {
+
+if (k == kmax) {
+	break;
+}
+k++;
+
 		node = initialize_array[i];
 		if (node.type == STOP) {
 			break;
@@ -149,6 +156,8 @@ STORAGE_HANDLE create_storage() {
 		i++;
 	}
 	storage->jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new ArrayNode(storage->element)))));
+
+printf("Val k:  %d\n", k);
 
 	// Organize initial jitd structure until it reaches a stable state:
 	i = 0;
@@ -167,6 +176,12 @@ STORAGE_HANDLE create_storage() {
 	STORAGE_HANDLE storage = new storage_uomap_struct();
 
 	while (true) {
+
+if (k == kmax) {
+	break;
+}
+k++;
+
 		node = initialize_array[i];
 		if (node.type == STOP) {
 			break;
@@ -180,6 +195,8 @@ STORAGE_HANDLE create_storage() {
 		storage->umap.insert(storage->data_pair);
 		i++;
 	}
+
+printf("Val k:  %d\n", k);
 
 	return storage;
 
@@ -576,7 +593,7 @@ int main() {
 			printf("Iteration:  %d\n", i);
 			depth = 0;
 			#ifdef STORAGE_JITD
-			storage->jitd->get_depth(1, depth);
+//			storage->jitd->get_depth(1, depth);
 			#endif
 		} else {
 			depth = -1;
@@ -722,7 +739,6 @@ int main() {
 */
 //	storage->jitd->print_debug();
 
-	delete storage;
 	printf("Worker thread exited\n");
 	#endif
 
