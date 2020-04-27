@@ -322,15 +322,17 @@ Transform("DeleteSingletonFromArray")
       "delete_singleton_from_leaf".call("new_array_after_delete", "data2")) 
   }
 
-  Policy("CrackSort")("crackAt" -> IntConstant(100),"null_data"-> IntConstant(0)) (
+  Policy("CrackSort")("crackAt" -> IntConstant(50),"null_data"-> IntConstant(0)) (
       //("PushDownSingletonLeft"  onlyIf { Key_Cmp("data","separator") eq BoolConstant(true) } scoreBy{IntConstant(0)})
       //andThen("PushDownSingletonRight"  onlyIf { Key_Cmp("data","separator") eq BoolConstant(false) } scoreBy{IntConstant(0)})
+      
       ("PushDownSingleton" scoreBy{IntConstant(0)})
-      andThen("MergeUnSortedConcatArrayandSingleton" scoreBy{IntConstant(0)})
       andThen("PushDownDontDeleteSingletonBtree" scoreBy{IntConstant(0)})
+      andThen("MergeUnSortedConcatArrayandSingleton" scoreBy{IntConstant(0)})
       andThen("DeleteSingletonFromArray" scoreBy{IntConstant(0)})
       andThen("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
                               scoreBy { ArraySize("data") })
+      
      
       
      //andThen("SortArray"        scoreBy { ArraySize("data") })

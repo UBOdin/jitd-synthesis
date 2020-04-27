@@ -10,6 +10,16 @@ bool JITD::match@{transform.name}(std::shared_ptr<JITDNode> * &targetHandleRef)
 	std::shared_ptr<JITDNode> target_root = std::atomic_load(targetHandleRef);
 	JITDNode * target_root_lock = target_root.get();
 	@{RenderPattern.NodeMatchTransformPattern(ctx,transform.from,"target_root_lock","return false;")}
-
-	return true;
+	if(@{ctx.expression(InlineVars(constraint, 
+            RenderPattern.varMapping(ctx, transform.from, "target_root_lock")++
+            ctx.policy.varMapping
+          ))})
+    {
+    	return true;
+    }
+    else
+    {
+    	return false;
+    }
+	
 }

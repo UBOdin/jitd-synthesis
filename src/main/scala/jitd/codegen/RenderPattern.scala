@@ -1,5 +1,5 @@
 package jitd.codegen
-
+import scala.collection.mutable.Set
 import jitd.spec._
 import jitd.rewrite.InlineVars
 import jitd.rewrite.MatchToStatement
@@ -8,6 +8,8 @@ object RenderPattern
 {
   //Try using immutable
   var trackablesets = scala.collection.mutable.Set[String]()
+  
+  var nodeTransformMap = scala.collection.mutable.Map[String,scala.collection.mutable.Set[String]]()
   var trackablepq = scala.collection.mutable.Set[String]()
   def test(ctx:Render, pattern:MatchPattern, target:String, onFailure:String,score_root_pattern_set:Option[String]=None): String =
   {
@@ -118,7 +120,66 @@ object RenderPattern
       } 
     }
   }
+   def ViewDeclare(ctx:Render,rule:PolicyRule,init:Boolean): String = 
+  {
+    rule match {
+      case TieredPolicy(Seq()) => ""
+      case TieredPolicy(policies) => policies.map{ViewDeclare(ctx,_,true)}.mkString 
+        
+      case TransformPolicy(unique_name,name, _, scoreFn) => 
+        {
+          val transfrom_name = name
+          val pattern = ctx.definition.transform(name).from
+          pattern match {
+            case MatchNode(nodeType, fields, _) => {
+              //println(nodeType)
+              //nodeTransformMap.addBinding(nodeType,transfrom_name)
+              //val elem = scala.collection.mutable.Set[String]()
+              var elem = nodeTransformMap.getOrElse(nodeType,Set())
+              if(elem.isEmpty)
+              {
+                nodeTransformMap += (nodeType -> Set(transfrom_name))
+              }
+              else{
+                //println(elem)
+                elem += transfrom_name
+                nodeTransformMap.update(nodeType,elem)
+              }
+              //nodeTransformMap += nodeTransformMap.get(nodeType).map(elem => nodeType-> elem.add(transfrom_name))
+            }
+          }
+          val eligibility = PqPolicyImplementation.eligible(pattern)
+              //println(trackablesets)
+              if (eligibility == true)
+              {
+                if(init == true)
+                {
+
+                   //s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_PQ;\n"
+                   s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_View;\n"
+                   
+                }
+                else
+                {
+                   ""
+                }
+              }
+              else
+              {
+                s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
+                
+                
+              } 
+         
+
+          
+          
+        }
+    
+  }
   
+ } 
+ 
   def SetPqDeclare(ctx:Render,rule:PolicyRule,init:Boolean): String = 
   {
     rule match {
@@ -131,15 +192,15 @@ object RenderPattern
 
           val pattern = ctx.definition.transform(name).from
           val eligibility = PqPolicyImplementation.eligible(pattern)
-          
+              //println(trackablesets)
               if (eligibility == true)
               {
                 if(init == true)
                 {
 
-                   s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_PQ;\n"+
-                   s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_View;\n"
-                   //s"void ${transfrom_name}_add(std::shared_ptr<JITDNode> * node);\n"
+                   s"std::set<std::shared_ptr<JITDNode> *, ${transfrom_name}_Cmp> ${transfrom_name}_PQ;\n"
+                   //s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
+                   
                 }
                 else
                 {
@@ -151,14 +212,14 @@ object RenderPattern
                 val extract = MatchToStatement.unrollSet(ctx.definition,pattern,"",(Var("")),(Var("")))
                 if(trackablesets(extract(0)._2.toString))
                 {
-                  s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
+                  ""//s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
                 }
                 else
                 {
                   trackablesets.add(extract(0)._2.toString)
-                  s"std::set<std::shared_ptr<JITDNode> *> JITD_NODE_${extract(0)._2.toString}_set;\n"+
-                  s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
-                  //s"void set_${extract(0)._2.toString}_add(std::shared_ptr<JITDNode> * node);\n"
+                  s"std::set<std::shared_ptr<JITDNode> *> JITD_NODE_${extract(0)._2.toString}_set;\n"
+                  //s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"
+                  
                 }
                 
                 
@@ -172,6 +233,7 @@ object RenderPattern
   }
   
  } 
+ 
  def PQPopulate(ctx:Render,rule:PolicyRule,op:String,node_name:String,node_type:String,node_enumName:String):String = 
  {
   rule match {
@@ -191,6 +253,7 @@ object RenderPattern
               if (fields.forall{_.isInstanceOf[MatchAny]} && node_type.equals(nodeName))
               {
                 s"this->"+transfrom_name+"_PQ."+op+"("+node_name+");\n" //Assumption: If there is a PQ there cannot be a set
+                
               }
               else
               {

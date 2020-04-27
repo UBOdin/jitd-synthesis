@@ -9,7 +9,7 @@ import jitd.codegen.policy._
 case class Render(
   val definition: Definition, 
   policyName: String = "",
-  val policyImplementation:PolicyImplementation = PqPolicyImplementation, //Add code for check_set,print_Set,setAddition,setRemoval,setInit
+  val policyImplementation:PolicyImplementation = ViewPolicyImplementation, //Add code for check_set,print_Set,setAddition,setRemoval,setInit
   val debug:Boolean = false
 ) {
   def keyType = definition.keyType

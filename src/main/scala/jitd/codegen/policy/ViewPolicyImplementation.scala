@@ -5,88 +5,25 @@ import jitd.spec._
 import jitd.codegen.policy.txt._
 import jitd.rewrite._
 import jitd.codegen.RenderPattern
+import jitd.codegen.RenderStatement
 import util.control.Breaks._
 import jitd.codegen.RenderExpression
-object PqPolicyImplementation extends PolicyImplementation
+object ViewPolicyImplementation extends PolicyImplementation
 {
-  var trackable = RenderPattern.trackablesets//try making this immuatble
-  //println(trackable)
-  //var trackable = Set("Array","SortedArray","Concat","Delete","BTree","DeleteElements")
+  var node_transform = RenderPattern.nodeTransformMap
+  //println(node_transform)  
   // Render field definitions for the JITD object
   def state(ctx:Render): String = "//std::cout<<\"STATE CALLED\"<<std::endl;"
   //Pre-conditoin: All support structures are empty
   def init(ctx:Render,rule:PolicyRule,root:String):String = 
   {
     s"std::shared_ptr<JITDNode> *root_handle = &"++root++";\n"+
-    s"initialize_struts(root_handle,NULL);\n"+
     s"initialize_struts_view(root_handle,NULL);\n"
     //PQ_init(ctx,rule,"emplace(",Var("root_handle"),Var("root_handle")).toString
     //setpqAdd(ctx,definition,handlerefbool,to,toTarget,mutator)
 
   }
-  //Post-condition: support structures correctly ref root and all its decendents appear in the sets corresponding to theeir type.
-  //every node reachable from root and its desendants is a part of all PQs that it is eligible for.
   
-  def eligible(pattern:MatchPattern):Boolean = 
-  {
-     pattern match{
-              case MatchNode(nodeType, fields, _) =>
-              {
-                  //println(nodeType)
-                  if (fields.forall{_.isInstanceOf[MatchAny]}) 
-                  {
-                      true
-                  }
-                  else
-                  {
-                    false
-                  }
-              }
-              case MatchAny(_) => false
-
-            }
-  }
- 
-  
-
-
-//Only supports an initial Array/SortedArray Node
-  def PQ_init(ctx:Render,rule:PolicyRule,op:String,root:Expression,unwraproot:Expression,rootpattern:Option[MatchPattern]=None): Statement = 
-    {
-      rule match {
-      case TieredPolicy(Seq()) => Comment(s"")
-      case TieredPolicy(policies) => Block(policies.map{PQ_init(ctx,_,op,root,unwraproot,rootpattern)}) 
-      case TransformPolicy(unique_name,name, _, scoreFn) => 
-        {
-            val transform_name = unique_name
-            val pattern = ctx.definition.transform(name).from 
-            val compatible = Pattern.compatible(pattern,rootpattern.getOrElse{MatchAny()})
-            
-            val eligibility = eligible(pattern)
-            if(compatible ==true)
-            {   
-
-                  if (eligibility == true) 
-                  {
-                      //Macro("#ifdef DEBUG")++commonFunction("assert(",unwraproot,Var("!=NULL"))++Macro("#endif")++
-                      commonFunction("this->"+transform_name+"_PQ.",Var(op),root)//The Statement that transalates to Eg:CrackArray_PQ.emplace(&target)
-                      //Void(FunctionCall("this->"+transform_name+"_PQ."+op,Seq(root)))
-                  }
-                  else
-                  {
-                    Block(Seq())
-                  }
-            }
-            else
-            {
-              Block(Seq())
-            }        
-        }
-        
-      }
-    }
-    
-   
   def onRewriteSet(ctx:Render, 
     definition:Definition,
     mutator: Boolean,
@@ -99,9 +36,8 @@ object PqPolicyImplementation extends PolicyImplementation
     if(mutator == true)
     {
       ((Comment(s"ViewMaintenance")++viewErase(ctx,definition,handlerefbool,from,fromTarget,mutator)++
-      Comment(s"SetMaintenance")++setpqRemove(ctx,definition,handlerefbool,from,fromTarget,mutator)++
       Comment(s"MapMaintenance")++mapErase(ctx,definition,handlerefbool,from,fromTarget,mutator)),
-      (Comment(s"SetMaintenance")++setpqAdd(ctx,definition,handlerefbool,to,toTarget,mutator)++ 
+      (Comment(s"UpdateTarget")++atomic_store(ctx,definition,handlerefbool,to,toTarget,mutator)++ 
       Comment(s"ViewMaintenance")++viewAdd(ctx,definition,handlerefbool,to,toTarget,mutator)++
       Comment(s"MapMaintenance")++mapAdd(ctx,definition,handlerefbool,to,toTarget,mutator)))
     }
@@ -109,10 +45,8 @@ object PqPolicyImplementation extends PolicyImplementation
     {
       ((Comment(s"ViewMaintenanceParent")++commonFunction("viewErase(",Var("parent"),Var(""))++
       Comment(s"ViewMaintenance")++viewErase(ctx,definition,handlerefbool,from,fromTarget,mutator)++
-      Comment(s"SetMaintenance")++setpqRemove(ctx,definition,handlerefbool,from,fromTarget,mutator)++ 
       Comment(s"MapMaintenance")++mapErase(ctx,definition,handlerefbool,from,fromTarget,mutator)), 
-      (Comment(s"SetMaintenance")++setpqAdd(ctx,definition,handlerefbool,to,toTarget,mutator)++
-      Comment(s"ViewMaintenanceParent")++commonFunction("viewAdd(",Var("parent"),Var(""))++
+      (Comment(s"ViewMaintenanceParent")++commonFunction("viewAdd(",Var("parent"),Var(""))++
       Comment(s"ViewMaintenance")++viewAdd(ctx,definition,handlerefbool,to,toTarget,mutator)++
       Comment(s"MapMaintenance")++mapAdd(ctx,definition,handlerefbool,to,toTarget,mutator)))
     }
@@ -140,9 +74,11 @@ object PqPolicyImplementation extends PolicyImplementation
   // {
 
   // }
+ 
   def viewErase(ctx:Render,definition:Definition,handlerefbool:Boolean,fromNode:MatchPattern,fromNodeVar:String,mutator:Boolean):Statement =
   {
     val rule = ctx.policy.rule
+    //println(node_transform)
     val extract = 
       if(handlerefbool == true)
         {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",Var("target"),Var("target"))}
@@ -150,17 +86,31 @@ object PqPolicyImplementation extends PolicyImplementation
         {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",WrapNodeRef(Var("target")),Var("target"))}
     
     val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4,getVarNameandType._5))
-    val viewseqStmt = eachVarName.map(vnnt => commonFunction("viewErase(",vnnt._3,Var("")))
-                                      // vnnt._4 match{
-                                      //         case MatchNode(nodeType, fields, _) =>
-                                      //         {
-                                      //           //Void(FunctionCall("viewErase",Seq(vnnt._3)))
-
-                                      //           commonFunction("viewErase(",vnnt._3,Var(""))
+    val viewseqStmt = eachVarName.map(vnnt => {
+                                      vnnt._4 match{
+                                              case MatchNode(nodeType, fields, _) =>
+                                              {
+                                                
+                                                val elem = node_transform.getOrElse(nodeType,scala.collection.mutable.Set())
+                                                if(!(elem.isEmpty))
+                                                {
                                                   
-                                      //         }
-                                      //         case MatchAny(_) => Block(Seq()) //commonFunction("","SetPqAdd(",vnnt._3)
-                                      //       })
+                                                
+                                                  Block(elem.toSeq.map(x => commonFunction("this->"+x+"_View.erase(",vnnt._3,Var(""))))
+                                                  
+                                                }
+                                                else{
+                                                  Block(Seq())
+                                                }
+                                                //println(elem.getClass)
+                                                
+                                                //commonFunction("viewErase(",vnnt._3,Var(""))
+                                                
+                                                  
+                                              }
+                                              case MatchAny(_) => commonFunction("viewErase(",vnnt._3,Var("")) 
+                                            } 
+                                          })
 
     return Block(viewseqStmt)
   }
@@ -176,7 +126,29 @@ object PqPolicyImplementation extends PolicyImplementation
         {MatchToStatement.unrollSet(definition,to.toMatchPattern,toNodeVar,WrapNodeRef(Var(target)),(Var(target)))}
 
     val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4,getVarNameandType._5)) 
-    val viewseqStmt = eachVarName.map(vnnt => commonFunction("viewAdd(",vnnt._3,Var("")))
+    val viewseqStmt = eachVarName.map(vnnt => {
+                                      vnnt._4 match{
+                                              case MatchNode(nodeType, fields, _) =>
+                                              {
+                                                
+                                                val elem = node_transform.getOrElse(nodeType,scala.collection.mutable.Set())
+                                                if(!(elem.isEmpty))
+                                                {
+                                                  
+                                                
+                                                  Block(elem.toSeq.map(x => commonFunction("this->"+x+"_View.emplace(",vnnt._3,Var(""))))
+                                                  
+                                                }
+                                                else{
+                                                  Block(Seq())
+                                                }
+                                          
+                                                
+                                                  
+                                              }
+                                              case MatchAny(_) => commonFunction("viewAdd(",vnnt._3,Var("")) 
+                                            } 
+                                          })
                                       
     return Block(viewseqStmt)
   
@@ -240,6 +212,7 @@ object PqPolicyImplementation extends PolicyImplementation
                                                  {
                                                     if(mutator == true)
                                                     {
+                                                      
                                                       commonFunction("this->childParentMap.emplace(",vnnt._3,Var(",&(*(cq_elem.second))"))
                                                     }
                                                     else
@@ -295,7 +268,7 @@ object PqPolicyImplementation extends PolicyImplementation
     return Block(mapseqStmt)
  
   }
-  def setpqAdd(ctx:Render,definition:Definition,handlerefbool:Boolean,to:ConstructorPattern,toNodeVar:String,mutator:Boolean):Statement = 
+  def atomic_store(ctx:Render,definition:Definition,handlerefbool:Boolean,to:ConstructorPattern,toNodeVar:String,mutator:Boolean):Statement = 
   { 
     val target = if (mutator == true) "*(cq_elem.second)" else "target"
     val rule = ctx.policy.rule
@@ -311,18 +284,9 @@ object PqPolicyImplementation extends PolicyImplementation
                                       vnnt._4 match{
                                               case MatchNode(nodeType, fields, _) =>
                                               {
-                                                val hasSet = trackable(vnnt._2.toString)
-                                                if(hasSet == true)
-                                                {
-                                                  
-                                                    commonFunction("this->JITD_NODE_"+vnnt._2+"_set.",Var("emplace("),vnnt._3)
-                                                    //commonFunction("childParentMap.emplace(std::make_pair<std::shared_ptr<JITDNode> *,std::shared_ptr<JITDNode> *>(",vnnt._3,Var(",NULL)"))
-                                                  
-                                                }
-                                                else
-                                                {
+                                                
                                                   Block(Seq())
-                                                }
+                                                
                                                   
                                               }
                                               case MatchAny(_) => 
@@ -330,117 +294,22 @@ object PqPolicyImplementation extends PolicyImplementation
                                                   if(mutator == true)
                                                   {
 
-                                                    //Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
+                                                    
                                                     commonFunction("std::atomic_store(",vnnt._3,Var(", *(cq_elem.first)"))++
-                                                    commonFunction("fixMap(",Var("&(*(cq_elem.first)),"),vnnt._3)++
-                                                    commonFunction("SetPqAdd(",Var(""),vnnt._3)
-                                                    //commonFunction("childParentMap.emplace(",vnnt._3,Var(",&(*(cq_elem.second))"))
+                                                    commonFunction("fixMap(",Var("&(*(cq_elem.first)),"),vnnt._3)
+                                     
                                                 
                                                   }
                                                   else
                                                   {
-                                                    //Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
-                                                    commonFunction("SetPqAdd(",Var(""),vnnt._3)
-                                                //Void(FunctionCall("SetPqAdd",Seq(vnnt._3)))
+                                                    
+                                                  Block(Seq())
 
                                                   }
                                                 }
-                                              })
-    val pqseqStmt = eachVarName.map(vnnt => 
-                                      vnnt._4 match{
-                                              case MatchNode(nodeType, fields, _) =>
-                                              {
-                                                if (fields.forall{_.isInstanceOf[MatchAny]}) //lets call nodes without decendents as standalone.This condition is to make sure only standalone
-                                                {
-                                                  
-                                                    PQ_init(ctx,rule,"emplace(",vnnt._3,vnnt._5,Some(vnnt._4))//Function to populate what all PQs are there in the JITD structure based on the ctx.policy.rule 
-                                                                                                      //and what operation is invoked on the PQ on what expression(expression for the node).
-                                                  
-
-                                                    
-                                                  
-                                                }
-                                                else
-                                                {
-                                                  Block(Seq())
-                                                }
-                                                  
-                                              }
-                                              case MatchAny(_) => Block(Seq()) //commonFunction("","SetPqAdd(",vnnt._3)
-                                              })
-
-      
-
-
-
-
-
-
-   
-          return {Block(pqseqStmt) ++ Block(setseqStmt)}
+                                              }) 
+          return {Block(setseqStmt)}
          
-  }
-  //Pre-condition: The existing support structures are correct.
-  //Post-condition: Every matched Node apprearing in a Match Pattern doesnot appear in any sets and PQs.
-  def setpqRemove(ctx:Render,definition:Definition,handlerefbool:Boolean,fromNode:MatchPattern,fromNodeVar:String,mutator:Boolean):Statement = 
-  {
-    //println(trackable)
-    val rule = ctx.policy.rule
-    val extract = 
-      if(handlerefbool == true)
-        {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",Var("target"),Var("target"))}
-      else
-        {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",WrapNodeRef(Var("target")),Var("target"))}
-    
-    val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4,getVarNameandType._5))
-    //val setseqStmt = eachVarName.map(vnnt => commonFunction("//SetPqErase( "+vnnt._2,"->",vnnt._3))
-    //val setseqStmt = eachVarName.map(vnnt => commonFunction("","SetPqErase(",vnnt._3)
-    val setseqStmt = eachVarName.map(vnnt => 
-                                      vnnt._4 match{
-                                              case MatchNode(nodeType, fields, _) =>
-                                              {
-                                                val hasSet = trackable(vnnt._2.toString)
-                                                if(hasSet == true)
-                                                {
-                                                  //Comment(s"SET Remove")
-                                                  //Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
-                                                  commonFunction("this->JITD_NODE_"+vnnt._2+"_set.",Var("erase("),vnnt._3)
-                                                  //Void(FunctionCall("this->JITD_NODE_"+vnnt._2+"_set.erase",Seq(vnnt._3)))
-                                                }
-                                                else
-                                                {
-                                                  Block(Seq())
-                                                }
-                                                  
-                                              }
-                                              case MatchAny(_) => 
-                                                {
-                                                    //Macro("#ifdef DEBUG")++commonFunction("assert(",vnnt._5,Var("!=NULL"))++Macro("#endif")++
-                                                    commonFunction("SetPqErase(",Var(""),vnnt._3)
-                                                  
-                                                }
-                                               
-                                              })
-    val pqseqStmt = eachVarName.map(vnnt => 
-                                      vnnt._4 match{
-                                              case MatchNode(nodeType, fields, _) =>
-                                              {
-                                                if (fields.forall{_.isInstanceOf[MatchAny]}) //lets call nodes without decendents as standalone.This condition is to make sure only standalone
-                                                {
-                                                    PQ_init(ctx,rule,"erase(",vnnt._3,vnnt._5,Some(vnnt._4))//Function to populate what all PQs are there in the JITD structure based on the ctx.policy.rule 
-                                                                                                      //and what operation is invoked on the PQ on what expression(expression for the node).
-                                                }
-                                                else
-                                                {
-                                                  Block(Seq())
-                                                }
-                                                  
-                                              }
-                                              case MatchAny(_) => Block(Seq()) //commonFunction("","SetPqAdd(",vnnt._3)
-                                            })
-    return {Block(pqseqStmt) ++ Block(setseqStmt)}
-    
-       
   }
 
   def onRewrite(ctx:Render,
@@ -459,35 +328,12 @@ object PqPolicyImplementation extends PolicyImplementation
       case TieredPolicy(policies) => policies.map { utilityFunctions(ctx, _) }.mkString
       case TransformPolicy(unique_name,name, constraint, scoreFn) =>
         
-        val pattern_from = ctx.definition.transform(name).from
-        //println(pattern_from)
-        pattern_from match{
-          case MatchNode(nodeType, fields, _) =>
-          {
-            if (fields.forall{_.isInstanceOf[MatchAny]})
-            {
-              UseViewPolicySearchFor(  // Generated via Twirl template
+        UseViewPolicySearchFor(  // Generated via Twirl template
                     ctx, 
                     ctx.definition.transform(name), 
                     constraint, 
                     scoreFn
                     ).toString
-            }
-            else
-            {
-              
-                UseViewPolicySearchFor(  // Generated via Twirl template
-                    ctx, 
-                    ctx.definition.transform(name), 
-                    constraint, 
-                    scoreFn
-                    ).toString
-                
-              
-            }
-
-          } 
-        }
         
     }
 
@@ -503,18 +349,11 @@ object PqPolicyImplementation extends PolicyImplementation
       case TieredPolicy(policies) => policies.map { onMatchPattern(ctx, _) }.mkString
       case TransformPolicy(unique_name,name, constraint, scoreFn) =>
         {
-          val pattern_from = ctx.definition.transform(name).from
-          pattern_from match{
-            case MatchNode(nodeType, fields, _) =>
-              {
-                ViewOnMatchPattern(ctx, 
+          ViewOnMatchPattern(ctx, 
                     ctx.definition.transform(name), 
                     constraint, 
                     scoreFn
                     ).toString
-              }
-
-          }
         }
 
     }

@@ -137,7 +137,7 @@ class JITD {
 
 
     @{RenderPattern.SetPqDeclare(ctx,ctx.policy.rule,true);}
-    
+    @{RenderPattern.ViewDeclare(ctx,ctx.policy.rule,true);}
 
     std::unordered_multimap<std::shared_ptr<JITDNode> *,std::shared_ptr<JITDNode> *> childParentMap;
     tbb::concurrent_bounded_queue<mutatorCqElement> work_queue;
@@ -199,6 +199,7 @@ class JITD {
     bool match@{transform.name}(std::shared_ptr<JITDNode> * &targetHandleRef);}
 
     void initialize_struts(std::shared_ptr<JITDNode>* node, std::shared_ptr<JITDNode>* parent);
+    void initialize_struts_view(std::shared_ptr<JITDNode>* node, std::shared_ptr<JITDNode>* parent);
     
     
   private:
