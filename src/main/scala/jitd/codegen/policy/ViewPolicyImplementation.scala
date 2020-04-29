@@ -106,7 +106,9 @@ object ViewPolicyImplementation extends PolicyImplementation
                                                 
                                                   
                                               }
-                                              case MatchAny(_) => commonFunction("viewErase(",vnnt._3,Var("")) 
+                                              case MatchAny(_) => //Void(FunctionCall("viewErase",Seq(vnnt._3)))
+                                                commonFunction("viewErase(",vnnt._3,Var(""))
+
                                             } 
                                           })
 
@@ -154,10 +156,7 @@ object ViewPolicyImplementation extends PolicyImplementation
   def mapErase(ctx:Render,definition:Definition,handlerefbool:Boolean,fromNode:MatchPattern,fromNodeVar:String,mutator:Boolean):Statement =
   {
 
-    val rootNodeType = fromNode match {
-      case MatchNode(nodeType,fields,_) => nodeType
-      case MatchAny(_) => "" 
-    }
+    
     val rule = ctx.policy.rule
     val extract = 
       if(handlerefbool == true)
@@ -211,7 +210,7 @@ object ViewPolicyImplementation extends PolicyImplementation
                                                     if(mutator == true)
                                                     {
                                                       
-                                                      commonFunction("this->childParentMap.emplace(",vnnt._3,Var(",&(*(cq_elem.second))"))
+                                                      commonFunction("this->childParentMap.emplace(",vnnt._3,Var(",&("+target+")"))
                                                     }
                                                     else
                                                     {
@@ -237,7 +236,7 @@ object ViewPolicyImplementation extends PolicyImplementation
                                               {
                                                   if(mutator == true)
                                                   {
-                                                    commonFunction("this->childParentMap.emplace(",vnnt._3,Var(",&(*(cq_elem.second))"))
+                                                    commonFunction("this->childParentMap.emplace(",vnnt._3,Var(",&("+target+")"))
                                                   }
                                                   else
                                                   {
@@ -268,7 +267,7 @@ object ViewPolicyImplementation extends PolicyImplementation
   }
   def atomic_store(ctx:Render,definition:Definition,handlerefbool:Boolean,to:ConstructorPattern,toNodeVar:String,mutator:Boolean):Statement = 
   { 
-    val target = if (mutator == true) "*(cq_elem.second)" else "target"
+    val target = if (mutator == true) "*(cq_elem.first)" else "target"
     val rule = ctx.policy.rule
 
     val extract = 
@@ -293,8 +292,8 @@ object ViewPolicyImplementation extends PolicyImplementation
                                                   {
 
                                                     
-                                                    commonFunction("std::atomic_store(",vnnt._3,Var(", *(cq_elem.first)"))++
-                                                    commonFunction("fixMap(",Var("&(*(cq_elem.first)),"),vnnt._3)
+                                                    commonFunction("std::atomic_store(",vnnt._3,Var(","+target))++
+                                                    commonFunction("fixMap(",Var("&("+target+"),"),vnnt._3)
                                      
                                                 
                                                   }

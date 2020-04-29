@@ -54,8 +54,13 @@ inline bool record_scan(const std::vector<Record> &data, const Key &key, Record 
   }
   return false;
 }
-
-  
+inline bool key_scan(const std::vector<Key> &data, const Key &key, Record &result){
+  auto last = std::end(data);
+  for(auto curr = std::begin(data); curr != last; ++curr){
+    if(*curr == key){ result = *curr; return true; }
+  }
+  return false;
+}  
 inline bool singleton_scan(const Record &data, const Key &key, Record &result){
   // auto last = std::end(data);
   // for(auto curr = std::begin(data); curr != last; ++curr){
@@ -114,6 +119,46 @@ inline void build_buffer(std::vector<Record> &to, int count, int min, int max)
   }
 }
 
+inline void load_keys(std::vector<Key> &to, std::istream &input)
+{
+  std::string op;
+  input >> op;
+  if(op == "random"){
+    int count, min, max;
+    //std::cout<<"in random"<<std::endl;
+    input >> count >> min >> max;
+    int max_minus_min = max - min;
+    for(int i = 0; i < count; i++){
+     
+      Key k = (rand() % max_minus_min)+min;
+      
+      to.push_back(k);
+    }
+    //std::cout<<"built buffer"<<std::endl;
+  } else if(op == "explicit"){
+    Key k;
+
+    while(!input.eof()){
+      input >> k;
+      to.push_back(k);
+    }
+  }
+  else if(op == "sorted"){
+    int count, min, max;
+    input >> count >> min >> max;
+    int max_minus_min = max - min;
+    for(int i = 0; i < count; i++){
+     
+      Key k = (rand() % max_minus_min)+min;
+      
+      to.push_back(k);
+    }
+    std::sort(std::begin(to), std::end(to));
+  } else {
+    std::cerr << "Invalid Key array build command: " << op << std::endl;
+    exit(-1);
+  }
+}
 inline void load_records(std::vector<Record> &to, std::istream &input)
 {
   std::string op;
@@ -143,7 +188,6 @@ inline void load_records(std::vector<Record> &to, std::istream &input)
     exit(-1);
   }
 }
-
 inline Key load_key(std::istream &input)
 {
   int ret;
@@ -190,7 +234,7 @@ inline void do_crack_singleton_one(
     //std::cout << "  Check: " << curr->key;
     data = source; 
 } 
-inline void delete_from_leaf(std::vector<Record> &to_delete,std::vector<Record> &from_delete)
+inline void delete_from_leaf(std::vector<Record> &to_delete,std::vector<Key> &from_delete)
 {
   //std::cout<<"in deleting";
   //TODO: optimize begin and end
