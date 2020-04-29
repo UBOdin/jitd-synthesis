@@ -17,6 +17,14 @@
 
 #define TIME_EACH_OP
 
+#ifdef TIME_EACH_OP
+#define TIME_START ( time_start = gettime_us() )
+#define TIME_END ( time_delta = gettime_us() - time_start )
+#else
+#define TIME_START
+#define TIME_END
+#endif
+
 #ifdef STORAGE_SQLITE
 
 #include "sqlite3.h"
@@ -82,7 +90,7 @@ STORAGE_HANDLE create_storage() {
 	int i = 0;
 
 int k = 0;
-int kmax = 30000;
+int kmax = 3;
 
 	#ifdef STORAGE_SQLITE
 
@@ -363,6 +371,17 @@ int remove_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
 }
 
 
+#ifdef STORAGE_JITD
+int remove_data(STORAGE_HANDLE storage, std::vector<long> data) {
+
+	storage->jitd->remove_elements(data);
+
+	return 0;
+
+}
+#endif
+
+
 int update_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) {
 
 	#ifdef STORAGE_JITD
@@ -606,13 +625,12 @@ int main() {
 		nkeys = benchmark_array[i].nkeys;
 
 		// Benchmark next operation:
-		#ifdef TIME_EACH_OP
-		time_start = gettime_us();
-		#endif
 		if (optype == STOP) {
 			break;
 		} else if (optype == harness::INSERT) {
+			TIME_START;
 			put_data(storage, key, value);
+			TIME_END;
 		} else if (optype == SELECT) {
 			if (nkeys == 1) {
 				key_array = &benchmark_array[i].key;
@@ -622,25 +640,44 @@ int main() {
 				// TODO:  Return all rows (iterator)
 				//printf("Return all\n");
 			}
+			TIME_START;
 			result += get_data(storage, nkeys, key_array);
+			TIME_END;
 		} else if (optype == DELETE) {
 			if (nkeys == 1) {
 				key_array = &benchmark_array[i].key;
+				TIME_START;
+				result += remove_data(storage, 1, key_array);
+				TIME_END;
 			} else if (nkeys > 1) {
 				key_array = benchmark_array[i].key_array;
+				#ifdef STORAGE_JITD
+				std::vector<long> data;
+				for (int k = 0; k < nkeys; k++) {
+					key = key_array[k];
+					data.push_back(key);
+				}
+				#endif
+				TIME_START;
+				#ifdef STORAGE_JITD
+				result += remove_data(storage, data);
+				#else
+				result += remove_data(storage, nkeys, key_array);
+				#endif
+				TIME_END;
 			}
-			result += remove_data(storage, nkeys, key_array);
 		} else if (optype == UPDATE) {
+			TIME_START;
 			result += update_data(storage, key, value);
+			TIME_END;
 		} else if (optype == UPSERT) {
+			TIME_START;
 			result += upsert_data(storage, key, value);
+			TIME_END;
 		} else {
 			printf("Error:  Unexpected operation\n");
 			_exit(1);
 		}
-		#ifdef TIME_EACH_OP
-		time_delta = gettime_us() - time_start;
-		#endif
 
 		// Save out operation time:
 		if (i >= output_size) {
