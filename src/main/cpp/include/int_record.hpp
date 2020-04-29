@@ -214,7 +214,7 @@ inline void delete_from_leaf(std::vector<Record> &to_delete,std::vector<Record> 
   
 
 }
-inline void delete_singleton_from_leaf(std::vector<Record> &to_delete,Record &from_delete)
+inline void delete_singleton_from_leaf(std::vector<Record> &to_delete,Key &from_delete)
 {
   //std::cout<<"in deleting";
   //TODO: optimize begin and end

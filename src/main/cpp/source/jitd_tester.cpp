@@ -163,7 +163,7 @@ int jitd_client_op(
     }
     CASE("remove_singleton") {
       timeval start, end;
-      int value;
+      long value;
       Record data;
       
       toks >> value;
@@ -173,7 +173,7 @@ int jitd_client_op(
       //std::cout<<"Loaded data"<<std::endl;
       gettimeofday(&start, NULL);
       //std::cout<<"Starting Insert in JITD"<<std::endl;
-      jitd->remove_singleton(data);
+      jitd->remove_singleton(value);
       
       //std::cout<<"size of crack_array"<<jitd->CrackArray_PQ.size()<<std::endl;
       gettimeofday(&end, NULL);

@@ -35,9 +35,10 @@
 
 ///////////////////// Base Node Meta ///////////////////// 
 typedef enum{
-  EXIT,
-  INSERT,
-  REMOVE
+ @for( mutator <- ctx.definition.mutators ) {
+      FLAG_@mutator.name,
+    }
+    EXIT
 }ClientInstruction;
 
 
@@ -60,6 +61,9 @@ typedef std::function<void(std::shared_ptr<JITDNode> &new_node)> UpdateHandle;
 struct mutatorCqElement{
   int flag;
   std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> element;
+  mutatorCqElement(){}
+  mutatorCqElement(const int &op,const std::shared_ptr<std::shared_ptr<JITDNode>> &old_ptr,const std::shared_ptr<std::shared_ptr<JITDNode>> &new_ptr):flag(op),element(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>>(old_ptr,new_ptr)){}
+
 };
 ///////////////////// Node Type Definitions ///////////////////// 
 
@@ -142,13 +146,14 @@ class JITD {
     std::unordered_multimap<std::shared_ptr<JITDNode> *,std::shared_ptr<JITDNode> *> childParentMap;
     tbb::concurrent_bounded_queue<mutatorCqElement> work_queue;
 
+
     JITD(std::shared_ptr<std::shared_ptr<JITDNode>> jitd_root) : jitd_root(jitd_root)
     {
       if (pthread_mutex_init(&lock, NULL) != 0) { 
         std::cerr<<"\n mutex init has failed\n"<<std::endl; 
         exit(-1);
       }
-
+      this->work_queue.set_capacity(3000);
       @ctx.policyImplementation.init(ctx,ctx.policy.rule,"(*(this->jitd_root))")
     }
     
