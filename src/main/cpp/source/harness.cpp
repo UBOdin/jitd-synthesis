@@ -29,14 +29,6 @@
 
 #define STORAGE_HANDLE struct storage_jitd_struct*
 
-#define JITD_INSERT_VALUE ( { \
-	storage->jitd->insert_singleton(storage->r); \
-} )
-
-#define JITD_REMOVE_VALUE ( { \
-	storage->jitd->remove_singleton(storage->r); \
-} )
-
 #endif
 
 #ifdef STORAGE_UOMAP
@@ -304,7 +296,7 @@ int put_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) {
 	#ifdef STORAGE_JITD
 
 	storage->r.key = key;
-	JITD_INSERT_VALUE;
+	storage->jitd->insert_singleton(storage->r);
 
 	#endif
 
@@ -352,7 +344,7 @@ int remove_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
 
 	for (int i = 0; i < nkeys; i++) {
 		key = key_array[i];
-		JITD_REMOVE_VALUE;
+		storage->jitd->remove_singleton(key);
 	}
 
 	#endif
@@ -379,8 +371,9 @@ int update_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 
 	result = storage->jitd->get(key, storage->r);
 	if (result == true) {
-		JITD_REMOVE_VALUE;
-		JITD_INSERT_VALUE;
+		storage->jitd->remove_singleton(key);
+		storage->r.key = key;
+		storage->jitd->insert_singleton(storage->r);
 	}
 
 	#endif
@@ -408,11 +401,12 @@ int upsert_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 
 	result = storage->jitd->get(key, storage->r);
 	if (result == true) {
-		JITD_REMOVE_VALUE;
-		JITD_INSERT_VALUE;
+		storage->jitd->remove_singleton(key);
+		storage->r.key = key;
+		storage->jitd->insert_singleton(storage->r);
 	} else {
 		storage->r.key = key;
-		JITD_INSERT_VALUE;
+		storage->jitd->insert_singleton(storage->r);
 	}
 
 	#endif
