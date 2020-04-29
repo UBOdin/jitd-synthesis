@@ -16,7 +16,8 @@ object MutatorToFunctionAfter
           if(field.t.isInstanceOf[PrimType]) { FunctionArgType.Input } else { FunctionArgType.ConstInputRef }
         )
       }
-
+    val old_root =  "cq_elem.first"
+    val new_root = "cq_elem.second"
     val stmt_node_cast = mutator.rewrite match {
         case ConstructNode(node, fields, nameOption) => 
           {
@@ -25,7 +26,7 @@ object MutatorToFunctionAfter
             val nodeName = nameOption.getOrElse("cast_root")
             //println(nodeDefinition.renderName)
             //println(nodeName)
-            val string_rhs = s"(${nodeDefinition.renderName}*)((cq_elem.second)->get()"
+            val string_rhs = s"(${nodeDefinition.renderName}*)((${new_root})->get()"
             //val string  = nodeDefinition.renderName + "* node = " + "(${"nodeDefinition.renderName"})" 
             val string_lhs = s"${nodeDefinition.renderName} *cast_root"
             //val string =  string_lhs + " = " + string_rhs
@@ -38,8 +39,8 @@ object MutatorToFunctionAfter
     //val cq_element_declare = Void(Var("std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> cq_elem")) ++ commonFunction(mutator.name+"_cq.pop(cq_elem",Var(""),Var(""))
     val stmt_maintenance_old_root = //Macro("#ifdef DEBUG")++commonFunction("assert(",UnWrapHandle(Var("cq_elem.first")),Var("!=NULL"))++Macro("#endif")++
                                     //commonFunction("SetPqErase(",Var(""),WrapNodeRef(UnWrapHandle(Var("cq_elem.first")))) ++
-                                    commonFunction("this->childParentMap.erase(",Var(""),WrapNodeRef(UnWrapHandle(Var("cq_elem.first")))) ++
-                                    commonFunction("viewErase(",Var(""),WrapNodeRef(UnWrapHandle(Var("cq_elem.first"))))
+                                    commonFunction("this->childParentMap.erase(",Var(""),WrapNodeRef(UnWrapHandle(Var(old_root)))) ++
+                                    commonFunction("viewErase(",Var(""),WrapNodeRef(UnWrapHandle(Var(old_root))))
     
     definition.typechecker.check("&(*jitd_root)" -> THandleRef(), "(*jitd_root)" -> TNodeRef()) {
       FunctionDefinition(

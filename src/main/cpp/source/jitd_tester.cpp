@@ -189,8 +189,8 @@ int jitd_client_op(
     CASE("remove_elements")
     {
       timeval start, end;
-      RecordBuffer data;
-      load_records(data, toks);
+      std::vector<Key> data;
+      load_keys(data, toks);
       gettimeofday(&start, NULL);
       
       jitd->remove_elements(data);

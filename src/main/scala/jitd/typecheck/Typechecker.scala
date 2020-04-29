@@ -91,6 +91,9 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
           case _ => error("Invalid Arithmetic")
         }
       }
+ 
+
+    
       case FunctionCall(name, args) => {
         try {
           functions.getOrElse(name, {
@@ -231,6 +234,10 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
         }
         scope
       }
+      // case Void(expr @ FunctionCall(name, args)) => {
+        
+      //   scope
+      // }
       case Void(expr @ FunctionCall(name, args)) => {
         try {
           functions.getOrElse(name, {
