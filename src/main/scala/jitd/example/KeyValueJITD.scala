@@ -19,7 +19,7 @@ object KeyValueJITD extends HardcodedDefinition {
   Def("append_singleton_to_array", record.array, record)
   Def("remove",record.array,record.array)
   Def("delete_from_leaf",record.array,record.array)
-  Def("delete_singleton_from_leaf",record.array,record)
+  Def("delete_singleton_from_leaf",record.array,key)
   Def(key, "pick_separator", record.array)
   Def(bool, "key_cmp",record,key)
 
@@ -37,8 +37,9 @@ object KeyValueJITD extends HardcodedDefinition {
   //Node( "Delete",      "lhs"  -> node, "rhs" -> node )()
   Node( "BTree",       "lhs"  -> node, "sep" -> key, "rhs" -> node )()
   Node( "DeleteElements",      "node"  -> node, "data" -> record.array )()
-  Node( "DeleteSingleton",      "node"  -> node, "elem" -> record )()
-
+  Node( "DeleteSingleton",      "node"  -> node, "elem" -> key )()
+  //Synthesize:Node("InsertionNode", "node"->node, "elem"->record)()
+  //Synthesizer needs to add this new node type in defenition
   //////////////////////////////////////////////
 
   def Begin(t:Expression)            = "std::begin".call(t)
@@ -56,7 +57,9 @@ object KeyValueJITD extends HardcodedDefinition {
     "BTree"        -> If( "target" lt "sep" ) { Return { Delegate("lhs") } } { Return { Delegate("rhs") } },
     //"Delete"       -> If( Delegate("rhs") ) { Return(false) } { Return { Delegate("lhs") } },
     "DeleteElements"  -> If( "record_scan".call("data","target","result") ) { Return(false) }{Return{Delegate("node")}},
-    "DeleteSingleton"  -> If( "singleton_scan".call("elem","target","result") ) { Return(false) }{Return{Delegate("node")}}
+    "DeleteSingleton"  -> If( "target" eq "elem"  ) { Return(false) }{Return{Delegate("node")}}
+    //Synthesize:"InsertionNode" -> If(Delegate("node")){Return(true)}{Return { "singleton_scan".call("elem", "target", "result") }}
+    //NOTE: the changes need ot be made to hardcoded def.
     //if it returns true from rhs the element is a part of delete list so dont check lhs and get should return false as it is not a part of the structure.
   )
 
@@ -92,7 +95,7 @@ object KeyValueJITD extends HardcodedDefinition {
   Mutator("remove_elements")("data" -> record.array ) {
     "DeleteElements".fromFields("*jitd_root","data" )
   }
-  Mutator("remove_singleton")("data" -> record) {
+  Mutator("remove_singleton")("data" -> key) {
     "DeleteSingleton".fromFields("*jitd_root","data" )
   }
   //////////////////////////////////////////////
@@ -218,7 +221,8 @@ Transform("PushDownSingleton") {
       "BTree" withFields( "a", "separator", "b" ),
       "Singleton" withFields( "data" )
     )
-  }{
+  } 
+  {
     "BTree" fromFields(
       "Concat" fromFields( "a", "Singleton" fromFields(
         
@@ -231,7 +235,7 @@ Transform("PushDownSingleton") {
       "do_crack_singleton".call("data", "separator", NodeSubscript(Var("lhs_partition"),"elem"), NodeSubscript(Var("rhs_partition"),"elem"))
     )
   }
-  /*
+/*  
   Transform("PushDownSingletonLeft") {
     "Concat" withFields(
       "BTree" withFields( "a", "separator", "b" ),
@@ -261,8 +265,7 @@ Transform("PushDownSingletonRight") {
     ) andAfter(
       "do_crack_singleton_one".call("data", "separator", NodeSubscript(Var("rhs_partition"),"elem"))
     )}
-
-  Transform("PushDownDontDeleteElemBtree")
+ Transform("PushDownDontDeleteElemBtree")
   {
     "DeleteElements" withFields("BTree" withFields( "a", "separator", "b" ),"data")
   } {
@@ -275,12 +278,12 @@ Transform("PushDownSingletonRight") {
   */
   Transform("PushDownDontDeleteSingletonBtree")
   {
-    "DeleteSingleton" withFields("BTree" withFields( "a", "separator", "b" ),"data")
+    "DeleteSingleton" withFields("BTree" withFields( "a", "separator", "b" ),"key")
   } {
     "BTree" fromFields(
-      "DeleteSingleton" fromFields( "a", "data"),
+      "DeleteSingleton" fromFields( "a", "key"),
       "separator",
-      "DeleteSingleton" fromFields( "b", "data"))
+      "DeleteSingleton" fromFields( "b", "key"))
     
   }
 
@@ -316,13 +319,13 @@ Transform("PushDownSingletonRight") {
   */
 Transform("DeleteSingletonFromArray")
   {
-    "DeleteSingleton" withFields("Array" withFields( "data1" ), "data2")
+    "DeleteSingleton" withFields("Array" withFields( "data1" ), "key")
   } {
     "Array" fromFields( "data1" as "new_array_after_delete") andAfter(
-      "delete_singleton_from_leaf".call("new_array_after_delete", "data2")) 
+      "delete_singleton_from_leaf".call("new_array_after_delete", "key")) 
   }
 
-  Policy("CrackSort")("crackAt" -> IntConstant(50),"null_data"-> IntConstant(0)) (
+  Policy("CrackSort")("crackAt" -> IntConstant(20000),"null_data"-> IntConstant(0)) (
       //("PushDownSingletonLeft"  onlyIf { Key_Cmp("data","separator") eq BoolConstant(true) } scoreBy{IntConstant(0)})
       //andThen("PushDownSingletonRight"  onlyIf { Key_Cmp("data","separator") eq BoolConstant(false) } scoreBy{IntConstant(0)})
       

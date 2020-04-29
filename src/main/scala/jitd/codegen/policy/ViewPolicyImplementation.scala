@@ -102,9 +102,7 @@ object ViewPolicyImplementation extends PolicyImplementation
                                                 else{
                                                   Block(Seq())
                                                 }
-                                                //println(elem.getClass)
                                                 
-                                                //commonFunction("viewErase(",vnnt._3,Var(""))
                                                 
                                                   
                                               }

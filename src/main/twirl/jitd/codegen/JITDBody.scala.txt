@@ -68,23 +68,12 @@ int JITD::organize_wait()
         {
           return t;
         }
-        else if(pop_mce.flag == INSERT)
+        @for( mutator <- ctx.definition.mutators ){
+        else if(pop_mce.flag == FLAG_@mutator.name)
         {
-            this->after_insert_singleton(pop_mce.element);
-            not_done = true;
-            //std::cout<<"INSERT_PRINT ";
-            //this->print_debug();
-            //this->check_view();
-            
-        } 
-        else if(pop_mce.flag == REMOVE)
-        {
-            this->after_remove_singleton(pop_mce.element);
-            not_done = true;
-            //std::cout<<"DELETE_PRINT ";
-            //this->print_debug();
-            //this->check_view();
-            
+          this->after_@{mutator.name}(pop_mce.element);
+          not_done = true;
+        }
         }
         else
         {
