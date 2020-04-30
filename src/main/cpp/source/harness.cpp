@@ -105,7 +105,7 @@ STORAGE_HANDLE create_storage() {
 	int i = 0;
 
 int k = 0;
-int kmax = 0;
+int kmax = 3;
 
 	#ifdef STORAGE_SQLITE
 
@@ -468,7 +468,6 @@ int upsert_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 
 int test_struct(STORAGE_HANDLE storage) {
 
-
 	#define ARRSIZE 100
 	int* key_array = new(int[ARRSIZE]);
 	int* val_array = new(int[ARRSIZE]);
@@ -640,9 +639,7 @@ int main() {
 	storage = create_storage();
 	printf("Finished\n");
 	// Basic structural integrity check:
-	test_struct(storage);
-
-_exit(0);
+//	test_struct(storage);
 
 	// Block :30 to stabilize system:
 	printf("Waiting -- stabilize system\n");
