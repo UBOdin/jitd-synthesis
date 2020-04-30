@@ -18,11 +18,15 @@
 #define TIME_EACH_OP
 
 #ifdef TIME_EACH_OP
+
 #define TIME_START ( time_start = gettime_us() )
 #define TIME_END ( time_delta = gettime_us() - time_start )
+
 #else
+
 #define TIME_START
 #define TIME_END
+
 #endif
 
 #ifdef STORAGE_SQLITE
