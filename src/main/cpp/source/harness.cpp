@@ -48,12 +48,12 @@
 
 #endif
 
-#ifdef STORAGE_UOMAP
+#ifdef STORAGE_UOM
 
 #include <unordered_map>
 
 #define UOM_TYPE long, int
-#define STORAGE_HANDLE struct storage_uomap_struct*
+#define STORAGE_HANDLE struct storage_uom_struct*
 
 #endif
 
@@ -211,9 +211,9 @@ printf("Val k:  %d\n", k);
 
 	#endif
 
-	#ifdef STORAGE_UOMAP
+	#ifdef STORAGE_UOM
 
-	STORAGE_HANDLE storage = new storage_uomap_struct();
+	STORAGE_HANDLE storage = new storage_uom_struct();
 
 	while (true) {
 
@@ -232,7 +232,7 @@ k++;
 		}
 		storage->data_pair.first = node.key;
 		storage->data_pair.second = node.value;
-		storage->umap.insert(storage->data_pair);
+		storage->uom.insert(storage->data_pair);
 		i++;
 	}
 
@@ -309,12 +309,12 @@ int get_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
 
 	#endif
 
-	#ifdef STORAGE_UOMAP
+	#ifdef STORAGE_UOM
 
-	storage->end_iter = storage->umap.end();
+	storage->end_iter = storage->uom.end();
 	for (int i = 0; i < nkeys; i++) {
 		key = key_array[i];
-		storage->key_iter = storage->umap.find(key);
+		storage->key_iter = storage->uom.find(key);
 		if (storage->key_iter != storage->end_iter) {
 			value += storage->key_iter->second;
 		}
@@ -370,12 +370,12 @@ int put_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) {
 
 	#endif
 
-	#ifdef STORAGE_UOMAP
+	#ifdef STORAGE_UOM
 
 	storage->data_pair.first = key;
 	storage->data_pair.second = value;
 
-	storage->umap.insert(storage->data_pair);
+	storage->uom.insert(storage->data_pair);
 
 	#endif
 
@@ -428,11 +428,11 @@ int remove_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
 
 	#endif
 
-	#ifdef STORAGE_UOMAP
+	#ifdef STORAGE_UOM
 
 	for (int i = 0; i < nkeys; i++) {
 		key = key_array[i];
-		storage->umap.erase(key);
+		storage->uom.erase(key);
 	}
 
 	#endif
@@ -478,10 +478,10 @@ int update_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 
 	#endif
 
-	#ifdef STORAGE_UOMAP
+	#ifdef STORAGE_UOM
 
-	storage->key_iter = storage->umap.find(key);
-	storage->end_iter = storage->umap.end();
+	storage->key_iter = storage->uom.find(key);
+	storage->end_iter = storage->uom.end();
 	if (storage->key_iter != storage->end_iter) {
 		storage->key_iter->second = value;
 	}
@@ -517,9 +517,9 @@ int upsert_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 
 	#endif
 
-	#ifdef STORAGE_UOMAP
+	#ifdef STORAGE_UOM
 
-	storage->umap[key] = value;
+	storage->uom[key] = value;
 
 	#endif
 
@@ -664,7 +664,7 @@ int main() {
 	#ifdef STORAGE_MAP
 	printf("Using Map storage\n");
 	#endif
-	#ifdef STORAGE_UOMAP
+	#ifdef STORAGE_UOM
 	printf("Using UOMap storage\n");
 	#endif
 	// Initialize and populate structure:

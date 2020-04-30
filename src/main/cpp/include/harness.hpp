@@ -64,13 +64,13 @@ struct storage_map_struct {
 
 #endif
 
-#ifdef STORAGE_UOMAP
+#ifdef STORAGE_UOM
 
-struct storage_uomap_struct {
+struct storage_uom_struct {
 	std::unordered_map<UOM_TYPE>::iterator key_iter;
 	std::unordered_map<UOM_TYPE>::iterator end_iter;
 	std::pair<UOM_TYPE> data_pair;
-	std::unordered_map<UOM_TYPE> umap;
+	std::unordered_map<UOM_TYPE> uom;
 };
 
 #endif

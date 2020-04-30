@@ -52,9 +52,9 @@ jitd_storage_map:  harness_map.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) harness_map.o data.o
 	@echo built with map storage
 
-jitd_storage_uomap:  harness_uomap.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) harness_uomap.o data.o
-	@echo built with uomap storage
+jitd_storage_uom:  harness_uom.o data.o
+	$(CC) $(CFLAGS) -o $(MAIN) harness_uom.o data.o
+	@echo built with unordered map storage
 
 jitd_test.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
 	$(CC) $(CFLAGS) -c $(JITD_TEST_C) $(INCLUDES)
@@ -71,9 +71,9 @@ harness_map.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_MAP" > $(CONF_H)
 	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_map.o $(INCLUDES)
 
-harness_uomap.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
-	@echo "#define STORAGE_UOMAP" > $(CONF_H)
-	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_uomap.o $(INCLUDES)
+harness_uom.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
+	@echo "#define STORAGE_UOM" > $(CONF_H)
+	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_uom.o $(INCLUDES)
 
 data.o:  $(DATA_C) $(HARNESS_H)
 	$(CC) $(CFLAGS) -c $(DATA_C) $(INCLUDES)
