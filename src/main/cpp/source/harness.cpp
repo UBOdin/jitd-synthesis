@@ -49,6 +49,7 @@
 
 #define MAP_TYPE long, int
 #define STORAGE_HANDLE struct storage_map_struct*
+#define STORAGE_STRUCT storage->map
 
 #endif
 
@@ -58,6 +59,7 @@
 
 #define UOM_TYPE long, int
 #define STORAGE_HANDLE struct storage_uom_struct*
+#define STORAGE_STRUCT storage->uom
 
 #endif
 
@@ -188,37 +190,16 @@ printf("Val k:  %d\n", k);
 
 	STORAGE_HANDLE storage = new storage_map_struct();
 
-	while (true) {
-
-if (k == kmax) {
-	break;
-}
-k++;
-
-		node = initialize_array[i];
-		if (node.type == STOP) {
-			break;
-		}
-		if (node.type != harness::INSERT) {
-			printf("Error:  expected Insert\n");
-			_exit(1);
-		}
-		storage->data_pair.first = node.key;
-		storage->data_pair.second = node.value;
-		storage->map.insert(storage->data_pair);
-		i++;
-	}
-
-printf("Val k:  %d\n", k);
-
-	return storage;
-
 	#endif
 
 	#ifdef STORAGE_UOM
 
 	STORAGE_HANDLE storage = new storage_uom_struct();
 
+	#endif
+
+	#if defined STORAGE_MAP || defined STORAGE_UOM
+
 	while (true) {
 
 if (k == kmax) {
@@ -236,7 +217,7 @@ k++;
 		}
 		storage->data_pair.first = node.key;
 		storage->data_pair.second = node.value;
-		storage->uom.insert(storage->data_pair);
+		STORAGE_STRUCT.insert(storage->data_pair);
 		i++;
 	}
 
@@ -300,25 +281,12 @@ int get_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
 
 	#endif
 
-	#ifdef STORAGE_MAP
+	#if defined STORAGE_MAP || defined STORAGE_UOM
 
-	storage->end_iter = storage->map.end();
+	storage->end_iter = STORAGE_STRUCT.end();
 	for (int i = 0; i < nkeys; i++) {
 		key = key_array[i];
-		storage->key_iter = storage->map.find(key);
-		if (storage->key_iter != storage->end_iter) {
-			value += storage->key_iter->second;
-		}
-	}
-
-	#endif
-
-	#ifdef STORAGE_UOM
-
-	storage->end_iter = storage->uom.end();
-	for (int i = 0; i < nkeys; i++) {
-		key = key_array[i];
-		storage->key_iter = storage->uom.find(key);
+		storage->key_iter = STORAGE_STRUCT.find(key);
 		if (storage->key_iter != storage->end_iter) {
 			value += storage->key_iter->second;
 		}
@@ -365,21 +333,12 @@ int put_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) {
 
 	#endif
 
-	#ifdef STORAGE_MAP
+	#if defined STORAGE_MAP || defined STORAGE_UOM
 
 	storage->data_pair.first = key;
 	storage->data_pair.second = value;
 
-	storage->map.insert(storage->data_pair);
-
-	#endif
-
-	#ifdef STORAGE_UOM
-
-	storage->data_pair.first = key;
-	storage->data_pair.second = value;
-
-	storage->uom.insert(storage->data_pair);
+	STORAGE_STRUCT.insert(storage->data_pair);
 
 	#endif
 
@@ -423,20 +382,11 @@ int remove_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
 
 	#endif
 
-	#ifdef STORAGE_MAP
+	#if defined STORAGE_MAP || defined STORAGE_UOM
 
 	for (int i = 0; i < nkeys; i++) {
 		key = key_array[i];
-		storage->map.erase(key);
-	}
-
-	#endif
-
-	#ifdef STORAGE_UOM
-
-	for (int i = 0; i < nkeys; i++) {
-		key = key_array[i];
-		storage->uom.erase(key);
+		STORAGE_STRUCT.erase(key);
 	}
 
 	#endif
@@ -472,20 +422,10 @@ int update_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 
 	#endif
 
-	#ifdef STORAGE_MAP
+	#if defined STORAGE_MAP || defined STORAGE_UOM
 
-	storage->key_iter = storage->map.find(key);
-	storage->end_iter = storage->map.end();
-	if (storage->key_iter != storage->end_iter) {
-		storage->key_iter->second = value;
-	}
-
-	#endif
-
-	#ifdef STORAGE_UOM
-
-	storage->key_iter = storage->uom.find(key);
-	storage->end_iter = storage->uom.end();
+	storage->key_iter = STORAGE_STRUCT.find(key);
+	storage->end_iter = STORAGE_STRUCT.end();
 	if (storage->key_iter != storage->end_iter) {
 		storage->key_iter->second = value;
 	}
@@ -515,15 +455,9 @@ int upsert_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 
 	#endif
 
-	#ifdef STORAGE_MAP
+	#if defined STORAGE_MAP || defined STORAGE_UOM
 
-	storage->map[key] = value;
-
-	#endif
-
-	#ifdef STORAGE_UOM
-
-	storage->uom[key] = value;
+	STORAGE_STRUCT[key] = value;
 
 	#endif
 
@@ -666,10 +600,10 @@ int main() {
 	printf("Using JITD storage\n");
 	#endif
 	#ifdef STORAGE_MAP
-	printf("Using Map storage\n");
+	printf("Using (Ordered) Map storage\n");
 	#endif
 	#ifdef STORAGE_UOM
-	printf("Using UOMap storage\n");
+	printf("Using Unordered Map storage\n");
 	#endif
 	// Initialize and populate structure:
 	printf("Creating and initializing data structure\n");
