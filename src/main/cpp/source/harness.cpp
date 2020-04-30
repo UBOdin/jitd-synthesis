@@ -105,7 +105,7 @@ STORAGE_HANDLE create_storage() {
 	int i = 0;
 
 int k = 0;
-int kmax = 3;
+int kmax = 0;
 
 	#ifdef STORAGE_SQLITE
 
@@ -468,60 +468,90 @@ int upsert_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 
 int test_struct(STORAGE_HANDLE storage) {
 
-	struct operation_node node;
-	int i;
-	int j;
-	Key key;
-	Key minkey = 999999;
-	Key maxkey = 0;
-	bool expected;
-	bool observed;
 
-	printf("Verifying inserted data\n");
+	#define ARRSIZE 100
+	int* key_array = new(int[ARRSIZE]);
+	int* val_array = new(int[ARRSIZE]);
+	int* ref_array = new(int[ARRSIZE]);
+	int key;
+	int val;
 
-	// Get search range:
-	i = 0;
-	while (true) {
-		node = initialize_array[i];
-		if (node.type == STOP) {
-			break;
-		}
-		key = node.key;
-		if (key > maxkey) {
-			maxkey = key;
-		}
-		if (key < minkey) {
-			minkey = key;
-		}
-		i++;
+	std::srand(time(NULL));  // Seed random number generator
+	// Initialize refcount array:
+	for (int i = 0; i < ARRSIZE; i++) {
+		ref_array[i] = 0;
 	}
 
-	// TODO:  probably should use hashes here -- N^2 loop...
-	// Verify that presence / absence of keys from initialize array matches structure population:
-	for (i = minkey; i < maxkey; i++) {
-		// Check whether target value _was_ inserted:
-		expected = false;
-		j = 0;
-		while (true) {
-			node = initialize_array[j];
-			if (node.type == STOP) {
-				break;
+	// Populate arrays with pre-set keys and vals:
+	for (int i = 0; i < ARRSIZE; i++) {
+	    regenerate:
+		key = std::rand();
+		// Ensure non-duplication of keys (treat as a set):
+		for (int j = 0; j < i; j++) {
+			if (key == key_array[j]) {
+				goto regenerate;  // Yes Virginia, gotos are great.  Try this in Java or Python.
 			}
-			if (node.key == i) {
-				expected = true;
-				break;
-			}
-			j++;
 		}
-		// Check whether target value is reported by the structure:
-		observed = get_data(storage, 1, &node.key);
-		if (expected != observed) {
-			printf("structure test failure:  expected = %d; observed = %d on item %d\n", expected, observed, i);
+		val = std::rand();
+		// Save k-v pair for later reference:
+		key_array[i] = key;
+		val_array[i] = val;
+		// Plop k-v into storage structure:
+		put_data(storage, key, val);
+	}
+
+	// Use an iterator to return the current contents of the structure.  Compare versus the reference arrays.
+	// We could also test this with set equivalence:  check that every element in the structure is also in
+	// the reference array(s) and vice-verce.  That would also use the get() functionality.  Pros and cons.
+
+	#if defined STORAGE_MAP || defined STORAGE_UOM
+
+	if (STORAGE_STRUCT.size() != ARRSIZE) {
+		printf("Unexpected storage structure size.  Was structure pre-seeded by mistake?\n");
+		_exit(1);
+	}
+
+	storage->key_iter = STORAGE_STRUCT.begin();
+	storage->end_iter = STORAGE_STRUCT.end();
+
+	while (storage->key_iter != storage->end_iter) {
+
+		key = storage->key_iter->first;
+		// Search for the expected key in the key reference array:
+		int i;
+		for (i = 0; i < ARRSIZE; i++) {
+			if (key == key_array[i]) {
+				break;
+			}
+		}
+		if (i == ARRSIZE) {
+			printf("Failed to find expected key\n");
+			_exit(1);
+		}
+		// Verify the value matches also:
+		val = storage->key_iter->second;
+		if (val != val_array[i]) {
+			printf("Value mismatch\n");
+			_exit(1);
+		}
+		// Record the reference count to this k-v pair found:
+		ref_array[i]++;
+		storage->key_iter++;
+	}
+
+	// Now check:  there should be 1, and only 1, reference for each key:
+	for (int i = 0; i < ARRSIZE; i++) {
+		if (ref_array[i] != 1) {
+			printf("Unexpected reference count\n");
 			_exit(1);
 		}
 	}
 
-	printf("Passed basic integrity check\n");
+	printf("Passed basic integrity test\n");
+	#endif
+
+	// TODO:  Need iterator for jitd storage itegrity check
+
 	return 0;
 
 }
@@ -610,7 +640,10 @@ int main() {
 	storage = create_storage();
 	printf("Finished\n");
 	// Basic structural integrity check:
-//	test_struct(storage);
+	test_struct(storage);
+
+_exit(0);
+
 	// Block :30 to stabilize system:
 	printf("Waiting -- stabilize system\n");
 //	std::this_thread::sleep_for(std::chrono::milliseconds(30 * 1000));
