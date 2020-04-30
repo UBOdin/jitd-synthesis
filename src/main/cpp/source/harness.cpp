@@ -39,6 +39,15 @@
 
 #endif
 
+#ifdef STORAGE_MAP
+
+#include <map>
+
+#define MAP_TYPE long, int
+#define STORAGE_HANDLE struct storage_map_struct*
+
+#endif
+
 #ifdef STORAGE_UOMAP
 
 #include <unordered_map>
@@ -171,6 +180,37 @@ printf("Val k:  %d\n", k);
 
 	#endif
 
+	#ifdef STORAGE_MAP
+
+	STORAGE_HANDLE storage = new storage_map_struct();
+
+	while (true) {
+
+if (k == kmax) {
+	break;
+}
+k++;
+
+		node = initialize_array[i];
+		if (node.type == STOP) {
+			break;
+		}
+		if (node.type != harness::INSERT) {
+			printf("Error:  expected Insert\n");
+			_exit(1);
+		}
+		storage->data_pair.first = node.key;
+		storage->data_pair.second = node.value;
+		storage->map.insert(storage->data_pair);
+		i++;
+	}
+
+printf("Val k:  %d\n", k);
+
+	return storage;
+
+	#endif
+
 	#ifdef STORAGE_UOMAP
 
 	STORAGE_HANDLE storage = new storage_uomap_struct();
@@ -256,6 +296,19 @@ int get_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
 
 	#endif
 
+	#ifdef STORAGE_MAP
+
+	storage->end_iter = storage->map.end();
+	for (int i = 0; i < nkeys; i++) {
+		key = key_array[i];
+		storage->key_iter = storage->map.find(key);
+		if (storage->key_iter != storage->end_iter) {
+			value += storage->key_iter->second;
+		}
+	}
+
+	#endif
+
 	#ifdef STORAGE_UOMAP
 
 	storage->end_iter = storage->umap.end();
@@ -308,6 +361,15 @@ int put_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) {
 
 	#endif
 
+	#ifdef STORAGE_MAP
+
+	storage->data_pair.first = key;
+	storage->data_pair.second = value;
+
+	storage->map.insert(storage->data_pair);
+
+	#endif
+
 	#ifdef STORAGE_UOMAP
 
 	storage->data_pair.first = key;
@@ -357,6 +419,15 @@ int remove_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
 
 	#endif
 
+	#ifdef STORAGE_MAP
+
+	for (int i = 0; i < nkeys; i++) {
+		key = key_array[i];
+		storage->map.erase(key);
+	}
+
+	#endif
+
 	#ifdef STORAGE_UOMAP
 
 	for (int i = 0; i < nkeys; i++) {
@@ -397,6 +468,16 @@ int update_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 
 	#endif
 
+	#ifdef STORAGE_MAP
+
+	storage->key_iter = storage->map.find(key);
+	storage->end_iter = storage->map.end();
+	if (storage->key_iter != storage->end_iter) {
+		storage->key_iter->second = value;
+	}
+
+	#endif
+
 	#ifdef STORAGE_UOMAP
 
 	storage->key_iter = storage->umap.find(key);
@@ -427,6 +508,12 @@ int upsert_data(STORAGE_HANDLE storage, unsigned long key, unsigned long value) 
 		storage->r.key = key;
 		storage->jitd->insert_singleton(storage->r);
 	}
+
+	#endif
+
+	#ifdef STORAGE_MAP
+
+	storage->map[key] = value;
 
 	#endif
 
@@ -573,6 +660,9 @@ int main() {
 	#endif
 	#ifdef STORAGE_JITD
 	printf("Using JITD storage\n");
+	#endif
+	#ifdef STORAGE_MAP
+	printf("Using Map storage\n");
 	#endif
 	#ifdef STORAGE_UOMAP
 	printf("Using UOMap storage\n");

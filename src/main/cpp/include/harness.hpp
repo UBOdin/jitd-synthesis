@@ -53,6 +53,17 @@ struct storage_jitd_struct {
 
 #endif
 
+#ifdef STORAGE_MAP
+
+struct storage_map_struct {
+	std::map<MAP_TYPE>::iterator key_iter;
+	std::map<MAP_TYPE>::iterator end_iter;
+	std::pair<MAP_TYPE> data_pair;
+	std::map<MAP_TYPE> map;
+};
+
+#endif
+
 #ifdef STORAGE_UOMAP
 
 struct storage_uomap_struct {
