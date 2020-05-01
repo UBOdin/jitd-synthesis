@@ -551,6 +551,10 @@ int test_struct(STORAGE_HANDLE storage) {
 
 	// TODO:  Need iterator for jitd storage itegrity check
 
+	delete [] key_array;
+	delete [] val_array;
+	delete [] ref_array;
+
 	return 0;
 
 }
