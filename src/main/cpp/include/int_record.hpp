@@ -88,7 +88,7 @@ inline void append(std::vector<Record> &to, std::vector<Record> &from){
 inline void append_singleton_to_array(std::vector<Record> &to, Record &from){
   if(from.key!=-1)
   {
-    to.insert(std::end(to),from);
+    to.emplace_back(from);
   }
 }
 

@@ -47,10 +47,12 @@ object MutatorToFunction
         args,
         //constructor ++ Assign("&root", new_root, true) ++ cq_element_declare ++ cq_populate
         //Macro("#ifdef DEBUG")++ Void(Var("check_pq()"))++ Macro("#endif")++
-        Void(Var("pthread_mutex_lock(&this->lock)"))++constructor ++ ptr_ptr_construct ++
+        //Void(Var("pthread_mutex_lock(&this->lock)"))++
+        constructor ++ ptr_ptr_construct ++
         //common_cq_element_declare++falg_setter++common_cq_element_assign++common_cq_populate++ 
         common_cq_populate_emplace++
-        Void(Var("std::atomic_store(&jitd_root, new_root_ptr)")) ++ Void(Var("pthread_mutex_unlock(&this->lock)"))
+        Void(Var("std::atomic_store(&jitd_root, new_root_ptr)")) 
+        //Void(Var("pthread_mutex_unlock(&this->lock)"))
         //Macro("#ifdef DEBUG")++ Void(Var("check_pq()"))++ Macro("#endif")
 
       )
