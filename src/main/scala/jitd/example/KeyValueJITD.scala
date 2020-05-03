@@ -328,7 +328,7 @@ Transform("DeleteSingletonFromArray")
       "delete_singleton_from_leaf".call("new_array_after_delete", "key")) 
   }
 
-  Policy("CrackSort")("crackAt" -> IntConstant(2000),"null_data"-> IntConstant(0)) (
+  Policy("CrackSort")("crackAt" -> IntConstant(50),"null_data"-> IntConstant(0)) (
       //("PushDownSingletonLeft"  onlyIf { Key_Cmp("data","separator") eq BoolConstant(true) } scoreBy{IntConstant(0)})
       //andThen("PushDownSingletonRight"  onlyIf { Key_Cmp("data","separator") eq BoolConstant(false) } scoreBy{IntConstant(0)})
       

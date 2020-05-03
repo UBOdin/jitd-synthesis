@@ -266,8 +266,8 @@ void client_thread(std::shared_ptr<JITD> jitd, std::string file, int per_op_slee
   pthread_mutex_lock(&jitd->lock);
   jitd->work_queue.push(mce);
   pthread_mutex_unlock(&jitd->lock);
- 
-  
+ //int size = jitd->size();
+  //std::cout<<"Size of JITD"<<size<<std::endl;
 
   
 }
