@@ -6,8 +6,17 @@
 
 bool JITD::match@{transform.name}(std::shared_ptr<JITDNode> * &targetHandleRef) 
 { 
-	
-	std::shared_ptr<JITDNode> target_root = std::atomic_load(targetHandleRef);
+	std::shared_ptr<JITDNode> target_root;
+    #ifdef ATOMIC_LOAD
+    target_root = std::atomic_load((targetHandleRef));
+    #endif
+    #ifdef ATOMIC_LOAD_CONSUME
+    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_consume);
+    #endif
+    #ifdef ATOMIC_LOAD_ACQUIRE
+    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_acquire);
+    #endif
+	//std::shared_ptr<JITDNode> target_root = std::atomic_load(targetHandleRef);
 	JITDNode * target_root_lock = target_root.get();
 	@{RenderPattern.NodeMatchTransformPattern(ctx,transform.from,"target_root_lock","return false;")}
 	if(@{ctx.expression(InlineVars(constraint, 

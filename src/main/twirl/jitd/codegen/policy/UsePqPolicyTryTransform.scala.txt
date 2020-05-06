@@ -22,7 +22,9 @@
   
     //std::cout<<"Candidate shared_ptr for @{transform}: "<<(*targetHandleRef)<<std::endl;
     
-      
+      #ifdef TRANSFORM_COUNT
+    @{transform}_count++;
+    #endif
       @{transform}(targetHandleRef);
     
     @onSuccess

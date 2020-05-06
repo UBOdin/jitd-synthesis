@@ -291,8 +291,12 @@ object ViewPolicyImplementation extends PolicyImplementation
                                                   if(mutator == true)
                                                   {
 
-                                                    
-                                                    commonFunction("std::atomic_store(",vnnt._3,Var(","+target))++
+                                                    Macro("#ifdef ATOMIC_STORE")++
+                                                    commonFunction("std::atomic_store(",vnnt._3,Var(","+target))++ 
+                                                    Macro("#endif")++
+                                                    Macro("#ifdef ATOMIC_STORE_RELEASE")++
+                                                    commonFunction("std::atomic_store_explicit(",vnnt._3,Var(","+target+",std::memory_order_release"))++ 
+                                                    Macro("#endif")++
                                                     commonFunction("fixMap(",Var("&("+target+"),"),vnnt._3)
                                      
                                                 

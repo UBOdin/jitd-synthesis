@@ -27,6 +27,9 @@
   
     //std::cout<<"POLICYSEARCHTRY:"<<(*(targetHandleRef)).get()->type<<std::endl;
     @{transform}(targetHandleRef);
+    #ifdef TRANSFORM_COUNT
+    @{transform}_count++;
+    #endif
     //check_set();
     //std::cout<<"TRANSFORM DONE"<<std::endl;
     @onSuccess
