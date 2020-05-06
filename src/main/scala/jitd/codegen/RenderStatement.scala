@@ -39,8 +39,17 @@ class RenderStatement(
             // indent+s"#ifdef DEBUG\n"+
             // indent+s"check_pq();\n"+
             // indent+s"#endif\n"+
-            indent+s"// Extract ${renderExpression(v)} into ${matchers.map { _._1 }.mkString(" or ")}\n"+  
-            indent+s"${ctx.cType(TNodeRef())} "+name+"_lock = std::atomic_load(("+renderExpression(v)+"));\n"+
+            indent+s"${ctx.cType(TNodeRef())} "+name+"_lock;\n"+
+            indent+s"// Extract ${renderExpression(v)} into ${matchers.map { _._1 }.mkString(" or ")}\n"+ 
+            indent+"#ifdef ATOMIC_LOAD\n"+
+            indent+name+s"_lock = std::atomic_load(("+renderExpression(v)+"));\n"+
+            indent+"#endif\n"+
+            indent+"#ifdef ATOMIC_LOAD_CONSUME\n"+
+            indent+name+s"_lock = std::atomic_load_explicit("+renderExpression(v)+",std::memory_order_consume);\n"+
+            indent+"#endif\n"+ 
+            indent+"#ifdef ATOMIC_LOAD_ACQUIRE\n"+
+            indent+name+s"_lock = std::atomic_load_explicit("+renderExpression(v)+",std::memory_order_acquire);\n"+
+            indent+"#endif\n"+ 
             //indent+s"std::cout<<"+here+"<<"+name+"_lock.get()->type<<std::endl;\n"+   
             indent+"switch(("+name+"_lock)->type){ \n"+
             matchers.map { case (nodeType, handler) => 
@@ -94,8 +103,12 @@ class RenderStatement(
       
       case Assign(name, v, true) => {
           //indent+s"${ctx.cType(THandleRef())} " +name+"_ptr"+ ";\n"+ 
-         
-          indent+"std::atomic_store("+name+", "+renderExpression(v)+");\n"
+          indent+"#ifdef ATOMIC_STORE\n"+
+          indent+"std::atomic_store("+name+", "+renderExpression(v)+");\n"+
+          indent+"#endif\n"+
+          indent+"#ifdef ATOMIC_STORE_RELEASE\n"+
+          indent+"std::atomic_store_explicit("+name+", "+renderExpression(v)+",std::memory_order_release);\n"+
+          indent+"#endif\n"
           
           
         }
@@ -115,7 +128,7 @@ class RenderStatement(
           indent+"/*** "+msg+" ***/\n"
         }
       case Macro(msg) => {
-        indent+msg+"\n"
+        "\n"+indent+msg+"\n"
       }
         
       

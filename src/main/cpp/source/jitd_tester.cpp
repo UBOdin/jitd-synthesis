@@ -164,11 +164,11 @@ int jitd_client_op(
     CASE("remove_singleton") {
       timeval start, end;
       long value;
-      Record data;
+      //Record data;
       
       toks >> value;
-      data.key = value;
-      data.value = (Value)0xDEADBEEF;
+      //data.key = value;
+      //data.value = (Value)0xDEADBEEF;
       
       //std::cout<<"Loaded data"<<std::endl;
       gettimeofday(&start, NULL);
@@ -197,6 +197,7 @@ int jitd_client_op(
       
       gettimeofday(&end, NULL);
       std::cout << "Delete from JITD: " << total_time(start, end) << " us" << std::endl;
+      std::this_thread::sleep_for(std::chrono::microseconds(1000));
     }
     CASE("policy_act_until_done")
     {

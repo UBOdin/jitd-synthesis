@@ -11,6 +11,7 @@
 #include <unordered_set>
 #include <queue>
 #include <memory>
+#include <atomic>
 #include <algorithm>
 #include <ios>
 #include <functional>
@@ -140,7 +141,7 @@ class JITD {
     @{RenderPattern.ComparatorClass(ctx,ctx.policy.rule);}
 
 
-    @{RenderPattern.SetPqDeclare(ctx,ctx.policy.rule,true);}
+    /*@{RenderPattern.SetPqDeclare(ctx,ctx.policy.rule,true);}*/
     @{RenderPattern.ViewDeclare(ctx,ctx.policy.rule,true);}
 
     std::unordered_multimap<std::shared_ptr<JITDNode> *,std::shared_ptr<JITDNode> *> childParentMap;
@@ -162,7 +163,11 @@ class JITD {
     @for(transform <- ctx.definition.transforms){
     bool @{transform.name}(std::shared_ptr<JITDNode> * &targetHandleRef);
     }
-
+    #ifdef TRANSFORM_COUNT
+    @for(transform <- ctx.definition.transforms){
+      int @{transform.name}_count =0;
+    }
+    #endif
     @for( accessor <- ctx.definition.accessors ) {
       @{RenderAccessor.declaration( accessor, ctx, root = true )} {
         return @RenderAccessor.renderCall( accessor, ctx, "*jitd_root", "jitd_accessor_" );
@@ -179,7 +184,7 @@ class JITD {
     void check_pq();
     void print_map();
     void check_view();
-    
+    void times_transforms_called();
     std::shared_ptr<JITDNode> * getParent(std::shared_ptr<JITDNode> * &target);
     void SetPqErase(std::shared_ptr<JITDNode> * node_handle);
     void SetPqAdd(std::shared_ptr<JITDNode> * node_handle);
@@ -203,7 +208,7 @@ class JITD {
     @for(transform <- ctx.definition.transforms){
     bool match@{transform.name}(std::shared_ptr<JITDNode> * &targetHandleRef);}
 
-    void initialize_struts(std::shared_ptr<JITDNode>* node, std::shared_ptr<JITDNode>* parent);
+    //void initialize_struts(std::shared_ptr<JITDNode>* node, std::shared_ptr<JITDNode>* parent);
     void initialize_struts_view(std::shared_ptr<JITDNode>* node, std::shared_ptr<JITDNode>* parent);
     
     
@@ -211,7 +216,7 @@ class JITD {
 
     //std::shared_ptr<JITDNode> root;
     std::shared_ptr<std::shared_ptr<JITDNode>> jitd_root;
-    //void update_root(std::shared_ptr<JITDNode> &newRoot){ atomic_store(&root, newRoot); }
+    
 };
 
 
