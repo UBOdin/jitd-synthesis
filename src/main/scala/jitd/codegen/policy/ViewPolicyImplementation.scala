@@ -96,7 +96,8 @@ object ViewPolicyImplementation extends PolicyImplementation
                                                 {
                                                   
                                                 
-                                                  Block(elem.toSeq.map(x => commonFunction("this->"+x+"_View.erase(",vnnt._3,Var(""))))
+                                                  //Block(elem.toSeq.map(x => commonFunction("this->"+x+"_View.erase(",vnnt._3,Var(""))))
+                                                  commonFunction("viewErase(",vnnt._3,Var(""))
                                                   
                                                 }
                                                 else{
@@ -136,7 +137,8 @@ object ViewPolicyImplementation extends PolicyImplementation
                                                 {
                                                   
                                                 
-                                                  Block(elem.toSeq.map(x => commonFunction("this->"+x+"_View.emplace(",vnnt._3,Var(""))))
+                                                  //Block(elem.toSeq.map(x => commonFunction("this->"+x+"_View.emplace(",vnnt._3,Var(""))))
+                                                  commonFunction("viewAdd(",vnnt._3,Var(""))
                                                   
                                                 }
                                                 else{

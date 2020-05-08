@@ -21,6 +21,7 @@ object KeyValueJITD extends HardcodedDefinition {
   Def("remove",record.array,record.array)
   Def("delete_from_leaf",record.array,key.array)
   Def("delete_singleton_from_leaf",record.array,key)
+  Def("delete_singleton_key",record,key)
   Def(key, "pick_separator", record.array)
   Def(bool, "key_cmp",record,key)
 
@@ -167,7 +168,7 @@ object KeyValueJITD extends HardcodedDefinition {
   }
   */
 
-
+/*
   Transform("MergeUnSortedConcatArrayandSingleton") {
     "Concat" withFields( 
       "Array".withFields( "lhs" ),
@@ -179,7 +180,7 @@ object KeyValueJITD extends HardcodedDefinition {
       "append_singleton_to_array".call("merged", "data") 
     )
   }
- 
+*/ 
 
 
 
@@ -278,7 +279,15 @@ Transform("PushDownSingletonRight") {
       "DeleteElements" fromFields( "b", "data"))
     
   }
-  
+  Transform("PushDownDontDeleteElemConcat")
+  {
+    "DeleteElements" withFields("Concat" withFields( "a", "b" ),"data")
+  } {
+    "Concat" fromFields(
+      "DeleteElements" fromFields( "a", "data"),
+      "DeleteElements" fromFields( "b", "data"))
+    
+  }
   Transform("PushDownDontDeleteSingletonBtree")
   {
     "DeleteSingleton" withFields("BTree" withFields( "a", "separator", "b" ),"key")
@@ -289,19 +298,19 @@ Transform("PushDownSingletonRight") {
       "DeleteSingleton" fromFields( "b", "key"))
     
   }
-
-/* 
-  Transform("PushDownDontDeleteElemConcat")
+Transform("PushDownDontDeleteSingletonConcat")
   {
-    "DeleteElements" withFields("Concat" withFields( "a", "b" ),"data")
+    "DeleteSingleton" withFields("Concat" withFields( "a", "b" ),"key")
   } {
     "Concat" fromFields(
-      "DeleteElements" fromFields( "a", "data"),
-      "DeleteElements" fromFields( "b", "data"))
+      "DeleteSingleton" fromFields( "a", "key"),
+      "DeleteSingleton" fromFields( "b", "key"))
     
   }
  
-
+  
+ 
+/*
   Transform("DeleteElemFromSortedArray")
   {
     "DeleteElements" withFields("SortedArray" withFields( "data1" ), "data2" )
@@ -311,7 +320,7 @@ Transform("PushDownSingletonRight") {
   }
 
 */
- 
+ /*
   Transform("DeleteElemFromArray")
   {
     "DeleteElements" withFields("Array" withFields( "data1" ), "data2")
@@ -327,17 +336,25 @@ Transform("DeleteSingletonFromArray")
     "Array" fromFields( "data1" as "new_array_after_delete") andAfter(
       "delete_singleton_from_leaf".call("new_array_after_delete", "key")) 
   }
-
-  Policy("CrackSort")("crackAt" -> IntConstant(50),"null_data"-> IntConstant(0)) (
+Transform("DeleteKeyFromSingleton")
+  {
+    "DeleteSingleton" withFields("Singleton" withFields( "record" ), "key2")
+  } {
+    "Singleton" fromFields( "record" as "new_singleton") andAfter("delete_singleton_key".call("new_singleton","key2"))
+  }
+  */
+  Policy("CrackSort")("crackAt" -> IntConstant(500),"null_data"-> IntConstant(0)) (
       //("PushDownSingletonLeft"  onlyIf { Key_Cmp("data","separator") eq BoolConstant(true) } scoreBy{IntConstant(0)})
       //andThen("PushDownSingletonRight"  onlyIf { Key_Cmp("data","separator") eq BoolConstant(false) } scoreBy{IntConstant(0)})
       
       ("PushDownSingleton" scoreBy{IntConstant(0)})
       andThen("PushDownDontDeleteSingletonBtree" scoreBy{IntConstant(0)})
+      andThen("PushDownDontDeleteSingletonConcat" scoreBy{IntConstant(0)})
       andThen("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
-      andThen("MergeUnSortedConcatArrayandSingleton" scoreBy{IntConstant(0)})
-      andThen("DeleteSingletonFromArray" scoreBy{IntConstant(0)})
-      andThen("DeleteElemFromArray" scoreBy{IntConstant(0)})
+      andThen("PushDownDontDeleteElemConcat" scoreBy{IntConstant(0)})
+      //andThen("DeleteSingletonFromArray" scoreBy{IntConstant(0)})
+      //andThen("DeleteKeyFromSingleton" scoreBy{IntConstant(0)})
+      //andThen("DeleteElemFromArray" scoreBy{IntConstant(0)})
       andThen("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
                               scoreBy { ArraySize("data") })
       

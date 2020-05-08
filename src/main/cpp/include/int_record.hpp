@@ -278,6 +278,24 @@ inline void delete_singleton_from_leaf(std::vector<Record> &to_delete,Key &from_
   
 
 }
+inline void delete_singleton_key(Record &r1,Key &k2)
+{
+  //std::cout<<"in deleting";
+  //TODO: optimize begin and end
+  Record r;
+  r.key = -1;
+  if(r1.key == k2)
+  {
+    r1 = r;
+
+  }
+  else
+  {
+    //std::cout<<"Delete:size 0 encountered"<<std::endl;
+  }
+  
+
+}
 inline Key pick_separator(const std::vector<Record> &source)
 {
   if(source.empty()) { return 0; }
