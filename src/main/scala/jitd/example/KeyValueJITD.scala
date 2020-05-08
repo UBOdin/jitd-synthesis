@@ -320,7 +320,7 @@ Transform("PushDownDontDeleteSingletonConcat")
   }
 
 */
- 
+/* 
   Transform("DeleteElemFromArray")
   {
     "DeleteElements" withFields("Array" withFields( "data1" ), "data2")
@@ -342,7 +342,7 @@ Transform("DeleteKeyFromSingleton")
   } {
     "Singleton" fromFields( "record" as "new_singleton") andAfter("delete_singleton_key".call("new_singleton","key2"))
   }
-  
+ */ 
   Policy("CrackSort")("crackAt" -> IntConstant(500),"null_data"-> IntConstant(0)) (
       //("PushDownSingletonLeft"  onlyIf { Key_Cmp("data","separator") eq BoolConstant(true) } scoreBy{IntConstant(0)})
       //andThen("PushDownSingletonRight"  onlyIf { Key_Cmp("data","separator") eq BoolConstant(false) } scoreBy{IntConstant(0)})
