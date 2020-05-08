@@ -626,6 +626,9 @@ int main() {
 	long time_now;
 	long time_start;
 
+	double k = 0;
+	double sum = 0;
+
 	#ifdef STORAGE_SQLITE
 	printf("Using SQLite storage\n");
 	#endif
@@ -763,19 +766,23 @@ int main() {
 
 		#ifdef TIME_EACH_OP
 
-		// Get start time of the next operation:
-		time_next = time_base + (benchmark_array[i].time * 1000000);
-		time_now = gettime_us();
-
-		// If we have not yet reached the next start time, block until then:
-//		if (time_now < time_next) {
-//			ms = (time_next - time_now) / 1000;
-//			std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-//		}
-
+/*
 		// Fixed sleep for now:
 		ms = 1;
 		std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+*/
+
+		// Spin for desired time:
+		k = 0;
+		TIME_START;
+		while (true) {
+			sum += sin(k);
+			k++;
+			TIME_END;
+			if (time_delta > 1000) {
+				break;
+			}
+		}
 
 		#endif
 
@@ -834,6 +841,8 @@ int main() {
 
 	printf("Worker thread exited\n");
 	#endif
+
+	printf("Dummy sum:  %f\n", sum);
 
 	printf("Result:  %d\n", result);
 	printf("End base time:  %ld\n", time_base);
