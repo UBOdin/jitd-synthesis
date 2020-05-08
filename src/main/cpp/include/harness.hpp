@@ -39,7 +39,11 @@ struct output_node {
 	long key;
 	int rows;
 	int nkeys;
-	int depth;
+
+	// Debug fields for Jitd:
+
+	int depth;			// jitd depth
+	int count_array[7];		// transform counts
 
 };
 
