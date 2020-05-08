@@ -55,9 +55,9 @@ int JITD::organize_wait()
         
         not_done = this->do_organize();
         t++;
-        std::cout<<"JITD_PRINT: "<<not_done<<std::endl;
-        this->check_view();
-        this->print_debug();
+        //std::cout<<"JITD_PRINT: "<<not_done<<std::endl;
+        //this->check_view();
+        //this->print_debug();
         
       }
       else

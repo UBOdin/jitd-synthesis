@@ -10,6 +10,7 @@ object RenderPattern
   var trackablesets = scala.collection.mutable.Set[String]()
   
   var nodeTransformMap = scala.collection.mutable.Map[String,scala.collection.mutable.Set[String]]()
+  var patternTransformMap = scala.collection.mutable.Map[MatchPattern,scala.collection.mutable.Set[String]]()
   var trackablepq = scala.collection.mutable.Set[String]()
   def test(ctx:Render, pattern:MatchPattern, target:String, onFailure:String,score_root_pattern_set:Option[String]=None): String =
   {
@@ -136,6 +137,16 @@ object RenderPattern
               //nodeTransformMap.addBinding(nodeType,transfrom_name)
               //val elem = scala.collection.mutable.Set[String]()
               var elem = nodeTransformMap.getOrElse(nodeType,Set())
+              var trans_set = patternTransformMap.getOrElse(pattern,Set())
+              if(trans_set.isEmpty)
+              {
+                patternTransformMap += (pattern -> Set(transfrom_name))
+              }
+              else{
+                //println(elem)
+                trans_set += transfrom_name
+                patternTransformMap.update(pattern,trans_set)
+              }
               if(elem.isEmpty)
               {
                 nodeTransformMap += (nodeType -> Set(transfrom_name))
