@@ -44,12 +44,12 @@ jitd_storage_jitd:  jitd_test.o harness_jitd.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness_jitd.o data.o $(TBB_LIBRARY) -ltbb
 	@echo built with jitd storage
 
-jitd_storage_asal:  jitd_test_asal.o harness_jitd.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_test_asal.o harness_jitd.o data.o $(TBB_LIBRARY) -ltbb
+jitd_storage_asal:  jitd_asal.o harness_jitd.o data.o
+	$(CC) $(CFLAGS) -o $(MAIN) jitd_asal.o harness_jitd.o data.o $(TBB_LIBRARY) -ltbb
 	@echo built with jitd storage with ATOMIC_STORE ATOMIC_LOAD
 
-jitd_storage_asralc:  jitd_test_asralc.o harness_jitd.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_test_asralc.o harness_jitd.o data.o $(TBB_LIBRARY) -ltbb
+jitd_storage_asralc:  jitd_asralc.o harness_jitd.o data.o
+	$(CC) $(CFLAGS) -o $(MAIN) jitd_asralc.o harness_jitd.o data.o $(TBB_LIBRARY) -ltbb
 	@echo built with jitd storage with ATOMIC_STORE_RELEASE ATOMIC_LOAD_CONSUME
 
 jitd_storage_sqlite:  jitd_test.o harness_sqlite.o data.o
@@ -67,11 +67,11 @@ jitd_storage_uom:  harness_uom.o data.o
 jitd_test.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
 	$(CC) $(CFLAGS) -c $(JITD_TEST_C) $(INCLUDES)
 
-jitd_test_asal.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
-	$(CC) $(CFLAGS) -o jitd_test_asal.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD
+jitd_asal.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
+	$(CC) $(CFLAGS) -o jitd_asal.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD
 
-jitd_test_asralc.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
-	$(CC) $(CFLAGS) -o jitd_test_asralc.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME
+jitd_asralc.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
+	$(CC) $(CFLAGS) -o jitd_asralc.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME
 
 harness_jitd.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_JITD" > $(CONF_H)
