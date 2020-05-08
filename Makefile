@@ -67,15 +67,22 @@ jitd_storage_uom:  harness_uom.o data.o
 jitd_test.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
 	$(CC) $(CFLAGS) -c $(JITD_TEST_C) $(INCLUDES)
 
+
 jitd_asal.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
-	$(CC) $(CFLAGS) -o jitd_asal.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD
+	#$(CC) $(CFLAGS) -o jitd_asal.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD
+	$(CC) $(CFLAGS) -o jitd_asal.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD -D TRANSFORM_COUNT
+
 
 jitd_asralc.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
-	$(CC) $(CFLAGS) -o jitd_asralc.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME
+	#$(CC) $(CFLAGS) -o jitd_asralc.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME
+	$(CC) $(CFLAGS) -o jitd_asralc.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME -D TRANSFORM_COUNT
+
 
 harness_jitd.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_JITD" > $(CONF_H)
-	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_jitd.o $(INCLUDES)
+	#$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_jitd.o $(INCLUDES)
+	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_jitd.o $(INCLUDES) -D TRANSFORM_COUNT
+
 
 harness_sqlite.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_SQLITE" > $(CONF_H)
