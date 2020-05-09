@@ -55,9 +55,10 @@ int JITD::organize_wait()
         
         not_done = this->do_organize();
         t++;
-        //std::cout<<"JITD_PRINT ";
-        //this->print_debug();
+        //std::cout<<"JITD_PRINT: "<<not_done<<std::endl;
         //this->check_view();
+        //this->print_debug();
+        
       }
       else
       {
@@ -411,8 +412,23 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 
 void JITD:: check_view()
 {
- 
+      std::set<std::shared_ptr<JITDNode> *>::iterator it;
+      @for(transform <- ctx.definition.transforms){
+        std::cout<<"SIZE OF @{transform.name} View"<<@{transform.name}_View.size()<<"."<<std::endl;
+        for(it = this->@{transform.name}_View.begin();it!=this->@{transform.name}_View.end();++it)
+        {
+        
+          
 
+          std::shared_ptr<JITDNode> * curr = *it;
+          std::cout<<"Address of shared_ptr: "<<*curr<<std::endl;
+
+          
+          
+
+        }
+      }
+      
 }
 void JITD::print_pq()
 {

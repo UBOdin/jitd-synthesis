@@ -11,7 +11,7 @@ import jitd.codegen.RenderExpression
 object ViewPolicyImplementation extends PolicyImplementation
 {
   var node_transform = RenderPattern.nodeTransformMap
-  //println(node_transform)  
+  var pattern_transform = RenderPattern.patternTransformMap
   // Render field definitions for the JITD object
   def state(ctx:Render): String = "//std::cout<<\"STATE CALLED\"<<std::endl;"
   //Pre-conditoin: All support structures are empty
@@ -86,31 +86,34 @@ object ViewPolicyImplementation extends PolicyImplementation
         {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",WrapNodeRef(Var("target")),Var("target"))}
     
     val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4,getVarNameandType._5))
-    val viewseqStmt = eachVarName.map(vnnt => {
-                                      vnnt._4 match{
-                                              case MatchNode(nodeType, fields, _) =>
-                                              {
+    val viewseqStmt = eachVarName.map(vnnt => commonFunction("viewErase(",vnnt._3,Var("")))
+                                    // {
+                                    //   vnnt._4 match{
+                                    //           case MatchNode(nodeType, fields, _) =>
+                                    //           {
                                                 
-                                                val elem = node_transform.getOrElse(nodeType,scala.collection.mutable.Set())
-                                                if(!(elem.isEmpty))
-                                                {
+                                    //             val elem = node_transform.getOrElse(nodeType,scala.collection.mutable.Set())
+                                    //             val set = pattern_transform.getOrElse(vnnt._4,scala.collection.mutable.Set())
+                                    //             if(!(elem.isEmpty))
+                                    //             {
                                                   
                                                 
-                                                  Block(elem.toSeq.map(x => commonFunction("this->"+x+"_View.erase(",vnnt._3,Var(""))))
+                                    //               //Block(elem.toSeq.map(x => commonFunction("this->"+x+"_View.erase(",vnnt._3,Var(""))))
+                                    //               commonFunction("viewErase(",vnnt._3,Var(""))
                                                   
-                                                }
-                                                else{
-                                                  Block(Seq())
-                                                }
+                                    //             }
+                                    //             else{
+                                    //               Block(Seq())
+                                    //             }
                                                 
                                                 
                                                   
-                                              }
-                                              case MatchAny(_) => //Void(FunctionCall("viewErase",Seq(vnnt._3)))
-                                                commonFunction("viewErase(",vnnt._3,Var(""))
+                                    //           }
+                                    //           case MatchAny(_) => //Void(FunctionCall("viewErase",Seq(vnnt._3)))
+                                    //             commonFunction("viewErase(",vnnt._3,Var(""))
 
-                                            } 
-                                          })
+                                    //         } 
+                                    //       })
 
     return Block(viewseqStmt)
   }
@@ -126,29 +129,35 @@ object ViewPolicyImplementation extends PolicyImplementation
         {MatchToStatement.unrollSet(definition,to.toMatchPattern,toNodeVar,WrapNodeRef(Var(target)),(Var(target)))}
 
     val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4,getVarNameandType._5)) 
-    val viewseqStmt = eachVarName.map(vnnt => {
-                                      vnnt._4 match{
-                                              case MatchNode(nodeType, fields, _) =>
-                                              {
+     val viewseqStmt = eachVarName.map(vnnt => commonFunction("viewAdd(",vnnt._3,Var("")))
+      //                                {
+    //                                   vnnt._4 match{
+    //                                           case MatchNode(nodeType, fields, _) =>
+    //                                           {
                                                 
-                                                val elem = node_transform.getOrElse(nodeType,scala.collection.mutable.Set())
-                                                if(!(elem.isEmpty))
-                                                {
+    //                                             val elem = node_transform.getOrElse(nodeType,scala.collection.mutable.Set())
+    //                                             //println(node_transform)
+    //                                             val set = pattern_transform.getOrElse(vnnt._4,scala.collection.mutable.Set())
+    //                                             println(vnnt._4)
+    //                                             println(set)
+    //                                             if(!(elem.isEmpty))
+    //                                             {
                                                   
                                                 
-                                                  Block(elem.toSeq.map(x => commonFunction("this->"+x+"_View.emplace(",vnnt._3,Var(""))))
+    //                                               //Block(elem.toSeq.map(x => commonFunction("this->"+x+"_View.emplace(",vnnt._3,Var(""))))
+    //                                               commonFunction("viewAdd(",vnnt._3,Var(""))
                                                   
-                                                }
-                                                else{
-                                                  Block(Seq())
-                                                }
+    //                                             }
+    //                                             else{
+    //                                               Block(Seq())
+    //                                             }
                                           
                                                 
                                                   
-                                              }
-                                              case MatchAny(_) => commonFunction("viewAdd(",vnnt._3,Var("")) 
-                                            } 
-                                          })
+    //                                           }
+    //                                           case MatchAny(_) => commonFunction("viewAdd(",vnnt._3,Var("")) 
+    //                                         } 
+    //                                       })
                                       
     return Block(viewseqStmt)
   
