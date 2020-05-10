@@ -43,7 +43,7 @@ struct output_node {
 	// Debug fields for Jitd:
 
 	int depth;			// jitd depth
-	int count_array[7];		// transform counts
+	int count_array[6];		// transform counts
 
 };
 
