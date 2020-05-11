@@ -221,7 +221,7 @@ object KeyValueJITD extends HardcodedDefinition {
       "do_crack".call("data", "separator", NodeSubscript(Var("lhs_partition"),"data"), NodeSubscript(Var("rhs_partition"),"data"))
     )
   }
-
+*/
 Transform("PushDownSingleton") {
     "Concat" withFields(
       "BTree" withFields( "a", "separator", "b" ),
@@ -241,36 +241,36 @@ Transform("PushDownSingleton") {
       "do_crack_singleton".call("data", "separator", NodeSubscript(Var("lhs_partition"),"elem"), NodeSubscript(Var("rhs_partition"),"elem"))
     )
   }
- */ 
-  Transform("PushDownSingletonLeft") {
-    "Concat" withFields(
-      "BTree" withFields( "a", "separator", "b" ),
-      "Singleton" withFields( "data" )
-    )
-  }{"BTree" fromFields(
-      "Concat" fromFields( "a", "Singleton" fromFields(
+
+//   Transform("PushDownSingletonLeft") {
+//     "Concat" withFields(
+//       "BTree" withFields( "a", "separator", "b" ),
+//       "Singleton" withFields( "data" )
+//     )
+//   }{"BTree" fromFields(
+//       "Concat" fromFields( "a", "Singleton" fromFields(
         
-      )as "lhs_partition"),
-      "separator",
-       "b" 
-    ) andAfter(
-      "do_crack_singleton_one".call("data", "separator", NodeSubscript(Var("lhs_partition"),"elem"))
-    )}
+//       )as "lhs_partition"),
+//       "separator",
+//        "b" 
+//     ) andAfter(
+//       "do_crack_singleton_one".call("data", "separator", NodeSubscript(Var("lhs_partition"),"elem"))
+//     )}
     
-Transform("PushDownSingletonRight") {
-    "Concat" withFields(
-      "BTree" withFields( "a", "separator", "b" ),
-      "Singleton" withFields( "data" )
-    )
-  }{"BTree" fromFields(
-      "a",
-      "separator",
-      "Concat" fromFields( "b", "Singleton" fromFields(
+// Transform("PushDownSingletonRight") {
+//     "Concat" withFields(
+//       "BTree" withFields( "a", "separator", "b" ),
+//       "Singleton" withFields( "data" )
+//     )
+//   }{"BTree" fromFields(
+//       "a",
+//       "separator",
+//       "Concat" fromFields( "b", "Singleton" fromFields(
           
-      )as "rhs_partition")
-    ) andAfter(
-      "do_crack_singleton_one".call("data", "separator", NodeSubscript(Var("rhs_partition"),"elem"))
-    )}
+//       )as "rhs_partition")
+//     ) andAfter(
+//       "do_crack_singleton_one".call("data", "separator", NodeSubscript(Var("rhs_partition"),"elem"))
+//     )}
  
  Transform("PushDownDontDeleteElemBtree")
   {
@@ -291,7 +291,7 @@ Transform("PushDownSingletonRight") {
       "DeleteElements" fromFields( "b", "data"))
     
   }
-  /*
+  
   Transform("PushDownDontDeleteSingletonBtree")
   {
     "DeleteSingleton" withFields("BTree" withFields( "a", "separator", "b" ),"key")
@@ -302,27 +302,27 @@ Transform("PushDownSingletonRight") {
       "DeleteSingleton" fromFields( "b", "key"))
     
   }
-  */
-  Transform("PushDownDontDeleteSingletonBtreeLeft")
-  {
-    "DeleteSingleton" withFields("BTree" withFields( "a", "separator", "b" ),"key")
-  } {
-    "BTree" fromFields(
-      "DeleteSingleton" fromFields( "a", "key"),
-      "separator",
-      "b")
+  
+  // Transform("PushDownDontDeleteSingletonBtreeLeft")
+  // {
+  //   "DeleteSingleton" withFields("BTree" withFields( "a", "separator", "b" ),"key")
+  // } {
+  //   "BTree" fromFields(
+  //     "DeleteSingleton" fromFields( "a", "key"),
+  //     "separator",
+  //     "b")
     
-  }
-  Transform("PushDownDontDeleteSingletonBtreeRight")
-  {
-    "DeleteSingleton" withFields("BTree" withFields( "a", "separator", "b" ),"key")
-  } {
-    "BTree" fromFields(
-      "a",
-      "separator",
-      "DeleteSingleton" fromFields( "b", "key"))
+  // }
+  // Transform("PushDownDontDeleteSingletonBtreeRight")
+  // {
+  //   "DeleteSingleton" withFields("BTree" withFields( "a", "separator", "b" ),"key")
+  // } {
+  //   "BTree" fromFields(
+  //     "a",
+  //     "separator",
+  //     "DeleteSingleton" fromFields( "b", "key"))
     
-  }
+  // }
 Transform("PushDownDontDeleteSingletonConcat")
   {
     "DeleteSingleton" withFields("Concat" withFields( "a", "b" ),"key")
@@ -345,7 +345,7 @@ Transform("PushDownDontDeleteSingletonConcat")
   }
 
 */
- /*
+ 
   Transform("DeleteElemFromArray")
   {
     "DeleteElements" withFields("Array" withFields( "data1" ), "data2")
@@ -373,22 +373,22 @@ Transform("DeleteKeyFromSingleton")
   } {
     "Singleton" fromFields( "record" as "new_singleton") andAfter("delete_keys_from_singleton".call("new_singleton","data"))
   }
-  */
-  Policy("CrackSort")("crackAt" -> IntConstant(500),"null_data"-> IntConstant(0)) (
-      //("PushDownSingletonLeft"  onlyIf { Key_Cmp("data","separator") eq BoolConstant(true) } scoreBy{IntConstant(0)})
-      //andThen("PushDownSingletonRight"  onlyIf { Key_Cmp("data","separator") eq BoolConstant(false) } scoreBy{IntConstant(0)})
+  
+  Policy("CrackSort")("crackAt" -> IntConstant(50),"null_data"-> IntConstant(0)) (
       
-      ("PushDownSingletonLeft" onlyIf{Key_Cmp("data","separator") eq true} scoreBy{IntConstant(0)})
-      andThen("PushDownSingletonRight" onlyIf{Key_Cmp("data","separator") eq false} scoreBy{IntConstant(0)})
-      andThen("PushDownDontDeleteSingletonBtreeLeft" onlyIf{Keys_Cmp("key","separator") eq true} scoreBy{IntConstant(0)})
-      andThen("PushDownDontDeleteSingletonBtreeRight" onlyIf{Keys_Cmp("key","separator") eq false} scoreBy{IntConstant(0)})
+      // ("PushDownSingletonLeft" onlyIf{Key_Cmp("data","separator") eq true} scoreBy{IntConstant(0)})
+      // andThen("PushDownSingletonRight" onlyIf{Key_Cmp("data","separator") eq false} scoreBy{IntConstant(0)})
+      // andThen("PushDownDontDeleteSingletonBtreeLeft" onlyIf{Keys_Cmp("key","separator") eq true} scoreBy{IntConstant(0)})
+      // andThen("PushDownDontDeleteSingletonBtreeRight" onlyIf{Keys_Cmp("key","separator") eq false} scoreBy{IntConstant(0)})
+      ("PushDownSingleton" scoreBy{IntConstant(0)})
+      andThen("PushDownDontDeleteSingletonBtree" scoreBy{IntConstant(0)})
       andThen("PushDownDontDeleteSingletonConcat" scoreBy{IntConstant(0)})
       andThen("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
       andThen("PushDownDontDeleteElemConcat" scoreBy{IntConstant(0)})
-      //andThen("DeleteSingletonFromArray" scoreBy{IntConstant(0)})
-      //andThen("DeleteKeyFromSingleton" scoreBy{IntConstant(0)})
-      //andThen("DeleteElemFromArray" scoreBy{IntConstant(0)})
-      //andThen("DeleteElemFromSingleton" scoreBy{IntConstant(0)})
+      andThen("DeleteSingletonFromArray" scoreBy{IntConstant(0)})
+      andThen("DeleteKeyFromSingleton" scoreBy{IntConstant(0)})
+      andThen("DeleteElemFromArray" scoreBy{IntConstant(0)})
+      andThen("DeleteElemFromSingleton" scoreBy{IntConstant(0)})
       andThen("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
                               scoreBy { ArraySize("data") })
       
