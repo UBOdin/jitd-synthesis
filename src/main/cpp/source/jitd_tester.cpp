@@ -20,7 +20,6 @@
 // std::mutex global_exit_mtx;
 // std::condition_variable global_cv;
 // bool global_exit_flag = false;
-
 typedef std::vector<Record> RecordBuffer;
 int jitd_test(
   std::shared_ptr<JITD> &jitd,

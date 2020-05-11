@@ -75,6 +75,13 @@ inline bool key_cmp(const Record &data, const Key &key){
   //}
   return false;
 }
+inline bool keys_cmp(const Key &k1, const Key &k2){
+  // auto last = std::end(data);
+  // for(auto curr = std::begin(data); curr != last; ++curr){
+    if(k1 < k2){ return true; }
+  //}
+  return false;
+}
 inline bool record_binary_search(const std::vector<Record> &data, const Key &key, Record &result){
   auto it = std::lower_bound(std::begin(data), std::end(data), key);
   if(it == std::end(data) || !(*it == key)){ return false; }
@@ -268,6 +275,26 @@ inline void delete_singleton_from_leaf(std::vector<Record> &to_delete,Key &from_
       if(iter != std::end(to_delete))
       {
         to_delete.erase(iter);
+     
+      }
+  }
+  else
+  {
+    //std::cout<<"Delete:size 0 encountered"<<std::endl;
+  }
+  
+
+}
+inline void delete_keys_from_singleton(Record &r,std::vector<Key> &to_delete)
+{
+  //std::cout<<"in deleting";
+  //TODO: optimize begin and end
+  if(to_delete.size()!=0)
+  {
+      auto iter = std::find(std::begin(to_delete),std::end(to_delete),r);
+      if(iter != std::end(to_delete))
+      {
+        r.key = -1;
      
       }
   }
