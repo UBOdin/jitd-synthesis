@@ -1,49 +1,33 @@
 
 echo "Running batch"
 
-runs="0 1 2 3" # runs
+keymax="30000"
+atomic_list="asal asralc"
+threshhold_list="2 7 20 70 200"
 
-# Build executables for each storage type:
-echo "Building executables:"
-make clean
-make jitd_storage_jitd
-mv jitd_harness jitd_harness_jitd.exe
-make clean
-make jitd_storage_sqlite
-mv jitd_harness jitd_harness_sqlite.exe
-make clean
-make jitd_storage_uomap
-mv jitd_harness jitd_harness_uomap.exe
-echo "Done building"
 
-for e in $runs; do
+for atomic in $atomic_list; do
 
-	echo "\nRunning instance $e\n"
-	sleep 5
-	./jitd_harness_jitd.exe
+	make clean
+	make jitd_storage_${atomic}
 	if [ "$?" != "0" ]; then
-		echo "Error on JITD"
+		echo "Error on build"
 		exit 1
 	fi
-	mv output_data.txt output/jitd_$e.txt
+	echo "Clean build on ${atomic}"
 
-	echo
-	sleep 5
-	./jitd_harness_sqlite.exe
-	if [ "$?" != "0" ]; then
-		echo "Error on SQLite"
-		exit 1
-	fi
-	mv output_data.txt output/sqlite_$e.txt
+	for threshhold in $threshhold_list; do
 
-	echo
-	sleep 5
-	./jitd_harness_uomap.exe
-	if [ "$?" != "0" ]; then
-		echo "Error on UOMap"
-		exit 1
-	fi
-	mv output_data.txt output/uomap_$e.txt
+		echo "\nRunning instance $e\n"
+		sleep 5
+		./jitd_harness.exe $keymax $threshhold
+		if [ "$?" != "0" ]; then
+			echo "Error on JITD"
+			exit 1
+		fi
+		mv output_data.txt ${atomic}_full_${threshhold}_output_data.txt
+
+	done
 
 done
 

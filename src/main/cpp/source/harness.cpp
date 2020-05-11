@@ -67,6 +67,9 @@
 
 using namespace harness;
 
+int __array_size;
+int __kmax;
+
 
 long gettime_us() {
 
@@ -105,7 +108,7 @@ STORAGE_HANDLE create_storage() {
 	int i = 0;
 
 int k = 0;
-int kmax = 3;
+int kmax = __kmax;
 
 	#ifdef STORAGE_SQLITE
 
@@ -607,7 +610,7 @@ void run_worker_thread(STORAGE_HANDLE storage) {
 #endif
 
 
-int main() {
+int main(int argc, char** argv) {
 
 	STORAGE_HANDLE storage;
 	timeval start;
@@ -631,6 +634,14 @@ int main() {
 
 	double k = 0;
 	double sum = 0;
+
+	if (argc != 3) {
+		printf("Unexpected parameter count\n");
+		_exit(1);
+	}
+	__kmax = atoi(argv[1]);
+	__array_size = atoi(argv[2]);
+	printf("crack threshhold:  %d\n", __array_size);
 
 	#ifdef STORAGE_SQLITE
 	printf("Using SQLite storage\n");
