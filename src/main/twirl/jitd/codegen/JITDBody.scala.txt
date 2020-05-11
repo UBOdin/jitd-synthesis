@@ -56,8 +56,10 @@ int JITD::organize_wait()
         not_done = this->do_organize();
         t++;
         //std::cout<<"JITD_PRINT: "<<not_done<<std::endl;
-        //this->check_view();
         //this->print_debug();
+        //this->check_view();
+        //this->print_map();
+        
         
       }
       else
@@ -77,6 +79,11 @@ int JITD::organize_wait()
         {
           this->after_@{mutator.name}(pop_mce.element);
           not_done = true;
+          //std::cout<<"AFTER_@{mutator.name}_PRINT: "<<not_done<<std::endl;
+          //this->print_debug();
+          //this->check_view();
+          //this->print_map();
+          
         }
         }
         else
