@@ -577,7 +577,7 @@ int save_output() {
 	for (int i = 0; i < output_size; i++) {
 //		snprintf(output_buffer, BUFFER_SIZE, "%ld\t%ld\t%d\t%ld\t%d\t%d\t%d\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key, output_array[i].rows, output_array[i].nkeys, output_array[i].depth);
 
-		snprintf(output_buffer, BUFFER_SIZE, "%ld\t%ld\t%d\t%ld\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key, output_array[i].rows, output_array[i].nkeys, output_array[i].depth, output_array[i].count_array[0], output_array[i].count_array[1], output_array[i].count_array[2], output_array[i].count_array[3], output_array[i].count_array[4], output_array[i].count_array[5]);
+		snprintf(output_buffer, BUFFER_SIZE, "%ld\t%ld\t%d\t%ld\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key, output_array[i].rows, output_array[i].nkeys, output_array[i].depth, output_array[i].count_array[0], output_array[i].count_array[1], output_array[i].count_array[2], output_array[i].count_array[3], output_array[i].count_array[4], output_array[i].count_array[5], output_array[i].count_array[6], output_array[i].count_array[7]);
 
 		result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
 		errtrap("write");
@@ -765,11 +765,13 @@ int main() {
 		output_array[i].depth = depth;
 		#ifdef TRANSFORM_COUNT
 		output_array[i].count_array[0] = storage->jitd->PushDownDontDeleteSingletonConcat_count;
-		output_array[i].count_array[1] = storage->jitd->PushDownDontDeleteSingletonBtree_count;
-		output_array[i].count_array[2] = storage->jitd->PushDownDontDeleteElemConcat_count;
-		output_array[i].count_array[3] = storage->jitd->PushDownDontDeleteElemBtree_count;
-		output_array[i].count_array[4] = storage->jitd->PushDownSingleton_count;
-		output_array[i].count_array[5] = storage->jitd->CrackArray_count;
+		output_array[i].count_array[1] = storage->jitd->PushDownDontDeleteSingletonBtreeRight_count;
+		output_array[i].count_array[2] = storage->jitd->PushDownDontDeleteSingletonBtreeLeft_count;
+		output_array[i].count_array[3] = storage->jitd->PushDownDontDeleteElemConcat_count;
+		output_array[i].count_array[4] = storage->jitd->PushDownDontDeleteElemBtree_count;
+		output_array[i].count_array[5] = storage->jitd->PushDownSingletonRight_count;
+		output_array[i].count_array[6] = storage->jitd->PushDownSingletonLeft_count;
+		output_array[i].count_array[7] = storage->jitd->CrackArray_count;
 		#endif
 		#endif
 
