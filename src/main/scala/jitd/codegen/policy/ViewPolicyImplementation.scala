@@ -223,16 +223,18 @@ object ViewPolicyImplementation extends PolicyImplementation
                                                     }
                                                     else
                                                     {
-                                                      
-                                                      if(vnnt._6 == Var(target)|| vnnt._6 == WrapNodeRef(Var(target)))
-                                                      {
-                                                        commonFunctionSpecial("this->childParentMap.emplace(",vnnt._3,Some(vnnt._6))
-                                                      }
-                                                      else
-                                                      {
-                                                        commonFunctionSpecial("this->childParentMap.emplace(",vnnt._3,Some(vnnt._6))++
+                                                      commonFunctionSpecial("this->childParentMap.emplace(",vnnt._3,Some(vnnt._6))++
                                                         commonFunctionSpecial("fixMap(",vnnt._3,Some(vnnt._3))
-                                                      }
+                                                      // if(vnnt._6 == Var(target)|| vnnt._6 == WrapNodeRef(Var(target)))
+                                                      // {
+                                                      //   commonFunctionSpecial("this->childParentMap.emplace(",vnnt._3,Some(vnnt._6))++
+                                                      //   commonFunctionSpecial("fixMap(",vnnt._3,Some(vnnt._3))
+                                                      // }
+                                                      // else
+                                                      // {
+                                                      //   commonFunctionSpecial("this->childParentMap.emplace(",vnnt._3,Some(vnnt._6))++
+                                                      //   commonFunctionSpecial("fixMap(",vnnt._3,Some(vnnt._3))
+                                                      // }
                                                       
                                                       
                                                       
@@ -249,18 +251,20 @@ object ViewPolicyImplementation extends PolicyImplementation
                                                   }
                                                   else
                                                   {
-                                                   
+                                                   commonFunctionSpecial("this->childParentMap.emplace(",vnnt._3,Some(vnnt._6))++
+                                                        commonFunctionSpecial("fixMap(",vnnt._3,Some(vnnt._3))
 
                                                     
-                                                   if(vnnt._6 == Var(target)|| vnnt._6 == WrapNodeRef(Var(target)))
-                                                      {
-                                                        commonFunctionSpecial("this->childParentMap.emplace(",vnnt._3,Some(vnnt._6))
-                                                      }
-                                                      else
-                                                      {
-                                                        commonFunctionSpecial("this->childParentMap.emplace(",vnnt._3,Some(vnnt._6))++
-                                                        commonFunctionSpecial("fixMap(",vnnt._3,Some(vnnt._3))
-                                                      }
+                                                   // if(vnnt._6 == Var(target)|| vnnt._6 == WrapNodeRef(Var(target)))
+                                                   //    {
+                                                   //      commonFunctionSpecial("this->childParentMap.emplace(",vnnt._3,Some(vnnt._6))++
+                                                   //      commonFunctionSpecial("fixMap(",vnnt._3,Some(vnnt._3))
+                                                   //    }
+                                                   //    else
+                                                   //    {
+                                                   //      commonFunctionSpecial("this->childParentMap.emplace(",vnnt._3,Some(vnnt._6))++
+                                                   //      commonFunctionSpecial("fixMap(",vnnt._3,Some(vnnt._3))
+                                                   //    }
                                                     
 
                                                   
