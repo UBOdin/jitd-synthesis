@@ -144,8 +144,10 @@ class JITD {
     /*@{RenderPattern.SetPqDeclare(ctx,ctx.policy.rule,true);}*/
     @{RenderPattern.ViewDeclare(ctx,ctx.policy.rule,true);}
 
-    std::unordered_multimap<std::shared_ptr<JITDNode> *,std::shared_ptr<JITDNode> *> childParentMap;
-    tbb::concurrent_bounded_queue<mutatorCqElement> work_queue;
+    typedef std::pair<std::shared_ptr<JITDNode> * const,std::shared_ptr<JITDNode> *> elem_pair;
+
+    std::unordered_multimap<std::shared_ptr<JITDNode> *,std::shared_ptr<JITDNode> *,std::hash<std::shared_ptr<JITDNode> *>,std::equal_to<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<elem_pair>> childParentMap;
+    tbb::concurrent_bounded_queue<mutatorCqElement,tbb::cache_aligned_allocator<mutatorCqElement>> work_queue;
 
 
     JITD(std::shared_ptr<std::shared_ptr<JITDNode>> jitd_root) : jitd_root(jitd_root)

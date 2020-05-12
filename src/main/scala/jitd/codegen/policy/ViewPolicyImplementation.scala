@@ -10,8 +10,7 @@ import util.control.Breaks._
 import jitd.codegen.RenderExpression
 object ViewPolicyImplementation extends PolicyImplementation
 {
-  var node_transform = RenderPattern.nodeTransformMap
-  var pattern_transform = RenderPattern.patternTransformMap
+  
   // Render field definitions for the JITD object
   def state(ctx:Render): String = "//std::cout<<\"STATE CALLED\"<<std::endl;"
   //Pre-conditoin: All support structures are empty
