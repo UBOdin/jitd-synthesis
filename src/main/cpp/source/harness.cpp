@@ -1,10 +1,13 @@
 
 #include <errno.h>
+#include <linux/perf_event.h>
+#include <linux/hw_breakpoint.h>
 #include <math.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <thread>
@@ -619,16 +622,21 @@ int main(int argc, char** argv) {
 	int depth;
 	int i;
 	int j;
-	bool result;
+	int result;
 	long time_base;
 	long time_next;
 	long time_delta;
 	long time_now;
 	long time_start;
+	double sum = 0;  // dummy variable -- to prevent structure val's from being optimized out
+	// Linux perf debug variables:
+	#define PERFBUFF_SIZE 64
+	int perf_ref_fd;
+	int perf_miss_fd;
+	struct perf_event_attr pea_struct;
+	char perf_buff[PERFBUFF_SIZE];
 
-	double k = 0;
-	double sum = 0;
-
+	// Extract debug parameters:  max keycount with which to populate structure and jitd crack threshhold:
 	if (argc != 3) {
 		printf("Unexpected parameter count\n");
 		_exit(1);
@@ -636,6 +644,38 @@ int main(int argc, char** argv) {
 	__kmax = atoi(argv[1]);
 	__array_size = atoi(argv[2]);
 	printf("crack threshhold:  %d\n", __array_size);
+
+	// Initialize HW performance monitoring structure:
+	memset(&pea_struct, 0, sizeof(pea_struct));
+	pea_struct.type = PERF_TYPE_HARDWARE;
+	pea_struct.size = sizeof(struct perf_event_attr);
+	pea_struct.config = PERF_COUNT_HW_CACHE_REFERENCES;  // Track cache references with this monitor
+	pea_struct.sample_period = 0;  // Not using sample periods; will do manual collection
+	pea_struct.sample_type = 0;  // ditto above
+	pea_struct.read_format = PERF_FORMAT_GROUP;  // | PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
+	// Some bitfields:
+	pea_struct.disabled = 1;  // Disabled for now -- will start collection later
+	pea_struct.inherit = 1;  // Yes, track both client and worker (n.b. documentation says this = 1 is incompatible with PERF_FORMAT_GROUP -- it is _not_; bug?)
+	pea_struct.pinned = 0;  // N.b. pinned = 1 _is_ incompatible with PERF_FORMAT_GROUP -- either a bug in kernel or documentation?
+	pea_struct.exclusive = 0;
+	pea_struct.exclude_user = 0;  // Track userspace
+	pea_struct.exclude_kernel = 1;  // But not kernel
+	pea_struct.exclude_hv = 1;  // And not hv (if any)
+
+	// Group leader for first of 2 events (cache references):
+	result = syscall(__NR_perf_event_open, &pea_struct, 0, -1, -1, 0);
+	errtrap("perf_event_open");
+	perf_ref_fd = result;
+	// Configure second event to monitor cache misses:
+	pea_struct.config = PERF_COUNT_HW_CACHE_MISSES;
+	pea_struct.disabled = 0;  // N.b. -- enabled, but dependent on status of leader event (initially disabled)
+	// Include in monitoring group:
+	result = syscall(__NR_perf_event_open, &pea_struct, 0, -1, perf_ref_fd, 0);
+	errtrap("perf_event_open");
+	perf_miss_fd = result;
+
+	ioctl(perf_ref_fd, PERF_EVENT_IOC_RESET, 0);
+	ioctl(perf_ref_fd, PERF_EVENT_IOC_ENABLE, 0);  // FIXME:  put after setup
 
 	#ifdef STORAGE_SQLITE
 	printf("Using SQLite storage\n");
@@ -686,11 +726,9 @@ int main(int argc, char** argv) {
 			depth = -1;
 		}
 
-/*
 		if (i == 300) {
 			break;
 		}
-*/
 
 		// Get next operation:
 		optype = benchmark_array[i].type;
@@ -865,6 +903,22 @@ int main(int argc, char** argv) {
 
 	printf("Worker thread exited\n");
 	#endif
+
+
+	result = read(perf_ref_fd, perf_buff, PERFBUFF_SIZE);
+	errtrap("read");
+
+printf("Bytes read:  %d\n", result);
+unsigned long perfval;
+for (int i = 0; i < 3; i++) {
+	perfval = ((unsigned long*)perf_buff)[i];
+	printf("Val %d:  %lu\n", i, perfval);
+}
+
+	// Clean up HW performance monitoring:
+	ioctl(perf_ref_fd, PERF_EVENT_IOC_DISABLE, 0);  // FIXME:  put before other cleanup
+	close(perf_ref_fd);
+	close(perf_miss_fd);
 
 	printf("Dummy sum:  %f\n", sum);
 
