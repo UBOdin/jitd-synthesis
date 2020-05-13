@@ -674,9 +674,6 @@ int main(int argc, char** argv) {
 	errtrap("perf_event_open");
 	perf_miss_fd = result;
 
-	ioctl(perf_ref_fd, PERF_EVENT_IOC_RESET, 0);
-	ioctl(perf_ref_fd, PERF_EVENT_IOC_ENABLE, 0);  // FIXME:  put after setup
-
 	#ifdef STORAGE_SQLITE
 	printf("Using SQLite storage\n");
 	#endif
@@ -712,6 +709,10 @@ int main(int argc, char** argv) {
 	time_base = gettime_us();
 	printf("Start base time:  %ld\n", time_base);
 
+	// Enable HW event monitoring:
+	ioctl(perf_ref_fd, PERF_EVENT_IOC_RESET, 0);
+	ioctl(perf_ref_fd, PERF_EVENT_IOC_ENABLE, 0);
+
 	i = 0;
 	j = 0;
 	while (true) {
@@ -726,9 +727,11 @@ int main(int argc, char** argv) {
 			depth = -1;
 		}
 
+/*
 		if (i == 300) {
 			break;
 		}
+*/
 
 		// Get next operation:
 		optype = benchmark_array[i].type;
@@ -804,6 +807,12 @@ int main(int argc, char** argv) {
 		output_array[i].rows = rows;
 		output_array[i].nkeys = nkeys;
 
+		// Fetch performance data:
+		result = read(perf_ref_fd, perf_buff, PERFBUFF_SIZE);
+		errtrap("read");
+		output_array[i].cache_refs = ((unsigned long*)perf_buff)[1];
+		output_array[i].cache_refs = ((unsigned long*)perf_buff)[2];
+
 		#ifdef STORAGE_JITD
 		output_array[i].depth = depth;
 		#ifdef TRANSFORM_COUNT
@@ -849,6 +858,9 @@ int main(int argc, char** argv) {
 		#endif
 
 	}
+
+	// Disable HW event monitoring:
+	ioctl(perf_ref_fd, PERF_EVENT_IOC_DISABLE, 0);
 
 	gettimeofday(&end, NULL);
 	std::cout << "Total runtime: " << total_time(start, end) << " us" << std::endl;
@@ -904,9 +916,8 @@ int main(int argc, char** argv) {
 	printf("Worker thread exited\n");
 	#endif
 
-
-	result = read(perf_ref_fd, perf_buff, PERFBUFF_SIZE);
-	errtrap("read");
+result = read(perf_ref_fd, perf_buff, PERFBUFF_SIZE);
+errtrap("read");
 
 printf("Bytes read:  %d\n", result);
 unsigned long perfval;
@@ -916,7 +927,6 @@ for (int i = 0; i < 3; i++) {
 }
 
 	// Clean up HW performance monitoring:
-	ioctl(perf_ref_fd, PERF_EVENT_IOC_DISABLE, 0);  // FIXME:  put before other cleanup
 	close(perf_ref_fd);
 	close(perf_miss_fd);
 

@@ -39,9 +39,10 @@ struct output_node {
 	long key;
 	int rows;
 	int nkeys;
-
+	// Debug fields (HW monitors):
+	unsigned long cache_refs;
+	unsigned long cache_misses;
 	// Debug fields for Jitd:
-
 	int depth;			// jitd depth
 	int count_array[8];		// transform counts
 
