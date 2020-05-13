@@ -1,15 +1,14 @@
 
-#include <thread>
-
 #include <errno.h>
+#include <math.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <thread>
 #include <unistd.h>
-#include <math.h>
 
 #include "jitd_test.hpp"
 #include "test.hpp"
@@ -67,6 +66,7 @@
 
 using namespace harness;
 
+// jitd debug globals:
 int __array_size;
 int __kmax;
 
