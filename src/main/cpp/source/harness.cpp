@@ -106,9 +106,7 @@ STORAGE_HANDLE create_storage() {
 
 	struct operation_node node;
 	int i = 0;
-
-int k = 0;
-int kmax = __kmax;
+	int k = 0;
 
 	#ifdef STORAGE_SQLITE
 
@@ -154,12 +152,11 @@ int kmax = __kmax;
 	bool not_done = true;
 
 	while (true) {
-
-if (k == kmax) {
-	break;
-}
-k++;
-
+		// Debug:  Populate structure with only a subset of keys:
+		if (k == __kmax) {
+			break;
+		}
+		k++;
 		node = initialize_array[i];
 		if (node.type == STOP) {
 			break;
@@ -174,8 +171,7 @@ k++;
 		i++;
 	}
 	storage->jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new ArrayNode(storage->element)))));
-
-printf("Val k:  %d\n", k);
+	printf("Keys prepopulated:  %d\n", k);
 
 	// Organize initial jitd structure until it reaches a stable state:
 	i = 0;
@@ -204,12 +200,11 @@ printf("Val k:  %d\n", k);
 	#if defined STORAGE_MAP || defined STORAGE_UOM
 
 	while (true) {
-
-if (k == kmax) {
-	break;
-}
-k++;
-
+		// Debug:  Populate structure with only a subset of keys:
+		if (k == __kmax) {
+			break;
+		}
+		k++;
 		node = initialize_array[i];
 		if (node.type == STOP) {
 			break;
@@ -223,8 +218,7 @@ k++;
 		STORAGE_STRUCT.insert(storage->data_pair);
 		i++;
 	}
-
-printf("Val k:  %d\n", k);
+	printf("Keys prepopulated:  %d\n", k);
 
 	return storage;
 
