@@ -1,31 +1,47 @@
 
 echo "Running batch"
 
-keymax="30000"
-atomic_list="asal asralc"
-threshhold_list="2 7 20 70 200"
+storage_list="map uom asal asralc"
+keymax_list="30000 3"
 
+make clean
 
-for atomic in $atomic_list; do
+for storage in $storage_list; do
 
-	make clean
-	make jitd_storage_${atomic}
+	# Force rebuilds of jitd (source may not have changed, but preprocessor -D may have):
+	if [ "$storage" = "asal" ]; then
+		rm jitd_asal.o
+	fi
+	if [ "$storage" = "asralc" ]; then
+		rm jitd_asralc.o
+	fi
+
+	make jitd_storage_${storage}
 	if [ "$?" != "0" ]; then
 		echo "Error on build"
 		exit 1
 	fi
-	echo "Clean build on ${atomic}"
+	echo "Clean build on ${storage}"
 
-	for threshhold in $threshhold_list; do
+	for keymax in $keymax_list; do
 
-		echo "\nRunning instance $e\n"
+		if [ "$keymax" = "30000" ]; then
+			threshhold="2000"
+			echo "30000 keys"
+		fi
+		if [ "$keymax" = "3" ];then
+			threshhold="1"
+			echo "3 keys"
+		fi
+
+		echo "\nRunning instance with ${keymax} keys and crack threshhold of ${threshhold}\n"
 		sleep 5
 		./jitd_harness.exe $keymax $threshhold
 		if [ "$?" != "0" ]; then
 			echo "Error on JITD"
 			exit 1
 		fi
-		mv output_data.txt ${atomic}_full_${threshhold}_output_data.txt
+		mv output_data.txt ${storage}_${keymax}_output_data.txt
 
 	done
 
