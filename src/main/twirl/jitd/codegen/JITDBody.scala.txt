@@ -503,9 +503,29 @@ void JITD::print_map()
     } 
     std::cout << std::endl; 
 }
+void JITD::jitd_node_count(std::shared_ptr<JITDNode> node){ 
+  
+  switch(node->type){
+    @for(node <- ctx.definition.nodes) {
+      case @node.enumName : {
+        @node.renderName *node_real = (@node.renderName *)node.get();
+        this->node_count++;
 
+        @{  val children = node.fields.filter { _.t == TNodeRef() }
+            if(children.size > 0){
+              children.map { f => 
+                "jitd_node_count(node_real->"+f.name+");\n"
+              }.mkString
+            } else { "" }
+        } 
+        break;
+      }
+    }
+  }
+  
+}
 void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix){ 
-
+  
   switch(node->type){
     @for(node <- ctx.definition.nodes) {
       case @node.enumName : {
@@ -531,6 +551,7 @@ void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string
       }
     }
   }
+  
 }
 void jitd_get_depth(std::shared_ptr<JITDNode> node, int depth, int &maxdepth)
 {

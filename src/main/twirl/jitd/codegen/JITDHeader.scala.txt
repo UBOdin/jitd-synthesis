@@ -17,6 +17,7 @@
 #include <functional>
 #include <sys/time.h>
 #include <pthread.h>
+#include "tbb/cache_aligned_allocator.h"
 #include "tbb/concurrent_queue.h" 
 #include <condition_variable>
 #include<mutex>
@@ -30,6 +31,7 @@
   #define JITD_DEBUG(cmd)
 }
 #define assertm(exp, msg) assert(((void)msg, exp))
+
 ///////////////////// Structures ///////////////////// 
 
 @ctx.structTypedefs
@@ -114,6 +116,7 @@ void print_JITD_node_structure_viz(std::shared_ptr<JITDNode> node,std::shared_pt
 void jitd_get_depth(std::shared_ptr<JITDNode> node,int depth, int &maxdepth);
 void print_time_vector_sum();
 void print_search_time_vector_sum();
+//void jitd_node_count(std::shared_ptr<JITDNode> node);
    
 ///////////////////// JITD Accessors ///////////////////// 
 
@@ -135,7 +138,7 @@ class JITD {
   
   public:
     pthread_mutex_t lock;
-
+    int node_count =0;
 
 
     @{RenderPattern.ComparatorClass(ctx,ctx.policy.rule);}
@@ -144,10 +147,10 @@ class JITD {
     /*@{RenderPattern.SetPqDeclare(ctx,ctx.policy.rule,true);}*/
     @{RenderPattern.ViewDeclare(ctx,ctx.policy.rule,true);}
 
-    typedef std::pair<std::shared_ptr<JITDNode> * const,std::shared_ptr<JITDNode> *> elem_pair;
+   // typedef std::pair<std::shared_ptr<JITDNode> * const,std::shared_ptr<JITDNode> *> elem_pair;
 
-    std::unordered_multimap<std::shared_ptr<JITDNode> *,std::shared_ptr<JITDNode> *,std::hash<std::shared_ptr<JITDNode> *>,std::equal_to<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<elem_pair>> childParentMap;
-    tbb::concurrent_bounded_queue<mutatorCqElement,tbb::cache_aligned_allocator<mutatorCqElement>> work_queue;
+    std::unordered_multimap<std::shared_ptr<JITDNode> *,std::shared_ptr<JITDNode> *> childParentMap;
+    tbb::concurrent_bounded_queue<mutatorCqElement> work_queue;
 
 
     JITD(std::shared_ptr<std::shared_ptr<JITDNode>> jitd_root) : jitd_root(jitd_root)
@@ -156,7 +159,8 @@ class JITD {
         std::cerr<<"\n mutex init has failed\n"<<std::endl; 
         exit(-1);
       }
-      this->work_queue.set_capacity(3000);
+      this->work_queue.set_capacity(36000);
+      this->childParentMap.reserve(1500);
       @ctx.policyImplementation.init(ctx,ctx.policy.rule,"(*(this->jitd_root))")
     }
     
@@ -186,6 +190,8 @@ class JITD {
     void check_pq();
     void print_map();
     void check_view();
+    void jitd_node_count(std::shared_ptr<JITDNode> node);
+    void get_node_count(){ jitd_node_count(*jitd_root);std::cout<<"The number of nodes in JITD: "<<node_count<<std::endl;}
     void times_transforms_called();
     std::shared_ptr<JITDNode> * getParent(std::shared_ptr<JITDNode> * &target);
     void SetPqErase(std::shared_ptr<JITDNode> * node_handle);

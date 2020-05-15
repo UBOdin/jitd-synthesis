@@ -231,6 +231,10 @@ int jitd_client_op(
       jitd->get_depth(depth,maxdepth);
       std::cout<<"Maxdepth is of JITD structure: "<<maxdepth<<std::endl;
     }
+    CASE("number_of_nodes")
+    {
+      jitd->get_node_count();
+    }
     else {
       std::cerr << "Invalid Test Operation: " << op << std::endl;
       exit(-1);
