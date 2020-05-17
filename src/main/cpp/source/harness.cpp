@@ -72,7 +72,6 @@ using namespace harness;
 
 // jitd debug globals:
 int __array_size;
-int __reserve_size;
 
 
 long gettime_us() {
@@ -638,16 +637,14 @@ int main(int argc, char** argv) {
 	struct perf_event_attr pea_struct;
 	char perf_buff[PERFBUFF_SIZE];
 
-	// Extract debug parameters:  max keycount, jitd crack threshhold, and jitd reserve size:
-	if (argc != 4) {
+	// Extract debug parameters:  max keycount with which to populate structure and jitd crack threshhold:
+	if (argc != 3) {
 		printf("Unexpected parameter count\n");
 		_exit(1);
 	}
 	maxkeys = atoi(argv[1]);
 	__array_size = atoi(argv[2]);
 	printf("crack threshhold:  %d\n", __array_size);
-	__reserve_size = atoi(argv[3]);
-	printf("reserve size::  %d\n", __reserve_size);
 
 	// Initialize HW performance monitoring structure:
 	memset(&pea_struct, 0, sizeof(pea_struct));

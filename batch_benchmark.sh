@@ -1,20 +1,15 @@
 
 echo "Running batch"
 
-storage_list="map uom asal asralc"
+storage_list="map uom asal_default asal_aligned asralc_default asralc_aligned"
 keymax_list="30000 3"
 
 make clean
 
 for storage in $storage_list; do
 
-	# Force rebuilds of jitd (source may not have changed, but preprocessor -D may have):
-	if [ "$storage" = "asal" ]; then
-		rm jitd_asal.o
-	fi
-	if [ "$storage" = "asralc" ]; then
-		rm jitd_asralc.o
-	fi
+	# Paranoid:  Force rebuilds of jitd (source may not have changed, but preprocessor -D may have):
+	rm jitd_*.o
 
 	make jitd_storage_${storage}
 	if [ "$?" != "0" ]; then
