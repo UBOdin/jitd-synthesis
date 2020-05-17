@@ -1,4 +1,5 @@
 
+#include <asm/unistd.h>
 #include <errno.h>
 #include <linux/perf_event.h>
 #include <linux/hw_breakpoint.h>
@@ -13,8 +14,6 @@
 #include <thread>
 #include <unistd.h>
 
-#include "jitd_test.hpp"
-#include "test.hpp"
 #include "conf.hpp"
 
 #define TIME_EACH_OP
@@ -40,6 +39,8 @@
 #endif
 
 #ifdef STORAGE_JITD
+
+#include "jitd_test.hpp"
 
 #define STORAGE_HANDLE struct storage_jitd_struct*
 
@@ -71,7 +72,6 @@ using namespace harness;
 
 // jitd debug globals:
 int __array_size;
-int __kmax;
 
 
 long gettime_us() {
@@ -105,7 +105,7 @@ void __errtrap(int result, const char* error, int line) {
 }
 
 
-STORAGE_HANDLE create_storage() {
+STORAGE_HANDLE create_storage(int maxkeys) {
 
 	struct operation_node node;
 	int i = 0;
@@ -156,7 +156,7 @@ STORAGE_HANDLE create_storage() {
 
 	while (true) {
 		// Debug:  Populate structure with only a subset of keys:
-		if (k == __kmax) {
+		if (k == maxkeys) {
 			break;
 		}
 		k++;
@@ -204,7 +204,7 @@ STORAGE_HANDLE create_storage() {
 
 	while (true) {
 		// Debug:  Populate structure with only a subset of keys:
-		if (k == __kmax) {
+		if (k == maxkeys) {
 			break;
 		}
 		k++;
@@ -629,6 +629,7 @@ int main(int argc, char** argv) {
 	long time_now;
 	long time_start;
 	double sum = 0;  // dummy variable -- to prevent structure val's from being optimized out
+	int maxkeys;  // debug -- the keycount with which the structure will be initially populated
 	// Linux perf debug variables:
 	#define PERFBUFF_SIZE 64
 	int perf_ref_fd;
@@ -641,7 +642,7 @@ int main(int argc, char** argv) {
 		printf("Unexpected parameter count\n");
 		_exit(1);
 	}
-	__kmax = atoi(argv[1]);
+	maxkeys = atoi(argv[1]);
 	__array_size = atoi(argv[2]);
 	printf("crack threshhold:  %d\n", __array_size);
 
@@ -688,7 +689,7 @@ int main(int argc, char** argv) {
 	#endif
 	// Initialize and populate structure:
 	printf("Creating and initializing data structure\n");
-	storage = create_storage();
+	storage = create_storage(maxkeys);
 	memset(output_array, 0, sizeof(struct output_node) * output_size);
 	printf("Finished\n");
 	// Basic structural integrity check:
@@ -863,8 +864,8 @@ int main(int argc, char** argv) {
 	ioctl(perf_ref_fd, PERF_EVENT_IOC_DISABLE, 0);
 
 	gettimeofday(&end, NULL);
-	std::cout << "Total runtime: " << total_time(start, end) << " us" << std::endl;
-	std::cout << "In seconds:  " << total_time(start, end) / 1000000.0 << std::endl;
+	printf("Total runtime:  %f us\n", total_time(start, end));
+	printf("In seconds:  %f us\n", total_time(start, end) / 1000000.0);
 
 	// Failsafe:  if input < output:
 	if (i < output_size) {
