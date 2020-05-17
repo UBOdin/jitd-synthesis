@@ -44,13 +44,23 @@ jitd_storage_jitd:  jitd_test.o harness_jitd.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness_jitd.o data.o $(TBB_LIBRARY) -ltbb
 	@echo built with jitd storage
 
-jitd_storage_asal:  jitd_asal.o harness_jitd.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_asal.o harness_jitd.o data.o $(TBB_LIBRARY) -ltbb
-	@echo built with jitd storage with ATOMIC_STORE ATOMIC_LOAD
+jitd_storage_asal_aligned:  jitd_asal_aligned.o harness_jitd_aligned.o data.o
+	$(CC) $(CFLAGS) -o $(MAIN) jitd_asal_aligned.o harness_jitd_aligned.o data.o $(TBB_LIBRARY) -ltbb
+	@echo built with jitd storage with ATOMIC_STORE ATOMIC_LOAD and CACHE_ALIGNED_ALLOCATOR
 
-jitd_storage_asralc:  jitd_asralc.o harness_jitd.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_asralc.o harness_jitd.o data.o $(TBB_LIBRARY) -ltbb
-	@echo built with jitd storage with ATOMIC_STORE_RELEASE ATOMIC_LOAD_CONSUME
+jitd_storage_asal_default:  jitd_asal_default.o harness_jitd_default.o data.o
+	$(CC) $(CFLAGS) -o $(MAIN) jitd_asal_default.o harness_jitd_default.o data.o $(TBB_LIBRARY) -ltbb
+	@echo built with jitd storage with ATOMIC_STORE ATOMIC_LOAD and DEFAULT_ALLOCATOR
+
+
+jitd_storage_asralc_aligned:  jitd_asralc_aligned.o harness_jitd_aligned.o data.o
+	$(CC) $(CFLAGS) -o $(MAIN) jitd_asralc_aligned.o harness_jitd_aligned.o data.o $(TBB_LIBRARY) -ltbb
+	@echo built with jitd storage with ATOMIC_STORE_RELEASE ATOMIC_LOAD_CONSUME and CACHE_ALIGNED ALLOCATOR
+
+jitd_storage_asralc_default:  jitd_asralc_default.o harness_jitd_default.o data.o
+	$(CC) $(CFLAGS) -o $(MAIN) jitd_asralc_default.o harness_jitd_default.o data.o $(TBB_LIBRARY) -ltbb
+	@echo built with jitd storage with ATOMIC_STORE_RELEASE ATOMIC_LOAD_CONSUME and DEFAULT ALLOCATOR
+
 
 jitd_storage_sqlite:  jitd_test.o harness_sqlite.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness_sqlite.o data.o -lsqlite3
@@ -68,20 +78,31 @@ jitd_test.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
 	$(CC) $(CFLAGS) -c $(JITD_TEST_C) $(INCLUDES)
 
 
-jitd_asal.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
-	#$(CC) $(CFLAGS) -o jitd_asal.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD
-	$(CC) $(CFLAGS) -o jitd_asal.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD -D TRANSFORM_COUNT
+jitd_asal_aligned.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
+	$(CC) $(CFLAGS) -o jitd_asal_aligned.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD -D CACHE_ALIGNED_ALLOCATOR
+
+jitd_asal_default.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
+	$(CC) $(CFLAGS) -o jitd_asal_default.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD -D DEFAULT_ALLOCATOR
 
 
-jitd_asralc.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
-	#$(CC) $(CFLAGS) -o jitd_asralc.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME
-	$(CC) $(CFLAGS) -o jitd_asralc.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME -D TRANSFORM_COUNT
+jitd_asralc_aligned.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
+	$(CC) $(CFLAGS) -o jitd_asralc_aligned.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME -D CACHE_ALIGNED_ALLOCATOR
+
+jitd_asralc_default.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
+	$(CC) $(CFLAGS) -o jitd_asralc_default.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME -D DEFAULT_ALLOCATOR
 
 
 harness_jitd.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_JITD" > $(CONF_H)
 	#$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_jitd.o $(INCLUDES)
-	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_jitd.o $(INCLUDES) -D TRANSFORM_COUNT
+
+harness_jitd_aligned.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
+	@echo "#define STORAGE_JITD" > $(CONF_H)
+	$(CC) $(CFLAGS) -o harness_jitd_aligned.o -c $(HARNESS_C) $(INCLUDES) -D CACHE_ALIGNED_ALLOCATOR
+
+harness_jitd_default.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
+	@echo "#define STORAGE_JITD" > $(CONF_H)
+	$(CC) $(CFLAGS) -o harness_jitd_default.o -c $(HARNESS_C) $(INCLUDES) -D DEFAULT_ALLOCATOR
 
 
 harness_sqlite.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
