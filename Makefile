@@ -79,17 +79,20 @@ jitd_test.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
 
 
 jitd_asal_aligned.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
-	$(CC) $(CFLAGS) -o jitd_asal_aligned.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD -D CACHE_ALIGNED_ALLOCATOR
+	#$(CC) $(CFLAGS) -o jitd_asal_aligned.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD -D CACHE_ALIGNED_ALLOCATOR
+	$(CC) $(CFLAGS) -o jitd_asal_aligned.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD -D CACHE_ALIGNED_ALLOCATOR -D TRANSFORM_COUNT
 
 jitd_asal_default.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
-	$(CC) $(CFLAGS) -o jitd_asal_default.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD -D DEFAULT_ALLOCATOR
-
+	#$(CC) $(CFLAGS) -o jitd_asal_default.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD -D DEFAULT_ALLOCATOR
+	$(CC) $(CFLAGS) -o jitd_asal_default.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD -D DEFAULT_ALLOCATOR -D TRANSFORM_COUNT
 
 jitd_asralc_aligned.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
-	$(CC) $(CFLAGS) -o jitd_asralc_aligned.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME -D CACHE_ALIGNED_ALLOCATOR
+	#$(CC) $(CFLAGS) -o jitd_asralc_aligned.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME -D CACHE_ALIGNED_ALLOCATOR
+	$(CC) $(CFLAGS) -o jitd_asralc_aligned.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME -D CACHE_ALIGNED_ALLOCATOR -D TRANSFORM_COUNT
 
 jitd_asralc_default.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
-	$(CC) $(CFLAGS) -o jitd_asralc_default.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME -D DEFAULT_ALLOCATOR
+	#$(CC) $(CFLAGS) -o jitd_asralc_default.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME -D DEFAULT_ALLOCATOR
+	$(CC) $(CFLAGS) -o jitd_asralc_default.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME -D DEFAULT_ALLOCATOR -D TRANSFORM_COUNT
 
 
 harness_jitd.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
@@ -98,11 +101,13 @@ harness_jitd.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 
 harness_jitd_aligned.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_JITD" > $(CONF_H)
-	$(CC) $(CFLAGS) -o harness_jitd_aligned.o -c $(HARNESS_C) $(INCLUDES) -D CACHE_ALIGNED_ALLOCATOR
+	#$(CC) $(CFLAGS) -o harness_jitd_aligned.o -c $(HARNESS_C) $(INCLUDES) -D CACHE_ALIGNED_ALLOCATOR
+	$(CC) $(CFLAGS) -o harness_jitd_aligned.o -c $(HARNESS_C) $(INCLUDES) -D CACHE_ALIGNED_ALLOCATOR -D TRANSFORM_COUNT
 
 harness_jitd_default.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_JITD" > $(CONF_H)
-	$(CC) $(CFLAGS) -o harness_jitd_default.o -c $(HARNESS_C) $(INCLUDES) -D DEFAULT_ALLOCATOR
+	#$(CC) $(CFLAGS) -o harness_jitd_default.o -c $(HARNESS_C) $(INCLUDES) -D DEFAULT_ALLOCATOR
+	$(CC) $(CFLAGS) -o harness_jitd_default.o -c $(HARNESS_C) $(INCLUDES) -D DEFAULT_ALLOCATOR -D TRANSFORM_COUNT
 
 
 harness_sqlite.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
