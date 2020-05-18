@@ -570,46 +570,37 @@ int save_output() {
 	char output_buffer[BUFFER_SIZE];
 	int charcount;
 
-char temp_buffer[BUFFER_SIZE];
-
 	printf("Saving results\n");
 	result = open(output_filename, O_CREAT | O_RDWR | O_TRUNC, 0666);
 	errtrap("open");
 	output_fd = result;
 
-	for (int i = 0; i < 50 /*output_size*/; i++) {
-//		snprintf(output_buffer, BUFFER_SIZE, "%ld\t%ld\t%d\t%ld\t%d\t%d\t%d\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key, output_array[i].rows, output_array[i].nkeys, output_array[i].depth);
-
-//		snprintf(output_buffer, BUFFER_SIZE, "%ld\t%ld\t%d\t%ld\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%ld\t%ld\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key, output_array[i].rows, output_array[i].nkeys, output_array[i].depth, output_array[i].count_array[0], output_array[i].count_array[1], output_array[i].count_array[2], output_array[i].count_array[3], output_array[i].count_array[4], output_array[i].count_array[5], output_array[i].count_array[6], output_array[i].count_array[7], output_array[i].cache_refs, output_array[i].cache_misses);
-
-		snprintf(temp_buffer, BUFFER_SIZE, "%ld\t%ld\t%d\t%ld\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\t%ld\n", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key, output_array[i].rows, output_array[i].nkeys, output_array[i].depth, output_array[i].count_array[0], output_array[i].count_array[1], output_array[i].count_array[2], output_array[i].count_array[3], output_array[i].count_array[4], output_array[i].count_array[5], output_array[i].count_array[6], output_array[i].count_array[7], output_array[i].cache_refs, output_array[i].cache_misses, output_array[i].view_array[0], output_array[i].view_array[1], output_array[i].view_array[2], output_array[i].view_array[3], output_array[i].view_array[4], output_array[i].view_array[5], output_array[i].view_array[6], output_array[i].view_array[7], output_array[i].view_array[8], output_array[i].view_array[9]);
-
-
+	for (int i = 0; i < output_size; i++) {
+		// Basic information (latency, operation info):
 		charcount = 0;
 		result = snprintf(output_buffer + charcount, BUFFER_SIZE, "%ld\t%ld\t%d\t%ld\t%d\t%d\t%d", output_array[i].time_start, output_array[i].time_delta, output_array[i].type, output_array[i].key, output_array[i].rows, output_array[i].nkeys, output_array[i].depth);
 		charcount += result;
+		// jitd transform count data:
 		for (int j = 0; j < 8; j++) {
 			result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%d", output_array[i].count_array[j]);
 			charcount += result;
 		}
+		// Cache activity information:
 		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%ld\t%ld", output_array[i].cache_refs, output_array[i].cache_misses);
 		charcount += result;
+		// jitd view structure data:
 		for (int j = 0; j < 10; j++) {
 			result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%lu", output_array[i].view_array[j]);
 			charcount += result;
 		}
-		snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\n");
-
-printf("%s", temp_buffer);
-printf("%s", output_buffer);
-
-result = strncmp(temp_buffer, output_buffer, BUFFER_SIZE);
-if (result != 0) {
-	printf("Unequal:  %s %s\n", temp_buffer, output_buffer);
-} else {
-	printf("Equal\n");
-}
-
+		// Append EOL LF:
+		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\n");
+		charcount += result;
+		// Sanity check (overflow):
+		if (charcount >= BUFFER_SIZE) {
+			printf("Error:  output format overflow\n");
+			_exit(1);
+		}
 		result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
 		errtrap("write");
 	}
@@ -725,6 +716,7 @@ int main(int argc, char** argv) {
 	printf("Finished\n");
 	// Basic structural integrity check:
 //	test_struct(storage);
+
 	// Block :30 to stabilize system:
 	printf("Waiting -- stabilize system\n");
 //	std::this_thread::sleep_for(std::chrono::milliseconds(30 * 1000));
@@ -758,11 +750,11 @@ int main(int argc, char** argv) {
 			depth = -1;
 		}
 
-
-		if (i == 3000) {
+/*
+		if (i == 300) {
 			break;
 		}
-
+*/
 
 		// Get next operation:
 		optype = benchmark_array[i].type;
