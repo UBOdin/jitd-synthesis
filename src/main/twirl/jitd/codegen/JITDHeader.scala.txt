@@ -163,7 +163,7 @@ class JITD {
         exit(-1);
       }
       this->work_queue.set_capacity(36000);
-      this->childParentMap.reserve(1500);
+      this->childParentMap.reserve(40000);
       @ctx.policyImplementation.init(ctx,ctx.policy.rule,"(*(this->jitd_root))")
     }
     
