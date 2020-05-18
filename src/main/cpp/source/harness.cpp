@@ -848,8 +848,6 @@ int main(int argc, char** argv) {
 		output_array[i].count_array[6] = storage->jitd->PushDownSingletonLeft_count;
 		output_array[i].count_array[7] = storage->jitd->CrackArray_count;
 		#endif
-
-		#ifdef DEFAULT_ALLOCATOR
 		output_array[i].view_array[0] = storage->jitd->PushDownSingletonLeft_View.size();
 		output_array[i].view_array[1] = storage->jitd->PushDownSingletonRight_View.size();
 		output_array[i].view_array[2] = storage->jitd->PushDownDontDeleteSingletonBtreeLeft_View.size();
@@ -860,7 +858,6 @@ int main(int argc, char** argv) {
 		output_array[i].view_array[7] = storage->jitd->CrackArray_View.size();
 		output_array[i].view_array[8] = storage->jitd->childParentMap.size();
 		output_array[i].view_array[9] = storage->jitd->work_queue.size();
-		#endif
 		#endif
 
 		// Advance to next frame
