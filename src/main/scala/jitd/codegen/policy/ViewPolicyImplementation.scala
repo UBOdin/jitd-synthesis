@@ -34,8 +34,8 @@ object ViewPolicyImplementation extends PolicyImplementation
   {
     if(mutator == true)
     {
-      ((Comment(s"ViewMaintenance")++viewErase(ctx,definition,handlerefbool,from,fromTarget,mutator)++
-      Comment(s"MapMaintenance")++mapErase(ctx,definition,handlerefbool,from,fromTarget,mutator)),
+      ((Comment(s"ViewMaintenance")++viewErase(ctx,definition,handlerefbool,from,fromTarget,mutator)),
+      //Comment(s"MapMaintenance")++mapErase(ctx,definition,handlerefbool,from,fromTarget,mutator)),
       (Comment(s"UpdateTarget")++atomic_store(ctx,definition,handlerefbool,to,toTarget,mutator)++ 
       Comment(s"ViewMaintenance")++viewAdd(ctx,definition,handlerefbool,to,toTarget,mutator)++
       Comment(s"MapMaintenance")++mapAdd(ctx,definition,handlerefbool,to,toTarget,mutator)))
@@ -43,8 +43,8 @@ object ViewPolicyImplementation extends PolicyImplementation
     else
     {
       ((Comment(s"ViewMaintenanceParent")++commonFunction("viewErase(",Var("parent"),Var(""))++
-      Comment(s"ViewMaintenance")++viewErase(ctx,definition,handlerefbool,from,fromTarget,mutator)++
-      Comment(s"MapMaintenance")++mapErase(ctx,definition,handlerefbool,from,fromTarget,mutator)), 
+      Comment(s"ViewMaintenance")++viewErase(ctx,definition,handlerefbool,from,fromTarget,mutator)),
+      //Comment(s"MapMaintenance")++mapErase(ctx,definition,handlerefbool,from,fromTarget,mutator)), 
       (Comment(s"ViewMaintenanceParent")++commonFunction("viewAdd(",Var("parent"),Var(""))++
       Comment(s"ViewMaintenance")++viewAdd(ctx,definition,handlerefbool,to,toTarget,mutator)++
       Comment(s"MapMaintenance")++mapAdd(ctx,definition,handlerefbool,to,toTarget,mutator)))
@@ -204,13 +204,15 @@ object ViewPolicyImplementation extends PolicyImplementation
                                                   {
                                                     if(mutator == true)
                                                     {
-                                                      commonFunction("this->childParentMap.emplace(std::make_pair<std::shared_ptr<JITDNode> *,std::shared_ptr<JITDNode> *>(",vnnt._3,Var(",NULL)"))
+                                                      //commonFunction("this->childParentMap.emplace(std::make_pair<std::shared_ptr<JITDNode> *,std::shared_ptr<JITDNode> *>(",vnnt._3,Var(",NULL)"))++
+                                                      commonFunction("setParent(",vnnt._3,Var(",NULL"))
                                                     }
                                                     else
                                                     {
 
 
-                                                      commonFunction("this->childParentMap.emplace(",vnnt._3,Var(",parent"))
+                                                      //commonFunction("this->childParentMap.emplace(",vnnt._3,Var(",parent"))++
+                                                      commonFunction("setParent(",vnnt._3,Var(",parent"))
                                                     }
                                                   }
                                                  else
@@ -218,12 +220,15 @@ object ViewPolicyImplementation extends PolicyImplementation
                                                     if(mutator == true)
                                                     {
                                                       
-                                                      commonFunction("this->childParentMap.emplace(",vnnt._3,Var(",&("+target+")"))
+                                                      //commonFunction("this->childParentMap.emplace(",vnnt._3,Var(",&("+target+")"))++
+                                                      commonFunction("setParent(",vnnt._3,Var(",&("+target+")"))
                                                     }
                                                     else
                                                     {
-                                                      commonFunctionSpecial("this->childParentMap.emplace(",vnnt._3,Some(vnnt._6))++
-                                                        commonFunctionSpecial("fixMap(",vnnt._3,Some(vnnt._3))
+                                                      //commonFunctionSpecial("this->childParentMap.emplace(",vnnt._3,Some(vnnt._6))++
+                                                      commonFunctionSpecial("setParent(",vnnt._3,Some(vnnt._6))++
+                                                      //commonFunctionSpecial("fixMap(",vnnt._3,Some(vnnt._3))++
+                                                      commonFunctionSpecial("fixNodeDecendents(",vnnt._3,Some(vnnt._3))
                                                       // if(vnnt._6 == Var(target)|| vnnt._6 == WrapNodeRef(Var(target)))
                                                       // {
                                                       //   commonFunctionSpecial("this->childParentMap.emplace(",vnnt._3,Some(vnnt._6))++
@@ -246,12 +251,15 @@ object ViewPolicyImplementation extends PolicyImplementation
                                               {
                                                   if(mutator == true)
                                                   {
-                                                    commonFunction("this->childParentMap.emplace(",vnnt._3,Var(",&("+target+")"))
+                                                    //commonFunction("this->childParentMap.emplace(",vnnt._3,Var(",&("+target+")"))++
+                                                    commonFunction("setParent(",vnnt._3,Var(",&("+target+")"))
                                                   }
                                                   else
                                                   {
-                                                   commonFunctionSpecial("this->childParentMap.emplace(",vnnt._3,Some(vnnt._6))++
-                                                        commonFunctionSpecial("fixMap(",vnnt._3,Some(vnnt._3))
+                                                   //commonFunctionSpecial("this->childParentMap.emplace(",vnnt._3,Some(vnnt._6))++
+                                                   commonFunctionSpecial("setParent(",vnnt._3,Some(vnnt._6))++
+                                                  //commonFunctionSpecial("fixMap(",vnnt._3,Some(vnnt._3))++
+                                                  commonFunctionSpecial("fixNodeDecendents(",vnnt._3,Some(vnnt._3))
 
                                                     
                                                    // if(vnnt._6 == Var(target)|| vnnt._6 == WrapNodeRef(Var(target)))
@@ -309,7 +317,8 @@ object ViewPolicyImplementation extends PolicyImplementation
                                                     Macro("#ifdef ATOMIC_STORE_RELEASE")++
                                                     commonFunction("std::atomic_store_explicit(",vnnt._3,Var(","+target+",std::memory_order_release"))++ 
                                                     Macro("#endif")++
-                                                    commonFunction("fixMap(",Var("&("+target+"),"),vnnt._3)
+                                                    //commonFunction("fixMap(",Var("&("+target+"),"),vnnt._3)++
+                                                    commonFunction("fixNodeDecendents(",Var("&("+target+"),"),vnnt._3)
                                      
                                                 
                                                   }

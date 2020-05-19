@@ -66,6 +66,8 @@ object JITDGen {
       "-pthread",
       "-std=c++11",
       "-DTRANSFORM_COUNT",
+      "-DDEFAULT_ALLOCATOR",
+      "-O2",
       "-o", conf.target()
     ) ++ (
       if(conf.debugSymbols()) { Seq("-g") } else { Seq() } 

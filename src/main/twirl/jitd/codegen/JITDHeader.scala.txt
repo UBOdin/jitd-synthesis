@@ -90,10 +90,11 @@ class @{node.renderName} : public JITDNode {
       @{field.name} = new_value;
     }
   }
-
   public: @for(field <- node.fields){ 
-    @{ctx.fieldDefn(field)}; 
+    @{ctx.fieldDefn(field)};
+    
   }
+  std::shared_ptr<JITDNode>* parent = NULL; 
 };
 }
 
@@ -148,11 +149,11 @@ class JITD {
     @{RenderPattern.ViewDeclare(ctx,ctx.policy.rule,true);}
     #ifdef CACHE_ALIGNED_ALLOCATOR
     typedef std::pair<std::shared_ptr<JITDNode> * const,std::shared_ptr<JITDNode> *> elem_pair;
-    std::unordered_multimap<std::shared_ptr<JITDNode> *,std::shared_ptr<JITDNode> *,std::hash<std::shared_ptr<JITDNode> *>,std::equal_to<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<elem_pair>> childParentMap;
+    //std::unordered_multimap<std::shared_ptr<JITDNode> *,std::shared_ptr<JITDNode> *,std::hash<std::shared_ptr<JITDNode> *>,std::equal_to<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<elem_pair>> childParentMap;
     tbb::concurrent_bounded_queue<mutatorCqElement,tbb::cache_aligned_allocator<mutatorCqElement>> work_queue;
     #endif
     #ifdef DEFAULT_ALLOCATOR
-    std::unordered_multimap<std::shared_ptr<JITDNode> *,std::shared_ptr<JITDNode> *> childParentMap;
+    //std::unordered_multimap<std::shared_ptr<JITDNode> *,std::shared_ptr<JITDNode> *> childParentMap;
     tbb::concurrent_bounded_queue<mutatorCqElement> work_queue;
     #endif
 
@@ -163,8 +164,9 @@ class JITD {
         exit(-1);
       }
       this->work_queue.set_capacity(36000);
-      this->childParentMap.reserve(1500);
+      //this->childParentMap.reserve(1500);
       @ctx.policyImplementation.init(ctx,ctx.policy.rule,"(*(this->jitd_root))")
+      //print_map();
     }
     
 
@@ -189,28 +191,31 @@ class JITD {
     
     
    
-    void print_pq();
-    void check_pq();
-    void print_map();
+    //void print_pq();
+    //void check_pq();
+    //void print_map();
     void check_view();
     void jitd_node_count(std::shared_ptr<JITDNode> node);
     void get_node_count(){ jitd_node_count(*jitd_root);std::cout<<"The number of nodes in JITD: "<<node_count<<std::endl;}
     void times_transforms_called();
     std::shared_ptr<JITDNode> * getParent(std::shared_ptr<JITDNode> * &target);
-    void SetPqErase(std::shared_ptr<JITDNode> * node_handle);
-    void SetPqAdd(std::shared_ptr<JITDNode> * node_handle);
+    //std::shared_ptr<JITDNode> * getParentMap(std::shared_ptr<JITDNode> * &target);
+    //void SetPqErase(std::shared_ptr<JITDNode> * node_handle);
+    //void SetPqAdd(std::shared_ptr<JITDNode> * node_handle);
     void viewAdd(std::shared_ptr<JITDNode> * node_handle);
     void viewErase(std::shared_ptr<JITDNode> * node_handle);
-    void fixMap(std::shared_ptr<JITDNode> * node_handle,std::shared_ptr<JITDNode> * parent);
-    
+    //void fixMap(std::shared_ptr<JITDNode> * node_handle,std::shared_ptr<JITDNode> * parent);
+    void fixNodeDecendents(std::shared_ptr<JITDNode> * node_handle,std::shared_ptr<JITDNode> * parent);
+    void setParent(std::shared_ptr<JITDNode> * node_handle,std::shared_ptr<JITDNode> * parent);
+
     void print_debug() {print_JITD_node_structure(*jitd_root, std::string("")); }
     void get_depth(int depth,int &maxdepth) {jitd_get_depth(*jitd_root,depth,maxdepth);}
     void print_debug_viz() {print_JITD_node_structure_viz(*jitd_root,*jitd_root); }
     bool do_organize();
     int organize_wait();
     
-    void check_pq_intergrity(){check_pq();};
-    void print_pq_size() {print_pq();}
+    //void check_pq_intergrity(){check_pq();};
+    //void print_pq_size() {print_pq();}
 
     
     @for(transform <- ctx.definition.transforms){
