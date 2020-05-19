@@ -66,12 +66,8 @@ object JITDGen {
       "-pthread",
       "-std=c++11",
       "-DTRANSFORM_COUNT",
-
-      // Additional compile flags to shut up g++ compiler during in-Scala pre-C++ build:
-      "-D DEFAULT_ALLOCATOR",
-      "-D ATOMIC_STORE",
-      "-D ATOMIC_LOAD",
-
+      "-DDEFAULT_ALLOCATOR",
+      "-O2",
       "-o", conf.target()
     ) ++ (
       if(conf.debugSymbols()) { Seq("-g") } else { Seq() } 
