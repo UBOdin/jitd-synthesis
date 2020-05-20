@@ -589,7 +589,7 @@ int save_output() {
 		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%ld\t%ld", output_array[i].cache_refs, output_array[i].cache_misses);
 		charcount += result;
 		// jitd view structure data:
-		for (int j = 0; j < 10; j++) {
+		for (int j = 0; j < 9; j++) {
 			result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%lu", output_array[i].view_array[j]);
 			charcount += result;
 		}
@@ -664,9 +664,11 @@ int main(int argc, char** argv) {
 		printf("Unexpected parameter count\n");
 		_exit(1);
 	}
-	maxkeys = atoi(argv[1]);
-	__array_size = atoi(argv[2]);
-	printf("crack threshhold:  %d\n", __array_size);
+	__array_size = atoi(argv[1]);
+	maxkeys = atoi(argv[2]);
+	#ifdef STORAGE_JITD
+	printf("crack threshhold:  %d\n", get_threshhold());
+	#endif
 
 	// Initialize HW performance monitoring structure:
 	memset(&pea_struct, 0, sizeof(pea_struct));
@@ -722,6 +724,7 @@ int main(int argc, char** argv) {
 //	std::this_thread::sleep_for(std::chrono::milliseconds(30 * 1000));
 
 	#ifdef STORAGE_JITD
+	storage->jitd->get_node_count();
 	// Kick off background worker thread:
 	std::thread worker_thread(run_worker_thread, storage);
 	#endif
@@ -856,8 +859,7 @@ int main(int argc, char** argv) {
 		output_array[i].view_array[5] = storage->jitd->PushDownDontDeleteElemBtree_View.size();
 		output_array[i].view_array[6] = storage->jitd->PushDownDontDeleteElemConcat_View.size();
 		output_array[i].view_array[7] = storage->jitd->CrackArray_View.size();
-		output_array[i].view_array[8] = storage->jitd->childParentMap.size();
-		output_array[i].view_array[9] = storage->jitd->work_queue.size();
+		output_array[i].view_array[8] = storage->jitd->work_queue.size();
 		#endif
 
 		// Advance to next frame
@@ -925,6 +927,8 @@ int main(int argc, char** argv) {
 
 	printf("Blocking on worker thread exit\n");
 	worker_thread.join();
+
+	storage->jitd->get_node_count();
 /*
 	printf("Starting cleanup.  Main thread TID:  %d\n", getpid());
 	long start_time = gettime_us();
