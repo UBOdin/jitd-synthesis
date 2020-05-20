@@ -1,16 +1,17 @@
 
 echo "Running batch"
 
-storage_list="map uom asal_default asal_aligned"
+storage_list="asal_default asal_aligned map uom"
 keymax_list="30000 3"
 
-make clean
+#make clean
 
 for storage in $storage_list; do
 
 	# Paranoid:  Force rebuilds of jitd (source may not have changed, but preprocessor -D may have):
 	rm jitd_*.o
 
+	make clean
 	make jitd_storage_${storage}
 	if [ "$?" != "0" ]; then
 		echo "Error on build"
@@ -28,8 +29,8 @@ for storage in $storage_list; do
 
 		for threshhold in $threshhold_list; do
 
-			echo "\nRunning ${storage} instance with ${keymax} keys and crack threshhold of ${threshhold}\n"
-			sleep 5
+			printf "\nRunning ${storage} instance with ${keymax} keys and crack threshhold of ${threshhold}\n"
+			sleep 10
 			./jitd_harness.exe $threshhold $keymax
 			if [ "$?" != "0" ]; then
 				echo "Error on JITD"
