@@ -45,7 +45,7 @@ struct output_node {
 	// Debug fields for Jitd:
 	int depth;			// jitd depth
 	int count_array[8];		// transform counts
-	unsigned long view_array[10];	// view counts
+	unsigned long view_array[9];	// view counts
 
 };
 
@@ -56,6 +56,8 @@ struct storage_jitd_struct {
 	std::vector<Record> element;
 	std::shared_ptr<JITD> jitd;
 };
+
+int get_threshhold();
 
 #endif
 
