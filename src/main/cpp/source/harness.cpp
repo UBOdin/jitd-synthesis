@@ -929,6 +929,8 @@ int main(int argc, char** argv) {
 	worker_thread.join();
 
 	storage->jitd->get_node_count();
+	storage->jitd->get_depth(1, depth);
+	printf("jitd depth:  %d\n", depth);
 /*
 	printf("Starting cleanup.  Main thread TID:  %d\n", getpid());
 	long start_time = gettime_us();
