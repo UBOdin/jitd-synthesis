@@ -36,7 +36,7 @@ for storage in $storage_list; do
 				echo "Error on JITD"
 				exit 1
 			fi
-			mv output_data.txt ${storage}_${keymax}_output_data.txt
+			mv output_data.txt ${storage}_${threshhold}_${keymax}_output_data.txt
 
 		done
 
