@@ -30,7 +30,7 @@ for storage in $storage_list; do
 
 			echo "\nRunning ${storage} instance with ${keymax} keys and crack threshhold of ${threshhold}\n"
 			sleep 5
-			./jitd_harness.exe $keymax $threshhold
+			./jitd_harness.exe $threshhold $keymax
 			if [ "$?" != "0" ]; then
 				echo "Error on JITD"
 				exit 1
