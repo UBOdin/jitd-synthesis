@@ -589,10 +589,13 @@ int save_output() {
 		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%ld\t%ld", output_array[i].cache_refs, output_array[i].cache_misses);
 		charcount += result;
 		// jitd view structure data:
-		for (int j = 0; j < 9; j++) {
+		for (int j = 0; j < 8; j++) {
 			result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%lu", output_array[i].view_array[j]);
 			charcount += result;
 		}
+		// jitd work queue size (signed number):
+		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%ld", output_array[i].work_queue);
+		charcount += result;
 		// Append EOL LF:
 		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\n");
 		charcount += result;
@@ -859,7 +862,8 @@ int main(int argc, char** argv) {
 		output_array[i].view_array[5] = storage->jitd->PushDownDontDeleteElemBtree_View.size();
 		output_array[i].view_array[6] = storage->jitd->PushDownDontDeleteElemConcat_View.size();
 		output_array[i].view_array[7] = storage->jitd->CrackArray_View.size();
-		output_array[i].view_array[8] = storage->jitd->work_queue.size();
+		output_array[i].work_queue = storage->jitd->work_queue.size();
+
 		#endif
 
 		// Advance to next frame
