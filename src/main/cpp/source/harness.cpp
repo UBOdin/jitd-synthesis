@@ -575,6 +575,11 @@ int save_output() {
 	errtrap("open");
 	output_fd = result;
 
+	// Save schema version:
+	snprintf(output_buffer, BUFFER_SIZE, "Schema version 1e53f3...\n");
+	result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
+	errtrap("write");
+	
 	for (int i = 0; i < output_size; i++) {
 		// Basic information (latency, operation info):
 		charcount = 0;
@@ -863,7 +868,6 @@ int main(int argc, char** argv) {
 		output_array[i].size_array[6] = storage->jitd->PushDownDontDeleteElemConcat_View.size();
 		output_array[i].size_array[7] = storage->jitd->CrackArray_View.size();
 		output_array[i].work_queue = storage->jitd->work_queue.size();
-
 		#endif
 
 		// Advance to next frame
