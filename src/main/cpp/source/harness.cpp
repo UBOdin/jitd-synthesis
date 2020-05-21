@@ -588,9 +588,9 @@ int save_output() {
 		// Cache activity information:
 		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%ld\t%ld", output_array[i].cache_refs, output_array[i].cache_misses);
 		charcount += result;
-		// jitd view structure data:
+		// jitd view data structure sizes:
 		for (int j = 0; j < 8; j++) {
-			result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%lu", output_array[i].view_array[j]);
+			result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%lu", output_array[i].size_array[j]);
 			charcount += result;
 		}
 		// jitd work queue size (signed number):
@@ -854,14 +854,14 @@ int main(int argc, char** argv) {
 		output_array[i].count_array[6] = storage->jitd->PushDownSingletonLeft_count;
 		output_array[i].count_array[7] = storage->jitd->CrackArray_count;
 		#endif
-		output_array[i].view_array[0] = storage->jitd->PushDownSingletonLeft_View.size();
-		output_array[i].view_array[1] = storage->jitd->PushDownSingletonRight_View.size();
-		output_array[i].view_array[2] = storage->jitd->PushDownDontDeleteSingletonBtreeLeft_View.size();
-		output_array[i].view_array[3] = storage->jitd->PushDownDontDeleteSingletonBtreeRight_View.size();
-		output_array[i].view_array[4] = storage->jitd->PushDownDontDeleteSingletonConcat_View.size();
-		output_array[i].view_array[5] = storage->jitd->PushDownDontDeleteElemBtree_View.size();
-		output_array[i].view_array[6] = storage->jitd->PushDownDontDeleteElemConcat_View.size();
-		output_array[i].view_array[7] = storage->jitd->CrackArray_View.size();
+		output_array[i].size_array[0] = storage->jitd->PushDownSingletonLeft_View.size();
+		output_array[i].size_array[1] = storage->jitd->PushDownSingletonRight_View.size();
+		output_array[i].size_array[2] = storage->jitd->PushDownDontDeleteSingletonBtreeLeft_View.size();
+		output_array[i].size_array[3] = storage->jitd->PushDownDontDeleteSingletonBtreeRight_View.size();
+		output_array[i].size_array[4] = storage->jitd->PushDownDontDeleteSingletonConcat_View.size();
+		output_array[i].size_array[5] = storage->jitd->PushDownDontDeleteElemBtree_View.size();
+		output_array[i].size_array[6] = storage->jitd->PushDownDontDeleteElemConcat_View.size();
+		output_array[i].size_array[7] = storage->jitd->CrackArray_View.size();
 		output_array[i].work_queue = storage->jitd->work_queue.size();
 
 		#endif

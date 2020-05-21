@@ -45,7 +45,7 @@ struct output_node {
 	// Debug fields for Jitd:
 	int depth;			// jitd depth
 	int count_array[8];		// transform counts
-	unsigned long view_array[8];	// view counts
+	unsigned long size_array[8];	// data structure sizes
 	int long work_queue;		// work queue (signed)
 
 };
