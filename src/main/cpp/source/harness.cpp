@@ -621,6 +621,37 @@ int save_output() {
 
 
 #ifdef STORAGE_JITD
+int jitd_debug(STORAGE_HANDLE storage, const char* debug_filename) {
+
+	int result;
+	int fd_stdout;
+	int fd_debug;
+
+	// Save stdout:
+	result = dup(1);
+	errtrap("dup");
+	fd_stdout = result;
+	// Open debug file:
+	result = open(debug_filename, O_CREAT | O_RDWR | O_TRUNC, 0666);
+	errtrap("open");
+	fd_debug = result;
+	result = dup2(fd_debug, 1);
+	errtrap("dup2");
+	storage->jitd->print_debug();
+	// Restore stdout:
+	result = dup2(fd_stdout, 1);
+	errtrap("dup2");
+	// Cleanup:
+	close(fd_debug);
+	close(fd_stdout);
+
+	return 0;
+
+}
+#endif
+
+
+#ifdef STORAGE_JITD
 void run_worker_thread(STORAGE_HANDLE storage) {
 
 	int steps_taken;
@@ -761,11 +792,11 @@ int main(int argc, char** argv) {
 			depth = -1;
 		}
 
-
+/*
 		if (i == 300) {
 			break;
 		}
-
+*/
 
 		// Get next operation:
 		optype = benchmark_array[i].type;
@@ -959,26 +990,7 @@ int main(int argc, char** argv) {
 	printf("Finished cleanup.  Steps:  %d  Time (s):  %f\n", i, (double)diff_time / 1000000.0);
 */
 
-	int fd_stdout;
-	int fd_debug;
-	char debug_filename[] = "debug_jitd.txt";
-
-	// Save stdout:
-	result = dup(1);
-	errtrap("dup");
-	fd_stdout = result;
-	// Open debug file:
-	result = open(debug_filename, O_CREAT | O_RDWR | O_TRUNC, 0666);
-	errtrap("open");
-	fd_debug = result;
-	result = dup2(fd_debug, 1);
-	errtrap("dup2");
-	storage->jitd->print_debug();
-	// Restore stdout:
-	result = dup2(fd_stdout, 1);
-	errtrap("dup2");
-	close(fd_debug);
-	close(fd_stdout);
+	jitd_debug(storage, "debug_jitd.txt");
 
 	printf("Worker thread exited\n");
 	#endif
