@@ -761,11 +761,11 @@ int main(int argc, char** argv) {
 			depth = -1;
 		}
 
-/*
+
 		if (i == 300) {
 			break;
 		}
-*/
+
 
 		// Get next operation:
 		optype = benchmark_array[i].type;
@@ -958,7 +958,27 @@ int main(int argc, char** argv) {
 	diff_time = gettime_us() - start_time;
 	printf("Finished cleanup.  Steps:  %d  Time (s):  %f\n", i, (double)diff_time / 1000000.0);
 */
-//	storage->jitd->print_debug();
+
+	int fd_stdout;
+	int fd_debug;
+	char debug_filename[] = "debug_jitd.txt";
+
+	// Save stdout:
+	result = dup(1);
+	errtrap("dup");
+	fd_stdout = result;
+	// Open debug file:
+	result = open(debug_filename, O_CREAT | O_RDWR | O_TRUNC, 0666);
+	errtrap("open");
+	fd_debug = result;
+	result = dup2(fd_debug, 1);
+	errtrap("dup2");
+	storage->jitd->print_debug();
+	// Restore stdout:
+	result = dup2(fd_stdout, 1);
+	errtrap("dup2");
+	close(fd_debug);
+	close(fd_stdout);
 
 	printf("Worker thread exited\n");
 	#endif
