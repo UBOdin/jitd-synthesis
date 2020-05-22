@@ -983,16 +983,6 @@ int main(int argc, char** argv) {
 	printf("Worker thread exited\n");
 	#endif
 
-result = read(perf_ref_fd, perf_buff, PERFBUFF_SIZE);
-errtrap("read");
-
-printf("Bytes read:  %d\n", result);
-unsigned long perfval;
-for (int i = 0; i < 3; i++) {
-	perfval = ((unsigned long*)perf_buff)[i];
-	printf("Val %d:  %lu\n", i, perfval);
-}
-
 	// Clean up HW performance monitoring:
 	close(perf_ref_fd);
 	close(perf_miss_fd);
