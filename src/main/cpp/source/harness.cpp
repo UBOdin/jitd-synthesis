@@ -901,15 +901,7 @@ int main(int argc, char** argv) {
 //std::this_thread::sleep_for(std::chrono::milliseconds(1000 * 10));
 
 	printf("Waking worker thread\n");
-
-	mutatorCqElement mce;
-
-	mce.flag = EXIT;
-	mce.element = std::make_pair(nullptr,nullptr);
-	pthread_mutex_lock(&storage->jitd->lock);
-	storage->jitd->work_queue.push(mce);
-	pthread_mutex_unlock(&storage->jitd->lock);
-
+	storage->jitd->work_queue.emplace(EXIT, nullptr, nullptr);
 	printf("Blocking on worker thread exit\n");
 	worker_thread.join();
 
