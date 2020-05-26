@@ -271,15 +271,15 @@ Transform("PushDownSingletonRight") {
       "DeleteElements" fromFields( "b", "data"))
     
   }
-  Transform("PushDownDontDeleteElemConcat")
-  {
-    "DeleteElements" withFields("Concat" withFields( "a", "b" ),"data")
-  } {
-    "Concat" fromFields(
-      "DeleteElements" fromFields( "a", "data"),
-      "DeleteElements" fromFields( "b", "data"))
+  // Transform("PushDownDontDeleteElemConcat")
+  // {
+  //   "DeleteElements" withFields("Concat" withFields( "a", "b" ),"data")
+  // } {
+  //   "Concat" fromFields(
+  //     "DeleteElements" fromFields( "a", "data"),
+  //     "DeleteElements" fromFields( "b", "data"))
     
-  }
+  // }
   
   // Transform("PushDownDontDeleteSingletonBtree")
   // {
@@ -312,15 +312,15 @@ Transform("PushDownSingletonRight") {
       "DeleteSingleton" fromFields( "b", "key"))
     
   }
-Transform("PushDownDontDeleteSingletonConcat")
-  {
-    "DeleteSingleton" withFields("Concat" withFields( "a", "b" ),"key")
-  } {
-    "Concat" fromFields(
-      "DeleteSingleton" fromFields( "a", "key"),
-      "DeleteSingleton" fromFields( "b", "key"))
+// Transform("PushDownDontDeleteSingletonConcat")
+//   {
+//     "DeleteSingleton" withFields("Concat" withFields( "a", "b" ),"key")
+//   } {
+//     "Concat" fromFields(
+//       "DeleteSingleton" fromFields( "a", "key"),
+//       "DeleteSingleton" fromFields( "b", "key"))
     
-  }
+//   }
  
   
  
@@ -369,9 +369,7 @@ Transform("PushDownDontDeleteSingletonConcat")
       andThen("PushDownSingletonRight" onlyIf{Key_Cmp("data","separator") eq false} scoreBy{IntConstant(0)})
       andThen("PushDownDontDeleteSingletonBtreeLeft" onlyIf{Keys_Cmp("key","separator") eq true} scoreBy{IntConstant(0)})
       andThen("PushDownDontDeleteSingletonBtreeRight" onlyIf{Keys_Cmp("key","separator") eq false} scoreBy{IntConstant(0)})
-      andThen("PushDownDontDeleteSingletonConcat" scoreBy{IntConstant(0)})
       andThen("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
-      andThen("PushDownDontDeleteElemConcat" scoreBy{IntConstant(0)})
       andThen("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
                               scoreBy { ArraySize("data") })
       
