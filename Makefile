@@ -53,15 +53,6 @@ jitd_storage_asal_default:  jitd_asal_default.o harness_jitd_default.o data.o
 	@echo built with jitd storage with ATOMIC_STORE ATOMIC_LOAD and DEFAULT_ALLOCATOR
 
 
-jitd_storage_asralc_aligned:  jitd_asralc_aligned.o harness_jitd_aligned.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_asralc_aligned.o harness_jitd_aligned.o data.o $(TBB_LIBRARY) -ltbb
-	@echo built with jitd storage with ATOMIC_STORE_RELEASE ATOMIC_LOAD_CONSUME and CACHE_ALIGNED ALLOCATOR
-
-jitd_storage_asralc_default:  jitd_asralc_default.o harness_jitd_default.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_asralc_default.o harness_jitd_default.o data.o $(TBB_LIBRARY) -ltbb
-	@echo built with jitd storage with ATOMIC_STORE_RELEASE ATOMIC_LOAD_CONSUME and DEFAULT ALLOCATOR
-
-
 jitd_storage_sqlite:  jitd_test.o harness_sqlite.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness_sqlite.o data.o -lsqlite3
 	@echo built with sqlite storage
@@ -85,14 +76,6 @@ jitd_asal_aligned.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
 jitd_asal_default.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
 	#$(CC) $(CFLAGS) -o jitd_asal_default.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD -D DEFAULT_ALLOCATOR
 	$(CC) $(CFLAGS) -o jitd_asal_default.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD -D DEFAULT_ALLOCATOR -D TRANSFORM_COUNT
-
-jitd_asralc_aligned.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
-	#$(CC) $(CFLAGS) -o jitd_asralc_aligned.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME -D CACHE_ALIGNED_ALLOCATOR
-	$(CC) $(CFLAGS) -o jitd_asralc_aligned.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME -D CACHE_ALIGNED_ALLOCATOR -D TRANSFORM_COUNT
-
-jitd_asralc_default.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
-	#$(CC) $(CFLAGS) -o jitd_asralc_default.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME -D DEFAULT_ALLOCATOR
-	$(CC) $(CFLAGS) -o jitd_asralc_default.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME -D DEFAULT_ALLOCATOR -D TRANSFORM_COUNT
 
 
 harness_jitd.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
