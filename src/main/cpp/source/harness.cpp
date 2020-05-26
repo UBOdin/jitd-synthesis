@@ -936,7 +936,7 @@ int main(int argc, char** argv) {
 	printf("Finished cleanup.  Steps:  %d  Time (s):  %f\n", i, (double)diff_time / 1000000.0);
 */
 
-	jitd_debug(storage, "debug_jitd.txt");
+//	jitd_debug(storage, "debug_jitd_final.txt");
 
 	printf("Worker thread exited\n");
 	#endif
