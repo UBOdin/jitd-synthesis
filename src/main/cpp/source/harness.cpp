@@ -38,6 +38,10 @@
 
 #ifdef STORAGE_JITD
 
+#ifdef THREAD_INTEL
+#include <tbb/tbb.h>
+#endif
+
 #include "jitd_test.hpp"
 
 #define STORAGE_HANDLE struct storage_jitd_struct*
@@ -697,15 +701,18 @@ int main(int argc, char** argv) {
 	}
 	__array_size = atoi(argv[1]);
 	maxkeys = atoi(argv[2]);
-	#ifdef STORAGE_JITD
-	printf("crack threshhold:  %d\n", get_threshhold());
-	#endif
 
 	#ifdef STORAGE_SQLITE
 	printf("Using SQLite storage\n");
 	#endif
 	#ifdef STORAGE_JITD
-	printf("Using JITD storage\n");
+	#ifdef THREAD_PTHREAD
+	printf("Using JITD storage with pthread threads\n");
+	#endif
+	#ifdef THREAD_INTEL
+	printf("Using JITD storage with intel threads\n");
+	#endif
+	printf("crack threshhold:  %d\n", get_threshhold());
 	#endif
 	#ifdef STORAGE_MAP
 	printf("Using (Ordered) Map storage\n");
@@ -728,7 +735,12 @@ int main(int argc, char** argv) {
 	#ifdef STORAGE_JITD
 	storage->jitd->get_node_count();
 	// Kick off background worker thread:
+	#ifdef THREAD_PTHREAD
 	std::thread worker_thread(run_worker_thread, storage);
+	#endif
+	#ifdef THREAD_INTEL
+	tbb::tbb_thread worker_thread(run_worker_thread, storage);
+	#endif
 	#endif
 
 	printf("Starting operations\n");
