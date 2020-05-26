@@ -578,7 +578,7 @@ int save_output() {
 	output_fd = result;
 
 	// Save schema version:
-	snprintf(output_buffer, BUFFER_SIZE, "Schema version 1e53f3...\n");
+	snprintf(output_buffer, BUFFER_SIZE, "Schema version 8fea69...\n");
 	result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
 	errtrap("write");
 	
