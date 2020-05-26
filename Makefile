@@ -27,7 +27,19 @@ CONF_H = $(HEADER)/conf.hpp
 
 .PHONY:  clean
 
-# N.b make sans arguments runs first target, i.e. below:
+ifeq (${alloc}, default)
+jitd_defines := -D DEFAULT_ALLOCATOR
+endif
+ifeq (${alloc}, aligned)
+jitd_defines := -D CACHE_ALIGNED_ALLOCATOR
+endif
+ifeq (${thread}, pthread)
+harness_defines = ${jitd_defines} -D THREAD_PTHREAD
+endif
+ifeq (${thread}, intel)
+harness_defines = ${jitd_defines} -D THREAD_INTEL
+endif
+
 
 default: $(MAIN)
 	@echo Build successful
@@ -44,22 +56,9 @@ jitd_storage_jitd:  jitd_test.o harness_jitd.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness_jitd.o data.o $(TBB_LIBRARY) -ltbb
 	@echo built with jitd storage
 
-jitd_storage_asal_aligned_pthread:  jitd_asal_aligned.o harness_jitd_aligned_pthread.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_asal_aligned.o harness_jitd_aligned_pthread.o data.o $(TBB_LIBRARY) -ltbb
-	@echo built with jitd storage with asal allocator and pthread threading
-
-jitd_storage_asal_aligned_intel:  jitd_asal_aligned.o harness_jitd_aligned_intel.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_asal_aligned.o harness_jitd_aligned_intel.o data.o $(TBB_LIBRARY) -ltbb
-	@echo built with jitd storage with asal allocator and intel threading
-
-jitd_storage_asal_default_pthread:  jitd_asal_default.o harness_jitd_default_pthread.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_asal_default.o harness_jitd_default_pthread.o data.o $(TBB_LIBRARY) -ltbb
-	@echo built with jitd storage with default allocator and pthread threading
-
-jitd_storage_asal_default_intel:  jitd_asal_default.o harness_jitd_default_intel.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_asal_default.o harness_jitd_default_intel.o data.o $(TBB_LIBRARY) -ltbb
-	@echo built with jitd storage with default allocator and intel thread
-
+jitd_storage_asal:  jitd_asal_${alloc}.o harness_jitd_${alloc}_${thread}.o data.o
+	$(CC) $(CFLAGS) -o $(MAIN) jitd_asal_${alloc}.o harness_jitd_${alloc}_${thread}.o data.o $(TBB_LIBRARY) -ltbb
+	@echo built with jitd storage with ${alloc} allocator and ${thread} thread
 
 jitd_storage_sqlite:  jitd_test.o harness_sqlite.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness_sqlite.o data.o -lsqlite3
@@ -73,43 +72,23 @@ jitd_storage_uom:  harness_uom.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) harness_uom.o data.o
 	@echo built with unordered map storage
 
+
 jitd_test.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
 	$(CC) $(CFLAGS) -c $(JITD_TEST_C) $(INCLUDES)
 
-
-jitd_asal_aligned.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
-	#$(CC) $(CFLAGS) -o jitd_asal_aligned.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD -D CACHE_ALIGNED_ALLOCATOR
-	$(CC) $(CFLAGS) -o jitd_asal_aligned.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD -D CACHE_ALIGNED_ALLOCATOR -D TRANSFORM_COUNT
-
-jitd_asal_default.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
-	#$(CC) $(CFLAGS) -o jitd_asal_default.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD -D DEFAULT_ALLOCATOR
-	$(CC) $(CFLAGS) -o jitd_asal_default.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD -D DEFAULT_ALLOCATOR -D TRANSFORM_COUNT
+jitd_asal_${alloc}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
+	#$(CC) $(CFLAGS) -o jitd_asal_${alloc}.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD ${jitd_defines}
+	$(CC) $(CFLAGS) -o jitd_asal_${alloc}.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD ${jitd_defines} -D TRANSFORM_COUNT
 
 
 harness_jitd.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_JITD" > $(CONF_H)
 	#$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_jitd.o $(INCLUDES)
 
-harness_jitd_aligned_pthread.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
+harness_jitd_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_JITD" > $(CONF_H)
-	#$(CC) $(CFLAGS) -o harness_jitd_aligned_pthread.o -c $(HARNESS_C) $(INCLUDES) -D CACHE_ALIGNED_ALLOCATOR -D THREAD_PTHREAD
-	$(CC) $(CFLAGS) -o harness_jitd_aligned_pthread.o -c $(HARNESS_C) $(INCLUDES) -D CACHE_ALIGNED_ALLOCATOR -D THREAD_PTHREAD -D TRANSFORM_COUNT
-
-harness_jitd_aligned_intel.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
-	@echo "#define STORAGE_JITD" > $(CONF_H)
-	#$(CC) $(CFLAGS) -o harness_jitd_aligned_intel.o -c $(HARNESS_C) $(INCLUDES) -D CACHE_ALIGNED_ALLOCATOR -D THREAD_INTEL
-	$(CC) $(CFLAGS) -o harness_jitd_aligned_intel.o -c $(HARNESS_C) $(INCLUDES) -D CACHE_ALIGNED_ALLOCATOR -D THREAD_INTEL -D TRANSFORM_COUNT
-
-harness_jitd_default_pthread.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
-	@echo "#define STORAGE_JITD" > $(CONF_H)
-	#$(CC) $(CFLAGS) -o harness_jitd_default_pthread.o -c $(HARNESS_C) $(INCLUDES) -D DEFAULT_ALLOCATOR -D THREAD_PTHREAD
-	$(CC) $(CFLAGS) -o harness_jitd_default_pthread.o -c $(HARNESS_C) $(INCLUDES) -D DEFAULT_ALLOCATOR -D THREAD_PTHREAD -D TRANSFORM_COUNT
-
-harness_jitd_default_intel.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
-	@echo "#define STORAGE_JITD" > $(CONF_H)
-	#$(CC) $(CFLAGS) -o harness_jitd_default_intel.o -c $(HARNESS_C) $(INCLUDES) -D DEFAULT_ALLOCATOR -D THREAD_INTEL
-	$(CC) $(CFLAGS) -o harness_jitd_default_intel.o -c $(HARNESS_C) $(INCLUDES) -D DEFAULT_ALLOCATOR -D THREAD_INTEL -D TRANSFORM_COUNT
-
+	#$(CC) $(CFLAGS) -o harness_jitd_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) ${harness_defines}
+	$(CC) $(CFLAGS) -o harness_jitd_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) ${harness_defines} -D TRANSFORM_COUNT
 
 harness_sqlite.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_SQLITE" > $(CONF_H)
@@ -122,6 +101,7 @@ harness_map.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 harness_uom.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_UOM" > $(CONF_H)
 	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_uom.o $(INCLUDES)
+
 
 data.o:  $(DATA_C) $(HARNESS_H)
 	$(CC) $(CFLAGS) -c $(DATA_C) $(INCLUDES)
