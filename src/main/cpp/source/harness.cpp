@@ -838,18 +838,14 @@ int main(int argc, char** argv) {
 		output_array[i].count_array[1] = storage->jitd->PushDownSingletonRight_count;
 		output_array[i].count_array[2] = storage->jitd->PushDownDontDeleteSingletonBtreeLeft_count;
 		output_array[i].count_array[3] = storage->jitd->PushDownDontDeleteSingletonBtreeRight_count;
-		output_array[i].count_array[4] = storage->jitd->PushDownDontDeleteSingletonConcat_count;
 		output_array[i].count_array[5] = storage->jitd->PushDownDontDeleteElemBtree_count;
-		output_array[i].count_array[6] = storage->jitd->PushDownDontDeleteElemConcat_count;
 		output_array[i].count_array[7] = storage->jitd->CrackArray_count;
 		#endif
 		output_array[i].size_array[0] = storage->jitd->PushDownSingletonLeft_View.size();
 		output_array[i].size_array[1] = storage->jitd->PushDownSingletonRight_View.size();
 		output_array[i].size_array[2] = storage->jitd->PushDownDontDeleteSingletonBtreeLeft_View.size();
 		output_array[i].size_array[3] = storage->jitd->PushDownDontDeleteSingletonBtreeRight_View.size();
-		output_array[i].size_array[4] = storage->jitd->PushDownDontDeleteSingletonConcat_View.size();
 		output_array[i].size_array[5] = storage->jitd->PushDownDontDeleteElemBtree_View.size();
-		output_array[i].size_array[6] = storage->jitd->PushDownDontDeleteElemConcat_View.size();
 		output_array[i].size_array[7] = storage->jitd->CrackArray_View.size();
 		output_array[i].work_queue = storage->jitd->work_queue.size();
 		#endif
