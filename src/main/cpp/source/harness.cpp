@@ -74,7 +74,7 @@ using namespace harness;
 
 // jitd debug globals:
 int __array_size;
-
+int __sleep_time;
 
 long gettime_us() {
 
@@ -695,12 +695,13 @@ int main(int argc, char** argv) {
 	int maxkeys;  // debug -- the keycount with which the structure will be initially populated
 
 	// Extract debug parameters:  max keycount with which to populate structure and jitd crack threshhold:
-	if (argc != 3) {
+	if (argc != 4) {
 		printf("Unexpected parameter count\n");
 		_exit(1);
 	}
 	__array_size = atoi(argv[1]);
 	maxkeys = atoi(argv[2]);
+	__sleep_time = atoi(argv[3]);
 
 	#ifdef STORAGE_SQLITE
 	printf("Using SQLite storage\n");
