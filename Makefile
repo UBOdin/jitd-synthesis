@@ -61,9 +61,10 @@ harness_defines := ${shared_defines} -D THREAD_INTEL
 endif
 
 
-test:
-	@echo [${jitd_defines}]
-	@echo [${harness_defines}]
+help:
+	@echo alloc= thread= delay=
+	@echo jitd defines:  [${jitd_defines}]
+	@echo harness defines:  [${harness_defines}]
 
 default: $(MAIN)
 	@echo Build successful
