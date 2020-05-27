@@ -271,17 +271,15 @@ Transform("PushDownSingletonRight") {
       "DeleteElements" fromFields( "b", "data"))
     
   }
-/*
-  Transform("PushDownDontDeleteElemConcat")
-  {
-    "DeleteElements" withFields("Concat" withFields( "a", "b" ),"data")
-  } {
-    "Concat" fromFields(
-      "DeleteElements" fromFields( "a", "data"),
-      "DeleteElements" fromFields( "b", "data"))
+  // Transform("PushDownDontDeleteElemConcat")
+  // {
+  //   "DeleteElements" withFields("Concat" withFields( "a", "b" ),"data")
+  // } {
+  //   "Concat" fromFields(
+  //     "DeleteElements" fromFields( "a", "data"),
+  //     "DeleteElements" fromFields( "b", "data"))
     
-  }
-*/
+  // }
   
   // Transform("PushDownDontDeleteSingletonBtree")
   // {
@@ -314,17 +312,16 @@ Transform("PushDownSingletonRight") {
       "DeleteSingleton" fromFields( "b", "key"))
     
   }
-/*
-Transform("PushDownDontDeleteSingletonConcat")
-  {
-    "DeleteSingleton" withFields("Concat" withFields( "a", "b" ),"key")
-  } {
-    "Concat" fromFields(
-      "DeleteSingleton" fromFields( "a", "key"),
-      "DeleteSingleton" fromFields( "b", "key"))
+// Transform("PushDownDontDeleteSingletonConcat")
+//   {
+//     "DeleteSingleton" withFields("Concat" withFields( "a", "b" ),"key")
+//   } {
+//     "Concat" fromFields(
+//       "DeleteSingleton" fromFields( "a", "key"),
+//       "DeleteSingleton" fromFields( "b", "key"))
     
-  }
-*/
+//   }
+ 
   
  
 

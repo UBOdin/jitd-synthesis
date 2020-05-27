@@ -8,6 +8,7 @@
 #include <sstream>
 #include "runtime.hpp"
 #include "@headerFile"
+#include <thread>
 
 
 //#define JITD_DEBUG_POLICY true;
@@ -65,8 +66,18 @@ int JITD::organize_wait()
       else
       {
         mutatorCqElement pop_mce;
-        
+
+        #ifdef BLOCK
         this->work_queue.pop(pop_mce);
+        #endif
+
+        #ifdef SPIN
+        while(this->work_queue.try_pop(pop_mce) == false)
+        {
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
+        }
+        #endif
+
         if(pop_mce.flag == EXIT)
         {
           #ifdef TRANSFORM_COUNT

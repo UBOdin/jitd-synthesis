@@ -148,7 +148,7 @@ class JITD {
     /*@{RenderPattern.SetPqDeclare(ctx,ctx.policy.rule,true);}*/
     @{RenderPattern.ViewDeclare(ctx,ctx.policy.rule,true);}
     #ifdef CACHE_ALIGNED_ALLOCATOR
-    typedef std::pair<std::shared_ptr<JITDNode> * const,std::shared_ptr<JITDNode> *> elem_pair;
+    //typedef std::pair<std::shared_ptr<JITDNode> * const,std::shared_ptr<JITDNode> *> elem_pair;
     //std::unordered_multimap<std::shared_ptr<JITDNode> *,std::shared_ptr<JITDNode> *,std::hash<std::shared_ptr<JITDNode> *>,std::equal_to<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<elem_pair>> childParentMap;
     tbb::concurrent_bounded_queue<mutatorCqElement,tbb::cache_aligned_allocator<mutatorCqElement>> work_queue;
     #endif
