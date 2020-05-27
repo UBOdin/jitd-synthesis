@@ -27,18 +27,32 @@ CONF_H = $(HEADER)/conf.hpp
 
 .PHONY:  clean
 
+# Hardcoded; also support asralc:
+atomic = asal
+
 ifeq (${alloc}, default)
 shared_defines := -D DEFAULT_ALLOCATOR
 endif
 ifeq (${alloc}, aligned)
 shared_defines := -D CACHE_ALIGNED_ALLOCATOR
 endif
+
+shared_defines += -D TRANSFORM_COUNT  # Hardcoded
+
+ifeq (${atomic}, asal)
+jitd_defines := ${shared_defines} -D ATOMIC_STORE -D ATOMIC_LOAD
+endif
+ifeq (${atomic}, asralc)
+jitd_defines := ${shared_defines} -D ATOMIC_STORE_RELEASE -D ATOMIC_LOAD_CONSUME
+endif
+
 ifeq (${delay}, block)
-jitd_defines := ${shared_defines} -D BLOCK
+jitd_defines += -D BLOCK
 endif
 ifeq (${delay}, spin)
-jitd_defines := ${shared_defines} -D SPIN
+jitd_defines += -D SPIN
 endif
+
 ifeq (${thread}, pthread)
 harness_defines := ${shared_defines} -D THREAD_PTHREAD
 endif
@@ -47,12 +61,16 @@ harness_defines := ${shared_defines} -D THREAD_INTEL
 endif
 
 
+test:
+	@echo [${jitd_defines}]
+	@echo [${harness_defines}]
+
 default: $(MAIN)
 	@echo Build successful
 
-jitd_storage_asal:  jitd_asal_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_asal_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o data.o $(TBB_LIBRARY) -ltbb
-	@echo built with jitd storage with ${alloc} allocator, ${thread} thread, and ${delay} delay
+jitd_storage_jitd:  jitd_${atomic}_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o data.o
+	$(CC) $(CFLAGS) -o $(MAIN) jitd_${atomic}_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o data.o $(TBB_LIBRARY) -ltbb
+	@echo built with jitd storage with ${atomic} atomic, ${alloc} allocator, ${thread} thread, and ${delay} delay
 
 jitd_storage_sqlite:  jitd_test.o harness_sqlite.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness_sqlite.o data.o -lsqlite3
@@ -67,15 +85,13 @@ jitd_storage_uom:  harness_uom.o data.o
 	@echo built with unordered map storage
 
 
-jitd_asal_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
-	#$(CC) $(CFLAGS) -o jitd_asal_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD ${jitd_defines}
-	$(CC) $(CFLAGS) -o jitd_asal_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD ${jitd_defines} -D TRANSFORM_COUNT
+jitd_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
+	$(CC) $(CFLAGS) -o jitd_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) ${jitd_defines}
 
 
 harness_jitd_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_JITD" > $(CONF_H)
-	#$(CC) $(CFLAGS) -o harness_jitd_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) ${harness_defines}
-	$(CC) $(CFLAGS) -o harness_jitd_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) ${harness_defines} -D TRANSFORM_COUNT
+	$(CC) $(CFLAGS) -o harness_jitd_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) ${harness_defines}
 
 harness_sqlite.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_SQLITE" > $(CONF_H)
