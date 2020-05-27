@@ -50,18 +50,6 @@ endif
 default: $(MAIN)
 	@echo Build successful
 
-quick:  jitd_test.o
-	$(CC) $(CFLAGS) -o quick.exe $(SOURCE)/quick.cpp $(JITD_TEST_C) $(INCLUDES) $(TBB_LIBRARY) -ltbb
-	@echo quick build
-
-jitd_allatonce:
-	@echo "#define STORAGE_JITD" > $(CONF_H)
-	$(CC) $(CFLAGS) -o $(MAIN) $(JITD_TEST_C) $(HARNESS_C) $(DATA_C) $(INCLUDES) $(TBB_LIBRARY) -ltbb
-	
-jitd_storage_jitd:  jitd_test.o harness_jitd.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness_jitd.o data.o $(TBB_LIBRARY) -ltbb
-	@echo built with jitd storage
-
 jitd_storage_asal:  jitd_asal_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_asal_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o data.o $(TBB_LIBRARY) -ltbb
 	@echo built with jitd storage with ${alloc} allocator, ${thread} thread, and ${delay} delay
@@ -79,17 +67,10 @@ jitd_storage_uom:  harness_uom.o data.o
 	@echo built with unordered map storage
 
 
-jitd_test.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
-	$(CC) $(CFLAGS) -c $(JITD_TEST_C) $(INCLUDES)
-
 jitd_asal_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
 	#$(CC) $(CFLAGS) -o jitd_asal_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD ${jitd_defines}
 	$(CC) $(CFLAGS) -o jitd_asal_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) -D ATOMIC_STORE -D ATOMIC_LOAD ${jitd_defines} -D TRANSFORM_COUNT
 
-
-harness_jitd.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
-	@echo "#define STORAGE_JITD" > $(CONF_H)
-	#$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_jitd.o $(INCLUDES)
 
 harness_jitd_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_JITD" > $(CONF_H)
