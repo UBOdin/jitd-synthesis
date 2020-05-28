@@ -18,7 +18,7 @@
 #include <tbb/compat/thread>
 #endif
 
-#define PIN_DIFF
+//#define PIN_DIFF
 
 #ifdef PIN_SAME
 #define CORE_CLIENT 2
