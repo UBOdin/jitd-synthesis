@@ -9,8 +9,14 @@
 #include <sys/ioctl.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <thread>
 #include <unistd.h>
+
+#ifdef THREAD_PTHREAD
+#include <thread>
+#endif
+#ifdef THREAD_INTEL
+#include <tbb/compat/thread>
+#endif
 
 #include "conf.hpp"
 
@@ -44,10 +50,6 @@
 #endif
 
 #ifdef STORAGE_JITD
-
-#ifdef THREAD_INTEL
-#include <tbb/tbb.h>
-#endif
 
 #include "jitd_test.hpp"
 
@@ -781,12 +783,7 @@ int main(int argc, char** argv) {
 	#ifdef STORAGE_JITD
 	storage->jitd->get_node_count();
 	// Kick off background worker thread:
-	#ifdef THREAD_PTHREAD
 	std::thread worker_thread(run_worker_thread, storage);
-	#endif
-	#ifdef THREAD_INTEL
-	tbb::tbb_thread worker_thread(run_worker_thread, storage);
-	#endif
 	#endif
 
 	printf("Starting operations\n");
