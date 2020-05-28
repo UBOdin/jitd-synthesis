@@ -18,6 +18,17 @@
 #include <tbb/compat/thread>
 #endif
 
+#define PIN_DIFF
+
+#ifdef PIN_SAME
+#define CORE_CLIENT 2
+#define CORE_WORKER 2
+#endif
+#ifdef PIN_DIFF
+#define CORE_CLIENT 2
+#define CORE_WORKER 4
+#endif
+
 #include "conf.hpp"
 
 #define TRACK_CACHING
@@ -659,17 +670,36 @@ int jitd_debug(STORAGE_HANDLE storage, const char* debug_filename) {
 	return 0;
 
 }
-#endif
 
 
-#ifdef STORAGE_JITD
+int pin_thread(int core) {
+
+	long tid;
+	cpu_set_t set;
+	int result;
+
+	// Pin client thread to core(s):
+	tid = syscall(__NR_gettid);
+	CPU_ZERO(&set);
+	CPU_SET(core, &set);
+	result = sched_setaffinity(tid, sizeof(set), &set);
+	errtrap("sched_setaffinity");
+	printf("Thread tid %ld pinned to core %d", tid, core);
+
+	return 0;
+
+}
+
+
 void run_worker_thread(STORAGE_HANDLE storage) {
 
 	int steps_taken;
-	uintptr_t tid;
 
-	tid = pthread_self();
-	printf("Worker thread starting:  TID = %p\n", (void*)tid);
+	#if defined PIN_SAME || defined PIN_DIFF
+	pin_thread(CORE_WORKER);
+	#endif
+
+	printf("Worker thread starting.\n");
 	steps_taken = storage->jitd->organize_wait();
 	printf("Worker thread exiting.  Steps taken:  %d\n", steps_taken);
 
@@ -782,6 +812,9 @@ int main(int argc, char** argv) {
 
 	#ifdef STORAGE_JITD
 	storage->jitd->get_node_count();
+	#if defined PIN_SAME || defined PIN_DIFF
+	pin_thread(CORE_CLIENT);
+	#endif
 	// Kick off background worker thread:
 	std::thread worker_thread(run_worker_thread, storage);
 	#endif
