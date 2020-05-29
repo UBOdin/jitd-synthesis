@@ -92,9 +92,6 @@
 
 using namespace harness;
 
-// jitd debug globals:
-int __array_size;
-int __sleep_time;
 
 long gettime_us() {
 
@@ -741,13 +738,15 @@ int main(int argc, char** argv) {
 	#endif
 
 	// Extract debug parameters:  max keycount with which to populate structure and jitd crack threshhold:
+	#ifdef STORAGE_JITD
 	if (argc != 4) {
 		printf("Unexpected parameter count\n");
 		_exit(1);
 	}
-	__array_size = atoi(argv[1]);
+	storage->jitd->__array_size = atoi(argv[1]);
 	maxkeys = atoi(argv[2]);
-	__sleep_time = atoi(argv[3]);
+	storage->jitd->__sleep_time = atoi(argv[3]);
+	#endif
 
 	#ifdef TRACK_CACHING
 	// Initialize HW performance monitoring structure:
@@ -790,8 +789,8 @@ int main(int argc, char** argv) {
 	#ifdef THREAD_INTEL
 	printf("Using JITD storage with intel threads\n");
 	#endif
-	printf("crack threshhold:  %d\n", get_threshhold());
-	printf("worker sleeptime:  %d\n", get_sleep_time());
+	printf("crack threshhold:  %d\n", storage->jitd->__array_size);
+	printf("worker sleeptime:  %d\n", storage->jitd->__sleep_time);
 	#endif
 	#ifdef STORAGE_MAP
 	printf("Using (Ordered) Map storage\n");

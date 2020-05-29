@@ -5,12 +5,6 @@
 #include "jitd_test.hpp"
 #include <thread>
 
-extern int __array_size;
-extern int __sleep_time;
-
-int get_threshhold() { return __array_size; }
-int get_sleep_time() { return __sleep_time; }
-
 //#define JITD_DEBUG_POLICY true;
 //std::shared_ptr<JITDNode> * rootHandleRef;
 

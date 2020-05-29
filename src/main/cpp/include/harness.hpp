@@ -58,9 +58,6 @@ struct storage_jitd_struct {
 	std::shared_ptr<JITD> jitd;
 };
 
-int get_threshhold();
-int get_sleep_time();
-
 #endif
 
 #ifdef STORAGE_MAP
