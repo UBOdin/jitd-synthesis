@@ -21,7 +21,6 @@ DATA_C = $(SOURCE)/data.cpp
 
 JITD_TEST_H = target/jitd_test.hpp
 RUNTIME_H = $(HEADER)/runtime.hpp
-TEST_H = $(HEADER)/test.hpp
 HARNESS_H = $(HEADER)/harness.hpp
 CONF_H = $(HEADER)/conf.hpp
 
@@ -90,19 +89,19 @@ jitd_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
 	$(CC) $(CFLAGS) -o jitd_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) ${jitd_defines}
 
 
-harness_jitd_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
+harness_jitd_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_JITD" > $(CONF_H)
 	$(CC) $(CFLAGS) -o harness_jitd_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) ${harness_defines}
 
-harness_sqlite.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
+harness_sqlite.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_SQLITE" > $(CONF_H)
 	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_sqlite.o $(INCLUDES) -D THREAD_PTHREAD
 
-harness_map.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
+harness_map.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_MAP" > $(CONF_H)
 	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_map.o $(INCLUDES) -D THREAD_PTHREAD
 
-harness_uom.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
+harness_uom.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_UOM" > $(CONF_H)
 	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_uom.o $(INCLUDES) -D THREAD_PTHREAD
 
