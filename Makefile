@@ -96,15 +96,15 @@ harness_jitd_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARN
 
 harness_sqlite.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_SQLITE" > $(CONF_H)
-	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_sqlite.o $(INCLUDES)
+	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_sqlite.o $(INCLUDES) -D THREAD_PTHREAD
 
 harness_map.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_MAP" > $(CONF_H)
-	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_map.o $(INCLUDES)
+	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_map.o $(INCLUDES) -D THREAD_PTHREAD
 
 harness_uom.o:  $(HARNESS_C) $(JITD_TEST_H) $(TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_UOM" > $(CONF_H)
-	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_uom.o $(INCLUDES)
+	$(CC) $(CFLAGS) -c $(HARNESS_C) -o harness_uom.o $(INCLUDES) -D THREAD_PTHREAD
 
 
 data.o:  $(DATA_C) $(HARNESS_H)
