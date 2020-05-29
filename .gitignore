@@ -1,6 +1,10 @@
 /project/project
 /project/target
-/target
+/target/.history
+/target/project
+/target/scala-2.11
+/target/streams
+/target/target
 /jitd_test
 /test_accessor
 /jitd.cpp
