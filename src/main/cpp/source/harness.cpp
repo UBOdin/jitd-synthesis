@@ -684,7 +684,7 @@ int pin_thread(int core) {
 	CPU_SET(core, &set);
 	result = sched_setaffinity(tid, sizeof(set), &set);
 	errtrap("sched_setaffinity");
-	printf("Thread tid %ld pinned to core %d", tid, core);
+	printf("Thread tid %ld pinned to core %d\n", tid, core);
 
 	return 0;
 
@@ -791,6 +791,7 @@ int main(int argc, char** argv) {
 	printf("Using JITD storage with intel threads\n");
 	#endif
 	printf("crack threshhold:  %d\n", get_threshhold());
+	printf("worker sleeptime:  %d\n", get_sleep_time());
 	#endif
 	#ifdef STORAGE_MAP
 	printf("Using (Ordered) Map storage\n");

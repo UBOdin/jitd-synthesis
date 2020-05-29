@@ -59,6 +59,7 @@ struct storage_jitd_struct {
 };
 
 int get_threshhold();
+int get_sleep_time();
 
 #endif
 
