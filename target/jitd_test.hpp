@@ -528,6 +528,11 @@ void after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>
 	// Parameters for benchmark use:
 	int __array_size;			// Array crack threshhold
 	int __sleep_time;			// Worker intra-spin block time
+	int __perf_ref_fd;			// Perf event (group) fd to track cache actvity
+
+	long __time_delta = 0;
+	unsigned long __refs_delta = 0;
+	unsigned long __miss_delta = 0;
     
   private:
 

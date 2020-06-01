@@ -5,6 +5,36 @@
 #include "jitd_test.hpp"
 #include <thread>
 
+
+#include "harness.hpp"
+
+
+#define START_EVENT \
+	\
+	long time_start; \
+	unsigned long refs_start; \
+	unsigned long miss_start; \
+	int result; \
+	char perf_buff[PERFBUFF_SIZE]; \
+	\
+	result = read(__perf_ref_fd, perf_buff, PERFBUFF_SIZE); \
+	errtrap("read"); \
+	refs_start = ((unsigned long*)perf_buff)[1]; \
+	miss_start = ((unsigned long*)perf_buff)[2]; \
+	\
+	time_start = gettime_us(); \
+
+
+#define END_EVENT \
+	\
+	__time_delta = gettime_us() - time_start; \
+	\
+	result = read(__perf_ref_fd, perf_buff, PERFBUFF_SIZE); \
+	errtrap("read"); \
+	__refs_delta += ((unsigned long*)perf_buff)[1] - refs_start; \
+	__miss_delta += ((unsigned long*)perf_buff)[2] - miss_start; \
+
+
 //#define JITD_DEBUG_POLICY true;
 //std::shared_ptr<JITDNode> * rootHandleRef;
 
@@ -730,6 +760,9 @@ bool jitd_accessor_get(const std::shared_ptr<JITDNode> &jitd_node_ref ,long targ
 
 void JITD::remove_singleton(const long &data )
 {
+
+START_EVENT;
+
 /*std::cout<<" The transform applied is:JITD::remove_singleton"<<std::endl;*/
   {
     /*** BEGIN ASSEMBLING new_root ***/
@@ -748,6 +781,9 @@ void JITD::remove_singleton(const long &data )
     std::atomic_store_explicit(&jitd_root, new_root_ptr,std::memory_order_release);
 
     #endif
+
+END_EVENT;
+
   }
 
 }
@@ -786,6 +822,9 @@ void JITD::after_remove_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITD
 
 void JITD::remove_elements(const std::vector<long> &data )
 {
+
+START_EVENT;
+
 /*std::cout<<" The transform applied is:JITD::remove_elements"<<std::endl;*/
   {
     /*** BEGIN ASSEMBLING new_root ***/
@@ -805,6 +844,8 @@ void JITD::remove_elements(const std::vector<long> &data )
 
     #endif
   }
+
+END_EVENT;
 
 }
 void JITD::after_remove_elements(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> &cq_elem)
@@ -907,6 +948,9 @@ void JITD::insert_singleton(const Record &data )
 {
 /*std::cout<<" The transform applied is:JITD::insert_singleton"<<std::endl;*/
   {
+
+START_EVENT;
+
     /*** BEGIN ASSEMBLING new_root ***/
     /*** Assemble new_root_rhs as a Singleton ***/
     SingletonNode * new_root_rhs = new SingletonNode(data);
@@ -926,6 +970,9 @@ void JITD::insert_singleton(const Record &data )
     std::atomic_store_explicit(&jitd_root, new_root_ptr,std::memory_order_release);
 
     #endif
+
+END_EVENT;
+
   }
 
 }
