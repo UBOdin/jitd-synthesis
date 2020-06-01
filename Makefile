@@ -85,7 +85,7 @@ jitd_storage_uom:  harness_uom.o data.o
 	@echo built with unordered map storage
 
 
-jitd_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H)
+jitd_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H)
 	$(CC) $(CFLAGS) -o jitd_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) ${jitd_defines}
 
 
