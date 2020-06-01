@@ -112,7 +112,7 @@ double total_time(timeval &start, timeval &end) {
 
 
 
-#define errtrap(error) (__errtrap(result, error, __LINE__))
+//#define errtrap(error) (__errtrap(result, error, __LINE__))
 void __errtrap(int result, const char* error, int line) {
 
 	if (result == -1) {
@@ -171,7 +171,6 @@ STORAGE_HANDLE create_storage(int maxkeys) {
 	#ifdef STORAGE_JITD
 
 	STORAGE_HANDLE storage = new storage_jitd_struct();
-	bool not_done = true;
 
 	while (true) {
 		// Debug:  Populate structure with only a subset of keys:
@@ -194,14 +193,6 @@ STORAGE_HANDLE create_storage(int maxkeys) {
 	}
 	storage->jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new ArrayNode(storage->element)))));
 	printf("Keys prepopulated:  %d\n", k);
-
-	// Organize initial jitd structure until it reaches a stable state:
-	i = 0;
-	while (not_done == true) {
-		not_done = storage->jitd->do_organize();
-		i++;
-	}
-	printf("Initial Organization Steps:  %d\n", i);
 
 	return storage;
 
@@ -620,6 +611,10 @@ int save_output() {
 		// jitd work queue size (signed number):
 		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%ld", output_array[i].work_queue);
 		charcount += result;
+
+		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%ld\t%lu\t%lu", output_array[i].event_time_delta, output_array[i].event_refs_delta, output_array[i].event_miss_delta);
+		charcount += result;
+
 		// Append EOL LF:
 		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\n");
 		charcount += result;
@@ -730,25 +725,12 @@ int main(int argc, char** argv) {
 	double sum = 0;  // dummy variable -- to prevent structure val's from being optimized out
 	int maxkeys;  // debug -- the keycount with which the structure will be initially populated
 	#ifdef TRACK_CACHING
-	#define PERFBUFF_SIZE 64
+//	#define PERFBUFF_SIZE 64
 	int perf_ref_fd;
 	int perf_miss_fd;
 	struct perf_event_attr pea_struct;
 	char perf_buff[PERFBUFF_SIZE];
-	#endif
 
-	// Extract debug parameters:  max keycount with which to populate structure and jitd crack threshhold:
-	#ifdef STORAGE_JITD
-	if (argc != 4) {
-		printf("Unexpected parameter count\n");
-		_exit(1);
-	}
-	storage->jitd->__array_size = atoi(argv[1]);
-	maxkeys = atoi(argv[2]);
-	storage->jitd->__sleep_time = atoi(argv[3]);
-	#endif
-
-	#ifdef TRACK_CACHING
 	// Initialize HW performance monitoring structure:
 	memset(&pea_struct, 0, sizeof(pea_struct));
 	pea_struct.type = PERF_TYPE_HARDWARE;
@@ -759,7 +741,7 @@ int main(int argc, char** argv) {
 	pea_struct.read_format = PERF_FORMAT_GROUP;  // | PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
 	// Some bitfields:
 	pea_struct.disabled = 1;  // Disabled for now -- will start collection later
-	pea_struct.inherit = 1;  // Yes, track both client and worker (n.b. documentation says this = 1 is incompatible with PERF_FORMAT_GROUP -- it is _not_; bug?)
+	pea_struct.inherit = 0;  // Yes, track both client and worker (n.b. documentation says this = 1 is incompatible with PERF_FORMAT_GROUP -- it is _not_; bug?)
 	pea_struct.pinned = 0;  // N.b. pinned = 1 _is_ incompatible with PERF_FORMAT_GROUP -- either a bug in kernel or documentation?
 	pea_struct.exclusive = 0;
 	pea_struct.exclude_user = 0;  // Track userspace
@@ -789,8 +771,6 @@ int main(int argc, char** argv) {
 	#ifdef THREAD_INTEL
 	printf("Using JITD storage with intel threads\n");
 	#endif
-	printf("crack threshhold:  %d\n", storage->jitd->__array_size);
-	printf("worker sleeptime:  %d\n", storage->jitd->__sleep_time);
 	#endif
 	#ifdef STORAGE_MAP
 	printf("Using (Ordered) Map storage\n");
@@ -798,6 +778,14 @@ int main(int argc, char** argv) {
 	#ifdef STORAGE_UOM
 	printf("Using Unordered Map storage\n");
 	#endif
+
+	// Extract debug parameters:  max keycount with which to populate structure and jitd crack threshhold:
+	if (argc != 4) {
+		printf("Unexpected parameter count\n");
+		_exit(1);
+	}
+	maxkeys = atoi(argv[2]);
+
 	// Initialize and populate structure:
 	printf("Creating and initializing data structure\n");
 	storage = create_storage(maxkeys);
@@ -806,18 +794,38 @@ int main(int argc, char** argv) {
 	// Basic structural integrity check:
 //	test_struct(storage);
 
-	// Block :30 to stabilize system:
-	printf("Waiting -- stabilize system\n");
-//	std::this_thread::sleep_for(std::chrono::milliseconds(30 * 1000));
-
 	#ifdef STORAGE_JITD
+	// Populate jitd specific parameters:
+	storage->jitd->__array_size = atoi(argv[1]);
+	storage->jitd->__sleep_time = atoi(argv[3]);
+	#ifdef TRACK_CACHING
+	storage->jitd->__perf_ref_fd = perf_ref_fd;
+	#endif
+
+	// Organize initial jitd structure until it reaches a stable state:
+	bool not_done = true;
+	i = 0;
+	while (not_done == true) {
+		not_done = storage->jitd->do_organize();
+		i++;
+	}
+
+	printf("Initial Organization Steps:  %d\n", i);
+	printf("crack threshhold:  %d\n", storage->jitd->__array_size);
+	printf("worker sleeptime:  %d\n", storage->jitd->__sleep_time);
 	storage->jitd->get_node_count();
+
 	#if defined PIN_SAME || defined PIN_DIFF
 	pin_thread(CORE_CLIENT);
 	#endif
+
 	// Kick off background worker thread:
 	std::thread worker_thread(run_worker_thread, storage);
 	#endif
+
+	// Block :30 to stabilize system:
+	printf("Waiting -- stabilize system\n");
+//	std::this_thread::sleep_for(std::chrono::milliseconds(30 * 1000));
 
 	printf("Starting operations\n");
 	gettimeofday(&start, NULL);
@@ -948,6 +956,11 @@ int main(int argc, char** argv) {
 		output_array[i].size_array[5] = storage->jitd->PushDownDontDeleteElemBtree_View.size();
 		output_array[i].size_array[7] = storage->jitd->CrackArray_View.size();
 		output_array[i].work_queue = storage->jitd->work_queue.size();
+
+		output_array[i].event_time_delta = storage->jitd->__time_delta;
+		output_array[i].event_refs_delta = storage->jitd->__refs_delta;
+		output_array[i].event_miss_delta = storage->jitd->__miss_delta;
+
 		#endif
 
 		// Advance to next frame

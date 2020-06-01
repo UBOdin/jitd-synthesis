@@ -48,6 +48,10 @@ struct output_node {
 	unsigned long size_array[8];	// data structure sizes
 	int long work_queue;		// work queue (signed)
 
+	int long event_time_delta;
+	unsigned long event_refs_delta;
+	unsigned long event_miss_delta;
+
 };
 
 #ifdef STORAGE_JITD
@@ -88,4 +92,14 @@ extern struct operation_node initialize_array[];
 extern struct operation_node benchmark_array[];
 extern struct output_node output_array[];
 extern long output_size;
+
+// Benchmark use:
+
+#define PERFBUFF_SIZE 64
+
+#define errtrap(error) (__errtrap(result, error, __LINE__))
+
+long gettime_us();
+void __errtrap(int result, const char* error, int line);
+
 
