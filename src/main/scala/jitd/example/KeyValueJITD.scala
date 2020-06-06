@@ -106,13 +106,13 @@ object KeyValueJITD extends HardcodedDefinition {
   }
   //////////////////////////////////////////////
 
-  // Transform("SortArray") {
-  //   "Array" withFields( "data" )
-  // } {
-  //   "SortedArray" fromFields( "data" as "sorted") andAfter (
-  //     "std::sort".call( Begin("sorted"), End("sorted") )
-  //   )
-  // }
+  Transform("SortArray") {
+    "Array" withFields( "data" )
+  } {
+    "SortedArray" fromFields( "data" as "sorted") andAfter (
+      "std::sort".call( Begin("sorted"), End("sorted") )
+    )
+  }
 
 
   Transform("CrackArray") {
@@ -335,41 +335,45 @@ Transform("PushDownSingletonRight") {
 
 
  
-//   Transform("DeleteElemFromArray")
-//   {
-//     "DeleteElements" withFields("Array" withFields( "data1" ), "data2")
-//   } {
-//     "Array" fromFields("data1" as "new_array_after_delete") andAfter(
-//       "delete_from_leaf".call("new_array_after_delete", "data2")) 
-//   }
+  Transform("DeleteElemFromArray")
+  {
+    "DeleteElements" withFields("Array" withFields( "data1" ), "data2")
+  } {
+    "Array" fromFields("data1" as "new_array_after_delete") andAfter(
+      "delete_from_leaf".call("new_array_after_delete", "data2")) 
+  }
   
-// Transform("DeleteSingletonFromArray")
-//   {
-//     "DeleteSingleton" withFields("Array" withFields( "data1" ), "key")
-//   } {
-//     "Array" fromFields( "data1" as "new_array_after_delete") andAfter(
-//       "delete_singleton_from_leaf".call("new_array_after_delete", "key")) 
-//   }
-// Transform("DeleteKeyFromSingleton")
-//   {
-//     "DeleteSingleton" withFields("Singleton" withFields( "record" ), "key2")
-//   } {
-//     "Singleton" fromFields( "record" as "new_singleton") andAfter("delete_singleton_key".call("new_singleton","key2"))
-//   }
-//  Transform("DeleteElemFromSingleton")
-//   {
-//     "DeleteElements" withFields("Singleton" withFields( "record" ), "data")
-//   } {
-//     "Singleton" fromFields( "record" as "new_singleton") andAfter("delete_keys_from_singleton".call("new_singleton","data"))
-//   }
+Transform("DeleteSingletonFromArray")
+  {
+    "DeleteSingleton" withFields("Array" withFields( "data1" ), "key")
+  } {
+    "Array" fromFields( "data1" as "new_array_after_delete") andAfter(
+      "delete_singleton_from_leaf".call("new_array_after_delete", "key")) 
+  }
+Transform("DeleteKeyFromSingleton")
+  {
+    "DeleteSingleton" withFields("Singleton" withFields( "record" ), "key2")
+  } {
+    "Singleton" fromFields( "record" as "new_singleton") andAfter("delete_singleton_key".call("new_singleton","key2"))
+  }
+ Transform("DeleteElemFromSingleton")
+  {
+    "DeleteElements" withFields("Singleton" withFields( "record" ), "data")
+  } {
+    "Singleton" fromFields( "record" as "new_singleton") andAfter("delete_keys_from_singleton".call("new_singleton","data"))
+  }
   
-  Policy("CrackSort")("crackAt" -> IntConstant(50),"null_data"-> IntConstant(0)) (
+  Policy("CrackSort")("crackAt" -> IntConstant(100),"null_data"-> IntConstant(0)) (
       
       ("PushDownSingletonLeft" onlyIf{Key_Cmp("data","separator") eq true} scoreBy{IntConstant(0)})
       andThen("PushDownSingletonRight" onlyIf{Key_Cmp("data","separator") eq false} scoreBy{IntConstant(0)})
       andThen("PushDownDontDeleteSingletonBtreeLeft" onlyIf{Keys_Cmp("key","separator") eq true} scoreBy{IntConstant(0)})
       andThen("PushDownDontDeleteSingletonBtreeRight" onlyIf{Keys_Cmp("key","separator") eq false} scoreBy{IntConstant(0)})
       andThen("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
+      andThen("DeleteElemFromSingleton" scoreBy{IntConstant(0)})
+      andThen("DeleteKeyFromSingleton" scoreBy{IntConstant(0)})
+      andThen("DeleteSingletonFromArray" scoreBy{IntConstant(0)})
+      andThen("DeleteElemFromArray" scoreBy{IntConstant(0)})
       andThen("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
                               scoreBy { ArraySize("data") })
       

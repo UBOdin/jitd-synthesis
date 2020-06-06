@@ -13,7 +13,7 @@ object TransformToFunction
     var ctx = Render(definition) 
     var (stmt1,stmt2) = ctx.policyImplementation.onRewriteSet(ctx,definition,false,handlerefbool,transform.from,transform.to,"target","to_ptr")
     //var beforeErase = Void(Var("std::shared_ptr<JITDNode>* parent = NULL;"))++commonFunction("getParent(",Var("target,"),Var("parent"))
-    var beforeErase = commonFunction("std::shared_ptr<JITDNode>* parent = getParent(",Var("target"),Var(""))
+    var beforeErase = RDTSC_Start_Logging()++commonFunction("std::shared_ptr<JITDNode>* parent = getParent(",Var("target"),Var(""))++RDTSC_End_Logging()
     def makeMatchTest(onMatch: Statement) = 
       beforeErase ++ MatchToStatement(
         definition, 

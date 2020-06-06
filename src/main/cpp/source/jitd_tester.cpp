@@ -14,12 +14,15 @@
 
 #include "test.hpp"
 #include "jitd_test.hpp"
+#include "IteratorDefinition.hpp"
+//#include "int_record.hpp"
 #include "tbb/concurrent_queue.h" 
 #define SEED_MAX 364785
 //pthread_mutex_t lock; 
 // std::mutex global_exit_mtx;
 // std::condition_variable global_cv;
 // bool global_exit_flag = false;
+
 typedef std::vector<Record> RecordBuffer;
 int jitd_test(
   std::shared_ptr<JITD> &jitd,
@@ -32,7 +35,6 @@ double total_time(timeval &start, timeval &end)
   return (end.tv_sec - start.tv_sec) * 1000000.0 +
          (end.tv_usec - start.tv_usec); 
 }
-
 
 int jitd_client_op(
   std::shared_ptr<JITD> &jitd,
@@ -97,18 +99,38 @@ int jitd_client_op(
       std::cout << scan_buff_size <<" Scans JITD time in Random Mode: " << scan_time << " us" << std::endl;
       
     }
-    CASE("bulk_insert")
+    CASE("range_scan")
     {
-      int operation_count;
-      toks >> operation_count;
-      RecordBuffer data;
-      load_records(data, toks);
-      for(int i=0;i<operation_count;i++)
-      {
+      long min,max;
+      toks>>min>>max;
+      //Iterator<Record> iter1 =jitd->iterator();
+      Record r1;
+      r1.key = min;
+      Record r2;
+      r2.key = max;
+      // while(!(iter1->atEnd()))
+      // {
+      //   std::cout<<"The value iter points at is "<<(iter1->get())<<std::endl;
+      //   iter1->next();
+      // }
+       Iterator<Record> iter2 =jitd->iterator();
+       std::cout<<"all iterators created"<<std::endl;
+      iter2->seek(r1);
 
-        jitd->insert(data);
+      std::cout<<"The value seek points at is "<<(iter2->get())<<std::endl;
+      while(!(iter2->atEnd()))
+      //while(!(iter2->atEnd()))
+      {
+        if((((iter2->get())<r2) && (iter2->get()>min-1)))
+        {
+          std::cout<<"The value iter points at is "<<(iter2->get())<<std::endl;
+        }
+        
+        iter2->range_next(min,max);
+        //iter2->next();
       }
-      //jitd->print_debug();
+      //iter2->next();
+      //std::cout<<"The value last next points at is "<<(iter2->get())<<std::endl;
     }
     CASE("get") {
       Key key;
@@ -148,7 +170,7 @@ int jitd_client_op(
       gettimeofday(&start, NULL);
       //std::cout<<"Starting Insert in JITD"<<std::endl;
       jitd->insert_singleton(data);
-      
+      //jitd->print_debug();
       //std::cout<<"size of crack_array"<<jitd->CrackArray_PQ.size()<<std::endl;
       gettimeofday(&end, NULL);
      //std::cout<<"INSERTED..."<<std::endl;
@@ -287,7 +309,7 @@ void background_thread(std::shared_ptr<JITD> jitd)
        gettimeofday(&end, NULL);
        
        std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end)  << " us" <<  std::endl; 
-       jitd->print_debug();
+      // jitd->print_debug();
 
        
        

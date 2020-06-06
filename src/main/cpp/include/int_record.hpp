@@ -32,6 +32,8 @@ struct Record {
   }
 };
 
+//using BufferElement = typename std::vector<Record>::const_iterator;
+
 inline bool operator ==(const Key &a, const Record &b) {
   return a == b.key;
 }
@@ -147,6 +149,7 @@ inline void load_keys(std::vector<Key> &to, std::istream &input)
 
     while(!input.eof()){
       input >> k;
+      std::cout<<","<<k;
       to.push_back(k);
     }
   }

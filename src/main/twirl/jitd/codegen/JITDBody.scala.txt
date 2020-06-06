@@ -9,7 +9,14 @@
 #include "runtime.hpp"
 #include "@headerFile"
 #include <thread>
-
+#ifdef RDTSC
+uint64_t rdtsc(){
+    unsigned int lo,hi;
+    __asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
+    return ((uint64_t)hi << 32) | lo;
+}
+long unsigned int sticks, diffticks;
+#endif
 
 //#define JITD_DEBUG_POLICY true;
 //std::shared_ptr<JITDNode> * rootHandleRef;
@@ -80,6 +87,9 @@ int JITD::organize_wait()
 
         if(pop_mce.flag == EXIT)
         {
+          #ifdef RDTSC
+          std::cout<<"At EXIT Size of the rdtsc vec is"<<this->rdtsc_vector.size()<<std::endl;
+          #endif
           #ifdef TRANSFORM_COUNT
             this->times_transforms_called();
           #endif
@@ -523,7 +533,7 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 
 
 void JITD:: check_view()
-{
+{/*
       std::set<std::shared_ptr<JITDNode> *>::iterator it;
       @for(transform <- ctx.definition.transforms){
         std::cout<<"SIZE OF @{transform.name} View"<<@{transform.name}_View.size()<<"."<<std::endl;
@@ -539,7 +549,7 @@ void JITD:: check_view()
           
 
         }
-      }
+      }*/
       
 }
 /*

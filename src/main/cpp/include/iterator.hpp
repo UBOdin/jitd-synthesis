@@ -3,7 +3,7 @@
 //
 // cog.hpp needs to be processed first, and includes iterator.hpp.  Need to 
 // keep this include outside of the shield because of that.
-#include "cog.hpp"
+
 
 #ifndef _ITERATOR_H_SHIELD
 #define _ITERATOR_H_SHIELD
@@ -36,7 +36,7 @@ class IteratorBase {
     // The behavior of get() is undefined if atEnd() == true.
     //
     // When the iterator is first initialized, get() returns the first record.
-    virtual BufferElement<Tuple> get()       
+    virtual Record get()       
       { std::cerr << "Unimplemented Iterator.get()"   << std::endl; exit(-1); }
 
     // next()
@@ -54,58 +54,63 @@ class IteratorBase {
     // specified tuple (as per the semantics of lower_bound())
     // 
     // Will never move the iterator backwards.  If k < get(), seek(k) is a no-op
-    virtual void seek(const Tuple &k)
+    virtual void seek(const Record &k)
       { std::cerr << "Unimplemented Iterator.seek()"  << std::endl; exit(-1); }
+
+    virtual void range_next(const long &k1,const long &k2)
+      { std::cerr << "Unimplemented Iterator.range_next()"  << std::endl; exit(-1); }  
       
     // atEnd()
     // 
     // Return true if there are no further tuples 
     virtual bool atEnd()    
       { std::cerr << "Unimplemented Iterator.atEnd()" << std::endl; exit(-1); }
+
+
     
     // toBuffer()
     //
     // Construct a sorted buffer from this.
-    Buffer<Tuple> toBuffer()
-    {
-      Buffer<Tuple> ret(new std::vector<Tuple>());
-      while(!atEnd()){
-        ret->push_back(*get());
-        next();
-      }
-      return ret;
-    }
+    // Buffer<Tuple> toBuffer()
+    // {
+    //   Buffer<Tuple> ret(new std::vector<Tuple>());
+    //   while(!atEnd()){
+    //     ret->push_back(*get());
+    //     next();
+    //   }
+    //   return ret;
+    // }
     
-    Buffer<Tuple> toBuffer(Tuple &max)
-    {
-      Buffer<Tuple> ret(new std::vector<Tuple>());
-      while(!atEnd() && (*get() < max)){
-        ret->push_back(*get());
-        next();
-      }
-      return ret;
-    }
+    // Buffer<Tuple> toBuffer(Tuple &max)
+    // {
+    //   Buffer<Tuple> ret(new std::vector<Tuple>());
+    //   while(!atEnd() && (*get() < max)){
+    //     ret->push_back(*get());
+    //     next();
+    //   }
+    //   return ret;
+    // }
     
-    Buffer<Tuple> toBuffer(int cnt)
-    {
-      Buffer<Tuple> ret(new std::vector<Tuple>());
-      while(!atEnd() && (--cnt >= 0)){
-        ret->push_back(*get());
-        next();
-      }
-      return ret;
-    }
+    // Buffer<Tuple> toBuffer(int cnt)
+    // {
+    //   Buffer<Tuple> ret(new std::vector<Tuple>());
+    //   while(!atEnd() && (--cnt >= 0)){
+    //     ret->push_back(*get());
+    //     next();
+    //   }
+    //   return ret;
+    // }
     
     // flush()
     //
     // Debug method: Flush all output to the designated ostream
-    void flush(std::ostream &o)
-    {
-      while(!atEnd()){
-        o << *get() << " ";
-        next();
-      }
-    }
+    // void flush(std::ostream &o)
+    // {
+    //   while(!atEnd()){
+    //     o << *get() << " ";
+    //     next();
+    //   }
+    // }
 
 };
 template <class Tuple>
@@ -114,13 +119,14 @@ template <class Tuple>
 // BufferIterator
 // 
 // An implementation of Iterator that traverses a *sorted* Buffer<Tuple>
-#include "iterator/BufferIterator.hpp"
+//#include "iterator/BufferIterator.hpp"
+//#include "iterator/SingletonIterator.hpp"  
 
 // MergeIterator
 // 
 // An implementation of Iterator that merges the outputs of two Iterators, 
 // providing standard iterator semantics over their joint outputs.
-#include "iterator/MergeIterator.hpp"
+//#include "iterator/MergeIterator.hpp"
 
 // SeqIterator
 // 
@@ -128,15 +134,15 @@ template <class Tuple>
 // SeqIterator requires a Tuple `sep` such that all values returned by the first
 // iterator are < sep, and all values returned by the second iterator are >= 
 // sep.
-#include "iterator/SeqIterator.hpp"
-
+//#include "iterator/SeqIterator.hpp"
+//#include "iterator/FastIterator.hpp"
 // DeleteIterator
 // 
 // Iterator to dynamically delete elements from a stream.  DeleteIterator takes
 // two streams: a source stream and a delete stream.  Every tuple in the delete
 // stream removes one instance of the corresponding tuple (according to 
 // operator==()) from the source stream.
-#include "iterator/DeleteIterator.hpp"
+//#include "iterator/DeleteIterator.hpp"
 
 
 #endif // _ITERATOR_H_SHIELD

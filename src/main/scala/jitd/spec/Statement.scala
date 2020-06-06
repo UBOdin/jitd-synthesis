@@ -118,6 +118,22 @@ case class Macro(msg:String) extends Statement
   def reassembleExpression(in: Seq[Expression]): Statement = this
   def toString(prefix: String) = prefix+"//rem: "+msg
 }
+case class RDTSC_Start_Logging() extends Statement
+{
+  def disasssembleStatement: Seq[Statement] = Seq()
+  def reassembleStatement(in: Seq[Statement]): Statement = this
+  def disasssembleExpression: Seq[Expression] = Seq()
+  def reassembleExpression(in: Seq[Expression]): Statement = this
+  def toString(prefix: String) = prefix+"//rem: logging rdtsc start"
+}
+case class RDTSC_End_Logging() extends Statement
+{
+  def disasssembleStatement: Seq[Statement] = Seq()
+  def reassembleStatement(in: Seq[Statement]): Statement = this
+  def disasssembleExpression: Seq[Expression] = Seq()
+  def reassembleExpression(in: Seq[Expression]): Statement = this
+  def toString(prefix: String) = prefix+"//rem: logging rdtsc end"
+}
 case class commonFunction(name:String,op:Expression,v:Expression) extends Statement
 {
   def disasssembleStatement: Seq[Statement] = Seq()
