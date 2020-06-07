@@ -36,16 +36,16 @@ object ViewPolicyImplementation extends PolicyImplementation
     {
       ((Comment(s"ViewMaintenance")++RDTSC_Start_Logging()++viewErase(ctx,definition,handlerefbool,from,fromTarget,mutator)++RDTSC_End_Logging()),
       (Comment(s"UpdateTarget")++atomic_store(ctx,definition,handlerefbool,to,toTarget,mutator)++ 
-      Comment(s"ViewMaintenance")++RDTSC_Start_Logging()++viewAdd(ctx,definition,handlerefbool,to,toTarget,mutator)++RDTSC_End_Logging()++
-      Comment(s"ParentMaintenance")++RDTSC_Start_Logging()++setandFixParentNode(ctx,definition,handlerefbool,to,toTarget,mutator)++RDTSC_End_Logging()))
+      Comment(s"ViewMaintenance")++RDTSC_Start_Logging()++viewAdd(ctx,definition,handlerefbool,to,toTarget,mutator)++
+      Comment(s"ParentMaintenance")++setandFixParentNode(ctx,definition,handlerefbool,to,toTarget,mutator)++RDTSC_End_Logging()))
     }
     else
     {
-      ((Comment(s"ViewMaintenanceParent")++RDTSC_Start_Logging()++commonFunction("viewErase(",Var("parent"),Var(""))++RDTSC_End_Logging()++
-      Comment(s"ViewMaintenance")++RDTSC_Start_Logging()++viewErase(ctx,definition,handlerefbool,from,fromTarget,mutator)++RDTSC_End_Logging()), 
-      (Comment(s"ViewMaintenanceParent")++RDTSC_Start_Logging()++commonFunction("viewAdd(",Var("parent"),Var(""))++RDTSC_End_Logging()++
-      Comment(s"ViewMaintenance")++RDTSC_Start_Logging()++viewAdd(ctx,definition,handlerefbool,to,toTarget,mutator)++RDTSC_End_Logging()++
-      Comment(s"ParentMaintenance")++RDTSC_Start_Logging()++setandFixParentNode(ctx,definition,handlerefbool,to,toTarget,mutator)++RDTSC_End_Logging()))
+      ((Comment(s"ViewMaintenanceParent")++RDTSC_Start_Logging()++commonFunction("viewErase(",Var("parent"),Var(""))++
+      Comment(s"ViewMaintenance")++viewErase(ctx,definition,handlerefbool,from,fromTarget,mutator))++RDTSC_End_Logging(), 
+      (Comment(s"ViewMaintenanceParent")++RDTSC_Start_Logging()++commonFunction("viewAdd(",Var("parent"),Var(""))++
+      Comment(s"ViewMaintenance")++viewAdd(ctx,definition,handlerefbool,to,toTarget,mutator)++
+      Comment(s"ParentMaintenance")++setandFixParentNode(ctx,definition,handlerefbool,to,toTarget,mutator)++RDTSC_End_Logging()))
     }
   }
   
@@ -316,7 +316,9 @@ object ViewPolicyImplementation extends PolicyImplementation
                                                     commonFunction("std::atomic_store_explicit(",vnnt._3,Var(","+target+",std::memory_order_release"))++ 
                                                     Macro("#endif")++
                                                     //commonFunction("fixMap(",Var("&("+target+"),"),vnnt._3)++
-                                                    commonFunction("fixNodeDecendents(",Var("&("+target+"),"),vnnt._3)
+                                                    RDTSC_Start_Logging()++
+                                                    commonFunction("fixNodeDecendents(",Var("&("+target+"),"),vnnt._3)++
+                                                    RDTSC_End_Logging()
                                      
                                                 
                                                   }
