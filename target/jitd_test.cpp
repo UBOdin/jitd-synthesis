@@ -4,36 +4,14 @@
 #include "runtime.hpp"
 #include "jitd_test.hpp"
 #include <thread>
-
-
-#include "harness.hpp"
-
-
-#define START_EVENT \
-	\
-	long time_start; \
-	unsigned long refs_start; \
-	unsigned long miss_start; \
-	int result; \
-	char perf_buff[PERFBUFF_SIZE]; \
-	\
-	result = read(__perf_ref_fd, perf_buff, PERFBUFF_SIZE); \
-	errtrap("read"); \
-	refs_start = ((unsigned long*)perf_buff)[1]; \
-	miss_start = ((unsigned long*)perf_buff)[2]; \
-	\
-	time_start = gettime_us(); \
-
-
-#define END_EVENT \
-	\
-	__time_delta = gettime_us() - time_start; \
-	\
-	result = read(__perf_ref_fd, perf_buff, PERFBUFF_SIZE); \
-	errtrap("read"); \
-	__refs_delta += ((unsigned long*)perf_buff)[1] - refs_start; \
-	__miss_delta += ((unsigned long*)perf_buff)[2] - miss_start; \
-
+#ifdef RDTSC
+uint64_t rdtsc(){
+    unsigned int lo,hi;
+    __asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
+    return ((uint64_t)hi << 32) | lo;
+}
+long unsigned int sticks, diffticks;
+#endif
 
 //#define JITD_DEBUG_POLICY true;
 //std::shared_ptr<JITDNode> * rootHandleRef;
@@ -42,11 +20,398 @@
 ///////////////////// Transform Definitions ///////////////////// 
 
 
+bool JITD::DeleteElemFromSingleton(std::shared_ptr<JITDNode> * &target )
+{
+/*std::cout<<" The transform applied is:JITD::DeleteElemFromSingleton"<<std::endl;*/
+  {
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
+    std::shared_ptr<JITDNode>* parent = getParent(target);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
+    std::shared_ptr<JITDNode> target_root_lock;
+    // Extract target into DeleteElements
+    #ifdef ATOMIC_LOAD
+    target_root_lock = std::atomic_load((target));
+    #endif
+    #ifdef ATOMIC_LOAD_CONSUME
+    target_root_lock = std::atomic_load_explicit(target,std::memory_order_consume);
+    #endif
+    #ifdef ATOMIC_LOAD_ACQUIRE
+    target_root_lock = std::atomic_load_explicit(target,std::memory_order_acquire);
+    #endif
+    switch((target_root_lock)->type){ 
+      case JITD_NODE_DeleteElements:{
+        DeleteElementsNode *target_root = (DeleteElementsNode *)(target_root_lock).get();
+        std::shared_ptr<JITDNode> target_root_node_lock;
+        // Extract &(target_root->node) into Singleton
+        #ifdef ATOMIC_LOAD
+        target_root_node_lock = std::atomic_load((&(target_root->node)));
+        #endif
+        #ifdef ATOMIC_LOAD_CONSUME
+        target_root_node_lock = std::atomic_load_explicit(&(target_root->node),std::memory_order_consume);
+        #endif
+        #ifdef ATOMIC_LOAD_ACQUIRE
+        target_root_node_lock = std::atomic_load_explicit(&(target_root->node),std::memory_order_acquire);
+        #endif
+        switch((target_root_node_lock)->type){ 
+          case JITD_NODE_Singleton:{
+            SingletonNode *target_root_node = (SingletonNode *)(target_root_node_lock).get();
+            {
+              /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
+              viewErase(parent);
+              /*** ViewMaintenance ***/
+              viewErase(target);
+              viewErase(&(target_root->node));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
+              /*** BEGIN ASSEMBLING to_ptr ***/
+              /*** Assemble to_ptr as a Singleton ***/
+              SingletonNode * to_ptr = new SingletonNode(target_root_node->elem);
+              std::shared_ptr<JITDNode> to_ptr_ref = std::shared_ptr<JITDNode>(to_ptr);
+              /*** Handle post-processing for to_ptr ***/
+              delete_keys_from_singleton(to_ptr->elem, target_root->data);
+              /*** END ASSEMBLING to_ptr as to_ptr_ref ***/
+              #ifdef ATOMIC_STORE
+              std::atomic_store(target, to_ptr_ref);
+              #endif
+              #ifdef ATOMIC_STORE_RELEASE
+              std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
+              #endif
+              /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
+              viewAdd(parent);
+              /*** ViewMaintenance ***/
+              viewAdd(target);
+              /*** ParentMaintenance ***/
+              setParent(target,parent);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
+              return true;
+            }
+          }; break;
+          default: { //target_root_node is not a Singleton
+            return false;
+          }; break;
+        }
+      }; break;
+      default: { //target_root is not a DeleteElements
+        return false;
+      }; break;
+    }
+  }
+
+}
+
+bool JITD::DeleteKeyFromSingleton(std::shared_ptr<JITDNode> * &target )
+{
+/*std::cout<<" The transform applied is:JITD::DeleteKeyFromSingleton"<<std::endl;*/
+  {
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
+    std::shared_ptr<JITDNode>* parent = getParent(target);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
+    std::shared_ptr<JITDNode> target_root_lock;
+    // Extract target into DeleteSingleton
+    #ifdef ATOMIC_LOAD
+    target_root_lock = std::atomic_load((target));
+    #endif
+    #ifdef ATOMIC_LOAD_CONSUME
+    target_root_lock = std::atomic_load_explicit(target,std::memory_order_consume);
+    #endif
+    #ifdef ATOMIC_LOAD_ACQUIRE
+    target_root_lock = std::atomic_load_explicit(target,std::memory_order_acquire);
+    #endif
+    switch((target_root_lock)->type){ 
+      case JITD_NODE_DeleteSingleton:{
+        DeleteSingletonNode *target_root = (DeleteSingletonNode *)(target_root_lock).get();
+        std::shared_ptr<JITDNode> target_root_node_lock;
+        // Extract &(target_root->node) into Singleton
+        #ifdef ATOMIC_LOAD
+        target_root_node_lock = std::atomic_load((&(target_root->node)));
+        #endif
+        #ifdef ATOMIC_LOAD_CONSUME
+        target_root_node_lock = std::atomic_load_explicit(&(target_root->node),std::memory_order_consume);
+        #endif
+        #ifdef ATOMIC_LOAD_ACQUIRE
+        target_root_node_lock = std::atomic_load_explicit(&(target_root->node),std::memory_order_acquire);
+        #endif
+        switch((target_root_node_lock)->type){ 
+          case JITD_NODE_Singleton:{
+            SingletonNode *target_root_node = (SingletonNode *)(target_root_node_lock).get();
+            {
+              /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
+              viewErase(parent);
+              /*** ViewMaintenance ***/
+              viewErase(target);
+              viewErase(&(target_root->node));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
+              /*** BEGIN ASSEMBLING to_ptr ***/
+              /*** Assemble to_ptr as a Singleton ***/
+              SingletonNode * to_ptr = new SingletonNode(target_root_node->elem);
+              std::shared_ptr<JITDNode> to_ptr_ref = std::shared_ptr<JITDNode>(to_ptr);
+              /*** Handle post-processing for to_ptr ***/
+              delete_singleton_key(to_ptr->elem, target_root->elem);
+              /*** END ASSEMBLING to_ptr as to_ptr_ref ***/
+              #ifdef ATOMIC_STORE
+              std::atomic_store(target, to_ptr_ref);
+              #endif
+              #ifdef ATOMIC_STORE_RELEASE
+              std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
+              #endif
+              /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
+              viewAdd(parent);
+              /*** ViewMaintenance ***/
+              viewAdd(target);
+              /*** ParentMaintenance ***/
+              setParent(target,parent);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
+              return true;
+            }
+          }; break;
+          default: { //target_root_node is not a Singleton
+            return false;
+          }; break;
+        }
+      }; break;
+      default: { //target_root is not a DeleteSingleton
+        return false;
+      }; break;
+    }
+  }
+
+}
+
+bool JITD::DeleteSingletonFromArray(std::shared_ptr<JITDNode> * &target )
+{
+/*std::cout<<" The transform applied is:JITD::DeleteSingletonFromArray"<<std::endl;*/
+  {
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
+    std::shared_ptr<JITDNode>* parent = getParent(target);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
+    std::shared_ptr<JITDNode> target_root_lock;
+    // Extract target into DeleteSingleton
+    #ifdef ATOMIC_LOAD
+    target_root_lock = std::atomic_load((target));
+    #endif
+    #ifdef ATOMIC_LOAD_CONSUME
+    target_root_lock = std::atomic_load_explicit(target,std::memory_order_consume);
+    #endif
+    #ifdef ATOMIC_LOAD_ACQUIRE
+    target_root_lock = std::atomic_load_explicit(target,std::memory_order_acquire);
+    #endif
+    switch((target_root_lock)->type){ 
+      case JITD_NODE_DeleteSingleton:{
+        DeleteSingletonNode *target_root = (DeleteSingletonNode *)(target_root_lock).get();
+        std::shared_ptr<JITDNode> target_root_node_lock;
+        // Extract &(target_root->node) into Array
+        #ifdef ATOMIC_LOAD
+        target_root_node_lock = std::atomic_load((&(target_root->node)));
+        #endif
+        #ifdef ATOMIC_LOAD_CONSUME
+        target_root_node_lock = std::atomic_load_explicit(&(target_root->node),std::memory_order_consume);
+        #endif
+        #ifdef ATOMIC_LOAD_ACQUIRE
+        target_root_node_lock = std::atomic_load_explicit(&(target_root->node),std::memory_order_acquire);
+        #endif
+        switch((target_root_node_lock)->type){ 
+          case JITD_NODE_Array:{
+            ArrayNode *target_root_node = (ArrayNode *)(target_root_node_lock).get();
+            {
+              /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
+              viewErase(parent);
+              /*** ViewMaintenance ***/
+              viewErase(target);
+              viewErase(&(target_root->node));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
+              /*** BEGIN ASSEMBLING to_ptr ***/
+              /*** Assemble to_ptr as a Array ***/
+              ArrayNode * to_ptr = new ArrayNode(target_root_node->data);
+              std::shared_ptr<JITDNode> to_ptr_ref = std::shared_ptr<JITDNode>(to_ptr);
+              /*** Handle post-processing for to_ptr ***/
+              delete_singleton_from_leaf(to_ptr->data, target_root->elem);
+              /*** END ASSEMBLING to_ptr as to_ptr_ref ***/
+              #ifdef ATOMIC_STORE
+              std::atomic_store(target, to_ptr_ref);
+              #endif
+              #ifdef ATOMIC_STORE_RELEASE
+              std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
+              #endif
+              /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
+              viewAdd(parent);
+              /*** ViewMaintenance ***/
+              viewAdd(target);
+              /*** ParentMaintenance ***/
+              setParent(target,parent);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
+              return true;
+            }
+          }; break;
+          default: { //target_root_node is not a Array
+            return false;
+          }; break;
+        }
+      }; break;
+      default: { //target_root is not a DeleteSingleton
+        return false;
+      }; break;
+    }
+  }
+
+}
+
+bool JITD::DeleteElemFromArray(std::shared_ptr<JITDNode> * &target )
+{
+/*std::cout<<" The transform applied is:JITD::DeleteElemFromArray"<<std::endl;*/
+  {
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
+    std::shared_ptr<JITDNode>* parent = getParent(target);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
+    std::shared_ptr<JITDNode> target_root_lock;
+    // Extract target into DeleteElements
+    #ifdef ATOMIC_LOAD
+    target_root_lock = std::atomic_load((target));
+    #endif
+    #ifdef ATOMIC_LOAD_CONSUME
+    target_root_lock = std::atomic_load_explicit(target,std::memory_order_consume);
+    #endif
+    #ifdef ATOMIC_LOAD_ACQUIRE
+    target_root_lock = std::atomic_load_explicit(target,std::memory_order_acquire);
+    #endif
+    switch((target_root_lock)->type){ 
+      case JITD_NODE_DeleteElements:{
+        DeleteElementsNode *target_root = (DeleteElementsNode *)(target_root_lock).get();
+        std::shared_ptr<JITDNode> target_root_node_lock;
+        // Extract &(target_root->node) into Array
+        #ifdef ATOMIC_LOAD
+        target_root_node_lock = std::atomic_load((&(target_root->node)));
+        #endif
+        #ifdef ATOMIC_LOAD_CONSUME
+        target_root_node_lock = std::atomic_load_explicit(&(target_root->node),std::memory_order_consume);
+        #endif
+        #ifdef ATOMIC_LOAD_ACQUIRE
+        target_root_node_lock = std::atomic_load_explicit(&(target_root->node),std::memory_order_acquire);
+        #endif
+        switch((target_root_node_lock)->type){ 
+          case JITD_NODE_Array:{
+            ArrayNode *target_root_node = (ArrayNode *)(target_root_node_lock).get();
+            {
+              /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
+              viewErase(parent);
+              /*** ViewMaintenance ***/
+              viewErase(target);
+              viewErase(&(target_root->node));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
+              /*** BEGIN ASSEMBLING to_ptr ***/
+              /*** Assemble to_ptr as a Array ***/
+              ArrayNode * to_ptr = new ArrayNode(target_root_node->data);
+              std::shared_ptr<JITDNode> to_ptr_ref = std::shared_ptr<JITDNode>(to_ptr);
+              /*** Handle post-processing for to_ptr ***/
+              delete_from_leaf(to_ptr->data, target_root->data);
+              /*** END ASSEMBLING to_ptr as to_ptr_ref ***/
+              #ifdef ATOMIC_STORE
+              std::atomic_store(target, to_ptr_ref);
+              #endif
+              #ifdef ATOMIC_STORE_RELEASE
+              std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
+              #endif
+              /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
+              viewAdd(parent);
+              /*** ViewMaintenance ***/
+              viewAdd(target);
+              /*** ParentMaintenance ***/
+              setParent(target,parent);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
+              return true;
+            }
+          }; break;
+          default: { //target_root_node is not a Array
+            return false;
+          }; break;
+        }
+      }; break;
+      default: { //target_root is not a DeleteElements
+        return false;
+      }; break;
+    }
+  }
+
+}
+
 bool JITD::PushDownDontDeleteSingletonBtreeRight(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::PushDownDontDeleteSingletonBtreeRight"<<std::endl;*/
   {
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into DeleteSingleton
     #ifdef ATOMIC_LOAD
@@ -77,12 +442,19 @@ bool JITD::PushDownDontDeleteSingletonBtreeRight(std::shared_ptr<JITDNode> * &ta
             BTreeNode *target_root_node = (BTreeNode *)(target_root_node_lock).get();
             {
               /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
               viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
               viewErase(&(target_root_node->lhs));
               viewErase(&(target_root_node->rhs));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
               /*** BEGIN ASSEMBLING to_ptr ***/
               /*** Assemble to_ptr_rhs as a DeleteSingleton ***/
               DeleteSingletonNode * to_ptr_rhs = new DeleteSingletonNode(target_root_node->rhs, target_root->elem);
@@ -98,13 +470,16 @@ bool JITD::PushDownDontDeleteSingletonBtreeRight(std::shared_ptr<JITDNode> * &ta
               std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
               #endif
               /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
               viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
               viewAdd(&(to_ptr->lhs));
               viewAdd(&(to_ptr->rhs));
               viewAdd(&(to_ptr_rhs->node));
-              /*** MapMaintenance ***/
+              /*** ParentMaintenance ***/
               setParent(target,parent);
               {
                 setParent(&(to_ptr->lhs),target);
@@ -118,6 +493,10 @@ bool JITD::PushDownDontDeleteSingletonBtreeRight(std::shared_ptr<JITDNode> * &ta
                 setParent(&(to_ptr_rhs->node),&(to_ptr->rhs));
                 fixNodeDecendents(&(to_ptr_rhs->node),&(to_ptr_rhs->node));
               }
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
               return true;
             }
           }; break;
@@ -138,7 +517,14 @@ bool JITD::PushDownDontDeleteSingletonBtreeLeft(std::shared_ptr<JITDNode> * &tar
 {
 /*std::cout<<" The transform applied is:JITD::PushDownDontDeleteSingletonBtreeLeft"<<std::endl;*/
   {
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into DeleteSingleton
     #ifdef ATOMIC_LOAD
@@ -169,12 +555,19 @@ bool JITD::PushDownDontDeleteSingletonBtreeLeft(std::shared_ptr<JITDNode> * &tar
             BTreeNode *target_root_node = (BTreeNode *)(target_root_node_lock).get();
             {
               /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
               viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
               viewErase(&(target_root_node->lhs));
               viewErase(&(target_root_node->rhs));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
               /*** BEGIN ASSEMBLING to_ptr ***/
               /*** Assemble to_ptr_lhs as a DeleteSingleton ***/
               DeleteSingletonNode * to_ptr_lhs = new DeleteSingletonNode(target_root_node->lhs, target_root->elem);
@@ -190,13 +583,16 @@ bool JITD::PushDownDontDeleteSingletonBtreeLeft(std::shared_ptr<JITDNode> * &tar
               std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
               #endif
               /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
               viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
               viewAdd(&(to_ptr->lhs));
               viewAdd(&(to_ptr_lhs->node));
               viewAdd(&(to_ptr->rhs));
-              /*** MapMaintenance ***/
+              /*** ParentMaintenance ***/
               setParent(target,parent);
               {
                 setParent(&(to_ptr->lhs),target);
@@ -210,6 +606,10 @@ bool JITD::PushDownDontDeleteSingletonBtreeLeft(std::shared_ptr<JITDNode> * &tar
                 setParent(&(to_ptr->rhs),target);
                 fixNodeDecendents(&(to_ptr->rhs),&(to_ptr->rhs));
               }
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
               return true;
             }
           }; break;
@@ -230,7 +630,14 @@ bool JITD::PushDownDontDeleteElemBtree(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::PushDownDontDeleteElemBtree"<<std::endl;*/
   {
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into DeleteElements
     #ifdef ATOMIC_LOAD
@@ -261,12 +668,19 @@ bool JITD::PushDownDontDeleteElemBtree(std::shared_ptr<JITDNode> * &target )
             BTreeNode *target_root_node = (BTreeNode *)(target_root_node_lock).get();
             {
               /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
               viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
               viewErase(&(target_root_node->lhs));
               viewErase(&(target_root_node->rhs));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
               /*** BEGIN ASSEMBLING to_ptr ***/
               /*** Assemble to_ptr_lhs as a DeleteElements ***/
               DeleteElementsNode * to_ptr_lhs = new DeleteElementsNode(target_root_node->lhs, target_root->data);
@@ -285,6 +699,9 @@ bool JITD::PushDownDontDeleteElemBtree(std::shared_ptr<JITDNode> * &target )
               std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
               #endif
               /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
               viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
@@ -292,7 +709,7 @@ bool JITD::PushDownDontDeleteElemBtree(std::shared_ptr<JITDNode> * &target )
               viewAdd(&(to_ptr_lhs->node));
               viewAdd(&(to_ptr->rhs));
               viewAdd(&(to_ptr_rhs->node));
-              /*** MapMaintenance ***/
+              /*** ParentMaintenance ***/
               setParent(target,parent);
               {
                 setParent(&(to_ptr->lhs),target);
@@ -310,6 +727,10 @@ bool JITD::PushDownDontDeleteElemBtree(std::shared_ptr<JITDNode> * &target )
                 setParent(&(to_ptr_rhs->node),&(to_ptr->rhs));
                 fixNodeDecendents(&(to_ptr_rhs->node),&(to_ptr_rhs->node));
               }
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
               return true;
             }
           }; break;
@@ -330,7 +751,14 @@ bool JITD::PushDownSingletonRight(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::PushDownSingletonRight"<<std::endl;*/
   {
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into Concat
     #ifdef ATOMIC_LOAD
@@ -375,6 +803,9 @@ bool JITD::PushDownSingletonRight(std::shared_ptr<JITDNode> * &target )
                 SingletonNode *target_root_rhs = (SingletonNode *)(target_root_rhs_lock).get();
                 {
                   /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
                   viewErase(parent);
                   /*** ViewMaintenance ***/
                   viewErase(target);
@@ -382,6 +813,10 @@ bool JITD::PushDownSingletonRight(std::shared_ptr<JITDNode> * &target )
                   viewErase(&(target_root_lhs->lhs));
                   viewErase(&(target_root_lhs->rhs));
                   viewErase(&(target_root->rhs));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
                   /*** BEGIN ASSEMBLING to_ptr ***/
                   /*** Assemble to_ptr_rhs_rhs as a Singleton ***/
                   SingletonNode * to_ptr_rhs_rhs = new SingletonNode(target_root_rhs->elem);
@@ -400,6 +835,9 @@ bool JITD::PushDownSingletonRight(std::shared_ptr<JITDNode> * &target )
                   std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
                   #endif
                   /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
                   viewAdd(parent);
                   /*** ViewMaintenance ***/
                   viewAdd(target);
@@ -407,7 +845,7 @@ bool JITD::PushDownSingletonRight(std::shared_ptr<JITDNode> * &target )
                   viewAdd(&(to_ptr->rhs));
                   viewAdd(&(to_ptr_rhs->lhs));
                   viewAdd(&(to_ptr_rhs->rhs));
-                  /*** MapMaintenance ***/
+                  /*** ParentMaintenance ***/
                   setParent(target,parent);
                   {
                     setParent(&(to_ptr->lhs),target);
@@ -425,6 +863,10 @@ bool JITD::PushDownSingletonRight(std::shared_ptr<JITDNode> * &target )
                     setParent(&(to_ptr_rhs->rhs),&(to_ptr->rhs));
                     fixNodeDecendents(&(to_ptr_rhs->rhs),&(to_ptr_rhs->rhs));
                   }
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
                   return true;
                 }
               }; break;
@@ -450,7 +892,14 @@ bool JITD::PushDownSingletonLeft(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::PushDownSingletonLeft"<<std::endl;*/
   {
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into Concat
     #ifdef ATOMIC_LOAD
@@ -495,6 +944,9 @@ bool JITD::PushDownSingletonLeft(std::shared_ptr<JITDNode> * &target )
                 SingletonNode *target_root_rhs = (SingletonNode *)(target_root_rhs_lock).get();
                 {
                   /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
                   viewErase(parent);
                   /*** ViewMaintenance ***/
                   viewErase(target);
@@ -502,6 +954,10 @@ bool JITD::PushDownSingletonLeft(std::shared_ptr<JITDNode> * &target )
                   viewErase(&(target_root_lhs->lhs));
                   viewErase(&(target_root_lhs->rhs));
                   viewErase(&(target_root->rhs));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
                   /*** BEGIN ASSEMBLING to_ptr ***/
                   /*** Assemble to_ptr_lhs_rhs as a Singleton ***/
                   SingletonNode * to_ptr_lhs_rhs = new SingletonNode(target_root_rhs->elem);
@@ -520,6 +976,9 @@ bool JITD::PushDownSingletonLeft(std::shared_ptr<JITDNode> * &target )
                   std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
                   #endif
                   /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
                   viewAdd(parent);
                   /*** ViewMaintenance ***/
                   viewAdd(target);
@@ -527,7 +986,7 @@ bool JITD::PushDownSingletonLeft(std::shared_ptr<JITDNode> * &target )
                   viewAdd(&(to_ptr_lhs->lhs));
                   viewAdd(&(to_ptr_lhs->rhs));
                   viewAdd(&(to_ptr->rhs));
-                  /*** MapMaintenance ***/
+                  /*** ParentMaintenance ***/
                   setParent(target,parent);
                   {
                     setParent(&(to_ptr->lhs),target);
@@ -545,6 +1004,10 @@ bool JITD::PushDownSingletonLeft(std::shared_ptr<JITDNode> * &target )
                     setParent(&(to_ptr->rhs),target);
                     fixNodeDecendents(&(to_ptr->rhs),&(to_ptr->rhs));
                   }
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
                   return true;
                 }
               }; break;
@@ -570,7 +1033,14 @@ bool JITD::CrackArray(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::CrackArray"<<std::endl;*/
   {
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into Array
     #ifdef ATOMIC_LOAD
@@ -587,9 +1057,16 @@ bool JITD::CrackArray(std::shared_ptr<JITDNode> * &target )
         ArrayNode *target_root = (ArrayNode *)(target_root_lock).get();
         {
           /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
           viewErase(parent);
           /*** ViewMaintenance ***/
           viewErase(target);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
           /*** BEGIN ASSEMBLING to_ptr ***/
           /*** Assemble to_ptr_lhs as a Array ***/
           ArrayNode * to_ptr_lhs_ref = new ArrayNode();
@@ -610,12 +1087,15 @@ bool JITD::CrackArray(std::shared_ptr<JITDNode> * &target )
           std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
           #endif
           /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
           viewAdd(parent);
           /*** ViewMaintenance ***/
           viewAdd(target);
           viewAdd(&(to_ptr->lhs));
           viewAdd(&(to_ptr->rhs));
-          /*** MapMaintenance ***/
+          /*** ParentMaintenance ***/
           setParent(target,parent);
           {
             setParent(&(to_ptr->lhs),target);
@@ -625,6 +1105,85 @@ bool JITD::CrackArray(std::shared_ptr<JITDNode> * &target )
             setParent(&(to_ptr->rhs),target);
             fixNodeDecendents(&(to_ptr->rhs),&(to_ptr->rhs));
           }
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
+          return true;
+        }
+      }; break;
+      default: { //target_root is not a Array
+        return false;
+      }; break;
+    }
+  }
+
+}
+
+bool JITD::SortArray(std::shared_ptr<JITDNode> * &target )
+{
+/*std::cout<<" The transform applied is:JITD::SortArray"<<std::endl;*/
+  {
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
+    std::shared_ptr<JITDNode>* parent = getParent(target);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
+    std::shared_ptr<JITDNode> target_root_lock;
+    // Extract target into Array
+    #ifdef ATOMIC_LOAD
+    target_root_lock = std::atomic_load((target));
+    #endif
+    #ifdef ATOMIC_LOAD_CONSUME
+    target_root_lock = std::atomic_load_explicit(target,std::memory_order_consume);
+    #endif
+    #ifdef ATOMIC_LOAD_ACQUIRE
+    target_root_lock = std::atomic_load_explicit(target,std::memory_order_acquire);
+    #endif
+    switch((target_root_lock)->type){ 
+      case JITD_NODE_Array:{
+        ArrayNode *target_root = (ArrayNode *)(target_root_lock).get();
+        {
+          /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
+          viewErase(parent);
+          /*** ViewMaintenance ***/
+          viewErase(target);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
+          /*** BEGIN ASSEMBLING to_ptr ***/
+          /*** Assemble to_ptr as a SortedArray ***/
+          SortedArrayNode * to_ptr = new SortedArrayNode(target_root->data);
+          std::shared_ptr<JITDNode> to_ptr_ref = std::shared_ptr<JITDNode>(to_ptr);
+          /*** Handle post-processing for to_ptr ***/
+          std::sort(std::begin(to_ptr->data), std::end(to_ptr->data));
+          /*** END ASSEMBLING to_ptr as to_ptr_ref ***/
+          #ifdef ATOMIC_STORE
+          std::atomic_store(target, to_ptr_ref);
+          #endif
+          #ifdef ATOMIC_STORE_RELEASE
+          std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
+          #endif
+          /*** ViewMaintenanceParent ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
+          viewAdd(parent);
+          /*** ViewMaintenance ***/
+          viewAdd(target);
+          /*** ParentMaintenance ***/
+          setParent(target,parent);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
           return true;
         }
       }; break;
@@ -760,17 +1319,21 @@ bool jitd_accessor_get(const std::shared_ptr<JITDNode> &jitd_node_ref ,long targ
 
 void JITD::remove_singleton(const long &data )
 {
-
-START_EVENT;
-
 /*std::cout<<" The transform applied is:JITD::remove_singleton"<<std::endl;*/
   {
     /*** BEGIN ASSEMBLING new_root ***/
     /*** Assemble new_root as a DeleteSingleton ***/
     DeleteSingletonNode * new_root = new DeleteSingletonNode(*jitd_root, data);
     /*** END ASSEMBLING new_root as new_root_ref ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     std::shared_ptr<std::shared_ptr<JITDNode>> new_root_ptr = std::shared_ptr<std::shared_ptr<JITDNode>>(std::make_shared<std::shared_ptr<JITDNode>>(std::shared_ptr<JITDNode>(new_root)));
     this->work_queue.emplace(FLAG_remove_singleton,jitd_root,new_root_ptr);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
 
     #ifdef ATOMIC_STORE
     std::atomic_store(&jitd_root, new_root_ptr);
@@ -781,9 +1344,6 @@ START_EVENT;
     std::atomic_store_explicit(&jitd_root, new_root_ptr,std::memory_order_release);
 
     #endif
-
-END_EVENT;
-
   }
 
 }
@@ -791,7 +1351,14 @@ void JITD::after_remove_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITD
 {
 /*std::cout<<" The transform applied is:JITD::after_remove_singleton"<<std::endl;*/
   {
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     viewErase(&( *(cq_elem.first)));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
     DeleteSingletonNode *cast_root = (DeleteSingletonNode*)((cq_elem.second)->get());
     /*** UpdateTarget ***/
     {
@@ -807,14 +1374,28 @@ void JITD::after_remove_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITD
       std::atomic_store_explicit(&(cast_root->node),*(cq_elem.first),std::memory_order_release);
 
       #endif
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
       fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->node));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
     }
     /*** ViewMaintenance ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     viewAdd(&(*(cq_elem.second)));
     viewAdd(&(cast_root->node));
-    /*** MapMaintenance ***/
+    /*** ParentMaintenance ***/
     setParent(&(*(cq_elem.second)),NULL);
     setParent(&(cast_root->node),&(*(cq_elem.second)));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
   }
 
 }
@@ -822,17 +1403,21 @@ void JITD::after_remove_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITD
 
 void JITD::remove_elements(const std::vector<long> &data )
 {
-
-START_EVENT;
-
 /*std::cout<<" The transform applied is:JITD::remove_elements"<<std::endl;*/
   {
     /*** BEGIN ASSEMBLING new_root ***/
     /*** Assemble new_root as a DeleteElements ***/
     DeleteElementsNode * new_root = new DeleteElementsNode(*jitd_root, data);
     /*** END ASSEMBLING new_root as new_root_ref ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     std::shared_ptr<std::shared_ptr<JITDNode>> new_root_ptr = std::shared_ptr<std::shared_ptr<JITDNode>>(std::make_shared<std::shared_ptr<JITDNode>>(std::shared_ptr<JITDNode>(new_root)));
     this->work_queue.emplace(FLAG_remove_elements,jitd_root,new_root_ptr);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
 
     #ifdef ATOMIC_STORE
     std::atomic_store(&jitd_root, new_root_ptr);
@@ -845,14 +1430,19 @@ START_EVENT;
     #endif
   }
 
-END_EVENT;
-
 }
 void JITD::after_remove_elements(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> &cq_elem)
 {
 /*std::cout<<" The transform applied is:JITD::after_remove_elements"<<std::endl;*/
   {
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     viewErase(&( *(cq_elem.first)));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
     DeleteElementsNode *cast_root = (DeleteElementsNode*)((cq_elem.second)->get());
     /*** UpdateTarget ***/
     {
@@ -868,14 +1458,28 @@ void JITD::after_remove_elements(std::pair<std::shared_ptr<std::shared_ptr<JITDN
       std::atomic_store_explicit(&(cast_root->node),*(cq_elem.first),std::memory_order_release);
 
       #endif
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
       fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->node));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
     }
     /*** ViewMaintenance ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     viewAdd(&(*(cq_elem.second)));
     viewAdd(&(cast_root->node));
-    /*** MapMaintenance ***/
+    /*** ParentMaintenance ***/
     setParent(&(*(cq_elem.second)),NULL);
     setParent(&(cast_root->node),&(*(cq_elem.second)));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
   }
 
 }
@@ -892,8 +1496,15 @@ void JITD::insert(const std::vector<Record> &data )
     /*** Assemble new_root as a Concat ***/
     ConcatNode * new_root = new ConcatNode(*jitd_root, new_root_rhs_ref);
     /*** END ASSEMBLING new_root as new_root_ref ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     std::shared_ptr<std::shared_ptr<JITDNode>> new_root_ptr = std::shared_ptr<std::shared_ptr<JITDNode>>(std::make_shared<std::shared_ptr<JITDNode>>(std::shared_ptr<JITDNode>(new_root)));
     this->work_queue.emplace(FLAG_insert,jitd_root,new_root_ptr);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
 
     #ifdef ATOMIC_STORE
     std::atomic_store(&jitd_root, new_root_ptr);
@@ -911,7 +1522,14 @@ void JITD::after_insert(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std
 {
 /*std::cout<<" The transform applied is:JITD::after_insert"<<std::endl;*/
   {
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     viewErase(&( *(cq_elem.first)));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
     ConcatNode *cast_root = (ConcatNode*)((cq_elem.second)->get());
     /*** UpdateTarget ***/
     {
@@ -927,18 +1545,32 @@ void JITD::after_insert(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std
       std::atomic_store_explicit(&(cast_root->lhs),*(cq_elem.first),std::memory_order_release);
 
       #endif
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
       fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->lhs));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
     }
     {
     }
     /*** ViewMaintenance ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     viewAdd(&(*(cq_elem.second)));
     viewAdd(&(cast_root->lhs));
     viewAdd(&(cast_root->rhs));
-    /*** MapMaintenance ***/
+    /*** ParentMaintenance ***/
     setParent(&(*(cq_elem.second)),NULL);
     setParent(&(cast_root->lhs),&(*(cq_elem.second)));
     setParent(&(cast_root->rhs),&(*(cq_elem.second)));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
   }
 
 }
@@ -948,9 +1580,6 @@ void JITD::insert_singleton(const Record &data )
 {
 /*std::cout<<" The transform applied is:JITD::insert_singleton"<<std::endl;*/
   {
-
-START_EVENT;
-
     /*** BEGIN ASSEMBLING new_root ***/
     /*** Assemble new_root_rhs as a Singleton ***/
     SingletonNode * new_root_rhs = new SingletonNode(data);
@@ -958,8 +1587,15 @@ START_EVENT;
     /*** Assemble new_root as a Concat ***/
     ConcatNode * new_root = new ConcatNode(*jitd_root, new_root_rhs_ref);
     /*** END ASSEMBLING new_root as new_root_ref ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     std::shared_ptr<std::shared_ptr<JITDNode>> new_root_ptr = std::shared_ptr<std::shared_ptr<JITDNode>>(std::make_shared<std::shared_ptr<JITDNode>>(std::shared_ptr<JITDNode>(new_root)));
     this->work_queue.emplace(FLAG_insert_singleton,jitd_root,new_root_ptr);
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
 
     #ifdef ATOMIC_STORE
     std::atomic_store(&jitd_root, new_root_ptr);
@@ -970,9 +1606,6 @@ START_EVENT;
     std::atomic_store_explicit(&jitd_root, new_root_ptr,std::memory_order_release);
 
     #endif
-
-END_EVENT;
-
   }
 
 }
@@ -980,7 +1613,14 @@ void JITD::after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITD
 {
 /*std::cout<<" The transform applied is:JITD::after_insert_singleton"<<std::endl;*/
   {
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     viewErase(&( *(cq_elem.first)));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
     ConcatNode *cast_root = (ConcatNode*)((cq_elem.second)->get());
     /*** UpdateTarget ***/
     {
@@ -996,18 +1636,32 @@ void JITD::after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITD
       std::atomic_store_explicit(&(cast_root->lhs),*(cq_elem.first),std::memory_order_release);
 
       #endif
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
       fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->lhs));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
     }
     {
     }
     /*** ViewMaintenance ***/
+#ifdef RDTSC
+sticks = rdtsc();
+#endif
     viewAdd(&(*(cq_elem.second)));
     viewAdd(&(cast_root->lhs));
     viewAdd(&(cast_root->rhs));
-    /*** MapMaintenance ***/
+    /*** ParentMaintenance ***/
     setParent(&(*(cq_elem.second)),NULL);
     setParent(&(cast_root->lhs),&(*(cq_elem.second)));
     setParent(&(cast_root->rhs),&(*(cq_elem.second)));
+#ifdef RDTSC
+diffticks = rdtsc() - sticks;
+this->rdtsc_vector.emplace_back(diffticks);
+#endif
   }
 
 }
@@ -1172,6 +1826,126 @@ BTreeNode *target_root_lock_real_node_real = (BTreeNode *)target_root_lock_real_
     }
 	
 }
+bool JITD::matchDeleteElemFromSingleton(std::shared_ptr<JITDNode> * &targetHandleRef) 
+{ 
+	std::shared_ptr<JITDNode> target_root;
+    #ifdef ATOMIC_LOAD
+    target_root = std::atomic_load((targetHandleRef));
+    #endif
+    #ifdef ATOMIC_LOAD_CONSUME
+    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_consume);
+    #endif
+    #ifdef ATOMIC_LOAD_ACQUIRE
+    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_acquire);
+    #endif
+	//std::shared_ptr<JITDNode> target_root = std::atomic_load(targetHandleRef);
+	JITDNode * target_root_lock = target_root.get();
+	if(target_root_lock->type != JITD_NODE_DeleteElements){return false; }
+DeleteElementsNode *target_root_lock_real = (DeleteElementsNode *)target_root_lock;
+JITDNode *target_root_lock_real_node = target_root_lock_real->node.get();
+if(target_root_lock_real_node->type != JITD_NODE_Singleton){return false; }
+SingletonNode *target_root_lock_real_node_real = (SingletonNode *)target_root_lock_real_node;
+
+	if(true)
+    {
+    	return true;
+    }
+    else
+    {
+    	return false;
+    }
+	
+}
+bool JITD::matchDeleteKeyFromSingleton(std::shared_ptr<JITDNode> * &targetHandleRef) 
+{ 
+	std::shared_ptr<JITDNode> target_root;
+    #ifdef ATOMIC_LOAD
+    target_root = std::atomic_load((targetHandleRef));
+    #endif
+    #ifdef ATOMIC_LOAD_CONSUME
+    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_consume);
+    #endif
+    #ifdef ATOMIC_LOAD_ACQUIRE
+    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_acquire);
+    #endif
+	//std::shared_ptr<JITDNode> target_root = std::atomic_load(targetHandleRef);
+	JITDNode * target_root_lock = target_root.get();
+	if(target_root_lock->type != JITD_NODE_DeleteSingleton){return false; }
+DeleteSingletonNode *target_root_lock_real = (DeleteSingletonNode *)target_root_lock;
+JITDNode *target_root_lock_real_node = target_root_lock_real->node.get();
+if(target_root_lock_real_node->type != JITD_NODE_Singleton){return false; }
+SingletonNode *target_root_lock_real_node_real = (SingletonNode *)target_root_lock_real_node;
+
+	if(true)
+    {
+    	return true;
+    }
+    else
+    {
+    	return false;
+    }
+	
+}
+bool JITD::matchDeleteSingletonFromArray(std::shared_ptr<JITDNode> * &targetHandleRef) 
+{ 
+	std::shared_ptr<JITDNode> target_root;
+    #ifdef ATOMIC_LOAD
+    target_root = std::atomic_load((targetHandleRef));
+    #endif
+    #ifdef ATOMIC_LOAD_CONSUME
+    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_consume);
+    #endif
+    #ifdef ATOMIC_LOAD_ACQUIRE
+    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_acquire);
+    #endif
+	//std::shared_ptr<JITDNode> target_root = std::atomic_load(targetHandleRef);
+	JITDNode * target_root_lock = target_root.get();
+	if(target_root_lock->type != JITD_NODE_DeleteSingleton){return false; }
+DeleteSingletonNode *target_root_lock_real = (DeleteSingletonNode *)target_root_lock;
+JITDNode *target_root_lock_real_node = target_root_lock_real->node.get();
+if(target_root_lock_real_node->type != JITD_NODE_Array){return false; }
+ArrayNode *target_root_lock_real_node_real = (ArrayNode *)target_root_lock_real_node;
+
+	if(true)
+    {
+    	return true;
+    }
+    else
+    {
+    	return false;
+    }
+	
+}
+bool JITD::matchDeleteElemFromArray(std::shared_ptr<JITDNode> * &targetHandleRef) 
+{ 
+	std::shared_ptr<JITDNode> target_root;
+    #ifdef ATOMIC_LOAD
+    target_root = std::atomic_load((targetHandleRef));
+    #endif
+    #ifdef ATOMIC_LOAD_CONSUME
+    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_consume);
+    #endif
+    #ifdef ATOMIC_LOAD_ACQUIRE
+    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_acquire);
+    #endif
+	//std::shared_ptr<JITDNode> target_root = std::atomic_load(targetHandleRef);
+	JITDNode * target_root_lock = target_root.get();
+	if(target_root_lock->type != JITD_NODE_DeleteElements){return false; }
+DeleteElementsNode *target_root_lock_real = (DeleteElementsNode *)target_root_lock;
+JITDNode *target_root_lock_real_node = target_root_lock_real->node.get();
+if(target_root_lock_real_node->type != JITD_NODE_Array){return false; }
+ArrayNode *target_root_lock_real_node_real = (ArrayNode *)target_root_lock_real_node;
+
+	if(true)
+    {
+    	return true;
+    }
+    else
+    {
+    	return false;
+    }
+	
+}
 bool JITD::matchCrackArray(std::shared_ptr<JITDNode> * &targetHandleRef) 
 { 
 	std::shared_ptr<JITDNode> target_root;
@@ -1189,7 +1963,7 @@ bool JITD::matchCrackArray(std::shared_ptr<JITDNode> * &targetHandleRef)
 	if(target_root_lock->type != JITD_NODE_Array){return false; }
 ArrayNode *target_root_lock_real = (ArrayNode *)target_root_lock;
 
-	if((array_size((target_root_lock_real->data))) > (__array_size))
+	if((array_size((target_root_lock_real->data))) > (100))
     {
     	return true;
     }
@@ -1443,6 +2217,194 @@ BTreeNode *iter_node_real_node_real = (BTreeNode *)iter_node_real_node;
     return bestScore;
   }
 
+  long JITD::searchForDeleteElemFromSingleton(          // Return the "best" score available     
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+  
+
+    int count = 0;
+    long bestScore = -1;
+    long curr_score = -1;
+   
+    
+    if(!(this->DeleteElemFromSingleton_View).empty())
+    {
+    
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      
+      it = (this->DeleteElemFromSingleton_View).begin();
+          
+         
+
+           JITDNode *iter_node = (*it)->get();
+          
+          
+          if(iter_node->type != JITD_NODE_DeleteElements){return -1; }
+DeleteElementsNode *iter_node_real = (DeleteElementsNode *)iter_node;
+JITDNode *iter_node_real_node = iter_node_real->node.get();
+if(iter_node_real_node->type != JITD_NODE_Singleton){return -1; }
+SingletonNode *iter_node_real_node_real = (SingletonNode *)iter_node_real_node;
+
+
+          if(true){
+            bestScore = 0;
+          
+          targetHandleRef = (*it);
+          }
+          
+
+          
+      
+    }
+
+
+
+
+
+    return bestScore;
+  }
+
+  long JITD::searchForDeleteKeyFromSingleton(          // Return the "best" score available     
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+  
+
+    int count = 0;
+    long bestScore = -1;
+    long curr_score = -1;
+   
+    
+    if(!(this->DeleteKeyFromSingleton_View).empty())
+    {
+    
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      
+      it = (this->DeleteKeyFromSingleton_View).begin();
+          
+         
+
+           JITDNode *iter_node = (*it)->get();
+          
+          
+          if(iter_node->type != JITD_NODE_DeleteSingleton){return -1; }
+DeleteSingletonNode *iter_node_real = (DeleteSingletonNode *)iter_node;
+JITDNode *iter_node_real_node = iter_node_real->node.get();
+if(iter_node_real_node->type != JITD_NODE_Singleton){return -1; }
+SingletonNode *iter_node_real_node_real = (SingletonNode *)iter_node_real_node;
+
+
+          if(true){
+            bestScore = 0;
+          
+          targetHandleRef = (*it);
+          }
+          
+
+          
+      
+    }
+
+
+
+
+
+    return bestScore;
+  }
+
+  long JITD::searchForDeleteSingletonFromArray(          // Return the "best" score available     
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+  
+
+    int count = 0;
+    long bestScore = -1;
+    long curr_score = -1;
+   
+    
+    if(!(this->DeleteSingletonFromArray_View).empty())
+    {
+    
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      
+      it = (this->DeleteSingletonFromArray_View).begin();
+          
+         
+
+           JITDNode *iter_node = (*it)->get();
+          
+          
+          if(iter_node->type != JITD_NODE_DeleteSingleton){return -1; }
+DeleteSingletonNode *iter_node_real = (DeleteSingletonNode *)iter_node;
+JITDNode *iter_node_real_node = iter_node_real->node.get();
+if(iter_node_real_node->type != JITD_NODE_Array){return -1; }
+ArrayNode *iter_node_real_node_real = (ArrayNode *)iter_node_real_node;
+
+
+          if(true){
+            bestScore = 0;
+          
+          targetHandleRef = (*it);
+          }
+          
+
+          
+      
+    }
+
+
+
+
+
+    return bestScore;
+  }
+
+  long JITD::searchForDeleteElemFromArray(          // Return the "best" score available     
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+  
+
+    int count = 0;
+    long bestScore = -1;
+    long curr_score = -1;
+   
+    
+    if(!(this->DeleteElemFromArray_View).empty())
+    {
+    
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      
+      it = (this->DeleteElemFromArray_View).begin();
+          
+         
+
+           JITDNode *iter_node = (*it)->get();
+          
+          
+          if(iter_node->type != JITD_NODE_DeleteElements){return -1; }
+DeleteElementsNode *iter_node_real = (DeleteElementsNode *)iter_node;
+JITDNode *iter_node_real_node = iter_node_real->node.get();
+if(iter_node_real_node->type != JITD_NODE_Array){return -1; }
+ArrayNode *iter_node_real_node_real = (ArrayNode *)iter_node_real_node;
+
+
+          if(true){
+            bestScore = 0;
+          
+          targetHandleRef = (*it);
+          }
+          
+
+          
+      
+    }
+
+
+
+
+
+    return bestScore;
+  }
+
   long JITD::searchForCrackArray(          // Return the "best" score available     
     std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
@@ -1469,7 +2431,7 @@ BTreeNode *iter_node_real_node_real = (BTreeNode *)iter_node_real_node;
 ArrayNode *iter_node_real = (ArrayNode *)iter_node;
 
 
-          if((array_size((iter_node_real->data))) > (__array_size)){
+          if((array_size((iter_node_real->data))) > (100)){
             bestScore = array_size((iter_node_real->data));
           
           targetHandleRef = (*it);
@@ -1521,12 +2483,15 @@ int JITD::organize_wait()
         #ifdef SPIN
         while(this->work_queue.try_pop(pop_mce) == false)
         {
-            std::this_thread::sleep_for(std::chrono::microseconds(__sleep_time));
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
         }
         #endif
 
         if(pop_mce.flag == EXIT)
         {
+          #ifdef RDTSC
+          std::cout<<"At EXIT Size of the rdtsc vec is"<<this->rdtsc_vector.size()<<std::endl;
+          #endif
           #ifdef TRANSFORM_COUNT
             this->times_transforms_called();
           #endif
@@ -2003,6 +2968,182 @@ bool JITD::do_organize()
   std::shared_ptr<JITDNode> * targetHandleRef;
   
   //std::shared_ptr<JITDNode> target;
+  //std::cout<<"Before calling searchForDeleteElemFromSingleton" <<std::endl;
+  //this->print_debug();
+  //check_pq();
+
+  long bestScore = searchForDeleteElemFromSingleton(
+    targetHandleRef
+  );
+  //std::cout<<"After calling searchForDeleteElemFromSingleton Best Score is "<<bestScore<<std::endl;
+  if(bestScore >= 0) {
+  
+    //std::cout<<"Candidate shared_ptr for DeleteElemFromSingleton: "<<(*targetHandleRef)<<std::endl;
+    
+      #ifdef TRANSFORM_COUNT
+    DeleteElemFromSingleton_count++;
+    #endif
+      DeleteElemFromSingleton(targetHandleRef);
+    
+    return true;
+
+  } 
+  
+  
+  
+  else { 
+     
+  }
+
+
+
+
+
+
+
+}
+
+
+    
+
+
+
+{
+  std::shared_ptr<JITDNode> * targetHandleRef;
+  
+  //std::shared_ptr<JITDNode> target;
+  //std::cout<<"Before calling searchForDeleteKeyFromSingleton" <<std::endl;
+  //this->print_debug();
+  //check_pq();
+
+  long bestScore = searchForDeleteKeyFromSingleton(
+    targetHandleRef
+  );
+  //std::cout<<"After calling searchForDeleteKeyFromSingleton Best Score is "<<bestScore<<std::endl;
+  if(bestScore >= 0) {
+  
+    //std::cout<<"Candidate shared_ptr for DeleteKeyFromSingleton: "<<(*targetHandleRef)<<std::endl;
+    
+      #ifdef TRANSFORM_COUNT
+    DeleteKeyFromSingleton_count++;
+    #endif
+      DeleteKeyFromSingleton(targetHandleRef);
+    
+    return true;
+
+  } 
+  
+  
+  
+  else { 
+     
+  }
+
+
+
+
+
+
+
+}
+
+
+    
+
+
+
+{
+  std::shared_ptr<JITDNode> * targetHandleRef;
+  
+  //std::shared_ptr<JITDNode> target;
+  //std::cout<<"Before calling searchForDeleteSingletonFromArray" <<std::endl;
+  //this->print_debug();
+  //check_pq();
+
+  long bestScore = searchForDeleteSingletonFromArray(
+    targetHandleRef
+  );
+  //std::cout<<"After calling searchForDeleteSingletonFromArray Best Score is "<<bestScore<<std::endl;
+  if(bestScore >= 0) {
+  
+    //std::cout<<"Candidate shared_ptr for DeleteSingletonFromArray: "<<(*targetHandleRef)<<std::endl;
+    
+      #ifdef TRANSFORM_COUNT
+    DeleteSingletonFromArray_count++;
+    #endif
+      DeleteSingletonFromArray(targetHandleRef);
+    
+    return true;
+
+  } 
+  
+  
+  
+  else { 
+     
+  }
+
+
+
+
+
+
+
+}
+
+
+    
+
+
+
+{
+  std::shared_ptr<JITDNode> * targetHandleRef;
+  
+  //std::shared_ptr<JITDNode> target;
+  //std::cout<<"Before calling searchForDeleteElemFromArray" <<std::endl;
+  //this->print_debug();
+  //check_pq();
+
+  long bestScore = searchForDeleteElemFromArray(
+    targetHandleRef
+  );
+  //std::cout<<"After calling searchForDeleteElemFromArray Best Score is "<<bestScore<<std::endl;
+  if(bestScore >= 0) {
+  
+    //std::cout<<"Candidate shared_ptr for DeleteElemFromArray: "<<(*targetHandleRef)<<std::endl;
+    
+      #ifdef TRANSFORM_COUNT
+    DeleteElemFromArray_count++;
+    #endif
+      DeleteElemFromArray(targetHandleRef);
+    
+    return true;
+
+  } 
+  
+  
+  
+  else { 
+     
+  }
+
+
+
+
+
+
+
+}
+
+
+    
+
+
+
+{
+  std::shared_ptr<JITDNode> * targetHandleRef;
+  
+  //std::shared_ptr<JITDNode> target;
   //std::cout<<"Before calling searchForCrackArray" <<std::endl;
   //this->print_debug();
   //check_pq();
@@ -2205,6 +3346,14 @@ matched = this->matchPushDownDontDeleteSingletonBtreeRight(node_handle);
 if(matched == true){
 this->PushDownDontDeleteSingletonBtreeRight_View.emplace(node_handle);
 }
+matched = this->matchDeleteKeyFromSingleton(node_handle);
+if(matched == true){
+this->DeleteKeyFromSingleton_View.emplace(node_handle);
+}
+matched = this->matchDeleteSingletonFromArray(node_handle);
+if(matched == true){
+this->DeleteSingletonFromArray_View.emplace(node_handle);
+}
 
         break;
       }
@@ -2214,6 +3363,14 @@ this->PushDownDontDeleteSingletonBtreeRight_View.emplace(node_handle);
         matched = this->matchPushDownDontDeleteElemBtree(node_handle);
 if(matched == true){
 this->PushDownDontDeleteElemBtree_View.emplace(node_handle);
+}
+matched = this->matchDeleteElemFromSingleton(node_handle);
+if(matched == true){
+this->DeleteElemFromSingleton_View.emplace(node_handle);
+}
+matched = this->matchDeleteElemFromArray(node_handle);
+if(matched == true){
+this->DeleteElemFromArray_View.emplace(node_handle);
 }
 
         break;
@@ -2286,6 +3443,8 @@ void JITD::viewErase(std::shared_ptr<JITDNode>* node_handle)
       case JITD_NODE_DeleteSingleton : {
         this->PushDownDontDeleteSingletonBtreeLeft_View.erase(node_handle);
 this->PushDownDontDeleteSingletonBtreeRight_View.erase(node_handle);
+this->DeleteKeyFromSingleton_View.erase(node_handle);
+this->DeleteSingletonFromArray_View.erase(node_handle);
 
         break;
       
@@ -2294,6 +3453,8 @@ this->PushDownDontDeleteSingletonBtreeRight_View.erase(node_handle);
     
       case JITD_NODE_DeleteElements : {
         this->PushDownDontDeleteElemBtree_View.erase(node_handle);
+this->DeleteElemFromSingleton_View.erase(node_handle);
+this->DeleteElemFromArray_View.erase(node_handle);
 
         break;
       
@@ -2878,6 +4039,14 @@ iter->second = parent;
 void JITD::times_transforms_called()
 {
   
+    std::cout<<"The transform DeleteElemFromSingleton was called "<< DeleteElemFromSingleton_count<<" times"<<std::endl;
+  
+    std::cout<<"The transform DeleteKeyFromSingleton was called "<< DeleteKeyFromSingleton_count<<" times"<<std::endl;
+  
+    std::cout<<"The transform DeleteSingletonFromArray was called "<< DeleteSingletonFromArray_count<<" times"<<std::endl;
+  
+    std::cout<<"The transform DeleteElemFromArray was called "<< DeleteElemFromArray_count<<" times"<<std::endl;
+  
     std::cout<<"The transform PushDownDontDeleteSingletonBtreeRight was called "<< PushDownDontDeleteSingletonBtreeRight_count<<" times"<<std::endl;
   
     std::cout<<"The transform PushDownDontDeleteSingletonBtreeLeft was called "<< PushDownDontDeleteSingletonBtreeLeft_count<<" times"<<std::endl;
@@ -2889,6 +4058,8 @@ void JITD::times_transforms_called()
     std::cout<<"The transform PushDownSingletonLeft was called "<< PushDownSingletonLeft_count<<" times"<<std::endl;
   
     std::cout<<"The transform CrackArray was called "<< CrackArray_count<<" times"<<std::endl;
+  
+    std::cout<<"The transform SortArray was called "<< SortArray_count<<" times"<<std::endl;
   
 }
 std::shared_ptr<JITD> assemble_jitd(std::istream &in)
@@ -3042,8 +4213,64 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 
 
 void JITD:: check_view()
-{
+{/*
       std::set<std::shared_ptr<JITDNode> *>::iterator it;
+      
+        std::cout<<"SIZE OF DeleteElemFromSingleton View"<<DeleteElemFromSingleton_View.size()<<"."<<std::endl;
+        for(it = this->DeleteElemFromSingleton_View.begin();it!=this->DeleteElemFromSingleton_View.end();++it)
+        {
+        
+          
+
+          std::shared_ptr<JITDNode> * curr = *it;
+          std::cout<<"Address of shared_ptr: "<<*curr<<std::endl;
+
+          
+          
+
+        }
+      
+        std::cout<<"SIZE OF DeleteKeyFromSingleton View"<<DeleteKeyFromSingleton_View.size()<<"."<<std::endl;
+        for(it = this->DeleteKeyFromSingleton_View.begin();it!=this->DeleteKeyFromSingleton_View.end();++it)
+        {
+        
+          
+
+          std::shared_ptr<JITDNode> * curr = *it;
+          std::cout<<"Address of shared_ptr: "<<*curr<<std::endl;
+
+          
+          
+
+        }
+      
+        std::cout<<"SIZE OF DeleteSingletonFromArray View"<<DeleteSingletonFromArray_View.size()<<"."<<std::endl;
+        for(it = this->DeleteSingletonFromArray_View.begin();it!=this->DeleteSingletonFromArray_View.end();++it)
+        {
+        
+          
+
+          std::shared_ptr<JITDNode> * curr = *it;
+          std::cout<<"Address of shared_ptr: "<<*curr<<std::endl;
+
+          
+          
+
+        }
+      
+        std::cout<<"SIZE OF DeleteElemFromArray View"<<DeleteElemFromArray_View.size()<<"."<<std::endl;
+        for(it = this->DeleteElemFromArray_View.begin();it!=this->DeleteElemFromArray_View.end();++it)
+        {
+        
+          
+
+          std::shared_ptr<JITDNode> * curr = *it;
+          std::cout<<"Address of shared_ptr: "<<*curr<<std::endl;
+
+          
+          
+
+        }
       
         std::cout<<"SIZE OF PushDownDontDeleteSingletonBtreeRight View"<<PushDownDontDeleteSingletonBtreeRight_View.size()<<"."<<std::endl;
         for(it = this->PushDownDontDeleteSingletonBtreeRight_View.begin();it!=this->PushDownDontDeleteSingletonBtreeRight_View.end();++it)
@@ -3129,6 +4356,20 @@ void JITD:: check_view()
 
         }
       
+        std::cout<<"SIZE OF SortArray View"<<SortArray_View.size()<<"."<<std::endl;
+        for(it = this->SortArray_View.begin();it!=this->SortArray_View.end();++it)
+        {
+        
+          
+
+          std::shared_ptr<JITDNode> * curr = *it;
+          std::cout<<"Address of shared_ptr: "<<*curr<<std::endl;
+
+          
+          
+
+        }
+      */
       
 }
 /*
