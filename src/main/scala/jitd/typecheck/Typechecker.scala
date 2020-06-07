@@ -275,6 +275,8 @@ class Typechecker(functions: Map[String, FunctionSignature], nodeTypes: Map[Stri
       case Error(_) => scope
       case Comment(_) => scope
       case Macro(_) => scope
+      case RDTSC_Start_Logging() => scope 
+      case RDTSC_End_Logging() => scope  
       case commonFunction(_,_,_) => scope
       case commonFunctionSpecial(_,_,_) => scope
       

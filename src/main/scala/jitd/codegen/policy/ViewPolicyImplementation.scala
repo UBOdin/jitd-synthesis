@@ -34,23 +34,21 @@ object ViewPolicyImplementation extends PolicyImplementation
   {
     if(mutator == true)
     {
-      ((Comment(s"ViewMaintenance")++viewErase(ctx,definition,handlerefbool,from,fromTarget,mutator)),
-      //Comment(s"MapMaintenance")++mapErase(ctx,definition,handlerefbool,from,fromTarget,mutator)),
+      ((Comment(s"ViewMaintenance")++RDTSC_Start_Logging()++viewErase(ctx,definition,handlerefbool,from,fromTarget,mutator)++RDTSC_End_Logging()),
       (Comment(s"UpdateTarget")++atomic_store(ctx,definition,handlerefbool,to,toTarget,mutator)++ 
-      Comment(s"ViewMaintenance")++viewAdd(ctx,definition,handlerefbool,to,toTarget,mutator)++
-      Comment(s"MapMaintenance")++mapAdd(ctx,definition,handlerefbool,to,toTarget,mutator)))
+      Comment(s"ViewMaintenance")++RDTSC_Start_Logging()++viewAdd(ctx,definition,handlerefbool,to,toTarget,mutator)++
+      Comment(s"ParentMaintenance")++setandFixParentNode(ctx,definition,handlerefbool,to,toTarget,mutator)++RDTSC_End_Logging()))
     }
     else
     {
-      ((Comment(s"ViewMaintenanceParent")++commonFunction("viewErase(",Var("parent"),Var(""))++
-      Comment(s"ViewMaintenance")++viewErase(ctx,definition,handlerefbool,from,fromTarget,mutator)),
-      //Comment(s"MapMaintenance")++mapErase(ctx,definition,handlerefbool,from,fromTarget,mutator)), 
-      (Comment(s"ViewMaintenanceParent")++commonFunction("viewAdd(",Var("parent"),Var(""))++
+      ((Comment(s"ViewMaintenanceParent")++RDTSC_Start_Logging()++commonFunction("viewErase(",Var("parent"),Var(""))++
+      Comment(s"ViewMaintenance")++viewErase(ctx,definition,handlerefbool,from,fromTarget,mutator))++RDTSC_End_Logging(), 
+      (Comment(s"ViewMaintenanceParent")++RDTSC_Start_Logging()++commonFunction("viewAdd(",Var("parent"),Var(""))++
       Comment(s"ViewMaintenance")++viewAdd(ctx,definition,handlerefbool,to,toTarget,mutator)++
-      Comment(s"MapMaintenance")++mapAdd(ctx,definition,handlerefbool,to,toTarget,mutator)))
+      Comment(s"ParentMaintenance")++setandFixParentNode(ctx,definition,handlerefbool,to,toTarget,mutator)++RDTSC_End_Logging()))
     }
   }
-  //(setpqRemove(ctx,definition,handlerefbool,from,fromTarget,mutator), (setpqAdd(ctx,definition,handlerefbool,to,toTarget,mutator)++ mapAdd(ctx,definition,handlerefbool,to,toTarget,mutator)))
+  
   //Eg: of what OnRewriteSet should return
 
   //array(data) -> Btree(Array1,sep,Array2) 
@@ -161,23 +159,23 @@ object ViewPolicyImplementation extends PolicyImplementation
     return Block(viewseqStmt)
   
   } 
-  def mapErase(ctx:Render,definition:Definition,handlerefbool:Boolean,fromNode:MatchPattern,fromNodeVar:String,mutator:Boolean):Statement =
-  {
+  // def mapErase(ctx:Render,definition:Definition,handlerefbool:Boolean,fromNode:MatchPattern,fromNodeVar:String,mutator:Boolean):Statement =
+  // {
 
     
-    val rule = ctx.policy.rule
-    val extract = 
-      if(handlerefbool == true)
-        {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",Var("target"),Var("target"))}
-      else
-        {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",WrapNodeRef(Var("target")),Var("target"))}
+  //   val rule = ctx.policy.rule
+  //   val extract = 
+  //     if(handlerefbool == true)
+  //       {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",Var("target"),Var("target"))}
+  //     else
+  //       {MatchToStatement.unrollSet(definition,fromNode,fromNodeVar+"_root",WrapNodeRef(Var("target")),Var("target"))}
     
-    val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4,getVarNameandType._5))
-    val maperaseseqStmt = eachVarName.map(vnnt => commonFunction("this->childParentMap.erase(",vnnt._3,Var("")))
+  //   val eachVarName = extract.map(getVarNameandType => (getVarNameandType._1,getVarNameandType._2,getVarNameandType._3,getVarNameandType._4,getVarNameandType._5))
+  //   val maperaseseqStmt = eachVarName.map(vnnt => commonFunction("this->childParentMap.erase(",vnnt._3,Var("")))
                                      
-    return Block(maperaseseqStmt)
-  }
-  def mapAdd(ctx:Render,definition:Definition,handlerefbool:Boolean,to:ConstructorPattern,toNodeVar:String,mutator:Boolean,prev_node:Option[Expression]=None):Statement =
+  //   return Block(maperaseseqStmt)
+  // }
+  def setandFixParentNode(ctx:Render,definition:Definition,handlerefbool:Boolean,to:ConstructorPattern,toNodeVar:String,mutator:Boolean,prev_node:Option[Expression]=None):Statement =
   {
     val rootNodeType = to.toMatchPattern match {
       case MatchNode(nodeType,fields,_) => nodeType
@@ -318,7 +316,9 @@ object ViewPolicyImplementation extends PolicyImplementation
                                                     commonFunction("std::atomic_store_explicit(",vnnt._3,Var(","+target+",std::memory_order_release"))++ 
                                                     Macro("#endif")++
                                                     //commonFunction("fixMap(",Var("&("+target+"),"),vnnt._3)++
-                                                    commonFunction("fixNodeDecendents(",Var("&("+target+"),"),vnnt._3)
+                                                    RDTSC_Start_Logging()++
+                                                    commonFunction("fixNodeDecendents(",Var("&("+target+"),"),vnnt._3)++
+                                                    RDTSC_End_Logging()
                                      
                                                 
                                                   }

@@ -51,12 +51,21 @@ typedef enum {
   }
 } JITDNodeType;
 
+#include "iterator.hpp"
+
+
 class JITDNode {
   public: 
   JITDNode(JITDNodeType type) : type(type) {}
 
   JITDNodeType type;
   @{ctx.policyImplementation.state(ctx)}
+  virtual Iterator<Record> iterator()
+    { 
+      std::cout<<"JITD Iterator"<<std::endl;
+      std::cerr << type << std::endl;
+      assert(0);
+    }
 };
 
 typedef std::function<void(std::shared_ptr<JITDNode> &new_node)> UpdateHandle;
@@ -90,6 +99,10 @@ class @{node.renderName} : public JITDNode {
       @{field.name} = new_value;
     }
   }
+
+  //NOTE:ITERATORS NEED TO BE SYNTHESIZED
+  Iterator<Record> iterator();
+  
   public: @for(field <- node.fields){ 
     @{ctx.fieldDefn(field)};
     
@@ -97,6 +110,13 @@ class @{node.renderName} : public JITDNode {
   std::shared_ptr<JITDNode>* parent = NULL; 
 };
 }
+
+#include "iterator/FastIterator.hpp"
+#include "iterator/SeqIterator.hpp"
+#include "iterator/MergeIterator.hpp"
+#include "iterator/BufferIterator.hpp"
+#include "iterator/UnsortedBufferIterator.hpp"
+#include "iterator/SingletonIterator.hpp"  
 
 ///////////////////// Transform Definitions ///////////////////// 
 
@@ -138,6 +158,10 @@ void print_search_time_vector_sum();
 class JITD {
   
   public:
+
+    #ifdef RDTSC
+      std::vector<long unsigned int> rdtsc_vector;
+    #endif  
     pthread_mutex_t lock;
     int node_count =0;
 
@@ -189,7 +213,12 @@ class JITD {
       @{RenderMutator.declaration( mutator, ctx )}
     }
     
-    
+     Iterator<Record> iterator()
+    {
+      
+      std::shared_ptr<std::shared_ptr<JITDNode>> r = std::atomic_load(&jitd_root);
+      return (*r)->iterator();
+    }
    
     //void print_pq();
     //void check_pq();
