@@ -799,7 +799,6 @@ int main(int argc, char** argv) {
 	storage->jitd->__array_size = atoi(argv[1]);
 	storage->jitd->__sleep_time = atoi(argv[3]);
 	#ifdef TRACK_CACHING
-	storage->jitd->__perf_ref_fd = perf_ref_fd;
 	#endif
 
 	// Organize initial jitd structure until it reaches a stable state:
@@ -956,11 +955,6 @@ int main(int argc, char** argv) {
 		output_array[i].size_array[5] = storage->jitd->PushDownDontDeleteElemBtree_View.size();
 		output_array[i].size_array[7] = storage->jitd->CrackArray_View.size();
 		output_array[i].work_queue = storage->jitd->work_queue.size();
-
-		output_array[i].event_time_delta = storage->jitd->__time_delta;
-		output_array[i].event_refs_delta = storage->jitd->__refs_delta;
-		output_array[i].event_miss_delta = storage->jitd->__miss_delta;
-
 		#endif
 
 		// Advance to next frame
