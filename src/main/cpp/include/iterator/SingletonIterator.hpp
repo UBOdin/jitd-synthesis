@@ -7,7 +7,7 @@ class SingletonIterator : public IteratorBase<Record> {
 
   
     SingletonIterator(Record &data) : 
-      data(data),done(false) {}
+      data(data),done(false) {std::cout<<"SingletonIterator created for "<<data<<std::endl;}
       
  
 
@@ -26,6 +26,7 @@ class SingletonIterator : public IteratorBase<Record> {
 
     bool atEnd()
     {
+      //std::cout<<"SingletonIterator atEnd"<<std::endl;
       return done;
     }
 

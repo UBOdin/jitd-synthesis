@@ -8,7 +8,7 @@ Iterator<Record> BTreeNode::iterator()
 }
 Iterator<Record> ArrayNode::iterator()
 {
-  return Iterator<Record>(new UnsortedBufferIterator<Record>(data));
+  return Iterator<Record>(new BufferIterator<Record>(data));
 }
 Iterator<Record> SortedArrayNode::iterator()
 {
@@ -24,9 +24,9 @@ Iterator<Record> SingletonNode::iterator()
 }
 Iterator<Record> DeleteSingletonNode::iterator()
 {
-  return NULL;
+  return Iterator<Record>(new DeleteSingletonIterator<JITDNode>(node,elem));
 }
 Iterator<Record> DeleteElementsNode::iterator()
 {
-  return NULL;
+  return Iterator<Record>(new DeleteElemIterator<JITDNode>(node,data));
 }

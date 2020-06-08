@@ -7,7 +7,7 @@ class BufferIterator : public IteratorBase<Record> {
 
     // BufferIterator assumes that buff is sorted.
     BufferIterator(std::vector<Record> &data) : 
-      data(data), start(data.begin()), curr(data.begin()), end(data.end()) {//std::cout<<"BufferIterator Constructor"<<std::endl;
+      data(data), start(data.begin()), curr(data.begin()), end(data.end()) {std::cout<<"BufferIterator Constructor for node with elems:"<<data.size()<<std::endl;
       std::sort(data.begin(),data.end());}
 
     // BufferIterator assumes that buff is sorted.
@@ -49,7 +49,7 @@ class BufferIterator : public IteratorBase<Record> {
 
     bool atEnd()
     {
-
+      
       return curr == end;
     }
 
