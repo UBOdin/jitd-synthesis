@@ -62,7 +62,9 @@
 
 #ifdef STORAGE_JITD
 
+#include <sstream>
 #include "jitd_test.hpp"
+#include "IteratorDefinition.hpp"
 
 #define STORAGE_HANDLE struct storage_jitd_struct*
 
@@ -187,7 +189,8 @@ STORAGE_HANDLE create_storage(int maxkeys) {
 			_exit(1);
 		}
 		storage->r.key = node.key;
-		storage->r.value = new int(node.value);
+//		storage->r.value = new int(node.value);
+// TODO:  support for YCSB struct
 		storage->element.push_back(storage->r);
 		i++;
 	}
@@ -285,7 +288,8 @@ int get_data(STORAGE_HANDLE storage, int nkeys, unsigned long* key_array) {
 	for (int i = 0; i < nkeys; i++) {
 		key = key_array[i];
 		if (storage->jitd->get(key, storage->r) == true) {
-			value += *(unsigned long*)storage->r.value;
+//			value += *(unsigned long*)storage->r.value;
+// TODO:  support for YCSB struct
 		}
 	}
 
