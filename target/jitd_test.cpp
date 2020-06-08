@@ -1753,7 +1753,7 @@ bool JITD::matchCrackArray(std::shared_ptr<JITDNode> * &targetHandleRef)
 	if(target_root_lock->type != JITD_NODE_Array){return false; }
 ArrayNode *target_root_lock_real = (ArrayNode *)target_root_lock;
 
-	if((array_size((target_root_lock_real->data))) > (500))
+	if((array_size((target_root_lock_real->data))) > (__array_size))
     {
     	return true;
     }
@@ -1892,7 +1892,7 @@ SingletonNode *iter_node_real_rhs_real = (SingletonNode *)iter_node_real_rhs;
 ArrayNode *iter_node_real = (ArrayNode *)iter_node;
 
 
-          if((array_size((iter_node_real->data))) > (500)){
+          if((array_size((iter_node_real->data))) > (__array_size)){
             bestScore = array_size((iter_node_real->data));
           
           targetHandleRef = (*it);
@@ -1944,7 +1944,7 @@ int JITD::organize_wait()
         #ifdef SPIN
         while(this->work_queue.try_pop(pop_mce) == false)
         {
-            std::this_thread::sleep_for(std::chrono::microseconds(100));
+            std::this_thread::sleep_for(std::chrono::microseconds(__sleep_time));
         }
         #endif
 
