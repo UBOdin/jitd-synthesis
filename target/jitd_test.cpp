@@ -1736,216 +1736,6 @@ SingletonNode *target_root_lock_real_rhs_real = (SingletonNode *)target_root_loc
     }
 	
 }
-bool JITD::matchPushDownDontDeleteSingletonBtreeLeft(std::shared_ptr<JITDNode> * &targetHandleRef) 
-{ 
-	std::shared_ptr<JITDNode> target_root;
-    #ifdef ATOMIC_LOAD
-    target_root = std::atomic_load((targetHandleRef));
-    #endif
-    #ifdef ATOMIC_LOAD_CONSUME
-    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_consume);
-    #endif
-    #ifdef ATOMIC_LOAD_ACQUIRE
-    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_acquire);
-    #endif
-	//std::shared_ptr<JITDNode> target_root = std::atomic_load(targetHandleRef);
-	JITDNode * target_root_lock = target_root.get();
-	if(target_root_lock->type != JITD_NODE_DeleteSingleton){return false; }
-DeleteSingletonNode *target_root_lock_real = (DeleteSingletonNode *)target_root_lock;
-JITDNode *target_root_lock_real_node = target_root_lock_real->node.get();
-if(target_root_lock_real_node->type != JITD_NODE_BTree){return false; }
-BTreeNode *target_root_lock_real_node_real = (BTreeNode *)target_root_lock_real_node;
-
-	if((keys_cmp((target_root_lock_real->elem), (target_root_lock_real_node_real->sep))) == (true))
-    {
-    	return true;
-    }
-    else
-    {
-    	return false;
-    }
-	
-}
-bool JITD::matchPushDownDontDeleteSingletonBtreeRight(std::shared_ptr<JITDNode> * &targetHandleRef) 
-{ 
-	std::shared_ptr<JITDNode> target_root;
-    #ifdef ATOMIC_LOAD
-    target_root = std::atomic_load((targetHandleRef));
-    #endif
-    #ifdef ATOMIC_LOAD_CONSUME
-    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_consume);
-    #endif
-    #ifdef ATOMIC_LOAD_ACQUIRE
-    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_acquire);
-    #endif
-	//std::shared_ptr<JITDNode> target_root = std::atomic_load(targetHandleRef);
-	JITDNode * target_root_lock = target_root.get();
-	if(target_root_lock->type != JITD_NODE_DeleteSingleton){return false; }
-DeleteSingletonNode *target_root_lock_real = (DeleteSingletonNode *)target_root_lock;
-JITDNode *target_root_lock_real_node = target_root_lock_real->node.get();
-if(target_root_lock_real_node->type != JITD_NODE_BTree){return false; }
-BTreeNode *target_root_lock_real_node_real = (BTreeNode *)target_root_lock_real_node;
-
-	if((keys_cmp((target_root_lock_real->elem), (target_root_lock_real_node_real->sep))) == (false))
-    {
-    	return true;
-    }
-    else
-    {
-    	return false;
-    }
-	
-}
-bool JITD::matchPushDownDontDeleteElemBtree(std::shared_ptr<JITDNode> * &targetHandleRef) 
-{ 
-	std::shared_ptr<JITDNode> target_root;
-    #ifdef ATOMIC_LOAD
-    target_root = std::atomic_load((targetHandleRef));
-    #endif
-    #ifdef ATOMIC_LOAD_CONSUME
-    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_consume);
-    #endif
-    #ifdef ATOMIC_LOAD_ACQUIRE
-    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_acquire);
-    #endif
-	//std::shared_ptr<JITDNode> target_root = std::atomic_load(targetHandleRef);
-	JITDNode * target_root_lock = target_root.get();
-	if(target_root_lock->type != JITD_NODE_DeleteElements){return false; }
-DeleteElementsNode *target_root_lock_real = (DeleteElementsNode *)target_root_lock;
-JITDNode *target_root_lock_real_node = target_root_lock_real->node.get();
-if(target_root_lock_real_node->type != JITD_NODE_BTree){return false; }
-BTreeNode *target_root_lock_real_node_real = (BTreeNode *)target_root_lock_real_node;
-
-	if(true)
-    {
-    	return true;
-    }
-    else
-    {
-    	return false;
-    }
-	
-}
-bool JITD::matchDeleteElemFromSingleton(std::shared_ptr<JITDNode> * &targetHandleRef) 
-{ 
-	std::shared_ptr<JITDNode> target_root;
-    #ifdef ATOMIC_LOAD
-    target_root = std::atomic_load((targetHandleRef));
-    #endif
-    #ifdef ATOMIC_LOAD_CONSUME
-    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_consume);
-    #endif
-    #ifdef ATOMIC_LOAD_ACQUIRE
-    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_acquire);
-    #endif
-	//std::shared_ptr<JITDNode> target_root = std::atomic_load(targetHandleRef);
-	JITDNode * target_root_lock = target_root.get();
-	if(target_root_lock->type != JITD_NODE_DeleteElements){return false; }
-DeleteElementsNode *target_root_lock_real = (DeleteElementsNode *)target_root_lock;
-JITDNode *target_root_lock_real_node = target_root_lock_real->node.get();
-if(target_root_lock_real_node->type != JITD_NODE_Singleton){return false; }
-SingletonNode *target_root_lock_real_node_real = (SingletonNode *)target_root_lock_real_node;
-
-	if(true)
-    {
-    	return true;
-    }
-    else
-    {
-    	return false;
-    }
-	
-}
-bool JITD::matchDeleteKeyFromSingleton(std::shared_ptr<JITDNode> * &targetHandleRef) 
-{ 
-	std::shared_ptr<JITDNode> target_root;
-    #ifdef ATOMIC_LOAD
-    target_root = std::atomic_load((targetHandleRef));
-    #endif
-    #ifdef ATOMIC_LOAD_CONSUME
-    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_consume);
-    #endif
-    #ifdef ATOMIC_LOAD_ACQUIRE
-    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_acquire);
-    #endif
-	//std::shared_ptr<JITDNode> target_root = std::atomic_load(targetHandleRef);
-	JITDNode * target_root_lock = target_root.get();
-	if(target_root_lock->type != JITD_NODE_DeleteSingleton){return false; }
-DeleteSingletonNode *target_root_lock_real = (DeleteSingletonNode *)target_root_lock;
-JITDNode *target_root_lock_real_node = target_root_lock_real->node.get();
-if(target_root_lock_real_node->type != JITD_NODE_Singleton){return false; }
-SingletonNode *target_root_lock_real_node_real = (SingletonNode *)target_root_lock_real_node;
-
-	if(true)
-    {
-    	return true;
-    }
-    else
-    {
-    	return false;
-    }
-	
-}
-bool JITD::matchDeleteSingletonFromArray(std::shared_ptr<JITDNode> * &targetHandleRef) 
-{ 
-	std::shared_ptr<JITDNode> target_root;
-    #ifdef ATOMIC_LOAD
-    target_root = std::atomic_load((targetHandleRef));
-    #endif
-    #ifdef ATOMIC_LOAD_CONSUME
-    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_consume);
-    #endif
-    #ifdef ATOMIC_LOAD_ACQUIRE
-    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_acquire);
-    #endif
-	//std::shared_ptr<JITDNode> target_root = std::atomic_load(targetHandleRef);
-	JITDNode * target_root_lock = target_root.get();
-	if(target_root_lock->type != JITD_NODE_DeleteSingleton){return false; }
-DeleteSingletonNode *target_root_lock_real = (DeleteSingletonNode *)target_root_lock;
-JITDNode *target_root_lock_real_node = target_root_lock_real->node.get();
-if(target_root_lock_real_node->type != JITD_NODE_Array){return false; }
-ArrayNode *target_root_lock_real_node_real = (ArrayNode *)target_root_lock_real_node;
-
-	if(true)
-    {
-    	return true;
-    }
-    else
-    {
-    	return false;
-    }
-	
-}
-bool JITD::matchDeleteElemFromArray(std::shared_ptr<JITDNode> * &targetHandleRef) 
-{ 
-	std::shared_ptr<JITDNode> target_root;
-    #ifdef ATOMIC_LOAD
-    target_root = std::atomic_load((targetHandleRef));
-    #endif
-    #ifdef ATOMIC_LOAD_CONSUME
-    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_consume);
-    #endif
-    #ifdef ATOMIC_LOAD_ACQUIRE
-    target_root = std::atomic_load_explicit(targetHandleRef,std::memory_order_acquire);
-    #endif
-	//std::shared_ptr<JITDNode> target_root = std::atomic_load(targetHandleRef);
-	JITDNode * target_root_lock = target_root.get();
-	if(target_root_lock->type != JITD_NODE_DeleteElements){return false; }
-DeleteElementsNode *target_root_lock_real = (DeleteElementsNode *)target_root_lock;
-JITDNode *target_root_lock_real_node = target_root_lock_real->node.get();
-if(target_root_lock_real_node->type != JITD_NODE_Array){return false; }
-ArrayNode *target_root_lock_real_node_real = (ArrayNode *)target_root_lock_real_node;
-
-	if(true)
-    {
-    	return true;
-    }
-    else
-    {
-    	return false;
-    }
-	
-}
 bool JITD::matchCrackArray(std::shared_ptr<JITDNode> * &targetHandleRef) 
 { 
 	std::shared_ptr<JITDNode> target_root;
@@ -1963,7 +1753,7 @@ bool JITD::matchCrackArray(std::shared_ptr<JITDNode> * &targetHandleRef)
 	if(target_root_lock->type != JITD_NODE_Array){return false; }
 ArrayNode *target_root_lock_real = (ArrayNode *)target_root_lock;
 
-	if((array_size((target_root_lock_real->data))) > (__array_size))
+	if((array_size((target_root_lock_real->data))) > (500))
     {
     	return true;
     }
@@ -2076,335 +1866,6 @@ SingletonNode *iter_node_real_rhs_real = (SingletonNode *)iter_node_real_rhs;
     return bestScore;
   }
 
-  long JITD::searchForPushDownDontDeleteSingletonBtreeLeft(          // Return the "best" score available     
-    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
-  ) {
-  
-
-    int count = 0;
-    long bestScore = -1;
-    long curr_score = -1;
-   
-    
-    if(!(this->PushDownDontDeleteSingletonBtreeLeft_View).empty())
-    {
-    
-      std::set< std::shared_ptr<JITDNode> * >::iterator it;
-      
-      it = (this->PushDownDontDeleteSingletonBtreeLeft_View).begin();
-          
-         
-
-           JITDNode *iter_node = (*it)->get();
-          
-          
-          if(iter_node->type != JITD_NODE_DeleteSingleton){return -1; }
-DeleteSingletonNode *iter_node_real = (DeleteSingletonNode *)iter_node;
-JITDNode *iter_node_real_node = iter_node_real->node.get();
-if(iter_node_real_node->type != JITD_NODE_BTree){return -1; }
-BTreeNode *iter_node_real_node_real = (BTreeNode *)iter_node_real_node;
-
-
-          if((keys_cmp((iter_node_real->elem), (iter_node_real_node_real->sep))) == (true)){
-            bestScore = 0;
-          
-          targetHandleRef = (*it);
-          }
-          
-
-          
-      
-    }
-
-
-
-
-
-    return bestScore;
-  }
-
-  long JITD::searchForPushDownDontDeleteSingletonBtreeRight(          // Return the "best" score available     
-    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
-  ) {
-  
-
-    int count = 0;
-    long bestScore = -1;
-    long curr_score = -1;
-   
-    
-    if(!(this->PushDownDontDeleteSingletonBtreeRight_View).empty())
-    {
-    
-      std::set< std::shared_ptr<JITDNode> * >::iterator it;
-      
-      it = (this->PushDownDontDeleteSingletonBtreeRight_View).begin();
-          
-         
-
-           JITDNode *iter_node = (*it)->get();
-          
-          
-          if(iter_node->type != JITD_NODE_DeleteSingleton){return -1; }
-DeleteSingletonNode *iter_node_real = (DeleteSingletonNode *)iter_node;
-JITDNode *iter_node_real_node = iter_node_real->node.get();
-if(iter_node_real_node->type != JITD_NODE_BTree){return -1; }
-BTreeNode *iter_node_real_node_real = (BTreeNode *)iter_node_real_node;
-
-
-          if((keys_cmp((iter_node_real->elem), (iter_node_real_node_real->sep))) == (false)){
-            bestScore = 0;
-          
-          targetHandleRef = (*it);
-          }
-          
-
-          
-      
-    }
-
-
-
-
-
-    return bestScore;
-  }
-
-  long JITD::searchForPushDownDontDeleteElemBtree(          // Return the "best" score available     
-    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
-  ) {
-  
-
-    int count = 0;
-    long bestScore = -1;
-    long curr_score = -1;
-   
-    
-    if(!(this->PushDownDontDeleteElemBtree_View).empty())
-    {
-    
-      std::set< std::shared_ptr<JITDNode> * >::iterator it;
-      
-      it = (this->PushDownDontDeleteElemBtree_View).begin();
-          
-         
-
-           JITDNode *iter_node = (*it)->get();
-          
-          
-          if(iter_node->type != JITD_NODE_DeleteElements){return -1; }
-DeleteElementsNode *iter_node_real = (DeleteElementsNode *)iter_node;
-JITDNode *iter_node_real_node = iter_node_real->node.get();
-if(iter_node_real_node->type != JITD_NODE_BTree){return -1; }
-BTreeNode *iter_node_real_node_real = (BTreeNode *)iter_node_real_node;
-
-
-          if(true){
-            bestScore = 0;
-          
-          targetHandleRef = (*it);
-          }
-          
-
-          
-      
-    }
-
-
-
-
-
-    return bestScore;
-  }
-
-  long JITD::searchForDeleteElemFromSingleton(          // Return the "best" score available     
-    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
-  ) {
-  
-
-    int count = 0;
-    long bestScore = -1;
-    long curr_score = -1;
-   
-    
-    if(!(this->DeleteElemFromSingleton_View).empty())
-    {
-    
-      std::set< std::shared_ptr<JITDNode> * >::iterator it;
-      
-      it = (this->DeleteElemFromSingleton_View).begin();
-          
-         
-
-           JITDNode *iter_node = (*it)->get();
-          
-          
-          if(iter_node->type != JITD_NODE_DeleteElements){return -1; }
-DeleteElementsNode *iter_node_real = (DeleteElementsNode *)iter_node;
-JITDNode *iter_node_real_node = iter_node_real->node.get();
-if(iter_node_real_node->type != JITD_NODE_Singleton){return -1; }
-SingletonNode *iter_node_real_node_real = (SingletonNode *)iter_node_real_node;
-
-
-          if(true){
-            bestScore = 0;
-          
-          targetHandleRef = (*it);
-          }
-          
-
-          
-      
-    }
-
-
-
-
-
-    return bestScore;
-  }
-
-  long JITD::searchForDeleteKeyFromSingleton(          // Return the "best" score available     
-    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
-  ) {
-  
-
-    int count = 0;
-    long bestScore = -1;
-    long curr_score = -1;
-   
-    
-    if(!(this->DeleteKeyFromSingleton_View).empty())
-    {
-    
-      std::set< std::shared_ptr<JITDNode> * >::iterator it;
-      
-      it = (this->DeleteKeyFromSingleton_View).begin();
-          
-         
-
-           JITDNode *iter_node = (*it)->get();
-          
-          
-          if(iter_node->type != JITD_NODE_DeleteSingleton){return -1; }
-DeleteSingletonNode *iter_node_real = (DeleteSingletonNode *)iter_node;
-JITDNode *iter_node_real_node = iter_node_real->node.get();
-if(iter_node_real_node->type != JITD_NODE_Singleton){return -1; }
-SingletonNode *iter_node_real_node_real = (SingletonNode *)iter_node_real_node;
-
-
-          if(true){
-            bestScore = 0;
-          
-          targetHandleRef = (*it);
-          }
-          
-
-          
-      
-    }
-
-
-
-
-
-    return bestScore;
-  }
-
-  long JITD::searchForDeleteSingletonFromArray(          // Return the "best" score available     
-    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
-  ) {
-  
-
-    int count = 0;
-    long bestScore = -1;
-    long curr_score = -1;
-   
-    
-    if(!(this->DeleteSingletonFromArray_View).empty())
-    {
-    
-      std::set< std::shared_ptr<JITDNode> * >::iterator it;
-      
-      it = (this->DeleteSingletonFromArray_View).begin();
-          
-         
-
-           JITDNode *iter_node = (*it)->get();
-          
-          
-          if(iter_node->type != JITD_NODE_DeleteSingleton){return -1; }
-DeleteSingletonNode *iter_node_real = (DeleteSingletonNode *)iter_node;
-JITDNode *iter_node_real_node = iter_node_real->node.get();
-if(iter_node_real_node->type != JITD_NODE_Array){return -1; }
-ArrayNode *iter_node_real_node_real = (ArrayNode *)iter_node_real_node;
-
-
-          if(true){
-            bestScore = 0;
-          
-          targetHandleRef = (*it);
-          }
-          
-
-          
-      
-    }
-
-
-
-
-
-    return bestScore;
-  }
-
-  long JITD::searchForDeleteElemFromArray(          // Return the "best" score available     
-    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
-  ) {
-  
-
-    int count = 0;
-    long bestScore = -1;
-    long curr_score = -1;
-   
-    
-    if(!(this->DeleteElemFromArray_View).empty())
-    {
-    
-      std::set< std::shared_ptr<JITDNode> * >::iterator it;
-      
-      it = (this->DeleteElemFromArray_View).begin();
-          
-         
-
-           JITDNode *iter_node = (*it)->get();
-          
-          
-          if(iter_node->type != JITD_NODE_DeleteElements){return -1; }
-DeleteElementsNode *iter_node_real = (DeleteElementsNode *)iter_node;
-JITDNode *iter_node_real_node = iter_node_real->node.get();
-if(iter_node_real_node->type != JITD_NODE_Array){return -1; }
-ArrayNode *iter_node_real_node_real = (ArrayNode *)iter_node_real_node;
-
-
-          if(true){
-            bestScore = 0;
-          
-          targetHandleRef = (*it);
-          }
-          
-
-          
-      
-    }
-
-
-
-
-
-    return bestScore;
-  }
-
   long JITD::searchForCrackArray(          // Return the "best" score available     
     std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
@@ -2431,7 +1892,7 @@ ArrayNode *iter_node_real_node_real = (ArrayNode *)iter_node_real_node;
 ArrayNode *iter_node_real = (ArrayNode *)iter_node;
 
 
-          if((array_size((iter_node_real->data))) > (__array_size)){
+          if((array_size((iter_node_real->data))) > (500)){
             bestScore = array_size((iter_node_real->data));
           
           targetHandleRef = (*it);
@@ -2483,7 +1944,7 @@ int JITD::organize_wait()
         #ifdef SPIN
         while(this->work_queue.try_pop(pop_mce) == false)
         {
-            std::this_thread::sleep_for(std::chrono::microseconds(__sleep_time));
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
         }
         #endif
 
@@ -2660,8 +2121,7 @@ void JITD::initialize_struts(std::shared_ptr<JITDNode>* node,std::shared_ptr<JIT
   {
     
       case JITD_NODE_DeleteSingleton : {
-      this->JITD_NODE_DeleteSingleton_set.emplace(node);
-
+      
       
       DeleteSingletonNode *node_real = (DeleteSingletonNode *)target_root_lock.get();
         initialize_struts(&(node_real->node),node);
@@ -2671,8 +2131,7 @@ void JITD::initialize_struts(std::shared_ptr<JITDNode>* node,std::shared_ptr<JIT
 
     
       case JITD_NODE_DeleteElements : {
-      this->JITD_NODE_DeleteElements_set.emplace(node);
-
+      
       
       DeleteElementsNode *node_real = (DeleteElementsNode *)target_root_lock.get();
         initialize_struts(&(node_real->node),node);
@@ -2836,314 +2295,6 @@ bool JITD::do_organize()
   std::shared_ptr<JITDNode> * targetHandleRef;
   
   //std::shared_ptr<JITDNode> target;
-  //std::cout<<"Before calling searchForPushDownDontDeleteSingletonBtreeLeft" <<std::endl;
-  //this->print_debug();
-  //check_pq();
-
-  long bestScore = searchForPushDownDontDeleteSingletonBtreeLeft(
-    targetHandleRef
-  );
-  //std::cout<<"After calling searchForPushDownDontDeleteSingletonBtreeLeft Best Score is "<<bestScore<<std::endl;
-  if(bestScore >= 0) {
-  
-    //std::cout<<"Candidate shared_ptr for PushDownDontDeleteSingletonBtreeLeft: "<<(*targetHandleRef)<<std::endl;
-    
-      #ifdef TRANSFORM_COUNT
-    PushDownDontDeleteSingletonBtreeLeft_count++;
-    #endif
-      PushDownDontDeleteSingletonBtreeLeft(targetHandleRef);
-    
-    return true;
-
-  } 
-  
-  
-  
-  else { 
-     
-  }
-
-
-
-
-
-
-
-}
-
-
-    
-
-
-
-{
-  std::shared_ptr<JITDNode> * targetHandleRef;
-  
-  //std::shared_ptr<JITDNode> target;
-  //std::cout<<"Before calling searchForPushDownDontDeleteSingletonBtreeRight" <<std::endl;
-  //this->print_debug();
-  //check_pq();
-
-  long bestScore = searchForPushDownDontDeleteSingletonBtreeRight(
-    targetHandleRef
-  );
-  //std::cout<<"After calling searchForPushDownDontDeleteSingletonBtreeRight Best Score is "<<bestScore<<std::endl;
-  if(bestScore >= 0) {
-  
-    //std::cout<<"Candidate shared_ptr for PushDownDontDeleteSingletonBtreeRight: "<<(*targetHandleRef)<<std::endl;
-    
-      #ifdef TRANSFORM_COUNT
-    PushDownDontDeleteSingletonBtreeRight_count++;
-    #endif
-      PushDownDontDeleteSingletonBtreeRight(targetHandleRef);
-    
-    return true;
-
-  } 
-  
-  
-  
-  else { 
-     
-  }
-
-
-
-
-
-
-
-}
-
-
-    
-
-
-
-{
-  std::shared_ptr<JITDNode> * targetHandleRef;
-  
-  //std::shared_ptr<JITDNode> target;
-  //std::cout<<"Before calling searchForPushDownDontDeleteElemBtree" <<std::endl;
-  //this->print_debug();
-  //check_pq();
-
-  long bestScore = searchForPushDownDontDeleteElemBtree(
-    targetHandleRef
-  );
-  //std::cout<<"After calling searchForPushDownDontDeleteElemBtree Best Score is "<<bestScore<<std::endl;
-  if(bestScore >= 0) {
-  
-    //std::cout<<"Candidate shared_ptr for PushDownDontDeleteElemBtree: "<<(*targetHandleRef)<<std::endl;
-    
-      #ifdef TRANSFORM_COUNT
-    PushDownDontDeleteElemBtree_count++;
-    #endif
-      PushDownDontDeleteElemBtree(targetHandleRef);
-    
-    return true;
-
-  } 
-  
-  
-  
-  else { 
-     
-  }
-
-
-
-
-
-
-
-}
-
-
-    
-
-
-
-{
-  std::shared_ptr<JITDNode> * targetHandleRef;
-  
-  //std::shared_ptr<JITDNode> target;
-  //std::cout<<"Before calling searchForDeleteElemFromSingleton" <<std::endl;
-  //this->print_debug();
-  //check_pq();
-
-  long bestScore = searchForDeleteElemFromSingleton(
-    targetHandleRef
-  );
-  //std::cout<<"After calling searchForDeleteElemFromSingleton Best Score is "<<bestScore<<std::endl;
-  if(bestScore >= 0) {
-  
-    //std::cout<<"Candidate shared_ptr for DeleteElemFromSingleton: "<<(*targetHandleRef)<<std::endl;
-    
-      #ifdef TRANSFORM_COUNT
-    DeleteElemFromSingleton_count++;
-    #endif
-      DeleteElemFromSingleton(targetHandleRef);
-    
-    return true;
-
-  } 
-  
-  
-  
-  else { 
-     
-  }
-
-
-
-
-
-
-
-}
-
-
-    
-
-
-
-{
-  std::shared_ptr<JITDNode> * targetHandleRef;
-  
-  //std::shared_ptr<JITDNode> target;
-  //std::cout<<"Before calling searchForDeleteKeyFromSingleton" <<std::endl;
-  //this->print_debug();
-  //check_pq();
-
-  long bestScore = searchForDeleteKeyFromSingleton(
-    targetHandleRef
-  );
-  //std::cout<<"After calling searchForDeleteKeyFromSingleton Best Score is "<<bestScore<<std::endl;
-  if(bestScore >= 0) {
-  
-    //std::cout<<"Candidate shared_ptr for DeleteKeyFromSingleton: "<<(*targetHandleRef)<<std::endl;
-    
-      #ifdef TRANSFORM_COUNT
-    DeleteKeyFromSingleton_count++;
-    #endif
-      DeleteKeyFromSingleton(targetHandleRef);
-    
-    return true;
-
-  } 
-  
-  
-  
-  else { 
-     
-  }
-
-
-
-
-
-
-
-}
-
-
-    
-
-
-
-{
-  std::shared_ptr<JITDNode> * targetHandleRef;
-  
-  //std::shared_ptr<JITDNode> target;
-  //std::cout<<"Before calling searchForDeleteSingletonFromArray" <<std::endl;
-  //this->print_debug();
-  //check_pq();
-
-  long bestScore = searchForDeleteSingletonFromArray(
-    targetHandleRef
-  );
-  //std::cout<<"After calling searchForDeleteSingletonFromArray Best Score is "<<bestScore<<std::endl;
-  if(bestScore >= 0) {
-  
-    //std::cout<<"Candidate shared_ptr for DeleteSingletonFromArray: "<<(*targetHandleRef)<<std::endl;
-    
-      #ifdef TRANSFORM_COUNT
-    DeleteSingletonFromArray_count++;
-    #endif
-      DeleteSingletonFromArray(targetHandleRef);
-    
-    return true;
-
-  } 
-  
-  
-  
-  else { 
-     
-  }
-
-
-
-
-
-
-
-}
-
-
-    
-
-
-
-{
-  std::shared_ptr<JITDNode> * targetHandleRef;
-  
-  //std::shared_ptr<JITDNode> target;
-  //std::cout<<"Before calling searchForDeleteElemFromArray" <<std::endl;
-  //this->print_debug();
-  //check_pq();
-
-  long bestScore = searchForDeleteElemFromArray(
-    targetHandleRef
-  );
-  //std::cout<<"After calling searchForDeleteElemFromArray Best Score is "<<bestScore<<std::endl;
-  if(bestScore >= 0) {
-  
-    //std::cout<<"Candidate shared_ptr for DeleteElemFromArray: "<<(*targetHandleRef)<<std::endl;
-    
-      #ifdef TRANSFORM_COUNT
-    DeleteElemFromArray_count++;
-    #endif
-      DeleteElemFromArray(targetHandleRef);
-    
-    return true;
-
-  } 
-  
-  
-  
-  else { 
-     
-  }
-
-
-
-
-
-
-
-}
-
-
-    
-
-
-
-{
-  std::shared_ptr<JITDNode> * targetHandleRef;
-  
-  //std::shared_ptr<JITDNode> target;
   //std::cout<<"Before calling searchForCrackArray" <<std::endl;
   //this->print_debug();
   //check_pq();
@@ -3208,14 +2359,12 @@ void JITD::SetPqErase(std::shared_ptr<JITDNode> * node_handle)
   switch((node_ptr)->type){
     
       case JITD_NODE_DeleteSingleton : {
-          this->JITD_NODE_DeleteSingleton_set.erase(node_handle);
-
+          
           
           };break;
         
       case JITD_NODE_DeleteElements : {
-          this->JITD_NODE_DeleteElements_set.erase(node_handle);
-
+          
           
           };break;
         
@@ -3275,14 +2424,12 @@ void JITD::SetPqAdd(std::shared_ptr<JITDNode> * node_handle)
   switch((node_ptr)->type){
     
       case JITD_NODE_DeleteSingleton : {
-          this->JITD_NODE_DeleteSingleton_set.emplace(node_handle);
-
+          
           
           };break;
         
       case JITD_NODE_DeleteElements : {
-          this->JITD_NODE_DeleteElements_set.emplace(node_handle);
-
+          
           
           };break;
         
@@ -3338,41 +2485,13 @@ void JITD::viewAdd(std::shared_ptr<JITDNode>* node_handle)
   switch((node_ptr)->type){
     
       case JITD_NODE_DeleteSingleton : {
-        matched = this->matchPushDownDontDeleteSingletonBtreeLeft(node_handle);
-if(matched == true){
-this->PushDownDontDeleteSingletonBtreeLeft_View.emplace(node_handle);
-}
-matched = this->matchPushDownDontDeleteSingletonBtreeRight(node_handle);
-if(matched == true){
-this->PushDownDontDeleteSingletonBtreeRight_View.emplace(node_handle);
-}
-matched = this->matchDeleteKeyFromSingleton(node_handle);
-if(matched == true){
-this->DeleteKeyFromSingleton_View.emplace(node_handle);
-}
-matched = this->matchDeleteSingletonFromArray(node_handle);
-if(matched == true){
-this->DeleteSingletonFromArray_View.emplace(node_handle);
-}
-
+        
         break;
       }
 
     
       case JITD_NODE_DeleteElements : {
-        matched = this->matchPushDownDontDeleteElemBtree(node_handle);
-if(matched == true){
-this->PushDownDontDeleteElemBtree_View.emplace(node_handle);
-}
-matched = this->matchDeleteElemFromSingleton(node_handle);
-if(matched == true){
-this->DeleteElemFromSingleton_View.emplace(node_handle);
-}
-matched = this->matchDeleteElemFromArray(node_handle);
-if(matched == true){
-this->DeleteElemFromArray_View.emplace(node_handle);
-}
-
+        
         break;
       }
 
@@ -3441,21 +2560,14 @@ void JITD::viewErase(std::shared_ptr<JITDNode>* node_handle)
   switch((node_ptr)->type){
     
       case JITD_NODE_DeleteSingleton : {
-        this->PushDownDontDeleteSingletonBtreeLeft_View.erase(node_handle);
-this->PushDownDontDeleteSingletonBtreeRight_View.erase(node_handle);
-this->DeleteKeyFromSingleton_View.erase(node_handle);
-this->DeleteSingletonFromArray_View.erase(node_handle);
-
+        
         break;
       
       }
 
     
       case JITD_NODE_DeleteElements : {
-        this->PushDownDontDeleteElemBtree_View.erase(node_handle);
-this->DeleteElemFromSingleton_View.erase(node_handle);
-this->DeleteElemFromArray_View.erase(node_handle);
-
+        
         break;
       
       }
@@ -4159,7 +3271,7 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 
           // Construct a data
           std::vector<Record> data;
-          load_records(data, toks);
+          load_records_from_file_ycsb(data, toks,columns);
         
 
         // Assemble everything into a SortedArray
@@ -4173,7 +3285,7 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 
           // Construct a data
           std::vector<Record> data;
-          load_records(data, toks);
+          load_records_from_file_ycsb(data, toks,columns);
         
 
         // Assemble everything into a Array
