@@ -15,7 +15,7 @@ const long sep;
       std::shared_ptr<JITDNode> rhs):sep(sep), lhs(lhs), rhs(rhs)
       {
 
-        //std::cout<<"Fastiterator constructor with sep,lhs,rhs -> sep val: "<<sep<<std::endl;
+        std::cout<<"Fastiterator constructor with sep,lhs,rhs -> sep val: "<<sep<<std::endl;
  
       }
       
@@ -47,7 +47,7 @@ const long sep;
 
     Record get()
     {
-      //std::cout<<"in fast iterator get"<<std::endl;
+      std::cout<<"in fast iterator get"<<std::endl;
       if(iter.get()==NULL && node_ptr == NULL)
       {
         //std::cout<<"iter not init in FI"<<std::endl;
@@ -339,8 +339,9 @@ const long sep;
     }  
     void seek(const Record &k)
     {
-      //std::cout<<"in fast iter seek"<<std::endl;
+      std::cout<<"in fast iter seek"<<std::endl;
       initroot(k);
+      std::cout<<"Initroot done"<<std::endl;
       while(node_ptr!=NULL)
       {
         JITDNode *node_raw = node_ptr.get();
@@ -513,10 +514,13 @@ const long sep;
             }
             else
             {
-              //std::cout<<"in lhs node"<<std::endl;
+              std::cout<<"FI at end() creating lhs iter"<<std::endl;
               iter = lhs->iterator();
             }
-            return iter->atEnd();
+            bool end = iter->atEnd();
+            std::cout<<"FI call to iter atend() returned"<<std::endl;
+            return end;
+            //return iter->atEnd();
            
       }
       else if(nodeStack.empty() && iter->atEnd())

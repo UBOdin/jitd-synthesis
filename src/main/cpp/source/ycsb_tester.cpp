@@ -15,6 +15,7 @@
 
 #include "test.hpp"
 #include "jitd_test.hpp"
+#include "IteratorDefinition.hpp"
 #define SEED_MAX 638645
 typedef std::vector<old_Record> old_RecordBuffer;
 typedef std::vector<Record> ycsbrecordBuffer;
@@ -47,59 +48,7 @@ int jitd_test(
   bool interactive, 
   int per_op_sleep_ms
 );
-// void run_update_thread(
-//   JITD<Record,JITD_TEST_POLICY> *jitd, 
-//   Key max_key,
-//   int size, 
-//   long int low_mark, 
-//   long int high_mark, 
-//   int seed, 
-//   int per_op_sleep_ms,
-//   int runtime_ms
-// ){
-//   timeval global_start, start, end;
-//   long int del_step = 0;
-//   mt19937 ins_rand(seed);
-//   mt19937 del_rand(seed);
-//   int i;
-//   long int tot_cnt = 0;
-//   long int delta_mark = high_mark - low_mark;
-    
-//   gettimeofday(&global_start, NULL);
-//   std::cout << "Start Updates [" << low_mark << "--" << high_mark << "] by " << size
-//        << "; every " << per_op_sleep_ms << " ms for " << runtime_ms << "ms" << std::endl;
-//   do {
-    
-//     gettimeofday(&start, NULL);
-//     if((rand() % delta_mark) > (tot_cnt - low_mark)){
-//       // insert
-//       RecordBuffer buff = RecordBuffer(new vector<Record>);
-//       for(i = 0; i < size; i++){
-//         buff->emplace_back(ins_rand() % max_key);
-//       }
-//       jitd->insert(buff);
-//       tot_cnt += size;
-      
-//     } else {
-//       // delete
-//       RecordBuffer buff = RecordBuffer(new vector<Record>);
-//       for(i = 0; i < size; i++){
-//         buff->emplace_back(del_rand() % max_key);
-//       }
-//       jitd->remove(buff);
-//       tot_cnt -= size;
-      
-//     }
-    
-//     gettimeofday(&end, NULL);
-//     this_thread::sleep_for(chrono::milliseconds(
-//       per_op_sleep_ms - int(total_time(start, end) / 1000)
-//     ));
-//   } while(total_time(global_start, end) < 1000 * runtime_ms);
-//   std::cout << "End Updates" << std::endl;
-  
-  
-// }
+
 
 void run_test_thread(std::shared_ptr<JITD> jitd, std::string file, int per_op_sleep_ms)
 {
@@ -111,7 +60,50 @@ void run_test_thread(std::shared_ptr<JITD> jitd, std::string file, int per_op_sl
   gettimeofday(&end, NULL);
   std::cout << "Time[" << file << "]: " << t << " s" << std::endl;
 }
+void client_thread(std::shared_ptr<JITD> jitd, std::string file, int per_op_sleep_ms)
+{
 
+  //std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  std::ifstream in(file);
+  timeval start, end;
+  int t = 0;
+  std::cout << "Start:"<< std::this_thread::get_id()<<"[" << file << "]" << std::endl;
+  std::cout <<"client_thread ID:"<<std::this_thread::get_id()<<std::endl;
+  gettimeofday(&start, NULL);
+  t = jitd_test(jitd, in, false, per_op_sleep_ms);
+  gettimeofday(&end, NULL);
+  std::cout << "Time[" << file << "]: " << t << " s" << std::endl;
+  
+  std::this_thread::sleep_for(std::chrono::microseconds(1000));
+  //EXIT SIGNAL IS PASSED FROM CLIENT TO WORKER 
+  mutatorCqElement mce;
+  mce.flag = EXIT;
+  std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> element; //= std::make_pair(nullptr,nullptr);
+  mce.element = element;
+  pthread_mutex_lock(&jitd->lock);
+  jitd->work_queue.push(mce);
+  pthread_mutex_unlock(&jitd->lock);
+ //int size = jitd->size();
+  //std::cout<<"Size of JITD"<<size<<std::endl;
+
+  
+}
+void background_thread(std::shared_ptr<JITD> jitd)
+{
+   
+       int steps_taken = 0;
+       timeval start, end;
+       std::cout<<"Starting Background Organizer thread"<<std::endl;
+       gettimeofday(&start, NULL);
+      
+       steps_taken = jitd->organize_wait();
+       gettimeofday(&end, NULL);
+       
+       std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end)  << " us" <<  std::endl; 
+      //jitd->print_debug();
+       
+       
+}
 
 
 
@@ -176,7 +168,7 @@ int jitd_test(
       //double worker_sleep_time;
       toks >> file;
       //toks >> worker_sleep_time;
-      threads.emplace_back(run_test_thread, std::ref(jitd), file, 0);
+      threads.emplace_back(client_thread, std::ref(jitd), file, 0);
 
     }
     CASE("run_threads")
@@ -186,6 +178,21 @@ int jitd_test(
         th->join();
       }
       pthread_mutex_destroy(&(jitd->lock)); 
+    }
+    CASE("run_background_organize")
+    {
+      
+      threads.emplace_back(background_thread,std::ref(jitd));
+    }
+    CASE("EXIT")
+    {
+      mutatorCqElement mce;
+      mce.flag = EXIT;
+      std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std::shared_ptr<std::shared_ptr<JITDNode>>> element; //= std::make_pair(nullptr,nullptr);
+      mce.element = element;
+      //pthread_mutex_lock(&jitd->lock);
+      jitd->work_queue.push(mce);
+      //pthread_mutex_unlock(&jitd->lock);
     }
     CASE("operation_data_ycsb")
     {
@@ -212,8 +219,90 @@ int jitd_test(
         while(getline(*src, line))
         {
           *src >> op;
-          
-          if(op == "READ")
+          if(op == "SCAN")
+          {
+            //std::cout<<"Scan read"<<std::endl;
+            ycsb_operation ycsb_op_elem;
+            //for workload e
+            std::string table_name, key_string;
+            *src >> table_name;
+            //std::cout<<"table_name STRING : "<<table_name<<std::endl;
+            *src >> key_string;
+            std::cout<<"KEY STRING : "<<key_string<<std::endl;
+              //for workload e
+            std::string s = "user";
+            std::string::size_type si = key_string.find(s);
+            if (si != std::string::npos)
+               key_string.erase(si, s.length());
+            // ycsb_op_elem.operation = 'S';
+            // ycsb_op_elem.key = std::stol(key_string);
+            // benchmark_vector.push_back(ycsb_op_elem); 
+            // op ="";
+             Record r(std::stol(key_string));
+             std::cout<<"Seeking for key"<< std::stol(key_string)<<std::endl;
+             jitd->print_debug();
+            Iterator<Record> iter = jitd->iterator();
+            std::cout<<"After creating iterators"<<std::endl;
+            // iter->seek(r);
+            // std::cout<<"After seek"<<std::endl;
+            // if(!(iter->atEnd()))
+            // {
+            //   std::cout<<"Iter not at end"<<std::endl;
+            //   std::cout<<"The value seek points at is "<<(iter->get())<<std::endl;
+            // }
+
+            std::cout<<"Next OP"<<std::endl;
+          }
+          else if(op == "INSERT")
+          {
+            ycsb_operation ycsb_op_elem;
+            //for workload e
+            std::string table_name, key_string;
+            *src >> table_name;
+            //std::cout<<"table_name STRING : "<<table_name<<std::endl;
+            *src >> key_string;
+            //std::cout<<"KEY STRING : "<<key_string<<std::endl;
+              //for workload e
+              std::string s = "user";
+              std::string::size_type si = key_string.find(s);
+              if (si != std::string::npos)
+                 key_string.erase(si, s.length());
+              //std::cout<<"KEY STRING : "<<key_string<<std::endl; 
+
+
+              
+              std::array<std::string,10>* ycsbvector = new std::array<std::string,10>();
+              //std::cout<<"YCSBRECORED SIZE"<<ycsbvector.size()<<std::endl;
+
+              // for(int i=0;i<columns;i++)
+              // {
+              //   // std::string value_string;
+              //   // std::string field_no_string;
+              //   // int field_no;
+              //   // input >> field_no_string;
+              //   // std::cout<<"FN STRING : "<<field_no_string<<std::endl;
+                
+                
+
+              //   // field_no = std::stoi(field_no_string);
+              //   // input >> value_string;
+              //   // //std::cout<<"VALUE STRING : "<<value_string<<std::endl;
+              //   // (*ycsbvector)[field_no] = value_string;
+                
+                
+              // }
+              Record r(std::stol(key_string),*ycsbvector);
+              // ycsb_op_elem.operation = 'I';
+              // ycsb_op_elem.key = std::stol(key_string);
+              // ycsb_op_elem.fields = ycsbvector;
+              // benchmark_vector.push_back(ycsb_op_elem);
+              std::cout<<"INSERT"<<std::endl;
+              jitd->insert_singleton(r);
+              std::cout<<"Next OP"<<std::endl;
+              
+            
+          }
+          else if(op == "READ")
           {
               ycsb_operation ycsb_op_elem;
               //std::cout<<"OP R"<<std::endl;
@@ -270,7 +359,7 @@ int jitd_test(
           }
           else
           {
-            std::cerr<<"Not an operation value"<<std::endl;
+            std::cerr<<"Not an operation value"<<op<<std::endl;
             
           }
 
@@ -294,6 +383,27 @@ int jitd_test(
           
           switch((*it).operation)
           {
+            case('S'):
+            {
+              Record r;
+              r.key = (*it).key;
+              Iterator<Record> iter = jitd->iterator();
+              iter->seek(r.key);
+              if(!(iter->atEnd()))
+              {
+                std::cout<<"The value seek points at is "<<(iter->get())<<std::endl;
+              }
+              
+              break;
+            }
+            case('I'):
+            {
+              Record r;
+              r.key = (*it).key;
+              r.values = ((*it).fields);  
+              jitd->insert_singleton(r);
+              break;
+            }
             case('R'):
             {
               
@@ -316,8 +426,8 @@ int jitd_test(
               if(jitd->get((*it).key, ret))
               {
                 
-                ycsbrecordBuffer old_data;
-                old_data.push_back(ret);
+                std::vector<Key> old_data;
+                old_data.push_back(ret.key);
 
                 jitd->remove_elements(old_data);
                 
@@ -506,8 +616,8 @@ int jitd_test(
 
               if(jitd->get((*it).key, ret))
               {
-                ycsbrecordBuffer old_data;
-                old_data.push_back(ret);
+                std::vector<Key> old_data;
+                old_data.push_back(ret.key);
                 std::cout<<"HERE";
                 jitd->remove_elements(old_data);
                 
@@ -572,18 +682,18 @@ int jitd_test(
     ///////////////// POLICY OPERATIONS /////////////////    
 
    
-    CASE("policy_act_until_done")
-    {
-      //std::cout<<"policy_act_until_done...."<<std::endl;
-      int target_steps;
-      timeval start, end;
-      bool not_done = true;
-      int steps_taken = 0;
-      gettimeofday(&start, NULL);
-      steps_taken = jitd->background_process();
-      gettimeofday(&end, NULL);
-      std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end) << (not_done ? "" : " [done]") << " us" <<  std::endl;
-    }
+    // CASE("policy_act_until_done")
+    // {
+    //   //std::cout<<"policy_act_until_done...."<<std::endl;
+    //   int target_steps;
+    //   timeval start, end;
+    //   bool not_done = true;
+    //   int steps_taken = 0;
+    //   gettimeofday(&start, NULL);
+    //   steps_taken = jitd->background_process();
+    //   gettimeofday(&end, NULL);
+    //   std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end) << (not_done ? "" : " [done]") << " us" <<  std::endl;
+    // }
     
 
     // ///////////////// ACCESS OPERATIONS ///////////////// 
@@ -743,25 +853,25 @@ int jitd_test(
     ///////////////// OOOPS /////////////////
     }
     
-    CASE("print_time_log")
-    {
-      jitd->print_time_vec();
-    }
-    CASE("print_search_time_log")
-    {
-      jitd->print_search_time_vec();
-    }
+    // CASE("print_time_log")
+    // {
+    //   jitd->print_time_vec();
+    // }
+    // CASE("print_search_time_log")
+    // {
+    //   jitd->print_search_time_vec();
+    // }
     
-    CASE("check_pq")
-    {
-      std::cout<<"Checking PQ integrity: "<<std::endl;
-      jitd->check_pq_intergrity();
-    }
-    CASE("print_pq")
-    {
-      std::cout<<"Printing PQ:-"<<std::endl;
-      jitd->print_pq_size();
-    }
+    // CASE("check_pq")
+    // {
+    //   std::cout<<"Checking PQ integrity: "<<std::endl;
+    //   jitd->check_pq_intergrity();
+    // }
+    // CASE("print_pq")
+    // {
+    //   std::cout<<"Printing PQ:-"<<std::endl;
+    //   jitd->print_pq_size();
+    // }
    
     else {
       std::cerr << "Invalid Test Operation: " << op << std::endl;

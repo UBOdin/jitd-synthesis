@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <vector>
-
 typedef long int Key;
 typedef void *Value;
 //pthread_mutex_t lock; 

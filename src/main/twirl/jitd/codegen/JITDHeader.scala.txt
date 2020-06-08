@@ -117,6 +117,8 @@ class @{node.renderName} : public JITDNode {
 #include "iterator/BufferIterator.hpp"
 #include "iterator/UnsortedBufferIterator.hpp"
 #include "iterator/SingletonIterator.hpp"  
+#include "iterator/DeleteElemIterator.hpp"
+#include "iterator/DeleteSingletonIterator.hpp"
 
 ///////////////////// Transform Definitions ///////////////////// 
 

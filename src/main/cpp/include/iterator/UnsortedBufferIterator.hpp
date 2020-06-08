@@ -54,6 +54,14 @@ class UnsortedBufferIterator : public IteratorBase<Record> {
 
     Record get()
     {
-      return *curr;
+      if(data.size()!=0)
+      {
+        return *curr;
+      }
+      else
+      {
+        return 0;
+      }
+      
     }
 };

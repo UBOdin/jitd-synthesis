@@ -138,7 +138,8 @@ class HardcodedDefinition
     policies   = policies, 
     policyImplementations = policyImplementations,
     functions  = functionSignatures,
-    includes = Seq("int_record.hpp", "runtime.hpp")
+    //includes = Seq("int_record.hpp", "runtime.hpp")
+    includes = Seq("ycsb_record.hpp", "runtime.hpp")
   )
 
   def functions = functionSignatures.map { f => f.name -> f }.toMap

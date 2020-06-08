@@ -99,6 +99,35 @@ int jitd_client_op(
       std::cout << scan_buff_size <<" Scans JITD time in Random Mode: " << scan_time << " us" << std::endl;
       
     }
+    CASE("scan")
+    {
+      std::string op;
+      toks>>op;
+      if(op == "random")
+      {
+        std::cout<<std::endl;
+        long min,max;
+        toks >> min>>max;
+        long key = (rand() % (max-min))+min;
+        long range = (rand() % (100-1))+1;
+        Record r;
+        r.key = key;
+        Iterator<Record> iter =jitd->iterator();
+        iter->seek(r);
+        std::cout<<"The value seek points at is "<<(iter->get())<<std::endl;
+        while(!(iter->atEnd()))
+        {
+          if((((iter->get())<(key+range)) && (iter->get()>key-1)))
+          {
+            std::cout<<(iter->get()).key<<",";
+          }
+          
+          iter->range_next(key,key+range);
+          //iter2->next();
+        }
+
+        }
+    }
     CASE("range_scan")
     {
       long min,max;
@@ -160,11 +189,23 @@ int jitd_client_op(
     }
     CASE("insert_singleton") {
       timeval start, end;
-      int value;
+      int key;
       Record data;
-      
-      toks >> value;
-      data.key = value;
+      std::string op;
+      toks >> op;
+
+      if(op == "random")
+      {
+        long min, max;
+        toks >> min;
+        toks >> max;
+        data.key = (rand() % (max-min))+min;
+      }
+      else if(op == "explicit")
+      {
+        toks >> key;
+        data.key = key;
+      }
       data.value = (Value)0xDEADBEEF;
       
       gettimeofday(&start, NULL);
@@ -309,7 +350,7 @@ void background_thread(std::shared_ptr<JITD> jitd)
        gettimeofday(&end, NULL);
        
        std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end)  << " us" <<  std::endl; 
-      // jitd->print_debug();
+      jitd->print_debug();
 
        
        

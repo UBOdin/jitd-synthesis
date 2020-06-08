@@ -46,7 +46,7 @@ class SeqIterator : public IteratorBase<Record> {
     void seek(const Record &k)
     {
       if(k > sep) { lhsDone = true; }
-      std::cout<<"key: "<<k<<"sep: "<<sep<<std::endl;
+      //std::cout<<"key: "<<k<<"sep: "<<sep<<std::endl;
       // check key first... may not need to init LHS.
       initNeeded();
       if(!lhsDone)     { lhsIter->seek(k); lhsDone = lhsIter->atEnd(); }

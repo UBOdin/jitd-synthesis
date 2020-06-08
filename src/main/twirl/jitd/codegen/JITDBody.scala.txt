@@ -499,8 +499,8 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
           @{ field.t match {
             case TRecord() => s""
 
-            //case TArray(TRecord()) => s"load_records_from_file_ycsb(${field.name}, toks,columns);"
-            case TArray(TRecord()) => s"load_records(${field.name}, toks);"
+            case TArray(TRecord()) => s"load_records_from_file_ycsb(${field.name}, toks,columns);"
+            //case TArray(TRecord()) => s"load_records(${field.name}, toks);"
 
             case TNodeRef() => s"${field.name} = node_stack.top(); node_stack.pop();"
 

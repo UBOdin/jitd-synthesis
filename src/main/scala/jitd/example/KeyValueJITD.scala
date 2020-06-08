@@ -363,17 +363,17 @@ Transform("DeleteKeyFromSingleton")
     "Singleton" fromFields( "record" as "new_singleton") andAfter("delete_keys_from_singleton".call("new_singleton","data"))
   }
   
-  Policy("CrackSort")("crackAt" -> IntConstant(100),"null_data"-> IntConstant(0)) (
+  Policy("CrackSort")("crackAt" -> IntConstant(500),"null_data"-> IntConstant(0)) (
       
       ("PushDownSingletonLeft" onlyIf{Key_Cmp("data","separator") eq true} scoreBy{IntConstant(0)})
       andThen("PushDownSingletonRight" onlyIf{Key_Cmp("data","separator") eq false} scoreBy{IntConstant(0)})
-      andThen("PushDownDontDeleteSingletonBtreeLeft" onlyIf{Keys_Cmp("key","separator") eq true} scoreBy{IntConstant(0)})
-      andThen("PushDownDontDeleteSingletonBtreeRight" onlyIf{Keys_Cmp("key","separator") eq false} scoreBy{IntConstant(0)})
-      andThen("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
-      andThen("DeleteElemFromSingleton" scoreBy{IntConstant(0)})
-      andThen("DeleteKeyFromSingleton" scoreBy{IntConstant(0)})
-      andThen("DeleteSingletonFromArray" scoreBy{IntConstant(0)})
-      andThen("DeleteElemFromArray" scoreBy{IntConstant(0)})
+      //andThen("PushDownDontDeleteSingletonBtreeLeft" onlyIf{Keys_Cmp("key","separator") eq true} scoreBy{IntConstant(0)})
+      //andThen("PushDownDontDeleteSingletonBtreeRight" onlyIf{Keys_Cmp("key","separator") eq false} scoreBy{IntConstant(0)})
+      //andThen("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
+      //andThen("DeleteElemFromSingleton" scoreBy{IntConstant(0)})
+      //andThen("DeleteKeyFromSingleton" scoreBy{IntConstant(0)})
+      //andThen("DeleteSingletonFromArray" scoreBy{IntConstant(0)})
+      //andThen("DeleteElemFromArray" scoreBy{IntConstant(0)})
       andThen("CrackArray"       onlyIf { ArraySize("data") gt "crackAt" } 
                               scoreBy { ArraySize("data") })
       
