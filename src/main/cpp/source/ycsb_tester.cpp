@@ -216,6 +216,7 @@ int jitd_test(
         src = &initFile;
         int scan_count=0;
         int success_count=0;
+        int insert_count =0;
         while(getline(*src, line))
         {
           *src >> op;
@@ -261,12 +262,12 @@ int jitd_test(
               //std::cout<<"The value seek points at is "<<(iter->get())<<std::endl;
               if(std::stol(key_string)<= (iter->get()).key)
               {
-                std::cout<<"SUCCESS"<<std::endl;
+                //std::cout<<"SUCCESS"<<std::endl;
                 success_count++;
               }
               else
               {
-                std::cout<<"FAILED"<<std::endl;
+                //std::cout<<"FAILED"<<std::endl;
               }
             }
             else
@@ -274,12 +275,23 @@ int jitd_test(
               jitd->print_debug();
               std::cout<<"ITER END AND FAILS TO MATCH"<<std::endl;
             }
-            // jitd->print_debug();
-            // for(int i=0;i<range;++i)
-            // {
-            //   iter->next();
-            //   std::cout<<"The value next points at is "<<(iter->get())<<std::endl;
-            // }
+
+            jitd->print_debug();
+            for(int i=0;i<range;)
+            {
+              iter->next();
+              if(!(iter->atEnd()))
+              {
+                std::cout<<"The value next points at is "<<(iter->get())<<std::endl;
+                ++i;
+              }
+              else
+              {
+                std::cout<<"reached the end of struct i= "<<i<<std::endl;
+                i=range;
+              }
+              
+            }
 
 
             //std::cout<<"Next OP"<<std::endl;
@@ -287,6 +299,7 @@ int jitd_test(
           else if(op == "INSERT")
           {
             ycsb_operation ycsb_op_elem;
+            insert_count++;
             //for workload e
             std::string table_name, key_string;
             *src >> table_name;
@@ -397,7 +410,7 @@ int jitd_test(
         }
         if(scan_count==success_count)
         {
-          std::cout<<"BOTH MATCH"<<std::endl;
+          std::cout<<"BOTH MATCH"<<success_count+insert_count<<std::endl;
         }
         else
         {

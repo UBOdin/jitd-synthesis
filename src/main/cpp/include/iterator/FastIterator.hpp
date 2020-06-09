@@ -17,7 +17,8 @@ const Key sep;
         //lhs = std::atomic_load(lhs_ptr);
         //rhs = std::atomic_load(rhs_ptr);
         //std::cout<<"Fastiterator constructor with sep,lhs,rhs -> sep val: "<<sep<<std::endl;
-        
+        //node_ptr = lhs;
+        //nodeStack.push(rhs);
  
       }
       
@@ -26,7 +27,7 @@ const Key sep;
       //std::cout<<"In init root"<<std::endl;
       if(k1 < sep)
         {
-          std::cout<<"Key seek is less than sep"<<sep<<std::endl;
+          //std::cout<<"Key seek is less than sep"<<sep<<std::endl;
           // node = rhs;
           // std::cout<<"node->type rhs" << node->type()<<std::endl;
           node_ptr = lhs;
@@ -36,7 +37,7 @@ const Key sep;
         } 
         else
         {
-          std::cout<<"Key seek is greater than sep"<<std::endl;
+          //std::cout<<"Key seek is greater than sep"<<sep<<std::endl;
           node_ptr = rhs;
           //std::cout<<"RHS node->type" << node->type()<<std::endl;
           //std::cout<<"node->type rhs" << node->type()<<std::endl;
@@ -223,7 +224,7 @@ const Key sep;
         else if(node_ptr->type == JITD_NODE_Singleton)
         {
           //std::cout<<"found Btree cog in next with sep val"<<node->getSepVal()<<std::endl;
-          //std::cout<<"FI:Concat in next() "<<std::endl;
+          //std::cout<<"FI:Singleton in next() "<<std::endl;
           //iter = node_ptr->iterator();
           iter->next();
         
@@ -353,7 +354,7 @@ const Key sep;
         {
           
           BTreeNode * node = (BTreeNode *)node_raw;
-          std::cout<<"FI:Btree with sep value " <<node->sep<<std::endl;
+          //std::cout<<"FI:Btree with sep value " <<node->sep<<std::endl;
           if(k < node->sep)
           {
             //std::cout<<"in if"<<std::endl;
@@ -374,12 +375,13 @@ const Key sep;
         }
         else if(node_ptr->type ==  JITD_NODE_Concat)
         {
+          //std::cout<<"FI:Seek() Conact Node "<<std::endl;
          //NOTE:CREATES A BRAND NEW ITER EVEN IF AT END ALREADY CREATED IT.
-         if(iter.get()==NULL)
-         {
+         
+      
           iter = node_ptr->iterator();
           //std::cout<<"FI SEEK(): iter was NULL so created a new iter for the node."<<std::endl;
-         } 
+        
           
           //std::cout<<"FI: seek() Concat " <<std::endl;
           if(iter->atEnd() && !nodeStack.empty())
@@ -408,11 +410,10 @@ const Key sep;
         else if(node_ptr->type ==  JITD_NODE_DeleteElements)
         {
          //NOTE:CREATES A BRAND NEW ITER EVEN IF AT END ALREADY CREATED IT.
-         if(iter.get()==NULL)
-         {
+         
           iter = node_ptr->iterator();
           //std::cout<<"FI SEEK(): iter was NULL so created a new iter for the node."<<std::endl;
-         } 
+         
           
           //std::cout<<"FI: seek() Concat " <<std::endl;
           if(iter->atEnd() && !nodeStack.empty())
@@ -441,11 +442,11 @@ const Key sep;
         else if(node_ptr->type ==  JITD_NODE_DeleteSingleton)
         {
          //NOTE:CREATES A BRAND NEW ITER EVEN IF AT END ALREADY CREATED IT.
-         if(iter.get()==NULL)
-         {
+     
+        
           iter = node_ptr->iterator();
           //std::cout<<"FI SEEK(): iter was NULL so created a new iter for the node."<<std::endl;
-         } 
+          
           
           //std::cout<<"FI: seek() Concat " <<std::endl;
           if(iter->atEnd() && !nodeStack.empty())
@@ -473,11 +474,10 @@ const Key sep;
         }
         else if(node_ptr->type ==  JITD_NODE_Singleton)
         {
-           if(iter.get()==NULL)
-           {
+           
             iter = node_ptr->iterator();
             //std::cout<<"FI SEEK(): iter was NULL so created a new iter for the node."<<std::endl;
-           }
+           
           //std::cout<<"FI: seek() Concat " <<std::endl;
           if(iter->atEnd() && !nodeStack.empty())
           {
@@ -505,11 +505,10 @@ const Key sep;
         else if(node_ptr->type == JITD_NODE_SortedArray)
         {
           //std::cout<<"Node is sorted array"<<std::endl;
-          if(iter.get()==NULL)
-           {
+          
             iter = node_ptr->iterator();
             //std::cout<<"FI SEEK(): iter was NULL so created a new iter for the node."<<std::endl;
-           }
+           
           
           if(iter->atEnd() && !nodeStack.empty())
           {
@@ -538,11 +537,10 @@ const Key sep;
         else if(node_ptr->type == JITD_NODE_Array)
         {
           //std::cout<<" FI: Seek() Node is array"<<std::endl;
-          if(iter.get()==NULL)
-           {
+         
             iter = node_ptr->iterator();
             //std::cout<<"FI SEEK(): iter was NULL so created a new iter for the node."<<std::endl;
-           }
+           
           if(iter->atEnd() && !nodeStack.empty())
           {
               //std::cout<<"Seeked but didnt find key"<<std::endl;
