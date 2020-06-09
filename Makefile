@@ -36,7 +36,7 @@ ifeq (${alloc}, aligned)
 shared_defines := -D CACHE_ALIGNED_ALLOCATOR
 endif
 
-shared_defines += -D TRANSFORM_COUNT  # Hardcoded
+#shared_defines += -D TRANSFORM_COUNT  # Hardcoded
 
 ifeq (${atomic}, asal)
 jitd_defines := ${shared_defines} -D ATOMIC_STORE -D ATOMIC_LOAD
