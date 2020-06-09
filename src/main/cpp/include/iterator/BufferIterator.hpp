@@ -7,12 +7,12 @@ class BufferIterator : public IteratorBase<Record> {
 
     // BufferIterator assumes that buff is sorted.
     BufferIterator(std::vector<Record> &data) : 
-      data(data), start(data.begin()), curr(data.begin()), end(data.end()) {std::cout<<"BufferIterator Constructor for node with elems:"<<data.size()<<std::endl;
+      data(data), start(data.begin()), curr(data.begin()), end(data.end()) {//std::cout<<"BufferIterator Constructor for node with elems:"<<data.size()<<std::endl;
       std::sort(data.begin(),data.end());
-      for(auto it = data.begin();it!=data.end();++it)
-      {
-        std::cout<<*it<<",";
-      }
+      // for(auto it = data.begin();it!=data.end();++it)
+      // {
+      //   std::cout<<*it<<",";
+      // }
     }
 
     // BufferIterator assumes that buff is sorted.
@@ -45,7 +45,7 @@ class BufferIterator : public IteratorBase<Record> {
       }
       else
       {
-        std::cout<<"BufferIterator SEEK(): "<<k<<"Curr points at: "<<*curr<<std::endl;
+        //std::cout<<"BufferIterator SEEK(): "<<k<<"Curr points at: "<<*curr<<std::endl;
         unsigned int d = 1;
         std::vector<Record>::const_iterator high = curr;
         while((high < end) && (*high < k)){
@@ -57,7 +57,7 @@ class BufferIterator : public IteratorBase<Record> {
         if(curr < high){
           curr = lower_bound(curr, high, k);
         }
-        std::cout<<"Data size: "<<data.size()<<"End of SEEK(): Curr points at: "<<*curr<<std::endl;
+        //std::cout<<"Data size: "<<data.size()<<"End of SEEK(): Curr points at: "<<*curr<<std::endl;
       }
       
     }

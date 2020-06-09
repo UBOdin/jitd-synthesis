@@ -19,7 +19,12 @@ class MergeIterator : public IteratorBase<Record> {
         //std::cout<<"looking into lhs of merge iter rhs sibling is: "<<rhs<<"and lhs node is : "<<lhs<<std::endl;
         lhsIter = lhs->iterator();
         //std::cout<<"MEREGE CONSTRUCTOR:LHS ITER CREATED for"<<lhs<<std::endl;
-        lhsDone = lhsIter->atEnd();
+        // if(lhs->type != JITD_NODE_BTree)
+        // {
+          lhsDone = lhsIter->atEnd();
+        //}
+        
+        
         //std::cout<<"MEREGE CONSTRUCTOR:LhsDone:"<<lhsDone<<std::endl;
       }
       if(rhsIter.get()==NULL)
@@ -34,7 +39,11 @@ class MergeIterator : public IteratorBase<Record> {
           {
             rhsIter = rhs->iterator();
             //std::cout<<"MEREGE CONSTRUCTOR:RHS ITER CREATED for"<<rhs<<std::endl;
-            rhsDone = rhsIter->atEnd();
+
+            // if(rhs->type != JITD_NODE_BTree)
+            // {
+              rhsDone = rhsIter->atEnd();
+            //}
             //std::cout<<"MEREGE CONSTRUCTOR:RhsDone:"<<rhsDone<<std::endl;
           }
           
@@ -56,19 +65,24 @@ class MergeIterator : public IteratorBase<Record> {
     void next()
     {
       //std::cout<<"MergeIterator NEXT()"<<std::endl;
-      if(lhsDone && rhsDone) { return; }
-      else if(rhs->type == JITD_NODE_Singleton)
+      if(rhs->type == JITD_NODE_Singleton)
       {
-        //std::cout<<"rhs is a Singleton so no next"<<std::endl;
+        //std::cout<<"rhs is a Singleton "<<std::endl;
         rhsDone = true;
       }
-      else if(!lhsDone && !rhsDone){lhsIter->next(); lhsDone = lhsIter->atEnd(); //std::cout<<"Next:LhsDone: "<<lhsDone<<std::endl;
+      if(lhsDone && rhsDone) { return; }
+      
+      else if(!lhsDone && !rhsDone){//std::cout<<"MI: next() to lhs"<<std::endl;
+        lhsIter->next(); lhsDone = lhsIter->atEnd(); //std::cout<<"Next:LhsDone: "<<lhsDone<<std::endl;
       }
-      // else if(!lhsDone && rhsDone){lhsIter->next(); lhsDone = lhsIter->atEnd(); //std::cout<<"Next:LhsDone: "<<lhsDone<<"Next:rhsDone: "<<rhsDone<<std::endl;
-      // }
-      else if(lhsDone && !rhsDone){rhsIter->next(); rhsDone = rhsIter->atEnd();//std::cout<<"Next:rhsDone: "<<rhsDone<<std::endl;
+      else if(!lhsDone && rhsDone){//std::cout<<"MIrhsDone: next() to lhs"<<std::endl;
+        lhsIter->next(); lhsDone = lhsIter->atEnd(); //std::cout<<"Next:LhsDone: "<<lhsDone<<"Next:rhsDone: "<<rhsDone<<std::endl;
       }
-      else if(!rhsDone){rhsIter->next(); rhsDone = rhsIter->atEnd();//std::cout<<"Next:rhsDone: "<<rhsDone<<std::endl;
+      else if(lhsDone && !rhsDone){//std::cout<<"MIlhsdone: next() to rhs"<<std::endl;
+        rhsIter->next(); rhsDone = rhsIter->atEnd();//std::cout<<"Next:rhsDone: "<<rhsDone<<std::endl;
+      }
+      else if(!rhsDone){//std::cout<<"MI: next() to rhs"<<std::endl;
+        rhsIter->next(); rhsDone = rhsIter->atEnd();//std::cout<<"Next:rhsDone: "<<rhsDone<<std::endl;
       }
       
      
@@ -76,17 +90,18 @@ class MergeIterator : public IteratorBase<Record> {
     void range_next(const long &r1,const long &r2)
     {
       //std::cout<<"MergeIterator NEXT()"<<std::endl;
-      if(lhsDone && rhsDone) { return; }
-      else if(rhs->type == JITD_NODE_Singleton)
+      if(rhs->type == JITD_NODE_Singleton)
       {
-        //std::cout<<"rhs is a Singleton so no range_next"<<std::endl;
+        //std::cout<<"rhs is a Singleton so no next"<<std::endl;
         rhsDone = true;
       }
-      else if(!lhsDone && !rhsDone){lhsIter->range_next(r1,r2);; lhsDone = lhsIter->atEnd(); //std::cout<<"Next:LhsDone: "<<lhsDone<<std::endl;
+      if(lhsDone && rhsDone) { return; }
+      
+      else if(!lhsDone && !rhsDone){lhsIter->range_next(r1,r2); lhsDone = lhsIter->atEnd(); //std::cout<<"Next:LhsDone: "<<lhsDone<<std::endl;
       }
-      // else if(!lhsDone && rhsDone){lhsIter->next(); lhsDone = lhsIter->atEnd(); //std::cout<<"Next:LhsDone: "<<lhsDone<<"Next:rhsDone: "<<rhsDone<<std::endl;
-      // }
-      else if(lhsDone && !rhsDone){rhsIter->range_next(r1,r2);; rhsDone = rhsIter->atEnd();//std::cout<<"Next:rhsDone: "<<rhsDone<<std::endl;
+      else if(!lhsDone && rhsDone){lhsIter->range_next(r1,r2); lhsDone = lhsIter->atEnd(); //std::cout<<"Next:LhsDone: "<<lhsDone<<"Next:rhsDone: "<<rhsDone<<std::endl;
+      }
+      else if(lhsDone && !rhsDone){rhsIter->range_next(r1,r2); rhsDone = rhsIter->atEnd();//std::cout<<"Next:rhsDone: "<<rhsDone<<std::endl;
       }
       else if(!rhsDone){rhsIter->range_next(r1,r2);; rhsDone = rhsIter->atEnd();//std::cout<<"Next:rhsDone: "<<rhsDone<<std::endl;
       }
@@ -94,7 +109,7 @@ class MergeIterator : public IteratorBase<Record> {
     }
     void seek(const Record &k)
     {
-      std::cout<<"MergeIterator SEEK()"<<std::endl;
+      //std::cout<<"MergeIterator SEEK()"<<std::endl;
       lhsIter->seek(k); //std::cout<<"seek for MergeIterator lhs done"<<std::endl;
       lhsDone = lhsIter->atEnd(); 
       //std::cout<<"lhsDone:"<<lhsDone<<std::endl;
