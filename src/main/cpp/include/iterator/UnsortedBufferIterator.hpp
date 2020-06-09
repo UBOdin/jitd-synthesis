@@ -6,7 +6,7 @@ class UnsortedBufferIterator : public IteratorBase<Record> {
   public: 
 
     // BufferIterator assumes that buff is sorted.
-    UnsortedBufferIterator(std::vector<Record> &data) : 
+    UnsortedBufferIterator(const std::vector<Record> &data) : 
       data(data), start(data.begin()), curr(data.begin()), end(data.end()) {}
 
     

@@ -6,8 +6,10 @@ class SingletonIterator : public IteratorBase<Record> {
   public: 
 
   
-    SingletonIterator(Record &data) : 
-      data(data),done(false) {std::cout<<"SingletonIterator created for "<<data<<std::endl;}
+    SingletonIterator(const Record &data) : 
+      data(data),done(false) {
+        //std::cout<<"SingletonIterator created for "<<data<<std::endl;
+      }
       
  
 

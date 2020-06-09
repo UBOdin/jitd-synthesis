@@ -8,9 +8,9 @@ class SeqIterator : public IteratorBase<Record> {
   
   public: 
     SeqIterator(
-      std::shared_ptr<JITDNode> lhs, 
-      long sep, 
-      std::shared_ptr<JITDNode> rhs
+      const std::shared_ptr<JITDNode> &lhs, 
+      const long &sep, 
+      const std::shared_ptr<JITDNode> &rhs
     ) :
       sep(sep), lhs(lhs), rhs(rhs), 
       lhsDone(jitd_accessor_size(lhs) < 1), rhsDone(jitd_accessor_size(rhs) < 1) {}

@@ -7,15 +7,17 @@ Iterator<Record> lhsIter, rhsIter;
 std::stack<std::shared_ptr<JITDNode>> nodeStack;
 std::shared_ptr<JITDNode> node_ptr;
 Iterator<Record> iter; 
-const long sep;
+const Key sep;
   
   public: 
-    FastIterator(std::shared_ptr<JITDNode> lhs, 
-      long sep, 
-      std::shared_ptr<JITDNode> rhs):sep(sep), lhs(lhs), rhs(rhs)
+    FastIterator(const std::shared_ptr<JITDNode> &lhs, 
+      const Key sep, 
+      const std::shared_ptr<JITDNode> &rhs):lhs(lhs),rhs(rhs),sep(sep)
       {
-
-        std::cout<<"Fastiterator constructor with sep,lhs,rhs -> sep val: "<<sep<<std::endl;
+        //lhs = std::atomic_load(lhs_ptr);
+        //rhs = std::atomic_load(rhs_ptr);
+        //std::cout<<"Fastiterator constructor with sep,lhs,rhs -> sep val: "<<sep<<std::endl;
+        
  
       }
       
@@ -24,6 +26,7 @@ const long sep;
       //std::cout<<"In init root"<<std::endl;
       if(k1 < sep)
         {
+          std::cout<<"Key seek is less than sep"<<sep<<std::endl;
           // node = rhs;
           // std::cout<<"node->type rhs" << node->type()<<std::endl;
           node_ptr = lhs;
@@ -33,6 +36,7 @@ const long sep;
         } 
         else
         {
+          std::cout<<"Key seek is greater than sep"<<std::endl;
           node_ptr = rhs;
           //std::cout<<"RHS node->type" << node->type()<<std::endl;
           //std::cout<<"node->type rhs" << node->type()<<std::endl;
@@ -47,7 +51,7 @@ const long sep;
 
     Record get()
     {
-      std::cout<<"in fast iterator get"<<std::endl;
+      //std::cout<<"in fast iterator get"<<std::endl;
       if(iter.get()==NULL && node_ptr == NULL)
       {
         //std::cout<<"iter not init in FI"<<std::endl;
@@ -230,7 +234,7 @@ const long sep;
         {
           //std::cout<<"found Btree cog in next with sep val"<<node->getSepVal()<<std::endl;
 
-          
+          iter->next();
           
 
         }
@@ -239,7 +243,7 @@ const long sep;
           //std::cout<<"found Btree cog in next with sep val"<<node->getSepVal()<<std::endl;
 
           
-          
+          iter->next();
 
         }
         if(!nodeStack.empty() && iter->atEnd())
@@ -314,7 +318,7 @@ const long sep;
         {
           //std::cout<<"found Btree cog in next with sep val"<<node->getSepVal()<<std::endl;
 
-          
+          iter->range_next(r1,r2);
           
 
         }
@@ -323,7 +327,7 @@ const long sep;
           //std::cout<<"found Btree cog in next with sep val"<<node->getSepVal()<<std::endl;
 
           
-          
+          iter->range_next(r1,r2);
 
         }
         if(!nodeStack.empty() && iter->atEnd())
@@ -339,9 +343,9 @@ const long sep;
     }  
     void seek(const Record &k)
     {
-      std::cout<<"in fast iter seek"<<std::endl;
+      //std::cout<<"in fast iter seek"<<std::endl;
       initroot(k);
-      std::cout<<"Initroot done"<<std::endl;
+      //std::cout<<"Initroot done"<<std::endl;
       while(node_ptr!=NULL)
       {
         JITDNode *node_raw = node_ptr.get();
@@ -349,7 +353,7 @@ const long sep;
         {
           
           BTreeNode * node = (BTreeNode *)node_raw;
-          //std::cout<<"FI:Btree with sep value " <<node->sep<<std::endl;
+          std::cout<<"FI:Btree with sep value " <<node->sep<<std::endl;
           if(k < node->sep)
           {
             //std::cout<<"in if"<<std::endl;
@@ -369,6 +373,72 @@ const long sep;
           }
         }
         else if(node_ptr->type ==  JITD_NODE_Concat)
+        {
+         //NOTE:CREATES A BRAND NEW ITER EVEN IF AT END ALREADY CREATED IT.
+         if(iter.get()==NULL)
+         {
+          iter = node_ptr->iterator();
+          //std::cout<<"FI SEEK(): iter was NULL so created a new iter for the node."<<std::endl;
+         } 
+          
+          //std::cout<<"FI: seek() Concat " <<std::endl;
+          if(iter->atEnd() && !nodeStack.empty())
+          {
+              //std::cout<<"empty buffer node reassigned with sibling"<<std::endl;
+              node_ptr = nodeStack.top();
+              nodeStack.pop();
+              //std::cout<<"stack size "<<nodeStack.size()<<std::endl;
+          }
+          else
+          {
+            iter->seek(k);
+            if(iter->atEnd() && !nodeStack.empty())
+            {
+              node_ptr = nodeStack.top();
+              nodeStack.pop();
+              //std::cout<<"stack size "<<nodeStack.size()<<std::endl;
+            }
+            else
+            {
+              return;
+            }
+            
+          }
+        }
+        else if(node_ptr->type ==  JITD_NODE_DeleteElements)
+        {
+         //NOTE:CREATES A BRAND NEW ITER EVEN IF AT END ALREADY CREATED IT.
+         if(iter.get()==NULL)
+         {
+          iter = node_ptr->iterator();
+          //std::cout<<"FI SEEK(): iter was NULL so created a new iter for the node."<<std::endl;
+         } 
+          
+          //std::cout<<"FI: seek() Concat " <<std::endl;
+          if(iter->atEnd() && !nodeStack.empty())
+          {
+              //std::cout<<"empty buffer node reassigned with sibling"<<std::endl;
+              node_ptr = nodeStack.top();
+              nodeStack.pop();
+              //std::cout<<"stack size "<<nodeStack.size()<<std::endl;
+          }
+          else
+          {
+            iter->seek(k);
+            if(iter->atEnd() && !nodeStack.empty())
+            {
+              node_ptr = nodeStack.top();
+              nodeStack.pop();
+              //std::cout<<"stack size "<<nodeStack.size()<<std::endl;
+            }
+            else
+            {
+              return;
+            }
+            
+          }
+        }
+        else if(node_ptr->type ==  JITD_NODE_DeleteSingleton)
         {
          //NOTE:CREATES A BRAND NEW ITER EVEN IF AT END ALREADY CREATED IT.
          if(iter.get()==NULL)
@@ -514,11 +584,11 @@ const long sep;
             }
             else
             {
-              std::cout<<"FI at end() creating lhs iter"<<std::endl;
+              //std::cout<<"FI at end() creating lhs iter"<<std::endl;
               iter = lhs->iterator();
             }
             bool end = iter->atEnd();
-            std::cout<<"FI call to iter atend() returned"<<std::endl;
+            //std::cout<<"FI call to iter atend() returned"<<std::endl;
             return end;
             //return iter->atEnd();
            

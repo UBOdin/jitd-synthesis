@@ -7,8 +7,8 @@ class DeleteSingletonIterator : public IteratorBase<Record> {
   
   public: 
 
-    DeleteSingletonIterator(std::shared_ptr<JITDNode> source,
-    Key key
+    DeleteSingletonIterator(const std::shared_ptr<JITDNode> &source,
+    const Key key
     ) : source(source),key(key)
     {
       sourceIter = source->iterator();

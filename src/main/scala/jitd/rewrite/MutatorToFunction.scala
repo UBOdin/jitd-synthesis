@@ -49,8 +49,8 @@ object MutatorToFunction
         //Macro("#ifdef DEBUG")++ Void(Var("check_pq()"))++ Macro("#endif")++
         //Void(Var("pthread_mutex_lock(&this->lock)"))++
         constructor ++ 
-        RDTSC_Start_Logging()++ptr_ptr_construct ++
-        common_cq_populate_emplace++RDTSC_End_Logging()++
+        ptr_ptr_construct ++
+        common_cq_populate_emplace++
         Macro("#ifdef ATOMIC_STORE")++
         Void(Var("std::atomic_store(&jitd_root, new_root_ptr)"))++ 
         Macro("#endif")++

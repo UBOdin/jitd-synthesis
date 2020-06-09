@@ -218,8 +218,10 @@ class JITD {
      Iterator<Record> iterator()
     {
       
-      std::shared_ptr<std::shared_ptr<JITDNode>> r = std::atomic_load(&jitd_root);
-      return (*r)->iterator();
+      std::shared_ptr<JITDNode> r = *(this->jitd_root);
+      JITDNode * rp = r.get();
+      //std::cout<<"Root pointer is "<<rp<<std::endl;
+      return (rp)->iterator();
     }
    
     //void print_pq();
