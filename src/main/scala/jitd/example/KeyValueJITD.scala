@@ -363,7 +363,7 @@ Transform("DeleteKeyFromSingleton")
     "Singleton" fromFields( "record" as "new_singleton") andAfter("delete_keys_from_singleton".call("new_singleton","data"))
   }
   
-  Policy("CrackSort")("crackAt" -> IntConstant(500),"null_data"-> IntConstant(0)) (
+  Policy("CrackSort")("crackAt" -> IntConstant(50),"null_data"-> IntConstant(0)) (
       
       ("PushDownSingletonLeft" onlyIf{Key_Cmp("data","separator") eq true} scoreBy{IntConstant(0)})
       andThen("PushDownSingletonRight" onlyIf{Key_Cmp("data","separator") eq false} scoreBy{IntConstant(0)})

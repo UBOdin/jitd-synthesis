@@ -143,7 +143,7 @@ class JITDGenConfig(arguments: Seq[String]) extends ScallopConf(arguments)
 
   val main = opt[String]("main", 
     descr = "Specify the main file for compilation (requires --compile)",
-    default = Some("src/main/cpp/source/jitd_tester.cpp")
+    default = Some("src/main/cpp/source/ycsb_tester.cpp")
   )
 
   val target = opt[String]("bin",

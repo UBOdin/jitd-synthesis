@@ -7,8 +7,8 @@ class DeleteElemIterator : public IteratorBase<Record> {
   
   public: 
 
-    DeleteElemIterator(std::shared_ptr<JITDNode> source,
-    std::vector<Key> keys
+    DeleteElemIterator(const std::shared_ptr<JITDNode> &source,
+    const std::vector<Key> &keys
     ) : source(source),keys(keys)
     {
       sourceIter = source->iterator();

@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -12,7 +11,6 @@
 #include <sys/time.h>
 #include <queue>
 #include <string.h>
-
 #include "test.hpp"
 #include "jitd_test.hpp"
 #include "IteratorDefinition.hpp"
@@ -216,19 +214,28 @@ int jitd_test(
         initFile.open(path,std::ios_base::in);
 
         src = &initFile;
+        int scan_count=0;
+        int success_count=0;
         while(getline(*src, line))
         {
           *src >> op;
           if(op == "SCAN")
           {
-            //std::cout<<"Scan read"<<std::endl;
+
+            std::cout<<"SCAN"<<std::endl;
+            scan_count++;
             ycsb_operation ycsb_op_elem;
             //for workload e
-            std::string table_name, key_string;
+            std::string table_name, key_string,range_limit;
+
             *src >> table_name;
             //std::cout<<"table_name STRING : "<<table_name<<std::endl;
             *src >> key_string;
+            *src >> range_limit;
             std::cout<<"KEY STRING : "<<key_string<<std::endl;
+            std::cout<<"range_limit_string:"<<range_limit<<std::endl;
+            int range = stoi(range_limit);
+            //std::cout<<"KEY STRING : "<<key_string<<std::endl;
               //for workload e
             std::string s = "user";
             std::string::size_type si = key_string.find(s);
@@ -238,20 +245,44 @@ int jitd_test(
             // ycsb_op_elem.key = std::stol(key_string);
             // benchmark_vector.push_back(ycsb_op_elem); 
             // op ="";
-             Record r(std::stol(key_string));
              std::cout<<"Seeking for key"<< std::stol(key_string)<<std::endl;
-             jitd->print_debug();
+             Record r(std::stol(key_string));
+             
+             //jitd->print_debug();
             Iterator<Record> iter = jitd->iterator();
-            std::cout<<"After creating iterators"<<std::endl;
-            // iter->seek(r);
+            //std::cout<<"After creating iterators"<<std::endl;
+            iter->seek(r);
+            std::cout<<"The value seek points at is "<<(iter->get())<<std::endl;
             // std::cout<<"After seek"<<std::endl;
-            // if(!(iter->atEnd()))
+            if(!(iter->atEnd()))
+            {
+              //std::cout<<"Iter not at end"<<std::endl;
+              
+              //std::cout<<"The value seek points at is "<<(iter->get())<<std::endl;
+              if(std::stol(key_string)<= (iter->get()).key)
+              {
+                std::cout<<"SUCCESS"<<std::endl;
+                success_count++;
+              }
+              else
+              {
+                std::cout<<"FAILED"<<std::endl;
+              }
+            }
+            else
+            {
+              jitd->print_debug();
+              std::cout<<"ITER END AND FAILS TO MATCH"<<std::endl;
+            }
+            // jitd->print_debug();
+            // for(int i=0;i<range;++i)
             // {
-            //   std::cout<<"Iter not at end"<<std::endl;
-            //   std::cout<<"The value seek points at is "<<(iter->get())<<std::endl;
+            //   iter->next();
+            //   std::cout<<"The value next points at is "<<(iter->get())<<std::endl;
             // }
 
-            std::cout<<"Next OP"<<std::endl;
+
+            //std::cout<<"Next OP"<<std::endl;
           }
           else if(op == "INSERT")
           {
@@ -296,9 +327,9 @@ int jitd_test(
               // ycsb_op_elem.key = std::stol(key_string);
               // ycsb_op_elem.fields = ycsbvector;
               // benchmark_vector.push_back(ycsb_op_elem);
-              std::cout<<"INSERT"<<std::endl;
+              std::cout<<"INSERT:"<<std::endl;
               jitd->insert_singleton(r);
-              std::cout<<"Next OP"<<std::endl;
+              //std::cout<<"Next OP"<<std::endl;
               
             
           }
@@ -364,108 +395,117 @@ int jitd_test(
           }
 
         }
-       
+        if(scan_count==success_count)
+        {
+          std::cout<<"BOTH MATCH"<<std::endl;
+        }
+        else
+        {
+          std::cout<<"FAILURE TO MATCH: "<<(scan_count - success_count)<<std::endl;
+        }
+        
         initFile.close();
+
         //std::cout<<"HERE"<<std::endl;
         //std::cout<<"total number of operations "<<benchmark_vector.size();
-        timeval start_scan, end_scan;
-        double time;
-        Record ret;
+      //   timeval start_scan, end_scan;
+      //   double time;
+      //   Record ret;
         
-        int size = benchmark_vector.size();
+      //   int size = benchmark_vector.size();
         
-        auto begin = benchmark_vector.begin();
-        auto end = benchmark_vector.end();
-        gettimeofday(&start_scan,NULL);
+      //   auto begin = benchmark_vector.begin();
+      //   auto end = benchmark_vector.end();
+      //   gettimeofday(&start_scan,NULL);
         
-        for(auto it = begin;it!=end;it++)
-        {
+      //   for(auto it = begin;it!=end;it++)
+      //   {
           
-          switch((*it).operation)
-          {
-            case('S'):
-            {
-              Record r;
-              r.key = (*it).key;
-              Iterator<Record> iter = jitd->iterator();
-              iter->seek(r.key);
-              if(!(iter->atEnd()))
-              {
-                std::cout<<"The value seek points at is "<<(iter->get())<<std::endl;
-              }
+      //     switch((*it).operation)
+      //     {
+      //       case('S'):
+      //       {
+      //         Record r;
+      //         r.key = (*it).key;
+      //         Iterator<Record> iter = jitd->iterator();
+      //         iter->seek(r.key);
+      //         if(!(iter->atEnd()))
+      //         {
+      //           std::cout<<"The value seek points at is "<<(iter->get())<<std::endl;
+      //         }
               
-              break;
-            }
-            case('I'):
-            {
-              Record r;
-              r.key = (*it).key;
-              r.values = ((*it).fields);  
-              jitd->insert_singleton(r);
-              break;
-            }
-            case('R'):
-            {
+      //         break;
+      //       }
+      //       case('I'):
+      //       {
+      //         Record r;
+      //         r.key = (*it).key;
+      //         r.values = ((*it).fields);  
+      //         jitd->insert_singleton(r);
+      //         break;
+      //       }
+      //       case('R'):
+      //       {
               
-              if(jitd->get((*it).key, ret))
-              {
+      //         if(jitd->get((*it).key, ret))
+      //         {
               
-                //std::cout<<"SUCCESS"<<std::endl;
+      //           //std::cout<<"SUCCESS"<<std::endl;
                 
-              }
-              else
-              {
-               //std::cout<<"FAILED: "<<(*it).key<<std::endl; 
-              }
+      //         }
+      //         else
+      //         {
+      //          //std::cout<<"FAILED: "<<(*it).key<<std::endl; 
+      //         }
               
-              break;
-            }
-            case('U'):
-            {
+      //         break;
+      //       }
+      //       case('U'):
+      //       {
               
-              if(jitd->get((*it).key, ret))
-              {
+      //         if(jitd->get((*it).key, ret))
+      //         {
                 
-                std::vector<Key> old_data;
-                old_data.push_back(ret.key);
+      //           std::vector<Key> old_data;
+      //           old_data.push_back(ret.key);
 
-                jitd->remove_elements(old_data);
+      //           jitd->remove_elements(old_data);
                 
-                //std::cout<<"UPDATE:"<<std::endl;
-                for(int j = 0; j<10;j++)
-                {
-                  //std::string to_update = elem.fields[j];
-                  if((*it).fields != nullptr && !((*((*it).fields))[j].empty()))
-                  {
-                    //std::cout<<"RET :"<<(*((*it).fields))[j]<<std::endl;
-                    (*(ret.values))[j] = (*((*it).fields))[j];
-                  }
+      //           //std::cout<<"UPDATE:"<<std::endl;
+      //           for(int j = 0; j<10;j++)
+      //           {
+      //             //std::string to_update = elem.fields[j];
+      //             if((*it).fields != nullptr && !((*((*it).fields))[j].empty()))
+      //             {
+      //               //std::cout<<"RET :"<<(*((*it).fields))[j]<<std::endl;
+      //               (*(ret.values))[j] = (*((*it).fields))[j];
+      //             }
                   
                   
-                }
-                ycsbrecordBuffer new_data;
-                new_data.push_back(ret);
+      //           }
+      //           ycsbrecordBuffer new_data;
+      //           new_data.push_back(ret);
                 
-                jitd->insert(new_data);
+      //           jitd->insert(new_data);
                 
 
                 
-              }
-              else
-              {
-                std::cerr<<"Invalid Update Key"<<std::endl;
-              }
-              break;
-            }
-          }
+      //         }
+      //         else
+      //         {
+      //           std::cerr<<"Invalid Update Key"<<std::endl;
+      //         }
+      //         break;
+      //       }
+      //     }
         
-        }
-        gettimeofday(&end_scan,NULL);  
-        time = total_time(start_scan, end_scan);
+      //   }
+      //   gettimeofday(&end_scan,NULL);  
+      //   time = total_time(start_scan, end_scan);
         
-        std::cout<<"Total Benchmark Time for "<<benchmark_vector.size()<<" operations = " << time << " us" <<std::endl;
-        //key = read_from_file_ycsb(*src);
-      } 
+      //   std::cout<<"Total Benchmark Time for "<<benchmark_vector.size()<<" operations = " << time << " us" <<std::endl;
+      //   //key = read_from_file_ycsb(*src);
+       } 
       else
       {
         std::cerr<<"Invalid file for benchmarking"<<std::endl;
