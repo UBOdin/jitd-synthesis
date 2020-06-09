@@ -1325,15 +1325,8 @@ void JITD::remove_singleton(const long &data )
     /*** Assemble new_root as a DeleteSingleton ***/
     DeleteSingletonNode * new_root = new DeleteSingletonNode(*jitd_root, data);
     /*** END ASSEMBLING new_root as new_root_ref ***/
-#ifdef RDTSC
-sticks = rdtsc();
-#endif
     std::shared_ptr<std::shared_ptr<JITDNode>> new_root_ptr = std::shared_ptr<std::shared_ptr<JITDNode>>(std::make_shared<std::shared_ptr<JITDNode>>(std::shared_ptr<JITDNode>(new_root)));
     this->work_queue.emplace(FLAG_remove_singleton,jitd_root,new_root_ptr);
-#ifdef RDTSC
-diffticks = rdtsc() - sticks;
-this->rdtsc_vector.emplace_back(diffticks);
-#endif
 
     #ifdef ATOMIC_STORE
     std::atomic_store(&jitd_root, new_root_ptr);
@@ -1409,15 +1402,8 @@ void JITD::remove_elements(const std::vector<long> &data )
     /*** Assemble new_root as a DeleteElements ***/
     DeleteElementsNode * new_root = new DeleteElementsNode(*jitd_root, data);
     /*** END ASSEMBLING new_root as new_root_ref ***/
-#ifdef RDTSC
-sticks = rdtsc();
-#endif
     std::shared_ptr<std::shared_ptr<JITDNode>> new_root_ptr = std::shared_ptr<std::shared_ptr<JITDNode>>(std::make_shared<std::shared_ptr<JITDNode>>(std::shared_ptr<JITDNode>(new_root)));
     this->work_queue.emplace(FLAG_remove_elements,jitd_root,new_root_ptr);
-#ifdef RDTSC
-diffticks = rdtsc() - sticks;
-this->rdtsc_vector.emplace_back(diffticks);
-#endif
 
     #ifdef ATOMIC_STORE
     std::atomic_store(&jitd_root, new_root_ptr);
@@ -1496,15 +1482,8 @@ void JITD::insert(const std::vector<Record> &data )
     /*** Assemble new_root as a Concat ***/
     ConcatNode * new_root = new ConcatNode(*jitd_root, new_root_rhs_ref);
     /*** END ASSEMBLING new_root as new_root_ref ***/
-#ifdef RDTSC
-sticks = rdtsc();
-#endif
     std::shared_ptr<std::shared_ptr<JITDNode>> new_root_ptr = std::shared_ptr<std::shared_ptr<JITDNode>>(std::make_shared<std::shared_ptr<JITDNode>>(std::shared_ptr<JITDNode>(new_root)));
     this->work_queue.emplace(FLAG_insert,jitd_root,new_root_ptr);
-#ifdef RDTSC
-diffticks = rdtsc() - sticks;
-this->rdtsc_vector.emplace_back(diffticks);
-#endif
 
     #ifdef ATOMIC_STORE
     std::atomic_store(&jitd_root, new_root_ptr);
@@ -1587,15 +1566,8 @@ void JITD::insert_singleton(const Record &data )
     /*** Assemble new_root as a Concat ***/
     ConcatNode * new_root = new ConcatNode(*jitd_root, new_root_rhs_ref);
     /*** END ASSEMBLING new_root as new_root_ref ***/
-#ifdef RDTSC
-sticks = rdtsc();
-#endif
     std::shared_ptr<std::shared_ptr<JITDNode>> new_root_ptr = std::shared_ptr<std::shared_ptr<JITDNode>>(std::make_shared<std::shared_ptr<JITDNode>>(std::shared_ptr<JITDNode>(new_root)));
     this->work_queue.emplace(FLAG_insert_singleton,jitd_root,new_root_ptr);
-#ifdef RDTSC
-diffticks = rdtsc() - sticks;
-this->rdtsc_vector.emplace_back(diffticks);
-#endif
 
     #ifdef ATOMIC_STORE
     std::atomic_store(&jitd_root, new_root_ptr);
@@ -1753,7 +1725,7 @@ bool JITD::matchCrackArray(std::shared_ptr<JITDNode> * &targetHandleRef)
 	if(target_root_lock->type != JITD_NODE_Array){return false; }
 ArrayNode *target_root_lock_real = (ArrayNode *)target_root_lock;
 
-	if((array_size((target_root_lock_real->data))) > (__array_size))
+	if((array_size((target_root_lock_real->data))) > (50))
     {
     	return true;
     }
@@ -1892,7 +1864,7 @@ SingletonNode *iter_node_real_rhs_real = (SingletonNode *)iter_node_real_rhs;
 ArrayNode *iter_node_real = (ArrayNode *)iter_node;
 
 
-          if((array_size((iter_node_real->data))) > (__array_size)){
+          if((array_size((iter_node_real->data))) > (50)){
             bestScore = array_size((iter_node_real->data));
           
           targetHandleRef = (*it);
@@ -1944,7 +1916,7 @@ int JITD::organize_wait()
         #ifdef SPIN
         while(this->work_queue.try_pop(pop_mce) == false)
         {
-            std::this_thread::sleep_for(std::chrono::microseconds(__sleep_time));
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
         }
         #endif
 
@@ -3150,9 +3122,7 @@ iter->second = parent;
 ///////////////////// Debugging Utilities ///////////////////// 
 void JITD::times_transforms_called()
 {
-
-    #ifdef TRANSFORM_COUNT
-
+  
     std::cout<<"The transform DeleteElemFromSingleton was called "<< DeleteElemFromSingleton_count<<" times"<<std::endl;
   
     std::cout<<"The transform DeleteKeyFromSingleton was called "<< DeleteKeyFromSingleton_count<<" times"<<std::endl;
@@ -3174,8 +3144,6 @@ void JITD::times_transforms_called()
     std::cout<<"The transform CrackArray was called "<< CrackArray_count<<" times"<<std::endl;
   
     std::cout<<"The transform SortArray was called "<< SortArray_count<<" times"<<std::endl;
-
-    #endif
   
 }
 std::shared_ptr<JITD> assemble_jitd(std::istream &in)
