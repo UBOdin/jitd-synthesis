@@ -1725,7 +1725,7 @@ bool JITD::matchCrackArray(std::shared_ptr<JITDNode> * &targetHandleRef)
 	if(target_root_lock->type != JITD_NODE_Array){return false; }
 ArrayNode *target_root_lock_real = (ArrayNode *)target_root_lock;
 
-	if((array_size((target_root_lock_real->data))) > (__array_size))
+	if((array_size((target_root_lock_real->data))) > (100))
     {
     	return true;
     }
@@ -1864,7 +1864,7 @@ SingletonNode *iter_node_real_rhs_real = (SingletonNode *)iter_node_real_rhs;
 ArrayNode *iter_node_real = (ArrayNode *)iter_node;
 
 
-          if((array_size((iter_node_real->data))) > (__array_size)){
+          if((array_size((iter_node_real->data))) > (100)){
             bestScore = array_size((iter_node_real->data));
           
           targetHandleRef = (*it);
@@ -1916,7 +1916,7 @@ int JITD::organize_wait()
         #ifdef SPIN
         while(this->work_queue.try_pop(pop_mce) == false)
         {
-            std::this_thread::sleep_for(std::chrono::microseconds(__sleep_time));
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
         }
         #endif
 
@@ -3122,9 +3122,7 @@ iter->second = parent;
 ///////////////////// Debugging Utilities ///////////////////// 
 void JITD::times_transforms_called()
 {
-
-	#ifdef TRANSFORM_COUNT
-
+  
     std::cout<<"The transform DeleteElemFromSingleton was called "<< DeleteElemFromSingleton_count<<" times"<<std::endl;
   
     std::cout<<"The transform DeleteKeyFromSingleton was called "<< DeleteKeyFromSingleton_count<<" times"<<std::endl;
@@ -3146,9 +3144,7 @@ void JITD::times_transforms_called()
     std::cout<<"The transform CrackArray was called "<< CrackArray_count<<" times"<<std::endl;
   
     std::cout<<"The transform SortArray was called "<< SortArray_count<<" times"<<std::endl;
-
-	#endif
-
+  
 }
 std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 {
