@@ -1,0 +1,11 @@
+#ifndef RUNTIME_H_SHIELD
+#define RUNTIME_H_SHIELD
+
+#include <vector>
+
+template<class Element>
+inline size_t array_size(const std::vector<Element> &elems) { return elems.size(); }
+template<class Element>
+inline size_t key_array_size(const std::vector<Element> &elems) { return elems.size(); }
+
+#endif
