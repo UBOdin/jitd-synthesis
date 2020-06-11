@@ -1,0 +1,230 @@
+run --run examples/policy_act_until_done_small.jitd
+run --run examples/policy_act_until_done_small_set.jitd
+run --run examples/policy_act_until_done_small_pq.jitd
+run
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run
+run --run examples/policy_act_until_done_small_pq.jitd
+run --run examples/policy_act_until_done_small_set.jitd
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+run --run examples/policy_act_until_done_small_set.jitd
+run --run examples/policy_act_until_done_small_pq.jitd
+run --run examples/policy_act_until_done_small_set.jitd
+run --run examples/policy_act_until_done_small_pq.jitd
+run --run examples/policy_act_until_done_small_set.jitd
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+clear
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/get_tester.jitd
+exit
+run --run examples/get_tester.jitd
+exit
+run --run examples/get_tester.jitd
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+run --run examples/policy_profiling_test.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+exit
+compile
+exit
+run --run examples/policy_act_until_done.jitd
+exit
+compile
+~compile
+run
+clean
+compile
+run
+compile
+run
+exit
+run
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy_act_until_done_test.jitd
+run --run examples/policy_act_until_done_.jitd
+run --run examples/policy_act_until_done.jitd
+run --run examples/policy_act_until_done_test.jitd
+run --run examples/policy_act_until_done.jitd
+run --run examples/policy_act_until_done_test.jitd
+exit
+run --run examples/policy_act_until_done_test.jitd
+run --run examples/policy_act_until_done.jitd
+ls
+clear
+exit
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+run --run examples/policy_act_until_done_test.jitd
+run --run examples/policy_act_until_done.jitd
+run --run examples/policy_act_until_done_test.jitd
+run --run examples/policy_act_until_done.jitd
+run --run examples/policy_act_until_done_test.jitd
+exit
+run --run examples/policy_act_until_done_test.jitd
+exit
+run --run examples/policy_act_until_done_test.jitd
+exit
+run --run examples/policy_act_until_done_test.jitd
+exit
+run --run examples/policy_act_until_done_test.jitd
+exit
+run --run examples/policy_act_until_done_test.jitd
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+eit
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+run --run examples/policy_act_untik_done.jitd
+run --run examples/policy_act_until_done.jitd
+run --run examples/init_data_test.jitd
+run --run examples/policy_act_until_done.jitd
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+clear
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exit
+run --run examples/init_data_test.jitd
+exir
+exit
+run --run examples/policy_act_until_done.jitd
+clear
+exit
+run --run examples/policy_act_until_done.jitd
+exit
+ls
+exit
+run --run examples/policy_act_until_done.jitd
+clear
+exit
+clear
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+exit 
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+clear
+exit
+run --run examples/policy_act_until_done.jitd
+clear
+run --run examples/policy_act_until_done.jitd
+clear
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+run --run examples/ycsb_test_small.jitd
+run --run examples/policy_act_until_done.jitd
+run --run examples/ycsb_test_small.jitd
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+run --run examples/policy_act_until_done_small_pq.jitd
+exit
+run --run examples/policy_act_until_done_small_pq.jitd
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+exit
+run --run examples/policy_act_until_done.jitd
+run --run
+run
+run --run
+exit
