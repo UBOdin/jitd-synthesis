@@ -211,15 +211,17 @@ def process_initialize_benchmark_pair(workload):
 	initialize_list_list = process_workload("initialize_" + workload)
 	benchmark_list_list = process_workload("benchmark_" + workload)
 
-	benchmark_file = open("ycsb_benchmark/workload_" + workload + "_data.cpp", "w")
+	benchmark_file = open("sourcefiles/workload_" + workload + "_data.cpp", "w")
 	benchmark_file.write("\n")
 	benchmark_file.write("#include \"harness.hpp\"\n")
 	benchmark_file.write("\n")
+	benchmark_file.write("using namespace harness;\n")
+	benchmark_file.write("\n")
 	benchmark_file.write("struct operation_node initialize_array[] = {\n")
-	for initialize_list in initialize_list_list:
+	for j, initialize_list in enumerate(initialize_list_list):
 
 		if (quit == 10):
-			break
+			pass #break
 		#end_if
 		quit += 1
 
@@ -237,19 +239,20 @@ def process_initialize_benchmark_pair(workload):
 			field_array += "\"" + initialize_list[i + 1] + "\", "
 		#end_for
 		field_array += "}, "
-		benchmark_file.write("\t{ .type = INSERT, .time = 0.0, .key = " + key + ", .rows = 0, .field = 0, .field_array = " + field_array + " },\n")
+		benchmark_file.write("\t{ .id = " + str(j + 1) + ", .type = INSERT, .time = 0.0, .rows = 0, .nkeys = 1, .value = 0, .key = " + key + ", .key_array = NULL, .field = 0, .field_array = " + field_array + " },\n")
+
 	#end_for
-	benchmark_file.write("\t{ .type = STOP },\n")
+	benchmark_file.write("\t{ .id = 999999, .type = STOP },\n")
 	benchmark_file.write("};\n")
 	benchmark_file.write("\n")
 	benchmark_file.write("struct operation_node benchmark_array[] = {\n")
 
 	quit = 0
 
-	for benchmark_list in benchmark_list_list:
+	for j, benchmark_list in enumerate(benchmark_list_list):
 
 		if (quit == 10):
-			break
+			pass #break
 		#end_if
 		quit += 1
 
@@ -286,9 +289,9 @@ def process_initialize_benchmark_pair(workload):
 			print("Unsupported benchmark operation")
 			sys.exit(1)
 		#end_if
-		benchmark_file.write("\t{ .type = " + operation + ", .time = 0.0, .key = " + key + ", .rows = 0, .field = " + field + ", .field_array = " + field_array + " },\n")
+		benchmark_file.write("\t{ .id = " + str(j + 1) + ", .type = " + operation + ", .time = 0.0, .rows = 0, .nkeys = 1, .value = 0, .key = " + key + ", .key_array = NULL, .field = " + field + ", .field_array = " + field_array + " },\n")
 	#end_for
-	benchmark_file.write("\t{ .type = STOP },\n")
+	benchmark_file.write("\t{ .id = 999999, .type = STOP },\n")
 	benchmark_file.write("};\n")
 	benchmark_file.write("\n")
 	benchmark_file.write("struct output_node output_array[sizeof(benchmark_array) / sizeof(operation_node)];\n")
@@ -308,7 +311,8 @@ def main():
 	workload = ""
 
 	#workload = sys.argv[1]
-	workload_list = ["a", "b", "c", "d", "e", "f"]
+	#workload_list = ["a", "b", "c", "d", "e", "f"]
+	workload_list = ["b"]
 
 	#process_initialize_benchmark_pair(workload)
 	#'''

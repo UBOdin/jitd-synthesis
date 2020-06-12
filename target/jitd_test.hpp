@@ -20,7 +20,7 @@
 #include<mutex>
 #include<cassert>
  
-#include "ycsb_record.hpp"
+#include "int_record.hpp"
  
 #include "runtime.hpp"
 
@@ -66,21 +66,12 @@ typedef enum {
   
 } JITDNodeType;
 
-#include "iterator.hpp"
-
-
 class JITDNode {
   public: 
   JITDNode(JITDNodeType type) : type(type) {}
 
   JITDNodeType type;
   //std::cout<<"STATE CALLED"<<std::endl;
-  virtual Iterator<Record> iterator()
-    { 
-      std::cout<<"JITD Iterator"<<std::endl;
-      std::cerr << type << std::endl;
-      assert(0);
-    }
 };
 
 typedef std::function<void(std::shared_ptr<JITDNode> &new_node)> UpdateHandle;
@@ -111,10 +102,6 @@ class DeleteSingletonNode : public JITDNode {
       node = new_value;
     }
   
-
-  //NOTE:ITERATORS NEED TO BE SYNTHESIZED
-  Iterator<Record> iterator();
-  
   public:  
     std::shared_ptr<JITDNode> node;
     
@@ -140,10 +127,6 @@ class DeleteElementsNode : public JITDNode {
     void update_node_handle(std::shared_ptr<JITDNode> &new_value){
       node = new_value;
     }
-  
-
-  //NOTE:ITERATORS NEED TO BE SYNTHESIZED
-  Iterator<Record> iterator();
   
   public:  
     std::shared_ptr<JITDNode> node;
@@ -176,10 +159,6 @@ class BTreeNode : public JITDNode {
     void update_rhs_handle(std::shared_ptr<JITDNode> &new_value){
       rhs = new_value;
     }
-  
-
-  //NOTE:ITERATORS NEED TO BE SYNTHESIZED
-  Iterator<Record> iterator();
   
   public:  
     std::shared_ptr<JITDNode> lhs;
@@ -214,10 +193,6 @@ class ConcatNode : public JITDNode {
       rhs = new_value;
     }
   
-
-  //NOTE:ITERATORS NEED TO BE SYNTHESIZED
-  Iterator<Record> iterator();
-  
   public:  
     std::shared_ptr<JITDNode> lhs;
     
@@ -245,10 +220,6 @@ class SortedArrayNode : public JITDNode {
 
   
   
-
-  //NOTE:ITERATORS NEED TO BE SYNTHESIZED
-  Iterator<Record> iterator();
-  
   public:  
     std::vector<Record> data;
     
@@ -272,10 +243,6 @@ class ArrayNode : public JITDNode {
 }
 
   
-  
-
-  //NOTE:ITERATORS NEED TO BE SYNTHESIZED
-  Iterator<Record> iterator();
   
   public:  
     std::vector<Record> data;
@@ -301,10 +268,6 @@ class SingletonNode : public JITDNode {
 
   
   
-
-  //NOTE:ITERATORS NEED TO BE SYNTHESIZED
-  Iterator<Record> iterator();
-  
   public:  
     Record elem;
     
@@ -313,26 +276,9 @@ class SingletonNode : public JITDNode {
 };
 
 
-#include "iterator/FastIterator.hpp"
-#include "iterator/SeqIterator.hpp"
-#include "iterator/MergeIterator.hpp"
-#include "iterator/BufferIterator.hpp"
-#include "iterator/UnsortedBufferIterator.hpp"
-#include "iterator/SingletonIterator.hpp"  
-#include "iterator/DeleteElemIterator.hpp"
-#include "iterator/DeleteSingletonIterator.hpp"
-
 ///////////////////// Transform Definitions ///////////////////// 
 
 typedef enum { 
-  
-   JITD_TRANSFORM_DeleteElemFromSingleton,
-  
-   JITD_TRANSFORM_DeleteKeyFromSingleton,
-  
-   JITD_TRANSFORM_DeleteSingletonFromArray,
-  
-   JITD_TRANSFORM_DeleteElemFromArray,
   
    JITD_TRANSFORM_PushDownDontDeleteSingletonBtreeRight,
   
@@ -345,8 +291,6 @@ typedef enum {
    JITD_TRANSFORM_PushDownSingletonLeft,
   
    JITD_TRANSFORM_CrackArray,
-  
-   JITD_TRANSFORM_SortArray,
   
 } JITDTransformType;
 
@@ -384,10 +328,6 @@ void print_search_time_vector_sum();
 class JITD {
   
   public:
-
-    #ifdef RDTSC
-      std::vector<long unsigned int> rdtsc_vector;
-    #endif  
     pthread_mutex_t lock;
     int node_count =0;
 
@@ -414,6 +354,8 @@ class JITD {
 
 
     /*std::set<std::shared_ptr<JITDNode> *> JITD_NODE_Concat_set;
+std::set<std::shared_ptr<JITDNode> *> JITD_NODE_DeleteSingleton_set;
+std::set<std::shared_ptr<JITDNode> *> JITD_NODE_DeleteElements_set;
 std::set<std::shared_ptr<JITDNode> *, CrackArray_Cmp> CrackArray_PQ;
 */
     #ifdef CACHE_ALIGNED_ALLOCATOR
@@ -427,6 +369,24 @@ std::set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb:
 #endif
 #ifdef DEFAULT_ALLOCATOR
 std::set<std::shared_ptr<JITDNode> *> PushDownSingletonRight_View;
+#endif
+#ifdef CACHE_ALIGNED_ALLOCATOR
+std::set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownDontDeleteSingletonBtreeLeft_View;
+#endif
+#ifdef DEFAULT_ALLOCATOR
+std::set<std::shared_ptr<JITDNode> *> PushDownDontDeleteSingletonBtreeLeft_View;
+#endif
+#ifdef CACHE_ALIGNED_ALLOCATOR
+std::set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownDontDeleteSingletonBtreeRight_View;
+#endif
+#ifdef DEFAULT_ALLOCATOR
+std::set<std::shared_ptr<JITDNode> *> PushDownDontDeleteSingletonBtreeRight_View;
+#endif
+#ifdef CACHE_ALIGNED_ALLOCATOR
+std::set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownDontDeleteElemBtree_View;
+#endif
+#ifdef DEFAULT_ALLOCATOR
+std::set<std::shared_ptr<JITDNode> *> PushDownDontDeleteElemBtree_View;
 #endif
 #ifdef CACHE_ALIGNED_ALLOCATOR
 std::set<std::shared_ptr<JITDNode> *, CrackArray_Cmp,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> CrackArray_View;
@@ -462,14 +422,6 @@ initialize_struts_view(root_handle,NULL);
 
 
     
-    bool DeleteElemFromSingleton(std::shared_ptr<JITDNode> * &targetHandleRef);
-    
-    bool DeleteKeyFromSingleton(std::shared_ptr<JITDNode> * &targetHandleRef);
-    
-    bool DeleteSingletonFromArray(std::shared_ptr<JITDNode> * &targetHandleRef);
-    
-    bool DeleteElemFromArray(std::shared_ptr<JITDNode> * &targetHandleRef);
-    
     bool PushDownDontDeleteSingletonBtreeRight(std::shared_ptr<JITDNode> * &targetHandleRef);
     
     bool PushDownDontDeleteSingletonBtreeLeft(std::shared_ptr<JITDNode> * &targetHandleRef);
@@ -482,17 +434,7 @@ initialize_struts_view(root_handle,NULL);
     
     bool CrackArray(std::shared_ptr<JITDNode> * &targetHandleRef);
     
-    bool SortArray(std::shared_ptr<JITDNode> * &targetHandleRef);
-    
     #ifdef TRANSFORM_COUNT
-    
-      int DeleteElemFromSingleton_count =0;
-    
-      int DeleteKeyFromSingleton_count =0;
-    
-      int DeleteSingletonFromArray_count =0;
-    
-      int DeleteElemFromArray_count =0;
     
       int PushDownDontDeleteSingletonBtreeRight_count =0;
     
@@ -505,8 +447,6 @@ initialize_struts_view(root_handle,NULL);
       int PushDownSingletonLeft_count =0;
     
       int CrackArray_count =0;
-    
-      int SortArray_count =0;
     
     #endif
     
@@ -537,14 +477,7 @@ void after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>
 
     
     
-     Iterator<Record> iterator()
-    {
-      
-      std::shared_ptr<JITDNode> r = *(this->jitd_root);
-      JITDNode * rp = r.get();
-      //std::cout<<"Root pointer is "<<rp<<std::endl;
-      return (rp)->iterator();
-    }
+    
    
     //void print_pq();
     //void check_pq();
@@ -574,37 +507,27 @@ void after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>
 
     
     
-    long searchForDeleteElemFromSingleton(std::shared_ptr<JITDNode> * &targetHandleRef);
-    long searchForDeleteKeyFromSingleton(std::shared_ptr<JITDNode> * &targetHandleRef);
-    long searchForDeleteSingletonFromArray(std::shared_ptr<JITDNode> * &targetHandleRef);
-    long searchForDeleteElemFromArray(std::shared_ptr<JITDNode> * &targetHandleRef);
     long searchForPushDownDontDeleteSingletonBtreeRight(std::shared_ptr<JITDNode> * &targetHandleRef);
     long searchForPushDownDontDeleteSingletonBtreeLeft(std::shared_ptr<JITDNode> * &targetHandleRef);
     long searchForPushDownDontDeleteElemBtree(std::shared_ptr<JITDNode> * &targetHandleRef);
     long searchForPushDownSingletonRight(std::shared_ptr<JITDNode> * &targetHandleRef);
     long searchForPushDownSingletonLeft(std::shared_ptr<JITDNode> * &targetHandleRef);
     long searchForCrackArray(std::shared_ptr<JITDNode> * &targetHandleRef);
-    long searchForSortArray(std::shared_ptr<JITDNode> * &targetHandleRef);
 
     
-    bool matchDeleteElemFromSingleton(std::shared_ptr<JITDNode> * &targetHandleRef);
-    bool matchDeleteKeyFromSingleton(std::shared_ptr<JITDNode> * &targetHandleRef);
-    bool matchDeleteSingletonFromArray(std::shared_ptr<JITDNode> * &targetHandleRef);
-    bool matchDeleteElemFromArray(std::shared_ptr<JITDNode> * &targetHandleRef);
     bool matchPushDownDontDeleteSingletonBtreeRight(std::shared_ptr<JITDNode> * &targetHandleRef);
     bool matchPushDownDontDeleteSingletonBtreeLeft(std::shared_ptr<JITDNode> * &targetHandleRef);
     bool matchPushDownDontDeleteElemBtree(std::shared_ptr<JITDNode> * &targetHandleRef);
     bool matchPushDownSingletonRight(std::shared_ptr<JITDNode> * &targetHandleRef);
     bool matchPushDownSingletonLeft(std::shared_ptr<JITDNode> * &targetHandleRef);
     bool matchCrackArray(std::shared_ptr<JITDNode> * &targetHandleRef);
-    bool matchSortArray(std::shared_ptr<JITDNode> * &targetHandleRef);
 
     //void initialize_struts(std::shared_ptr<JITDNode>* node, std::shared_ptr<JITDNode>* parent);
     void initialize_struts_view(std::shared_ptr<JITDNode>* node, std::shared_ptr<JITDNode>* parent);
 
 	// Parameters for benchmark use:
-	int __array_size;                       // Array crack threshhold
-	int __sleep_time;                       // Worker intra-spin block time
+	int __array_size;			// Array crack threshhold
+	int __sleep_time;			// Worker intra-spin block time
     
   private:
 
