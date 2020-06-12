@@ -94,6 +94,9 @@
 
 using namespace harness;
 
+int __array_size;
+int __sleep_time;
+
 
 long gettime_us() {
 
@@ -796,12 +799,12 @@ int main(int argc, char** argv) {
 	memset(output_array, 0, sizeof(struct output_node) * output_size);
 	printf("Finished\n");
 	// Basic structural integrity check:
-//	test_struct(storage);
+	test_struct(storage);
 
 	#ifdef STORAGE_JITD
 	// Populate jitd specific parameters:
-//	storage->jitd->__array_size = atoi(argv[1]);
-//	storage->jitd->__sleep_time = atoi(argv[3]);
+	/*storage->jitd->*/__array_size = atoi(argv[1]);
+	/*storage->jitd->*/__sleep_time = atoi(argv[3]);
 	#ifdef TRACK_CACHING
 	#endif
 
@@ -814,9 +817,9 @@ int main(int argc, char** argv) {
 	}
 
 	printf("Initial Organization Steps:  %d\n", i);
-//	printf("crack threshhold:  %d\n", storage->jitd->__array_size);
-//	printf("worker sleeptime:  %d\n", storage->jitd->__sleep_time);
-	storage->jitd->get_node_count();
+	printf("crack threshhold:  %d\n", /*storage->jitd->*/__array_size);
+	printf("worker sleeptime:  %d\n", /*storage->jitd->*/__sleep_time);
+//	storage->jitd->get_node_count();
 
 	#if defined PIN_SAME || defined PIN_DIFF
 	pin_thread(CORE_CLIENT);
