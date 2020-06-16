@@ -1,0 +1,7 @@
+build
+Array random 1000 1 1000
+Return
+dump
+run_background_organize
+spawn ./examples/thread_scan.jitd
+run_threads
