@@ -1,4 +1,6 @@
-insert random 1 101 200
-insert random 1 101 200
-random_scan 100 100
-sleep 500
+insert_singleton explicit 16
+insert_singleton explicit 27
+insert explicit 60 64 65 62 67 63 66 61 69 70 68
+insert_singleton explicit 51
+insert explicit 80 84 85 82 87 83 86 81 89 90 88
+insert_singleton explicit 72
