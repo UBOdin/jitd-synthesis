@@ -173,7 +173,9 @@ STORAGE_HANDLE create_storage(int maxkeys) {
 	#ifdef STORAGE_JITD
 
 	STORAGE_HANDLE storage = new storage_jitd_struct();
+	std::vector<Record> data;  // TODO switch to pre-existing struct
 
+	//storage->element.clear();
 	while (true) {
 		// Debug:  Populate structure with only a subset of keys:
 		if (k == maxkeys) {
@@ -191,10 +193,11 @@ STORAGE_HANDLE create_storage(int maxkeys) {
 		storage->r.key = node.key;
 //		storage->r.value = new int(node.value);
 // TODO:  support for YCSB struct
-		storage->element.push_back(storage->r);
+		data.push_back(storage->r);
 		i++;
 	}
-	storage->jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(new std::shared_ptr<JITDNode>(new ArrayNode(storage->element)))));
+	storage->jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(std::make_shared<std::shared_ptr<JITDNode>>(new ArrayNode(data)))));
+
 	printf("Keys prepopulated:  %d\n", k);
 
 	return storage;
@@ -896,6 +899,7 @@ int main(int argc, char** argv) {
 				key_array = benchmark_array[i].key_array;
 				#ifdef STORAGE_JITD
 				std::vector<long> data;
+				// TODO create pre-existing vector<long> in storage struct and use clear() on storage->element?
 				for (int k = 0; k < nkeys; k++) {
 					key = key_array[k];
 					data.push_back(key);
