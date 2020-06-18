@@ -31,7 +31,7 @@
 
 #include "conf.hpp"
 
-#define TRACK_CACHING
+//#define TRACK_CACHING
 
 #ifdef TRACK_CACHING
 #include <linux/perf_event.h>
