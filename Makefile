@@ -6,7 +6,7 @@ CC = g++
 
 #CFLAGS  = -g -Wall -std=c++14
 #CFLAGS = -g -std=c++14 -pthread #-fwhole-program -flto -O2 # use -pthread, not -lpthread
-CFLAGS = -g -std=c++14 -pthread #-fwhole-program -flto -O2 -DTBB_USE_THREADING_TOOLS
+CFLAGS = -g -std=c++14 -pthread -O2 #-fwhole-program -flto -O2 -DTBB_USE_THREADING_TOOLS
 
 MAIN = jitd_harness.exe  # name of executable
 INCLUDES = -I src/main/cpp/include -I target -I /opt/intel/compilers_and_libraries_2020.0.166/linux/tbb/include
@@ -37,6 +37,7 @@ shared_defines := -D CACHE_ALIGNED_ALLOCATOR
 endif
 
 #shared_defines += -D TRANSFORM_COUNT  # Hardcoded
+shared_defines += -D RDTSC  # Hardcoded
 
 ifeq (${atomic}, asal)
 jitd_defines := ${shared_defines} -D ATOMIC_STORE -D ATOMIC_LOAD
@@ -86,7 +87,7 @@ jitd_storage_uom:  harness_uom.o data.o
 
 
 jitd_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H)
-	$(CC) $(CFLAGS) -o jitd_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) ${jitd_defines} -D RDTSC
+	$(CC) $(CFLAGS) -o jitd_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) ${jitd_defines}
 
 
 harness_jitd_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
