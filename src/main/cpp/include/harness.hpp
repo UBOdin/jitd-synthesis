@@ -1,4 +1,6 @@
 
+#include <string>
+
 // N.b. using namespace to resolve enum collision (INSERT)
 
 namespace harness {
@@ -28,6 +30,8 @@ struct operation_node {
 	unsigned long value;		// For Insert / Upsert:  the value to be inserted
 	unsigned long key;
 	unsigned long* key_array;
+	int field;			// in YCSB:  which non-key column to modify
+	std::string field_array[10];
 
 };
 
