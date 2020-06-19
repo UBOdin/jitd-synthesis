@@ -20,7 +20,7 @@
 #include<mutex>
 #include<cassert>
  
-#include "int_record.hpp"
+#include "ycsb_record.hpp"
  
 #include "runtime.hpp"
 

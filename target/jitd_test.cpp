@@ -3247,7 +3247,7 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 
           // Construct a data
           std::vector<Record> data;
-          load_records(data, toks);
+          load_records_from_file_ycsb(data, toks,columns);
         
 
         // Assemble everything into a SortedArray
@@ -3261,7 +3261,7 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 
           // Construct a data
           std::vector<Record> data;
-          load_records(data, toks);
+          load_records_from_file_ycsb(data, toks,columns);
         
 
         // Assemble everything into a Array
