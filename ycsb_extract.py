@@ -218,13 +218,12 @@ def process_initialize_benchmark_pair(workload):
 	benchmark_file.write("using namespace harness;\n")
 	benchmark_file.write("\n")
 	benchmark_file.write("struct operation_node initialize_array[] = {\n")
-	for j, initialize_list in enumerate(initialize_list_list):
 
-		if (quit == 10):
+	i = 0
+	for initialize_list in initialize_list_list:
+		if (i == 10):
 			pass #break
 		#end_if
-		quit += 1
-
 		operation = initialize_list[0]
 		assert (len(initialize_list) == 22), "Unexpected initialize field length"
 		if (operation != "INSERT"):
@@ -233,29 +232,27 @@ def process_initialize_benchmark_pair(workload):
 		#end_if
 		key = initialize_list[1]
 		field_array = "{ "
-		for i in range(2, 22, 2):
+		for j in range(2, 22, 2):
 			# Fields should be 0, 1, ... 9:
-			assert(int(initialize_list[i]) == (i - 2) / 2), "val:  %s" % (initialize_list[i])
-			field_array += "\"" + initialize_list[i + 1] + "\", "
+			assert(int(initialize_list[j]) == (j - 2) / 2), "val:  %s" % (initialize_list[j])
+			field_array += "\"" + initialize_list[j + 1] + "\", "
 		#end_for
 		field_array += "}, "
-		benchmark_file.write("\t{ .id = " + str(j + 1) + ", .type = INSERT, .time = 0.0, .rows = 0, .nkeys = 1, .value = 0, .key = " + key + ", .key_array = NULL, .field = 0, .field_array = " + field_array + " },\n")
-
+		benchmark_file.write("\t{ .id = " + str(i) + ", .type = INSERT, .time = 0.0, .rows = 0, .nkeys = 1, .value = 0, .key = " + key + ", .key_array = NULL, .field = 0, .field_array = " + field_array + " },\n")
+		i += 1
 	#end_for
-	benchmark_file.write("\t{ .id = 999999, .type = STOP },\n")
+	benchmark_file.write("\t{ .id = " + str(i) + ", .type = STOP },\n")
 	benchmark_file.write("};\n")
 	benchmark_file.write("\n")
 	benchmark_file.write("struct operation_node benchmark_array[] = {\n")
 
 	quit = 0
 
-	for j, benchmark_list in enumerate(benchmark_list_list):
-
-		if (quit == 10):
+	i = 0
+	for benchmark_list in benchmark_list_list:
+		if (i == 10):
 			pass #break
 		#end_if
-		quit += 1
-
 		operation = benchmark_list[0]
 		key = benchmark_list[1]
 		listlen = len(benchmark_list)
@@ -275,10 +272,10 @@ def process_initialize_benchmark_pair(workload):
 			assert (listlen == 22), "Unexpected insert field length"
 			field = "10" # Magic value:  all 10 (0-9), not #10
 			field_array = "{ "
-			for i in range(2, 22, 2):
+			for j in range(2, 22, 2):
 				# Fields should be 0, 1, ... 9:
-				assert(int(initialize_list[i]) == (i - 2) / 2), "val:  %s" % (initialize_list[i])
-				field_array += "\"" + initialize_list[i + 1] + "\", "
+				assert(int(initialize_list[j]) == (j - 2) / 2), "val:  %s" % (initialize_list[j])
+				field_array += "\"" + initialize_list[j + 1] + "\", "
 			#end_for
 			field_array += "}, "
 		elif (operation == "SCAN"):
@@ -289,9 +286,10 @@ def process_initialize_benchmark_pair(workload):
 			print("Unsupported benchmark operation")
 			sys.exit(1)
 		#end_if
-		benchmark_file.write("\t{ .id = " + str(j + 1) + ", .type = " + operation + ", .time = 0.0, .rows = 0, .nkeys = 1, .value = 0, .key = " + key + ", .key_array = NULL, .field = " + field + ", .field_array = " + field_array + " },\n")
+		benchmark_file.write("\t{ .id = " + str(i) + ", .type = " + operation + ", .time = 0.0, .rows = 0, .nkeys = 1, .value = 0, .key = " + key + ", .key_array = NULL, .field = " + field + ", .field_array = " + field_array + " },\n")
+		i += 1
 	#end_for
-	benchmark_file.write("\t{ .id = 999999, .type = STOP },\n")
+	benchmark_file.write("\t{ .id = " + str(i) + ", .type = STOP },\n")
 	benchmark_file.write("};\n")
 	benchmark_file.write("\n")
 	benchmark_file.write("struct output_node output_array[sizeof(benchmark_array) / sizeof(operation_node)];\n")
