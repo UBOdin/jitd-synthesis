@@ -26,8 +26,11 @@ CONF_H = $(HEADER)/conf.hpp
 
 .PHONY:  clean
 
-# Hardcoded; also support asralc:
+# Default parameters:
+alloc = aligned
 atomic = asal
+delay = spin
+thread = intel
 
 ifeq (${alloc}, default)
 shared_defines := -D DEFAULT_ALLOCATOR
