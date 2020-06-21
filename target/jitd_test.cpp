@@ -11,7 +11,21 @@ uint64_t rdtsc(){
     return ((uint64_t)hi << 32) | lo;
 }
 long unsigned int sticks, diffticks;
+
+#define START_TIMER \
+	sticks = rdtsc();
+
+#define END_TIMER \
+	diffticks = rdtsc() - sticks; \
+	this->rdtsc_vector.emplace_back(diffticks);
+
+#else
+
+#define START_TIMER
+#define END_TIMER
+
 #endif
+
 
 //#define JITD_DEBUG_POLICY true;
 //std::shared_ptr<JITDNode> * rootHandleRef;
