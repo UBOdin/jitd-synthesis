@@ -635,6 +635,37 @@ int save_output() {
 	}
 
 	close(output_fd);
+	printf("Finished writing operation data\n");
+
+	// Save out view performance data:
+	int view_fd;
+	char view_filename[] = "output_view.txt";
+
+	// failsafe:
+	if (view_count > VIEW_SIZE) {
+		printf("View output overflow\n");
+		_exit(1);
+	}
+
+	result = open(view_filename, O_CREAT | O_RDWR | O_TRUNC, 0666);
+	errtrap("open");
+	view_fd = result;
+
+	for (int i = 0; i < view_count; i++) {
+		charcount = 0;
+		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "%d\t%d", view_array[i].id, view_array[i].type);
+		charcount += result;
+		for (int j = 0; j < 3; j++) {
+			result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%d", view_array[i].delta[j]);
+			charcount += result;
+		}
+		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\n");
+		charcount += result;
+		result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
+		errtrap("write");
+	}
+
+	close(view_fd);
 	printf("Finished\n");
 	return 0;
 
@@ -848,7 +879,7 @@ int main(int argc, char** argv) {
 	j = 0;
 	while (true) {
 
-		if ((i % 1000) == 0) {
+		if ((i % 100) == 0) {
 			printf("Iteration:  %d\n", i);
 			depth = 0;
 			#ifdef STORAGE_JITD
