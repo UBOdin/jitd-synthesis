@@ -66,6 +66,19 @@ struct storage_jitd_struct {
 	std::shared_ptr<JITD> jitd;
 };
 
+#define VIEW_SIZE 1000
+
+struct view_node {
+
+	int id;
+	int type;
+	int delta[3];
+
+};
+
+extern struct view_node view_array[];
+extern int view_count;
+
 #endif
 
 #ifdef STORAGE_MAP
