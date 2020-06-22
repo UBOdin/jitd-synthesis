@@ -68,6 +68,26 @@ struct storage_jitd_struct {
 
 #define VIEW_SIZE 1000
 
+enum view_enum {
+
+	__DeleteElemFromSingleton,
+	__DeleteKeyFromSingleton,
+	__DeleteSingletonFromArray,
+	__DeleteElemFromArray,
+	__PushDownDontDeleteSingletonBtreeRight,
+	__PushDownDontDeleteSingletonBtreeLeft,
+	__PushDownDontDeleteElemBtree,
+	__PushDownSingletonRight,
+	__PushDownSingletonLeft,
+	__CrackArray,
+	__SortArray,
+	__after_remove_singleton,
+	__after_remove_elements,
+	__after_insert,
+	__after_insert_singleton,
+
+};
+
 struct view_node {
 
 	int id;
