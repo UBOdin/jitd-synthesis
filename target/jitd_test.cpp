@@ -5,6 +5,10 @@
 #include "jitd_test.hpp"
 #include <thread>
 #ifdef RDTSC
+
+#define STORAGE_JITD
+#include "harness.hpp"
+
 uint64_t rdtsc(){
     unsigned int lo,hi;
     __asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
@@ -12,12 +16,23 @@ uint64_t rdtsc(){
 }
 long unsigned int sticks, diffticks;
 
+int delta_count = 0;
+int view_count = 0;
+struct view_node view_array[VIEW_SIZE];
+
 #define START_TIMER \
 	sticks = rdtsc();
 
 #define END_TIMER \
 	diffticks = rdtsc() - sticks; \
-	this->rdtsc_vector.emplace_back(diffticks);
+	view_array[view_count].delta[delta_count] = diffticks; \
+	delta_count++; \
+	if (delta_count == 3) { \
+		view_array[view_count].id = view_count; \
+		view_array[view_count].type = 0; \
+		delta_count = 0; \
+		view_count++; \
+	}
 
 #else
 
