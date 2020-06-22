@@ -18,7 +18,7 @@ long unsigned int sticks, diffticks;
 
 int delta_count = 0;
 int view_count = 0;
-const char* view_type;
+int view_type;
 struct view_node view_array[VIEW_SIZE];
 
 std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0},
@@ -37,7 +37,7 @@ std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0}
 	delta_count++; \
 	if (delta_count == 3) { \
 		view_array[view_count].id = view_count; \
-		view_array[view_count].type = view_map[std::string(view_type)]; \
+		view_array[view_count].type = view_type; \
 		delta_count = 0; \
 		view_count++; \
 	}
@@ -61,7 +61,7 @@ bool JITD::DeleteElemFromSingleton(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::DeleteElemFromSingleton"<<std::endl;*/
   {
-view_type = __func__;
+view_type = view_map[std::string(__func__)];
 START_TIMER;
     std::shared_ptr<JITDNode>* parent = getParent(target);
 END_TIMER;
@@ -142,7 +142,7 @@ bool JITD::DeleteKeyFromSingleton(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::DeleteKeyFromSingleton"<<std::endl;*/
   {
-view_type = __func__;
+view_type = view_map[std::string(__func__)];
 START_TIMER;
     std::shared_ptr<JITDNode>* parent = getParent(target);
 END_TIMER;
@@ -223,7 +223,7 @@ bool JITD::DeleteSingletonFromArray(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::DeleteSingletonFromArray"<<std::endl;*/
   {
-view_type = __func__;
+view_type = view_map[std::string(__func__)];
 START_TIMER;
     std::shared_ptr<JITDNode>* parent = getParent(target);
 END_TIMER;
@@ -304,7 +304,7 @@ bool JITD::DeleteElemFromArray(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::DeleteElemFromArray"<<std::endl;*/
   {
-view_type = __func__;
+view_type = view_map[std::string(__func__)];
 START_TIMER;
     std::shared_ptr<JITDNode>* parent = getParent(target);
 END_TIMER;
@@ -385,7 +385,7 @@ bool JITD::PushDownDontDeleteSingletonBtreeRight(std::shared_ptr<JITDNode> * &ta
 {
 /*std::cout<<" The transform applied is:JITD::PushDownDontDeleteSingletonBtreeRight"<<std::endl;*/
   {
-view_type = __func__;
+view_type = view_map[std::string(__func__)];
 START_TIMER;
     std::shared_ptr<JITDNode>* parent = getParent(target);
 END_TIMER;
@@ -484,7 +484,7 @@ bool JITD::PushDownDontDeleteSingletonBtreeLeft(std::shared_ptr<JITDNode> * &tar
 {
 /*std::cout<<" The transform applied is:JITD::PushDownDontDeleteSingletonBtreeLeft"<<std::endl;*/
   {
-view_type = __func__;
+view_type = view_map[std::string(__func__)];
 START_TIMER;
     std::shared_ptr<JITDNode>* parent = getParent(target);
 END_TIMER;
@@ -583,7 +583,7 @@ bool JITD::PushDownDontDeleteElemBtree(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::PushDownDontDeleteElemBtree"<<std::endl;*/
   {
-view_type = __func__;
+view_type = view_map[std::string(__func__)];
 START_TIMER;
     std::shared_ptr<JITDNode>* parent = getParent(target);
 END_TIMER;
@@ -690,7 +690,7 @@ bool JITD::PushDownSingletonRight(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::PushDownSingletonRight"<<std::endl;*/
   {
-view_type = __func__;
+view_type = view_map[std::string(__func__)];
 START_TIMER;
     std::shared_ptr<JITDNode>* parent = getParent(target);
 END_TIMER;
@@ -817,7 +817,7 @@ bool JITD::PushDownSingletonLeft(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::PushDownSingletonLeft"<<std::endl;*/
   {
-view_type = __func__;
+view_type = view_map[std::string(__func__)];
 START_TIMER;
     std::shared_ptr<JITDNode>* parent = getParent(target);
 END_TIMER;
@@ -944,7 +944,7 @@ bool JITD::CrackArray(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::CrackArray"<<std::endl;*/
   {
-view_type = __func__;
+view_type = view_map[std::string(__func__)];
 START_TIMER;
     std::shared_ptr<JITDNode>* parent = getParent(target);
 END_TIMER;
@@ -1021,7 +1021,7 @@ bool JITD::SortArray(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::SortArray"<<std::endl;*/
   {
-view_type = __func__;
+view_type = view_map[std::string(__func__)];
 START_TIMER;
     std::shared_ptr<JITDNode>* parent = getParent(target);
 END_TIMER;
@@ -1227,7 +1227,7 @@ void JITD::after_remove_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITD
 {
 /*std::cout<<" The transform applied is:JITD::after_remove_singleton"<<std::endl;*/
   {
-view_type = __func__;
+view_type = view_map[std::string(__func__)];
 START_TIMER;
     viewErase(&( *(cq_elem.first)));
 END_TIMER;
@@ -1290,7 +1290,7 @@ void JITD::after_remove_elements(std::pair<std::shared_ptr<std::shared_ptr<JITDN
 {
 /*std::cout<<" The transform applied is:JITD::after_remove_elements"<<std::endl;*/
   {
-view_type = __func__;
+view_type = view_map[std::string(__func__)];
 START_TIMER;
     viewErase(&( *(cq_elem.first)));
 END_TIMER;
@@ -1356,7 +1356,7 @@ void JITD::after_insert(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std
 {
 /*std::cout<<" The transform applied is:JITD::after_insert"<<std::endl;*/
   {
-view_type = __func__;
+view_type = view_map[std::string(__func__)];
 START_TIMER;
     viewErase(&( *(cq_elem.first)));
 END_TIMER;
@@ -1426,7 +1426,7 @@ void JITD::after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITD
 {
 /*std::cout<<" The transform applied is:JITD::after_insert_singleton"<<std::endl;*/
   {
-view_type = __func__;
+view_type = view_map[std::string(__func__)];
 START_TIMER;
     viewErase(&( *(cq_elem.first)));
 END_TIMER;
