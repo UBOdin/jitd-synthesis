@@ -1,15 +1,18 @@
 template <class JITDNode> 
-class MergeIterator : public IteratorBase<Record> {
+class TopKMergeIterator : public IteratorBase<Record> {
   std::shared_ptr<JITDNode> lhs, rhs;
   Iterator<Record> lhsIter, rhsIter;
   bool lhsDone, rhsDone;
   bool lhsBest;
+  const Record key;
+  const int size;
   
   public: 
-    MergeIterator(
+    TopKMergeIterator(
       const std::shared_ptr<JITDNode> &lhs, 
-      const std::shared_ptr<JITDNode> &rhs
-    ):lhs(lhs),rhs(rhs)
+      const std::shared_ptr<JITDNode> &rhs,
+      const Record key,const int size
+    ):lhs(lhs),rhs(rhs),key(key),size(size)
     {
       //lhs = std::atomic_load(lhs_ptr);
       //rhs = std::atomic_load(rhs_ptr);
@@ -17,7 +20,7 @@ class MergeIterator : public IteratorBase<Record> {
       if(lhsIter.get()==NULL)
       {
         //std::cout<<"looking into lhs of merge iter rhs sibling is: "<<rhs<<"and lhs node is : "<<lhs<<std::endl;
-        lhsIter = lhs->iterator();
+        lhsIter = lhs->iterator(key,size);
         //std::cout<<"MEREGE CONSTRUCTOR:LHS ITER CREATED for"<<lhs<<std::endl;
         // if(lhs->type != JITD_NODE_BTree)
         // {
@@ -37,7 +40,7 @@ class MergeIterator : public IteratorBase<Record> {
           }
           else
           {
-            rhsIter = rhs->iterator();
+            rhsIter = rhs->iterator(key,size);
             //std::cout<<"MEREGE CONSTRUCTOR:RHS ITER CREATED for"<<rhs<<std::endl;
 
             // if(rhs->type != JITD_NODE_BTree)
@@ -87,45 +90,45 @@ class MergeIterator : public IteratorBase<Record> {
       
      
     }
-    void range_next(const long &r1,const long &r2)
-    {
-      //std::cout<<"MergeIterator NEXT()"<<std::endl;
-      if(rhs->type == JITD_NODE_Singleton)
-      {
-        //std::cout<<"rhs is a Singleton so no next"<<std::endl;
-        rhsDone = true;
-      }
-      if(lhsDone && rhsDone) { return; }
+    // void range_next(const long &r1,const long &r2)
+    // {
+    //   //std::cout<<"MergeIterator NEXT()"<<std::endl;
+    //   if(rhs->type == JITD_NODE_Singleton)
+    //   {
+    //     //std::cout<<"rhs is a Singleton so no next"<<std::endl;
+    //     rhsDone = true;
+    //   }
+    //   if(lhsDone && rhsDone) { return; }
       
-      else if(!lhsDone && !rhsDone){lhsIter->range_next(r1,r2); lhsDone = lhsIter->atEnd(); //std::cout<<"Next:LhsDone: "<<lhsDone<<std::endl;
-      }
-      else if(!lhsDone && rhsDone){lhsIter->range_next(r1,r2); lhsDone = lhsIter->atEnd(); //std::cout<<"Next:LhsDone: "<<lhsDone<<"Next:rhsDone: "<<rhsDone<<std::endl;
-      }
-      else if(lhsDone && !rhsDone){rhsIter->range_next(r1,r2); rhsDone = rhsIter->atEnd();//std::cout<<"Next:rhsDone: "<<rhsDone<<std::endl;
-      }
-      else if(!rhsDone){rhsIter->range_next(r1,r2);; rhsDone = rhsIter->atEnd();//std::cout<<"Next:rhsDone: "<<rhsDone<<std::endl;
-      }
+    //   else if(!lhsDone && !rhsDone){lhsIter->range_next(r1,r2); lhsDone = lhsIter->atEnd(); //std::cout<<"Next:LhsDone: "<<lhsDone<<std::endl;
+    //   }
+    //   else if(!lhsDone && rhsDone){lhsIter->range_next(r1,r2); lhsDone = lhsIter->atEnd(); //std::cout<<"Next:LhsDone: "<<lhsDone<<"Next:rhsDone: "<<rhsDone<<std::endl;
+    //   }
+    //   else if(lhsDone && !rhsDone){rhsIter->range_next(r1,r2); rhsDone = rhsIter->atEnd();//std::cout<<"Next:rhsDone: "<<rhsDone<<std::endl;
+    //   }
+    //   else if(!rhsDone){rhsIter->range_next(r1,r2);; rhsDone = rhsIter->atEnd();//std::cout<<"Next:rhsDone: "<<rhsDone<<std::endl;
+    //   }
       
-    }
-    void seek(const Record &k)
-    {
-      //std::cout<<"MergeIterator SEEK()"<<std::endl;
-      lhsIter->seek(k); //std::cout<<"seek for MergeIterator lhs done"<<std::endl;
-      lhsDone = lhsIter->atEnd(); 
-      //std::cout<<"lhsDone:"<<lhsDone<<std::endl;
-      if(rhs->type == JITD_NODE_Singleton)
-      {
-        //std::cout<<"rhs is a Singleton so no seek"<<std::endl;
-        rhsDone=true;
-      }
-      else
-      {
-        rhsIter->seek(k);  rhsDone = rhsIter->atEnd();
-      }
+    // }
+    // void seek(const Record &k)
+    // {
+    //   //std::cout<<"MergeIterator SEEK()"<<std::endl;
+    //   lhsIter->seek(k); //std::cout<<"seek for MergeIterator lhs done"<<std::endl;
+    //   lhsDone = lhsIter->atEnd(); 
+    //   //std::cout<<"lhsDone:"<<lhsDone<<std::endl;
+    //   if(rhs->type == JITD_NODE_Singleton)
+    //   {
+    //     //std::cout<<"rhs is a Singleton so no seek"<<std::endl;
+    //     rhsDone=true;
+    //   }
+    //   else
+    //   {
+    //     rhsIter->seek(k);  rhsDone = rhsIter->atEnd();
+    //   }
       
-      //std::cout<<"rhsDone:"<<rhsDone<<std::endl;
-      //updateBest();
-    }
+    //   //std::cout<<"rhsDone:"<<rhsDone<<std::endl;
+    //   //updateBest();
+    // }
     void seek(const Record &k,const int s)
     {
       //std::cout<<"MergeIterator SEEK()"<<std::endl;

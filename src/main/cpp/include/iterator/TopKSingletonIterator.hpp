@@ -1,13 +1,14 @@
 template <class Tuple>
-class SingletonIterator : public IteratorBase<Record> {
+class TopKSingletonIterator : public IteratorBase<Record> {
   Record data;
   bool done;
-  
+  const Record key;
+  const int size;
   public: 
 
   
-    SingletonIterator(const Record &data) : 
-      data(data),done(false) {
+    TopKSingletonIterator(const Record &data,const Record key,const int size) : 
+      data(data),done(false),key(key),size(size) {
         //std::cout<<"SingletonIterator created for "<<data<<std::endl;
       }
       

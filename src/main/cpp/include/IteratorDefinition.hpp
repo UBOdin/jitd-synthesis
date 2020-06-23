@@ -14,7 +14,9 @@ Iterator<Record> BTreeNode::iterator()
 }
 Iterator<Record> ArrayNode::iterator()
 {
-  return Iterator<Record>(new BufferIterator<JITDNode>(data));
+  
+    return Iterator<Record>(new BufferIterator<JITDNode>(data));
+  
 }
 Iterator<Record> SortedArrayNode::iterator()
 {

@@ -61,7 +61,31 @@ class BufferIterator : public IteratorBase<Record> {
       }
       
     }
-
+void seek(const Record &k,const int s)
+    {
+      //curr = start;
+      if(data.size()==0)
+      {
+        curr = end;
+      }
+      else
+      {
+        //std::cout<<"BufferIterator SEEK(): "<<k<<"Curr points at: "<<*curr<<std::endl;
+        unsigned int d = 1;
+        std::vector<Record>::const_iterator high = curr;
+        while((high < end) && (*high < k)){
+          curr = high;
+          high += d;
+          d *= 2;
+        }
+        if(high > end){ high = end; }
+        if(curr < high){
+          curr = lower_bound(curr, high, k);
+        }
+        //std::cout<<"Data size: "<<data.size()<<"End of SEEK(): Curr points at: "<<*curr<<std::endl;
+      }
+      
+    }
     bool atEnd()
     {
       
