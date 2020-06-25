@@ -33,6 +33,10 @@ std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0}
 
 #define VIEW_END \
 	diffticks = rdtsc() - sticks; \
+	if (view_count >= VIEW_SIZE) { \
+		printf("Error:  view overflow\n"); \
+		_exit(1); \
+	} \
 	view_array[view_count].delta[delta_count] = diffticks; \
 	delta_count++; \
 	if (delta_count == 3) { \
