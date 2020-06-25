@@ -66,6 +66,13 @@ class JITDNode {
       std::cerr << type << std::endl;
       assert(0);
     }
+    
+    virtual Iterator<Record> iterator(const Record key,const int size)
+    { 
+      std::cout<<"JITD Iterator"<<std::endl;
+      std::cerr << type << std::endl;
+      assert(0);
+    }
 };
 
 typedef std::function<void(std::shared_ptr<JITDNode> &new_node)> UpdateHandle;
@@ -102,6 +109,7 @@ class @{node.renderName} : public JITDNode {
 
   //NOTE:ITERATORS NEED TO BE SYNTHESIZED
   Iterator<Record> iterator();
+  Iterator<Record> iterator(const Record key,const int size);
   
   public: @for(field <- node.fields){ 
     @{ctx.fieldDefn(field)};
@@ -112,13 +120,19 @@ class @{node.renderName} : public JITDNode {
 }
 
 #include "iterator/FastIterator.hpp"
+#include "iterator/TopKFastIterator.hpp"
 #include "iterator/SeqIterator.hpp"
 #include "iterator/MergeIterator.hpp"
+#include "iterator/TopKMergeIterator.hpp"
 #include "iterator/BufferIterator.hpp"
-#include "iterator/UnsortedBufferIterator.hpp"
-#include "iterator/SingletonIterator.hpp"  
+#include "iterator/TopKBufferIterator.hpp"
+#include "iterator/TopKUnsortedBufferIterator.hpp"
+#include "iterator/SingletonIterator.hpp" 
+#include "iterator/TopKSingletonIterator.hpp"  
 #include "iterator/DeleteElemIterator.hpp"
+#include "iterator/TopKDeleteElemIterator.hpp"
 #include "iterator/DeleteSingletonIterator.hpp"
+#include "iterator/TopKDeleteSingletonIterator.hpp"
 
 ///////////////////// Transform Definitions ///////////////////// 
 
@@ -223,7 +237,15 @@ class JITD {
       //std::cout<<"Root pointer is "<<rp<<std::endl;
       return (rp)->iterator();
     }
-   
+    
+    Iterator<Record> iterator(const Record key,const int size)
+    {
+      
+      std::shared_ptr<JITDNode> r = *(this->jitd_root);
+      JITDNode * rp = r.get();
+      //std::cout<<"Root pointer is "<<rp<<std::endl;
+      return (rp)->iterator(key,size);
+    }
     //void print_pq();
     //void check_pq();
     //void print_map();

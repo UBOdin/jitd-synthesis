@@ -568,6 +568,232 @@ const Key sep;
         
        }  
     }
+    void seek(const Record &k,const int s)
+    {
+      //std::cout<<"in fast iter seek"<<std::endl;
+      initroot(k);
+      //std::cout<<"Initroot done"<<std::endl;
+      while(node_ptr!=NULL)
+      {
+        JITDNode *node_raw = node_ptr.get();
+        if(node_ptr->type == JITD_NODE_BTree)
+        {
+          
+          BTreeNode * node = (BTreeNode *)node_raw;
+          //std::cout<<"FI:Btree with sep value " <<node->sep<<std::endl;
+          if(k < node->sep)
+          {
+            //std::cout<<"in if"<<std::endl;
+            nodeStack.push(node->rhs);
+            //std::cout<<"pushed node"<<std::endl;
+            node_ptr = node->lhs;
+            //std::cout<<"Node lhs sep "<< node->getSepVal()<<std::endl;
+            //std::cout<<"FI: seek() stack size "<<nodeStack.size()<<std::endl;
+            
+          } 
+          else
+          {
+            
+            //std::cout<<"in else";
+            node_ptr = node->rhs;
+            //std::cout<<"Node lhs sep "<< node->getSepVal()<<std::endl;
+          }
+        }
+        else if(node_ptr->type ==  JITD_NODE_Concat)
+        {
+          //std::cout<<"FI:Seek() Conact Node "<<std::endl;
+         //NOTE:CREATES A BRAND NEW ITER EVEN IF AT END ALREADY CREATED IT.
+         
+      
+          iter = node_ptr->iterator();
+          //std::cout<<"FI SEEK(): iter was NULL so created a new iter for the node."<<std::endl;
+        
+          
+          //std::cout<<"FI: seek() Concat " <<std::endl;
+          if(iter->atEnd() && !nodeStack.empty())
+          {
+              //std::cout<<"empty buffer node reassigned with sibling"<<std::endl;
+              node_ptr = nodeStack.top();
+              nodeStack.pop();
+              //std::cout<<"stack size "<<nodeStack.size()<<std::endl;
+          }
+          else
+          {
+            iter->seek(k,s);
+            if(iter->atEnd() && !nodeStack.empty())
+            {
+              node_ptr = nodeStack.top();
+              nodeStack.pop();
+              //std::cout<<"stack size "<<nodeStack.size()<<std::endl;
+            }
+            else
+            {
+              return;
+            }
+            
+          }
+        }
+        else if(node_ptr->type ==  JITD_NODE_DeleteElements)
+        {
+         //NOTE:CREATES A BRAND NEW ITER EVEN IF AT END ALREADY CREATED IT.
+         
+          iter = node_ptr->iterator();
+          //std::cout<<"FI SEEK(): iter was NULL so created a new iter for the node."<<std::endl;
+         
+          
+          //std::cout<<"FI: seek() Concat " <<std::endl;
+          if(iter->atEnd() && !nodeStack.empty())
+          {
+              //std::cout<<"empty buffer node reassigned with sibling"<<std::endl;
+              node_ptr = nodeStack.top();
+              nodeStack.pop();
+              //std::cout<<"stack size "<<nodeStack.size()<<std::endl;
+          }
+          else
+          {
+            iter->seek(k,s);
+            if(iter->atEnd() && !nodeStack.empty())
+            {
+              node_ptr = nodeStack.top();
+              nodeStack.pop();
+              //std::cout<<"stack size "<<nodeStack.size()<<std::endl;
+            }
+            else
+            {
+              return;
+            }
+            
+          }
+        }
+        else if(node_ptr->type ==  JITD_NODE_DeleteSingleton)
+        {
+         //NOTE:CREATES A BRAND NEW ITER EVEN IF AT END ALREADY CREATED IT.
+     
+        
+          iter = node_ptr->iterator();
+          //std::cout<<"FI SEEK(): iter was NULL so created a new iter for the node."<<std::endl;
+          
+          
+          //std::cout<<"FI: seek() Concat " <<std::endl;
+          if(iter->atEnd() && !nodeStack.empty())
+          {
+              //std::cout<<"empty buffer node reassigned with sibling"<<std::endl;
+              node_ptr = nodeStack.top();
+              nodeStack.pop();
+              //std::cout<<"stack size "<<nodeStack.size()<<std::endl;
+          }
+          else
+          {
+            iter->seek(k,s);
+            if(iter->atEnd() && !nodeStack.empty())
+            {
+              node_ptr = nodeStack.top();
+              nodeStack.pop();
+              //std::cout<<"stack size "<<nodeStack.size()<<std::endl;
+            }
+            else
+            {
+              return;
+            }
+            
+          }
+        }
+        else if(node_ptr->type ==  JITD_NODE_Singleton)
+        {
+           
+            iter = node_ptr->iterator();
+            //std::cout<<"FI SEEK(): iter was NULL so created a new iter for the node."<<std::endl;
+           
+          //std::cout<<"FI: seek() Concat " <<std::endl;
+          if(iter->atEnd() && !nodeStack.empty())
+          {
+              //std::cout<<"empty buffer node reassigned with sibling"<<std::endl;
+              node_ptr = nodeStack.top();
+              nodeStack.pop();
+              //std::cout<<"stack size "<<nodeStack.size()<<std::endl;
+          }
+          else
+          {
+            iter->seek(k,s);
+            if(iter->atEnd() && !nodeStack.empty())
+            {
+              node_ptr = nodeStack.top();
+              nodeStack.pop();
+              //std::cout<<"stack size "<<nodeStack.size()<<std::endl;
+            }
+            else
+            {
+              return;
+            }
+            
+          }
+        }
+        else if(node_ptr->type == JITD_NODE_SortedArray)
+        {
+          //std::cout<<"Node is sorted array"<<std::endl;
+          
+            iter = node_ptr->iterator();
+            //std::cout<<"FI SEEK(): iter was NULL so created a new iter for the node."<<std::endl;
+           
+          
+          if(iter->atEnd() && !nodeStack.empty())
+          {
+              //std::cout<<"empty buffer node reassigned with sibling"<<std::endl;
+              node_ptr = nodeStack.top();
+              nodeStack.pop();
+              //std::cout<<"stack size "<<nodeStack.size()<<std::endl;
+          }
+          else
+          {
+            iter->seek(k,s);
+            if(iter->atEnd() && !nodeStack.empty())
+            {
+              node_ptr = nodeStack.top();
+              nodeStack.pop();
+              //std::cout<<"stack size "<<nodeStack.size()<<std::endl;
+            }
+            else
+            {
+              return;
+            }
+            
+          } 
+          
+        }
+        else if(node_ptr->type == JITD_NODE_Array)
+        {
+          //std::cout<<" FI: Seek() Node is array"<<std::endl;
+         
+            iter = node_ptr->iterator();
+            //std::cout<<"FI SEEK(): iter was NULL so created a new iter for the node."<<std::endl;
+           
+          if(iter->atEnd() && !nodeStack.empty())
+          {
+              //std::cout<<"Seeked but didnt find key"<<std::endl;
+              //std::cout<<"empty buffer node reassigned with sibling"<<std::endl;
+              node_ptr = nodeStack.top();
+              nodeStack.pop();
+          }
+          else
+          {
+            iter->seek(k,s);
+            if(iter->atEnd() && !nodeStack.empty())
+            {
+              //std::cout<<"Seeked but didnt find key"<<std::endl;
+              node_ptr = nodeStack.top();
+              nodeStack.pop();
+              //std::cout<<"stack size "<<nodeStack.size()<<std::endl;
+            }
+            else
+            {
+              //std::cout<<"FI: stack size before seek return "<<nodeStack.size()<<std::endl;
+              return;
+            }
+          } 
+        }
+        
+       }  
+    }
     bool atEnd()
     {
       //std::cout<<"fast iter atEnd"<<std::endl;

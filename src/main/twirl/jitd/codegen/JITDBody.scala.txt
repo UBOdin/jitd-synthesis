@@ -505,7 +505,7 @@ std::shared_ptr<JITD> assemble_jitd(std::istream &in)
             case TNodeRef() => s"${field.name} = node_stack.top(); node_stack.pop();"
 
             case TKey() => s"${field.name} = load_key(toks);"
-
+            
             case _ => "std::cout << \"Unsupported generator field type: "+field.t.toString+"\" << std::endl; exit(-1);"
           }}
         }

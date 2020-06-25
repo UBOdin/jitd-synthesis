@@ -47,6 +47,9 @@ class IteratorBase {
     // The iterator begins initialized.  next() is called *after* get().
     virtual void next()     
       { std::cerr << "Unimplemented Iterator.next()"  << std::endl; exit(-1); }
+
+    virtual void range_next(const long &k1,const long &k2)     
+      { std::cerr << "Unimplemented Iterator.range_next()"  << std::endl; exit(-1); }  
     
     // seek()
     // 
@@ -57,9 +60,16 @@ class IteratorBase {
     virtual void seek(const Record &k)
       { std::cerr << "Unimplemented Iterator.seek()"  << std::endl; exit(-1); }
 
-    virtual void range_next(const long &k1,const long &k2)
-      { std::cerr << "Unimplemented Iterator.range_next()"  << std::endl; exit(-1); }  
-      
+    virtual void seek(const Record &r,const int k)
+    { std::cerr << "Unimplemented Iterator.topk_seek()"  << std::endl; exit(-1); }
+    // virtual Record topk_get()
+    // { std::cerr << "Unimplemented Iterator.topk_get()"  << std::endl; exit(-1); }
+    // virtual Record topk_peek()
+    // { std::cerr << "Unimplemented Iterator.topk_peek()"  << std::endl; exit(-1); }
+    // virtual bool topk_empty()
+    // {
+    //   std::cerr << "Unimplemented Iterator.topk_empty()"  << std::endl; exit(-1); 
+    // }
     // atEnd()
     // 
     // Return true if there are no further tuples 

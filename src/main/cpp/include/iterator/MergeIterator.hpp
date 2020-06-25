@@ -126,6 +126,25 @@ class MergeIterator : public IteratorBase<Record> {
       //std::cout<<"rhsDone:"<<rhsDone<<std::endl;
       //updateBest();
     }
+    void seek(const Record &k,const int s)
+    {
+      //std::cout<<"MergeIterator SEEK()"<<std::endl;
+      lhsIter->seek(k,s); //std::cout<<"seek for MergeIterator lhs done"<<std::endl;
+      lhsDone = lhsIter->atEnd(); 
+      //std::cout<<"lhsDone:"<<lhsDone<<std::endl;
+      if(rhs->type == JITD_NODE_Singleton)
+      {
+        //std::cout<<"rhs is a Singleton so no seek"<<std::endl;
+        rhsDone=true;
+      }
+      else
+      {
+        rhsIter->seek(k,s);  rhsDone = rhsIter->atEnd();
+      }
+      
+      //std::cout<<"rhsDone:"<<rhsDone<<std::endl;
+      //updateBest();
+    }
     bool atEnd()
     {
       return lhsDone && rhsDone;

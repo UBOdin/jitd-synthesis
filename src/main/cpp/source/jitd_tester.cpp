@@ -15,6 +15,7 @@
 #include "test.hpp"
 #include "jitd_test.hpp"
 #include "IteratorDefinition.hpp"
+#include "TopKIteratorDefinition.hpp"
 //#include "int_record.hpp"
 #include "tbb/concurrent_queue.h" 
 #define SEED_MAX 364785
@@ -115,16 +116,17 @@ int jitd_client_op(
         Iterator<Record> iter =jitd->iterator();
         iter->seek(r);
         std::cout<<"The value seek points at is "<<(iter->get())<<std::endl;
-        while(!(iter->atEnd()))
-        {
-          if((((iter->get())<(key+range)) && (iter->get()>key-1)))
-          {
-            std::cout<<(iter->get()).key<<",";
-          }
+        // while(!(iter->atEnd()))
+        // {
+        //   if((((iter->get())<(key+range)) && (iter->get()>key-1)))
+        //   {
+        //     std::cout<<(iter->get()).key<<",";
+        //   }
           
-          iter->range_next(key,key+range);
-          //iter2->next();
-        }
+        //   //iter->range_next(key,key+range);
+        //   iter->next();
+        // }
+        //iter->topk(r,60);
 
         }
     }
@@ -136,28 +138,50 @@ int jitd_client_op(
       Record r1;
       r1.key = min;
       Record r2;
-      r2.key = max;
+      int k = max;
       // while(!(iter1->atEnd()))
       // {
       //   std::cout<<"The value iter points at is "<<(iter1->get())<<std::endl;
       //   iter1->next();
       // }
-       Iterator<Record> iter2 =jitd->iterator();
-       std::cout<<"all iterators created"<<std::endl;
-      iter2->seek(r1);
+       Iterator<Record> iter2 =jitd->iterator(r1,max);
+       //std::cout<<"all iterators created"<<std::endl;
+      //iter2->seek(r1);
 
-      std::cout<<"The value seek points at is "<<(iter2->get())<<std::endl;
-      while(!(iter2->atEnd()))
-      //while(!(iter2->atEnd()))
-      {
-        if((((iter2->get())<r2) && (iter2->get()>min-1)))
-        {
-          std::cout<<"The value iter points at is "<<(iter2->get())<<std::endl;
-        }
+      //std::cout<<"The value seek points at is "<<(iter2->get())<<std::endl;
+      // while(!(iter2->atEnd()))
+      // //while(!(iter2->atEnd()))
+      // {
+      //   if((((iter2->get())<r2) && (iter2->get()>min-1)))
+      //   {
+      //     std::cout<<"The value iter points at is "<<(iter2->get())<<std::endl;
+      //   }
         
-        iter2->range_next(min,max);
-        //iter2->next();
+      //   iter2->range_next(min,max);
+      //   //iter2->next();
+      // }
+      iter2->seek(r1,max);
+      Record pq;
+      int count =0;
+      //std::cout<<"Retriving records"<<std::endl;
+      //jitd->print_debug();
+      while(!iter2->atEnd() && count < max)
+      {
+        
+        pq = iter2->get();
+        std::cout<<"Record got: "<<pq<<std::endl;
+        iter2->next();
+        //std::cout<<"Next() completed"<<std::endl;
+        count++;
+       
+        
       }
+      
+      // while(!pq.empty())
+      // {
+      //   std::cout << pq.top() << " "<<std::endl;
+      //   pq.pop();
+      // }
       //iter2->next();
       //std::cout<<"The value last next points at is "<<(iter2->get())<<std::endl;
     }

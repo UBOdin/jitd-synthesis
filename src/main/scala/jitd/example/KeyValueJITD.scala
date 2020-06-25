@@ -200,24 +200,24 @@ object KeyValueJITD extends HardcodedDefinition {
 
 //   //pushdown and crack can create a null array if no crack happens
  
-//   Transform("PushDownAndCrack") {
-//     "Concat" withFields(
-//       "BTree" withFields( "a", "separator", "b" ),
-//       "Array" withFields( "data" )
-//     )
-//   } {
-//     "BTree" fromFields(
-//       "Concat" fromFields( "a", "Array" fromFields(
+  Transform("PushDownAndCrack") {
+    "Concat" withFields(
+      "BTree" withFields( "a", "separator", "b" ),
+      "Array" withFields( "data" )
+    )
+  } {
+    "BTree" fromFields(
+      "Concat" fromFields( "a", "Array" fromFields(
         
-//       )as "lhs_partition"),
-//       "separator",
-//       "Concat" fromFields( "b", "Array" fromFields(
+      )as "lhs_partition"),
+      "separator",
+      "Concat" fromFields( "b", "Array" fromFields(
           
-//       )as "rhs_partition")
-//     ) andAfter(
-//       "do_crack".call("data", "separator", NodeSubscript(Var("lhs_partition"),"data"), NodeSubscript(Var("rhs_partition"),"data"))
-//     )
-//   }
+      )as "rhs_partition")
+    ) andAfter(
+      "do_crack".call("data", "separator", NodeSubscript(Var("lhs_partition"),"data"), NodeSubscript(Var("rhs_partition"),"data"))
+    )
+  }
 
 // Transform("PushDownSingleton") {
 //     "Concat" withFields(
@@ -367,9 +367,10 @@ Transform("DeleteKeyFromSingleton")
       
       ("PushDownSingletonLeft" onlyIf{Key_Cmp("data","separator") eq true} scoreBy{IntConstant(0)})
       andThen("PushDownSingletonRight" onlyIf{Key_Cmp("data","separator") eq false} scoreBy{IntConstant(0)})
-      //andThen("PushDownDontDeleteSingletonBtreeLeft" onlyIf{Keys_Cmp("key","separator") eq true} scoreBy{IntConstant(0)})
-      //andThen("PushDownDontDeleteSingletonBtreeRight" onlyIf{Keys_Cmp("key","separator") eq false} scoreBy{IntConstant(0)})
-      //andThen("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
+      andThen("PushDownDontDeleteSingletonBtreeLeft" onlyIf{Keys_Cmp("key","separator") eq true} scoreBy{IntConstant(0)})
+      andThen("PushDownDontDeleteSingletonBtreeRight" onlyIf{Keys_Cmp("key","separator") eq false} scoreBy{IntConstant(0)})
+      andThen("PushDownDontDeleteElemBtree" scoreBy{IntConstant(0)})
+      //andThen("PushDownAndCrack" scoreBy{IntConstant(0)}) 
       //andThen("DeleteElemFromSingleton" scoreBy{IntConstant(0)})
       //andThen("DeleteKeyFromSingleton" scoreBy{IntConstant(0)})
       //andThen("DeleteSingletonFromArray" scoreBy{IntConstant(0)})
