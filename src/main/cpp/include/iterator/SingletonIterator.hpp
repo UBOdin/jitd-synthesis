@@ -13,18 +13,18 @@ class SingletonIterator : public IteratorBase<Record> {
       
  
 
-    void next()
-    {
-      //done = true;
-    }
-    void range_next(const long &r1,const long &r2)
-    {
-      //done = true;
-    }
-    void seek(const Record &k)
-    {
-      //done = true;
-    }
+    // void next()
+    // {
+    //   //done = true;
+    // }
+    // void range_next(const long &r1,const long &r2)
+    // {
+    //   //done = true;
+    // }
+    // void seek(const Record &k)
+    // {
+    //   //done = true;
+    // }
 
     bool atEnd()
     {

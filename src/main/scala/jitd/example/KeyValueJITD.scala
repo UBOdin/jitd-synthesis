@@ -200,24 +200,24 @@ object KeyValueJITD extends HardcodedDefinition {
 
 //   //pushdown and crack can create a null array if no crack happens
  
-   Transform("PushDownAndCrack") {
-     "Concat" withFields(
-       "BTree" withFields( "a", "separator", "b" ),
-       "Array" withFields( "data" )
-     )
-   } {
-     "BTree" fromFields(
-       "Concat" fromFields( "a", "Array" fromFields(
+  Transform("PushDownAndCrack") {
+    "Concat" withFields(
+      "BTree" withFields( "a", "separator", "b" ),
+      "Array" withFields( "data" )
+    )
+  } {
+    "BTree" fromFields(
+      "Concat" fromFields( "a", "Array" fromFields(
         
-       )as "lhs_partition"),
-       "separator",
-       "Concat" fromFields( "b", "Array" fromFields(
+      )as "lhs_partition"),
+      "separator",
+      "Concat" fromFields( "b", "Array" fromFields(
           
-       )as "rhs_partition")
-     ) andAfter(
-       "do_crack".call("data", "separator", NodeSubscript(Var("lhs_partition"),"data"), NodeSubscript(Var("rhs_partition"),"data"))
-     )
-   }
+      )as "rhs_partition")
+    ) andAfter(
+      "do_crack".call("data", "separator", NodeSubscript(Var("lhs_partition"),"data"), NodeSubscript(Var("rhs_partition"),"data"))
+    )
+  }
 
 // Transform("PushDownSingleton") {
 //     "Concat" withFields(

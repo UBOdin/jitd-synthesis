@@ -14,6 +14,7 @@
 #include "test.hpp"
 #include "jitd_test.hpp"
 #include "IteratorDefinition.hpp"
+#include "TopKIteratorDefinition.hpp"
 #define SEED_MAX 638645
 typedef std::vector<old_Record> old_RecordBuffer;
 typedef std::vector<Record> ycsbrecordBuffer;
@@ -98,7 +99,12 @@ void background_thread(std::shared_ptr<JITD> jitd)
        gettimeofday(&end, NULL);
        
        std::cout << "Policy " << steps_taken << " Actions: " << total_time(start, end)  << " us" <<  std::endl; 
-      //jitd->print_debug();
+      jitd->get_node_count();
+      int depth =1;
+      int maxdepth = 0;
+      jitd->get_depth(depth,maxdepth);
+      std::cout<<"Maxdepth is of JITD structure: "<<maxdepth<<std::endl;
+      
        
        
 }
@@ -250,9 +256,9 @@ int jitd_test(
              Record r(std::stol(key_string));
              
              //jitd->print_debug();
-            Iterator<Record> iter = jitd->iterator();
+            Iterator<Record> iter = jitd->iterator(r,range);
             //std::cout<<"After creating iterators"<<std::endl;
-            iter->seek(r);
+            iter->seek(r,range);
             std::cout<<"The value seek points at is "<<(iter->get())<<std::endl;
             // std::cout<<"After seek"<<std::endl;
             if(!(iter->atEnd()))
@@ -272,11 +278,11 @@ int jitd_test(
             }
             else
             {
-              jitd->print_debug();
+              //jitd->print_debug();
               std::cout<<"ITER END AND FAILS TO MATCH"<<std::endl;
             }
 
-            jitd->print_debug();
+            //jitd->print_debug();
             for(int i=0;i<range;)
             {
               iter->next();
