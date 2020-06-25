@@ -131,16 +131,11 @@ class RenderStatement(
         "\n"+indent+msg+"\n"
       }
       case RDTSC_Start_Logging() =>{
-        "#ifdef RDTSC\n"+
-        "sticks = rdtsc();\n"+
-        "#endif\n"
+        "VIEW_START;\n"
 
       }
       case RDTSC_End_Logging() =>{
-        "#ifdef RDTSC\n"+
-        "diffticks = rdtsc() - sticks;\n"+
-        "this->rdtsc_vector.emplace_back(diffticks);\n"+
-        "#endif\n"
+        "VIEW_END;\n"
 
       }
 
