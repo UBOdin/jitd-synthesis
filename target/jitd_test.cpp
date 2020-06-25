@@ -5,12 +5,48 @@
 #include "jitd_test.hpp"
 #include <thread>
 #ifdef RDTSC
+
+#define STORAGE_JITD
+#include "harness.hpp"
+
 uint64_t rdtsc(){
     unsigned int lo,hi;
     __asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
     return ((uint64_t)hi << 32) | lo;
 }
 long unsigned int sticks, diffticks;
+
+int delta_count = 0;
+int view_count = 0;
+int view_type;
+struct view_node view_array[VIEW_SIZE];
+
+std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0},
+	{"DeleteKeyFromSingleton", 1}, {"DeleteSingletonFromArray", 2}, {"DeleteElemFromArray", 3},
+	{"PushDownDontDeleteSingletonBtreeRight", 4}, {"PushDownDontDeleteSingletonBtreeLeft", 5},
+	{"PushDownDontDeleteElemBtree", 6}, {"PushDownSingletonRight", 7}, {"PushDownSingletonLeft", 8},
+	{"CrackArray,", 9}, {"SortArray", 10}, {"after_remove_singleton", 11},
+	{"after_remove_elements", 12}, {"after_insert", 13}, {"after_insert_singleton", 14} };
+
+#define VIEW_START \
+	sticks = rdtsc();
+
+#define VIEW_END \
+	diffticks = rdtsc() - sticks; \
+	view_array[view_count].delta[delta_count] = diffticks; \
+	delta_count++; \
+	if (delta_count == 3) { \
+		view_array[view_count].id = view_count; \
+		view_array[view_count].type = view_map[std::string(__func__)]; \
+		delta_count = 0; \
+		view_count++; \
+	}
+
+#else
+
+#define VIEW_START
+#define VIEW_END
+
 #endif
 
 //#define JITD_DEBUG_POLICY true;
@@ -1767,7 +1803,7 @@ bool JITD::matchCrackArray(std::shared_ptr<JITDNode> * &targetHandleRef)
 	if(target_root_lock->type != JITD_NODE_Array){return false; }
 ArrayNode *target_root_lock_real = (ArrayNode *)target_root_lock;
 
-	if((array_size((target_root_lock_real->data))) > (100))
+	if((array_size((target_root_lock_real->data))) > (__array_size))
     {
     	return true;
     }
@@ -2097,7 +2133,7 @@ ArrayNode *iter_node_real_rhs_real = (ArrayNode *)iter_node_real_rhs;
 ArrayNode *iter_node_real = (ArrayNode *)iter_node;
 
 
-          if((array_size((iter_node_real->data))) > (100)){
+          if((array_size((iter_node_real->data))) > (__array_size)){
             bestScore = array_size((iter_node_real->data));
           
           targetHandleRef = (*it);
@@ -2149,7 +2185,7 @@ int JITD::organize_wait()
         #ifdef SPIN
         while(this->work_queue.try_pop(pop_mce) == false)
         {
-            std::this_thread::sleep_for(std::chrono::microseconds(100));
+            std::this_thread::sleep_for(std::chrono::microseconds(__sleep_time));
         }
         #endif
 
@@ -3554,7 +3590,7 @@ iter->second = parent;
 ///////////////////// Debugging Utilities ///////////////////// 
 void JITD::times_transforms_called()
 {
-  
+  #ifdef TRANSFORM_COUNT
     std::cout<<"The transform DeleteElemFromSingleton was called "<< DeleteElemFromSingleton_count<<" times"<<std::endl;
   
     std::cout<<"The transform DeleteKeyFromSingleton was called "<< DeleteKeyFromSingleton_count<<" times"<<std::endl;
@@ -3578,7 +3614,7 @@ void JITD::times_transforms_called()
     std::cout<<"The transform CrackArray was called "<< CrackArray_count<<" times"<<std::endl;
   
     std::cout<<"The transform SortArray was called "<< SortArray_count<<" times"<<std::endl;
-  
+  #endif
 }
 std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 {
