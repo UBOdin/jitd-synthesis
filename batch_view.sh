@@ -15,12 +15,13 @@ for workload in $workload_list; do
 		exit 1
 	fi
 	echo "Clean build"
-	./jitd_harness.exe 100 1000 100
+	./jitd_harness.exe 100 10000 100
 	if [ "$?" != "0" ]; then
 		echo "Error on harness"
 		exit 1
 	fi
 	mv output_view.txt view_results/output_view_${workload}.txt
+	mv output_data.txt output_data_${workload}.txt
 
 done
 
