@@ -25,7 +25,7 @@ std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0}
 	{"DeleteKeyFromSingleton", 1}, {"DeleteSingletonFromArray", 2}, {"DeleteElemFromArray", 3},
 	{"PushDownDontDeleteSingletonBtreeRight", 4}, {"PushDownDontDeleteSingletonBtreeLeft", 5},
 	{"PushDownDontDeleteElemBtree", 6}, {"PushDownSingletonRight", 7}, {"PushDownSingletonLeft", 8},
-	{"CrackArray,", 9}, {"SortArray", 10}, {"after_remove_singleton", 11},
+	{"CrackArray", 9}, {"SortArray", 10}, {"after_remove_singleton", 11},
 	{"after_remove_elements", 12}, {"after_insert", 13}, {"after_insert_singleton", 14}, {"PushDownAndCrack", 15} };
 
 #define VIEW_START \
