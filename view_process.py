@@ -13,6 +13,13 @@ import matplotlib.patches as mpatches
 import math
 
 
+name_dict = {0:"DeleteElemFromSingleton", 1:"DeleteKeyFromSingleton", 2:"DeleteSingletonFromArray", \
+	3:"DeleteElemFromArray", 4:"PushDownDontDeleteSingletonBtreeRight", 5:"PushDownDontDeleteSingletonBtreeLeft", \
+	6:"PushDownDontDeleteElemBtree", 7:"PushDownSingletonRight", 8:"PushDownSingletonLeft", 9:"CrackArray", \
+	10:"SortArray", 11:"after_remove_singleton", 12:"after_remove_elements", 13:"after_insert", \
+	14:"after_insert_singleton", 15:"PushDownAndCrack"}
+
+
 def create_cdf(input_list, maxitem = None, scale = 1.0):
 
 	# input_list = []
@@ -131,13 +138,14 @@ def process_loglines(input_file_name, results_list_list, type_dict):
 #end_def
 
 
-def main():
+def make_graph(workload):
 
+	#workload = ""
 	input_file_name = ""
 	results_list_list = []
 	type_dict = {}
 
-	input_file_name = sys.argv[1]
+	input_file_name = "view_results/output_view_" + workload + ".txt"
 
 	process_loglines(input_file_name, results_list_list, type_dict)
 
@@ -150,20 +158,48 @@ def main():
 
 	fig, ax = plt.subplots()
 
+	fig.set_size_inches(16,8)
+
 	#ax.scatter(results_list_list[0], results_list_list[1], s = 1)
 	for view_type in type_dict:
-		ax.scatter(type_dict[view_type][1], type_dict[view_type][2], s = 1)
+		ax.scatter(type_dict[view_type][1], type_dict[view_type][2], s = 1, label = name_dict[view_type] + " " + str(type_dict[view_type][0]))
 	#end_for
 
-	ax.set_title("JITD View Operation Time:  YCSB F", fontsize = 14, fontweight = "bold")
+	ax.set_title("JITD View Operation Time:  YCSB " + workload + "\n(Crack size 100)", fontsize = 14, fontweight = "bold")
 	ax.set_xlabel("View operation number", fontsize = 14, fontweight = "bold")
 	ax.set_ylabel("Time (CPU ticks)", fontsize = 14, fontweight = "bold")
+	ax.axis([0, len(results_list_list[0]), 0, max(results_list_list[1]) * 1.05])
+	#ax.axis([0, len(results_list_list[0]), 0, 100000]) #max(results_list_list[1]) * 1.05])
+	ax.legend(loc = "upper right", markerscale = 8)
 
-	plt.show()
+	print(len(results_list_list[0]))
+	print(max(results_list_list[1]))
+
+	fig.savefig("view_graphs/view_graph_" + workload + ".png")
+	#plt.show()
 
 #end_def
 
 
-main()
+def script():
+
+	#workload_list = ["a", "b", "c", "d", "e", "f"]
+	workload_list = ["a", "b", "c", "d", "f"]
+
+	for workload in workload_list:
+		make_graph(workload)
+	#end_for
+
+#end_def
+
+
+def specific():
+
+	make_graph(sys.argv[1])
+
+#end_def
+
+
+script()
 
 
