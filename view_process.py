@@ -23,21 +23,17 @@ name_dict = {0:"DeleteElemFromSingleton", 1:"DeleteKeyFromSingleton", 2:"DeleteS
 def create_cdf(input_list, maxitem = None, scale = 1.0):
 
 	# input_list = []
-	# maxitem = 0
 	index_list = []
 	bucket_list = []
 	partial_bucket_sum = 0
 	cum_bucket_list = []
 
-	# Get maximum, if none specified:
+	# Get maximum, modulo capped at a specified parameter (if any):
 	if (maxitem == None):
-		maxitem = input_list[0]
-		for e in input_list:
-			if (e > maxitem):
-				maxitem = e
-			#end_if
-		#end_for
-	#end_if
+		maxitem = max(input_list)
+	else:
+		maxitem = min(maxitem, max(input_list))
+	#endif
 
 	# Create index, buckets:
 	for i in range(int(maxitem * scale) + 1):
@@ -47,6 +43,9 @@ def create_cdf(input_list, maxitem = None, scale = 1.0):
 
 	# Populate buckets:
 	for e in input_list:
+		if (e >= maxitem):
+			continue
+		#end_if
 		bucket_list[int(e * scale)] += 1
 	#end_for
 
@@ -149,24 +148,38 @@ def make_graph(workload):
 
 	process_loglines(input_file_name, results_list_list, type_dict)
 
+	'''
 	print(len(type_dict))
 	for e in type_dict:
 		print(type_dict[e][0])
 		print(len(type_dict[e][1]))
 		print(len(type_dict[e][2]))
 	#end_for
+	'''
 
 	fig, ax = plt.subplots()
+	fig2, ax2 = plt.subplots()
 
 	fig.set_size_inches(16,8)
+	fig2.set_size_inches(16,8)
 
+	index_list = []
+	cdf_list = []
+	cdf_max_x = 0
+	cdf_max_y = 0
 	#ax.scatter(results_list_list[0], results_list_list[1], s = 1)
 	for view_type in type_dict:
+		# Plot maintenance time over maintenance operation number:
 		ax.scatter(type_dict[view_type][1], type_dict[view_type][2], s = 1, label = name_dict[view_type] + " " + str(type_dict[view_type][0]))
+		# Generate and plot CDF of maintenance time:
+		index_list, cdf_list, _ = create_cdf(type_dict[view_type][2], maxitem = 100000)
+		ax2.scatter(index_list, cdf_list, s = 1, label = name_dict[view_type] + " " + str(type_dict[view_type][0]))
+		cdf_max_x = max(cdf_max_x, max(index_list))
+		cdf_max_y = max(cdf_max_y, max(cdf_list))
 	#end_for
 
-	ax.set_title("JITD View Operation Time:  YCSB " + workload + "\n(Crack size 100)", fontsize = 14, fontweight = "bold")
-	ax.set_xlabel("View operation number", fontsize = 14, fontweight = "bold")
+	ax.set_title("JITD View Maintenance Time:  YCSB " + workload + "\n(Crack size 100)", fontsize = 14, fontweight = "bold")
+	ax.set_xlabel("View maintenance set number", fontsize = 14, fontweight = "bold")
 	ax.set_ylabel("Time (CPU ticks)", fontsize = 14, fontweight = "bold")
 	ax.axis([0, len(results_list_list[0]), 0, max(results_list_list[1]) * 1.05])
 	#ax.axis([0, len(results_list_list[0]), 0, 100000]) #max(results_list_list[1]) * 1.05])
@@ -175,7 +188,14 @@ def make_graph(workload):
 	print(len(results_list_list[0]))
 	print(max(results_list_list[1]))
 
-	fig.savefig("view_graphs/view_graph_" + workload + ".png")
+	ax2.set_title("JITD View Maintenance CDF:  YCSB " + workload + "\n(Crack size 100)", fontsize = 14, fontweight = "bold")
+	ax2.set_xlabel("View maintenance time (CPU ticks) (Max 100k)", fontsize = 14, fontweight = "bold")
+	ax2.set_ylabel("Number of view maintenance sets\ntaking a given time (cumulative)", fontsize = 14, fontweight = "bold")
+	ax2.axis([0, cdf_max_x * 1.05, 0, cdf_max_y * 1.05])
+	ax2.legend(loc = "center right", markerscale = 8)
+
+	fig.savefig("view_graphs/view_time_" + workload + ".png")
+	fig2.savefig("view_graphs/view_cdf_" + workload + ".png")
 	#plt.show()
 
 #end_def
@@ -187,6 +207,7 @@ def script():
 	workload_list = ["a", "b", "c", "d", "f"]
 
 	for workload in workload_list:
+		print("Processing workload " + workload)
 		make_graph(workload)
 	#end_for
 
