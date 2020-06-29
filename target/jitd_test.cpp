@@ -18,6 +18,7 @@ long unsigned int sticks, diffticks;
 
 int delta_count = 0;
 int ticks_count = 0;
+int view_type;
 struct ticks_node ticks_array[TICKS_SIZE];
 
 std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0},
@@ -27,23 +28,33 @@ std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0}
 	{"CrackArray", 9}, {"SortArray", 10}, {"after_remove_singleton", 11},
 	{"after_remove_elements", 12}, {"after_insert", 13}, {"after_insert_singleton", 14}, {"PushDownAndCrack", 15} };
 
+inline void view_end() {
+
+	diffticks = rdtsc() - sticks;
+	if (ticks_count >= TICKS_SIZE) {
+		printf("Error:  view overflow\n");
+		_exit(1);
+	}
+	ticks_array[ticks_count].delta[delta_count] = diffticks;
+	delta_count++;
+	if (delta_count == 3) {
+		delta_count = 0;
+		ticks_array[ticks_count].id = ticks_count;
+		ticks_array[ticks_count].type = view_type;
+		ticks_count++;
+	}
+
+	return;
+
+}
+
 #define VIEW_START \
+	if (delta_count == 0) { \
+		view_type = view_map[std::string(__func__)]; \
+	} \
 	sticks = rdtsc();
 
-#define VIEW_END \
-	diffticks = rdtsc() - sticks; \
-	if (ticks_count >= TICKS_SIZE) { \
-		printf("Error:  view overflow\n"); \
-		_exit(1); \
-	} \
-	ticks_array[ticks_count].delta[delta_count] = diffticks; \
-	delta_count++; \
-	if (delta_count == 3) { \
-		delta_count = 0; \
-		ticks_array[ticks_count].id = ticks_count; \
-		ticks_array[ticks_count].type = view_map[std::string(__func__)]; \
-		ticks_count++; \
-	}
+#define VIEW_END view_end()
 
 #else
 
