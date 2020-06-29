@@ -121,7 +121,7 @@ class DeleteSingletonNode : public JITDNode {
 
   //NOTE:ITERATORS NEED TO BE SYNTHESIZED
   Iterator<Record> iterator();
-//  Iterator<Record> iterator(const Record key,const int size);
+  Iterator<Record> iterator(const Record key,const int size);
   
   public:  
     std::shared_ptr<JITDNode> node;
@@ -152,7 +152,7 @@ class DeleteElementsNode : public JITDNode {
 
   //NOTE:ITERATORS NEED TO BE SYNTHESIZED
   Iterator<Record> iterator();
-//  Iterator<Record> iterator(const Record key,const int size);
+  Iterator<Record> iterator(const Record key,const int size);
   
   public:  
     std::shared_ptr<JITDNode> node;
@@ -189,7 +189,7 @@ class BTreeNode : public JITDNode {
 
   //NOTE:ITERATORS NEED TO BE SYNTHESIZED
   Iterator<Record> iterator();
-//  Iterator<Record> iterator(const Record key,const int size);
+  Iterator<Record> iterator(const Record key,const int size);
   
   public:  
     std::shared_ptr<JITDNode> lhs;
@@ -227,7 +227,7 @@ class ConcatNode : public JITDNode {
 
   //NOTE:ITERATORS NEED TO BE SYNTHESIZED
   Iterator<Record> iterator();
-//  Iterator<Record> iterator(const Record key,const int size);
+  Iterator<Record> iterator(const Record key,const int size);
   
   public:  
     std::shared_ptr<JITDNode> lhs;
@@ -259,7 +259,7 @@ class SortedArrayNode : public JITDNode {
 
   //NOTE:ITERATORS NEED TO BE SYNTHESIZED
   Iterator<Record> iterator();
-//  Iterator<Record> iterator(const Record key,const int size);
+  Iterator<Record> iterator(const Record key,const int size);
   
   public:  
     std::vector<Record> data;
@@ -288,7 +288,7 @@ class ArrayNode : public JITDNode {
 
   //NOTE:ITERATORS NEED TO BE SYNTHESIZED
   Iterator<Record> iterator();
-//  Iterator<Record> iterator(const Record key,const int size);
+  Iterator<Record> iterator(const Record key,const int size);
   
   public:  
     std::vector<Record> data;
@@ -317,7 +317,7 @@ class SingletonNode : public JITDNode {
 
   //NOTE:ITERATORS NEED TO BE SYNTHESIZED
   Iterator<Record> iterator();
-//  Iterator<Record> iterator(const Record key,const int size);
+  Iterator<Record> iterator(const Record key,const int size);
   
   public:  
     Record elem;
