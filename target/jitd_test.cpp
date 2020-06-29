@@ -18,7 +18,6 @@ long unsigned int sticks, diffticks;
 
 int delta_count = 0;
 int view_count = 0;
-int view_type;
 struct view_node view_array[VIEW_SIZE];
 
 std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0},
@@ -40,9 +39,9 @@ std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0}
 	view_array[view_count].delta[delta_count] = diffticks; \
 	delta_count++; \
 	if (delta_count == 3) { \
+		delta_count = 0; \
 		view_array[view_count].id = view_count; \
 		view_array[view_count].type = view_map[std::string(__func__)]; \
-		delta_count = 0; \
 		view_count++; \
 	}
 
