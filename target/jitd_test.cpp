@@ -17,8 +17,8 @@ uint64_t rdtsc(){
 long unsigned int sticks, diffticks;
 
 int delta_count = 0;
-int view_count = 0;
-struct view_node view_array[VIEW_SIZE];
+int ticks_count = 0;
+struct ticks_node ticks_array[TICKS_SIZE];
 
 std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0},
 	{"DeleteKeyFromSingleton", 1}, {"DeleteSingletonFromArray", 2}, {"DeleteElemFromArray", 3},
@@ -32,17 +32,17 @@ std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0}
 
 #define VIEW_END \
 	diffticks = rdtsc() - sticks; \
-	if (view_count >= VIEW_SIZE) { \
+	if (ticks_count >= TICKS_SIZE) { \
 		printf("Error:  view overflow\n"); \
 		_exit(1); \
 	} \
-	view_array[view_count].delta[delta_count] = diffticks; \
+	ticks_array[ticks_count].delta[delta_count] = diffticks; \
 	delta_count++; \
 	if (delta_count == 3) { \
 		delta_count = 0; \
-		view_array[view_count].id = view_count; \
-		view_array[view_count].type = view_map[std::string(__func__)]; \
-		view_count++; \
+		ticks_array[ticks_count].id = ticks_count; \
+		ticks_array[ticks_count].type = view_map[std::string(__func__)]; \
+		ticks_count++; \
 	}
 
 #else
