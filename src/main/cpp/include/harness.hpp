@@ -66,9 +66,9 @@ struct storage_jitd_struct {
 	std::shared_ptr<JITD> jitd;
 };
 
-#define VIEW_SIZE 1000
+#define TICKS_SIZE 100000
 
-struct view_node {
+struct ticks_node {
 
 	int id;
 	int type;
@@ -76,8 +76,12 @@ struct view_node {
 
 };
 
-extern struct view_node view_array[];
-extern int view_count;
+struct maint_node {
+
+};
+
+extern struct ticks_node ticks_array[];
+extern int ticks_count;
 
 #endif
 
