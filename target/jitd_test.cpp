@@ -18,8 +18,10 @@ long unsigned int sticks, diffticks;
 
 int delta_count = 0;
 int ticks_count = 0;
-int view_type;
+int maint_count = 0;
+int maint_type;
 struct ticks_node ticks_array[TICKS_SIZE];
+struct maint_node maint_array[MAINT_SIZE];
 
 std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0},
 	{"DeleteKeyFromSingleton", 1}, {"DeleteSingletonFromArray", 2}, {"DeleteElemFromArray", 3},
@@ -40,7 +42,7 @@ inline void view_end() {
 	if (delta_count == 3) {
 		delta_count = 0;
 		ticks_array[ticks_count].id = ticks_count;
-		ticks_array[ticks_count].type = view_type;
+		ticks_array[ticks_count].maint_type = maint_type;
 		ticks_count++;
 	}
 
@@ -48,9 +50,49 @@ inline void view_end() {
 
 }
 
+// TODO:  N.b. -- no need to get extra info for Erase
+// TODO:  N.b. -- Possibly use get() to get JITDNode*
+inline void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw) {
+
+	if (maint_count > MAINT_SIZE) {
+		printf("Error:  maintenance overflow\n");
+		_exit(1);
+	}
+
+	maint_array[maint_count].maint_id = maint_count;
+	maint_array[maint_count].ticks_id = ticks_count;
+	maint_array[maint_count].rw = rw;
+	maint_array[maint_count].maint_type = maint_type;
+	maint_array[maint_count].node_type = (*node_handle)->type;
+	maint_array[maint_count].node_id = (unsigned long)node_handle;
+	maint_array[maint_count].parent = 0;
+
+	JITDNodeType node_type = (*node_handle)->type;
+
+	if (node_type == JITD_NODE_BTree) {
+		auto btree_node_handle = (std::shared_ptr<BTreeNode>*)node_handle;
+		auto lhs_handle = &((*btree_node_handle)->lhs);
+		auto rhs_handle = &((*btree_node_handle)->rhs);
+		maint_array[maint_count].lhs = (unsigned long)lhs_handle;
+		maint_array[maint_count].rhs = (unsigned long)rhs_handle;
+	}
+	if (node_type == JITD_NODE_Concat) {
+		auto concat_node_handle = (std::shared_ptr<ConcatNode>*)node_handle;
+		auto lhs_handle = &((*concat_node_handle)->lhs);
+		auto rhs_handle = &((*concat_node_handle)->rhs);
+		maint_array[maint_count].lhs = (unsigned long)lhs_handle;
+		maint_array[maint_count].rhs = (unsigned long)rhs_handle;
+	}
+
+	maint_count++;
+
+	return;
+
+}
+
 #define VIEW_START \
 	if (delta_count == 0) { \
-		view_type = view_map[std::string(__func__)]; \
+		maint_type = view_map[std::string(__func__)]; \
 	} \
 	sticks = rdtsc();
 
@@ -2904,6 +2946,9 @@ void JITD::SetPqAdd(std::shared_ptr<JITDNode> * node_handle)
 void JITD::viewAdd(std::shared_ptr<JITDNode>* node_handle)
 {
   if(node_handle == NULL){return;}
+
+record_maintenance(node_handle, 1);
+
   bool matched = false;
   std::shared_ptr<JITDNode> node_ptr;
     #ifdef ATOMIC_LOAD
@@ -2995,6 +3040,9 @@ this->CrackArray_View.emplace(node_handle);
 void JITD::viewErase(std::shared_ptr<JITDNode>* node_handle)
 {
   if(node_handle == NULL){return;}
+
+record_maintenance(node_handle, 0);
+
   bool matched = false;
   std::shared_ptr<JITDNode> node_ptr;
     #ifdef ATOMIC_LOAD
