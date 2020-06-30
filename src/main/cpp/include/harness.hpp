@@ -67,21 +67,34 @@ struct storage_jitd_struct {
 };
 
 #define TICKS_SIZE 100000
+#define MAINT_SIZE 100000
 
 struct ticks_node {
 
 	int id;
-	int type;
+	int maint_type;
 	int delta[3];
 
 };
 
 struct maint_node {
 
+	int maint_id;
+	int ticks_id;
+	int rw;
+	int maint_type;
+	int node_type;
+	unsigned long node_id;
+	unsigned long parent;
+	unsigned long lhs;
+	unsigned long rhs;
+
 };
 
 extern struct ticks_node ticks_array[];
+extern struct maint_node maint_array[];
 extern int ticks_count;
+extern int maint_count;
 
 #endif
 
