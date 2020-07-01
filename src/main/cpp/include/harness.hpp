@@ -84,10 +84,11 @@ struct maint_node {
 	int rw;
 	int maint_type;
 	int node_type;
-	unsigned long node_id;
-	unsigned long parent;
-	unsigned long lhs;
-	unsigned long rhs;
+	unsigned long node_self;
+	unsigned long node_parent;
+	unsigned long node_child;
+	unsigned long node_left;
+	unsigned long node_right;
 
 };
 
