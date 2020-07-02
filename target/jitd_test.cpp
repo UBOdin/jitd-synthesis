@@ -24,6 +24,8 @@ int maint_type;
 struct ticks_node ticks_array[TICKS_SIZE];
 struct maint_node maint_array[MAINT_SIZE];
 
+int maint_size = sizeof(maint_array);
+
 std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0},
 	{"DeleteKeyFromSingleton", 1}, {"DeleteSingletonFromArray", 2}, {"DeleteElemFromArray", 3},
 	{"PushDownDontDeleteSingletonBtreeRight", 4}, {"PushDownDontDeleteSingletonBtreeLeft", 5},
@@ -42,9 +44,7 @@ inline void view_end() {
 	delta_count++;
 	if (delta_count == 2) {
 		maint_block_start = maint_count;  // Record the start index of viewAdd calls for a maintenence operations (either transform or mutator)
-
 printf("Start block:  %d\n", maint_count);
-
 	}
 	if (delta_count == 3) {
 		delta_count = 0;
@@ -59,7 +59,7 @@ printf("Start block:  %d\n", maint_count);
 
 // TODO:  N.b. -- no need to get extra info for Erase
 // TODO:  N.b. -- Possibly use get() to get JITDNode*
-inline void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw) {
+inline void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw, JITD* jitd) {
 
 	if (maint_count > MAINT_SIZE) {
 		printf("Error:  maintenance overflow\n");
@@ -72,7 +72,25 @@ inline void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw) {
 	maint_array[maint_count].maint_type = maint_type;
 	maint_array[maint_count].node_type = (*node_handle)->type;
 	maint_array[maint_count].node_self = (unsigned long)node_handle;
-//	maint_array[maint_count].parent = (unsigned long)((*node_handle)->parent);
+
+	// Are we at the start of the viewAdd() block for a maintenance operation?  If so, get the parent of this node.
+	if (maint_count == maint_block_start) {
+		auto parent = jitd->getParent(node_handle);
+		// Then, either:
+		if (parent == NULL) {
+printf("Record null on line %d\n", maint_count);
+			// If parent is null, => node_handle is the jitd root.  => then either node_handle is ALSO
+			// (1)  the new root node (for a mutator operation),  (2)  the target node (for a transform), or
+			// (3)  the parent of the target node (for a transform).  In the case of #2, the previous call
+			// to viewAdd() for the parent node will have aborted, as it will have been called with a null
+			// parameter.  N.b. also that for #1 and #2, there will be a subsequent call to fixNodeDescendants()
+			// => record_parent() that will (redundantly) also set the parent to null.
+			maint_array[maint_count].node_parent = 54321;  // Magic value:  breadcrumb for sanity check later
+		} else {
+			// Otherwise, => this node is the _parent_
+			maint_array[maint_count].node_parent = (unsigned long)parent;
+		}
+	}
 
 	JITDNodeType node_type = (*node_handle)->type;
 
@@ -108,27 +126,28 @@ inline void record_parent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr
 
 	int lookback_index;
 
+	// Search recent maintenance operations for this node:
 	for (lookback_index = maint_block_start; lookback_index < maint_count; lookback_index++) {
-
 		if (maint_array[lookback_index].node_self == (unsigned long)node_handle) {
+			// Found match.  Set parent:
+//			maint_array[lookback_index].node_parent = (unsigned long)parent;
 
-if (maint_array[lookback_index].node_parent != 0) {
-	printf("Error:  double match\n");
-	_exit(1);
-}
+			// Sanity check:  Set parent if it has not been initialized before:
+			if (maint_array[lookback_index].node_parent == 0) {
+				maint_array[lookback_index].node_parent = (unsigned long)parent;
+				return;
+			}
+			// Else:  if parent node was previously set as magic proxy value for null, leave intact:
+			if ((maint_array[lookback_index].node_parent == 54321) and ((unsigned long)parent == 0)) {
+				return;
+			}
+			printf("Error:  Unexpected parent\n");
+			_exit(1);
 
-			maint_array[lookback_index].node_parent = (unsigned long)parent;
-
-if (parent == NULL) {
-	maint_array[lookback_index].node_parent = 12345;  // Magic value for testing
-}
-
-			return;
 		}
 	}
-
-printf("Error:  No match\n");
-_exit(1);
+	printf("Error:  No match\n");
+	_exit(1);
 
 	return;
 
@@ -2991,7 +3010,7 @@ void JITD::viewAdd(std::shared_ptr<JITDNode>* node_handle)
 {
   if(node_handle == NULL){return;}
 
-record_maintenance(node_handle, 1);
+record_maintenance(node_handle, 1, this);
 
   bool matched = false;
   std::shared_ptr<JITDNode> node_ptr;
@@ -3085,7 +3104,7 @@ void JITD::viewErase(std::shared_ptr<JITDNode>* node_handle)
 {
   if(node_handle == NULL){return;}
 
-record_maintenance(node_handle, 0);
+record_maintenance(node_handle, 0, this);
 
   bool matched = false;
   std::shared_ptr<JITDNode> node_ptr;
