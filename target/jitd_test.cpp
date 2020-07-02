@@ -80,19 +80,7 @@ inline void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw, J
 	// Are we at the start of the viewAdd() block for a maintenance operation?  If so, get the parent of this node.
 	if (maint_count == maint_block_start) {
 		auto parent = jitd->getParent(node_handle);
-		// Then, either:
-		if (parent == NULL) {
-			// If parent is null, => node_handle is the jitd root.  => then either node_handle is ALSO
-			// (1)  the new root node (for a mutator operation),  (2)  the target node (for a transform), or
-			// (3)  the parent of the target node (for a transform).  In the case of #2, the previous call
-			// to viewAdd() for the parent node will have aborted, as it will have been called with a null
-			// parameter.  N.b. also that for #1 and #2, there will be a subsequent call to fixNodeDescendants()
-			// => record_parent() that will (redundantly) also set the parent to null.
-			maint_array[maint_count].node_parent = 54321;  // Magic value:  breadcrumb for sanity check later
-		} else {
-			// Otherwise, => this node is the _parent_
-			maint_array[maint_count].node_parent = (unsigned long)parent;
-		}
+		maint_array[maint_count].node_parent = (unsigned long)parent;
 	}
 
 	JITDNodeType node_type = (*node_handle)->type;
