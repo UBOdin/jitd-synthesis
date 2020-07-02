@@ -44,7 +44,6 @@ inline void view_end() {
 	delta_count++;
 	if (delta_count == 2) {
 		maint_block_start = maint_count;  // Record the start index of viewAdd calls for a maintenence operations (either transform or mutator)
-printf("Start block:  %d\n", maint_count);
 	}
 	if (delta_count == 3) {
 		delta_count = 0;
@@ -57,7 +56,6 @@ printf("Start block:  %d\n", maint_count);
 
 }
 
-// TODO:  N.b. -- no need to get extra info for Erase
 // TODO:  N.b. -- Possibly use get() to get JITDNode*
 inline void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw, JITD* jitd) {
 
@@ -73,12 +71,17 @@ inline void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw, J
 	maint_array[maint_count].node_type = (*node_handle)->type;
 	maint_array[maint_count].node_self = (unsigned long)node_handle;
 
+	// If Erase, return:
+	if (rw == 0) {
+		maint_count++;
+		return;
+	}
+
 	// Are we at the start of the viewAdd() block for a maintenance operation?  If so, get the parent of this node.
 	if (maint_count == maint_block_start) {
 		auto parent = jitd->getParent(node_handle);
 		// Then, either:
 		if (parent == NULL) {
-printf("Record null on line %d\n", maint_count);
 			// If parent is null, => node_handle is the jitd root.  => then either node_handle is ALSO
 			// (1)  the new root node (for a mutator operation),  (2)  the target node (for a transform), or
 			// (3)  the parent of the target node (for a transform).  In the case of #2, the previous call
@@ -130,20 +133,8 @@ inline void record_parent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr
 	for (lookback_index = maint_block_start; lookback_index < maint_count; lookback_index++) {
 		if (maint_array[lookback_index].node_self == (unsigned long)node_handle) {
 			// Found match.  Set parent:
-//			maint_array[lookback_index].node_parent = (unsigned long)parent;
-
-			// Sanity check:  Set parent if it has not been initialized before:
-			if (maint_array[lookback_index].node_parent == 0) {
-				maint_array[lookback_index].node_parent = (unsigned long)parent;
-				return;
-			}
-			// Else:  if parent node was previously set as magic proxy value for null, leave intact:
-			if ((maint_array[lookback_index].node_parent == 54321) and ((unsigned long)parent == 0)) {
-				return;
-			}
-			printf("Error:  Unexpected parent\n");
-			_exit(1);
-
+			maint_array[lookback_index].node_parent = (unsigned long)parent;
+			return;
 		}
 	}
 	printf("Error:  No match\n");
