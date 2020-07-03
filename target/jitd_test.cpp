@@ -59,16 +59,20 @@ inline void view_end() {
 // TODO:  N.b. -- Possibly use get() to get JITDNode*
 inline void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw, JITD* jitd) {
 
+	JITDNodeType node_type;
+
 	if (maint_count > MAINT_SIZE) {
 		printf("Error:  maintenance overflow\n");
 		_exit(1);
 	}
 
+	node_type = (*node_handle)->type;
+
 	maint_array[maint_count].maint_id = maint_count;
 	maint_array[maint_count].ticks_id = ticks_count;
 	maint_array[maint_count].rw = rw;
 	maint_array[maint_count].maint_type = maint_type;
-	maint_array[maint_count].node_type = (*node_handle)->type;
+	maint_array[maint_count].node_type = node_type;;
 	maint_array[maint_count].node_self = (unsigned long)node_handle;
 
 	// If Erase, return:
@@ -83,8 +87,7 @@ inline void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw, J
 		maint_array[maint_count].node_parent = (unsigned long)parent;
 	}
 
-	JITDNodeType node_type = (*node_handle)->type;
-
+	// As appropriate per node type, get child ("->node"), left and right nodes:
 	if (node_type == JITD_NODE_DeleteSingleton) {
 		auto deletesingleton_node_handle = (std::shared_ptr<DeleteSingletonNode>*)node_handle;
 		auto child_handle = &((*deletesingleton_node_handle)->node);
