@@ -65,6 +65,7 @@
 #include <sstream>
 #include "jitd_test.hpp"
 #include "IteratorDefinition.hpp"
+#include "TopKIteratorDefinition.hpp"
 
 #define STORAGE_HANDLE struct storage_jitd_struct*
 
@@ -639,11 +640,11 @@ int save_output() {
 
 	// Save out view performance data:
 	int view_fd;
-	char view_filename[] = "output_view.txt";
+	char view_filename[] = "output_view_performance.txt";
 
 	// failsafe:
-	if (view_count > VIEW_SIZE) {
-		printf("View output overflow\n");
+	if (ticks_count > TICKS_SIZE) {
+		printf("View output overflow:  %d > %d\n", ticks_count, TICKS_SIZE);
 		_exit(1);
 	}
 
@@ -651,12 +652,12 @@ int save_output() {
 	errtrap("open");
 	view_fd = result;
 
-	for (int i = 0; i < view_count; i++) {
+	for (int i = 0; i < ticks_count; i++) {
 		charcount = 0;
-		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "%d\t%d", view_array[i].id, view_array[i].type);
+		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "%d\t%d", ticks_array[i].id, ticks_array[i].maint_type);
 		charcount += result;
 		for (int j = 0; j < 3; j++) {
-			result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%d", view_array[i].delta[j]);
+			result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%d", ticks_array[i].delta[j]);
 			charcount += result;
 		}
 		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\n");
@@ -666,6 +667,32 @@ int save_output() {
 	}
 
 	close(view_fd);
+	printf("Finished writing view timing data\n");
+
+	// Save out view maintenance data:
+	int maint_fd;
+	char maint_filename[] = "output_view_maintenance.txt";
+
+	// failsafe:
+	if (maint_count > MAINT_SIZE) {
+		printf("Maintenance output overflow:  %d > %d\n", maint_count, MAINT_SIZE);
+		_exit(1);
+	}
+
+	result = open(maint_filename, O_CREAT | O_RDWR | O_TRUNC, 0666);
+	errtrap("open");
+	maint_fd = result;
+
+	for (int i = 0; i < maint_count; i++) {
+		charcount = 0;
+		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "%d\t%d\t%d\t%d\t%d\t%lu\t%lu\t%lu\t%lu\t%lu\n", maint_array[i].maint_id, maint_array[i].ticks_id, maint_array[i].rw, maint_array[i].maint_type, maint_array[i].node_type, maint_array[i].node_self, maint_array[i].node_parent, maint_array[i].node_child, maint_array[i].node_left, maint_array[i].node_right);
+		charcount += result;
+		result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
+		errtrap("write");
+	}
+
+	close(maint_fd);
+
 	printf("Finished\n");
 	return 0;
 
@@ -732,6 +759,7 @@ void run_worker_thread(STORAGE_HANDLE storage) {
 	printf("Worker thread starting.\n");
 	steps_taken = storage->jitd->organize_wait();
 	printf("Worker thread exiting.  Steps taken:  %d\n", steps_taken);
+	printf("View steps:  %d\n", ticks_count);
 
 	return;
 
@@ -832,6 +860,9 @@ int main(int argc, char** argv) {
 	// Basic structural integrity check:
 //	test_struct(storage);
 
+extern int maint_size;
+memset(maint_array, 0, maint_size);
+
 	#ifdef STORAGE_JITD
 	// Populate jitd specific parameters:
 	storage->jitd->__array_size = atoi(argv[1]);
@@ -893,6 +924,12 @@ int main(int argc, char** argv) {
 		if (i == 300) {
 			break;
 		}
+*/
+
+/*
+if (maint_count > 280) {
+	break;
+}
 */
 
 		// Get next operation:
@@ -990,7 +1027,7 @@ int main(int argc, char** argv) {
 		output_array[i].size_array[1] = storage->jitd->PushDownSingletonRight_View.size();
 		output_array[i].size_array[2] = storage->jitd->PushDownDontDeleteSingletonBtreeLeft_View.size();
 		output_array[i].size_array[3] = storage->jitd->PushDownDontDeleteSingletonBtreeRight_View.size();
-		output_array[i].size_array[5] = storage->jitd->PushDownDontDeleteElemBtree_View.size();
+//		output_array[i].size_array[5] = storage->jitd->PushDownDontDeleteElemBtree_View.size();
 		output_array[i].size_array[7] = storage->jitd->CrackArray_View.size();
 		output_array[i].work_queue = storage->jitd->work_queue.size();
 		#endif
