@@ -91,7 +91,9 @@ inline void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw, J
 	if (node_type == JITD_NODE_DeleteSingleton) {
 		auto deletesingleton_node_handle = (std::shared_ptr<DeleteSingletonNode>*)node_handle;
 		auto child_handle = &((*deletesingleton_node_handle)->node);
+		long key = (*deletesingleton_node_handle)->elem;
 		maint_array[maint_count].node_child = (unsigned long)child_handle;
+		maint_array[maint_count].value = key;
 	} else if (node_type == JITD_NODE_DeleteElements) {
 		auto deleteelements_node_handle = (std::shared_ptr<DeleteElementsNode>*)node_handle;
 		auto child_handle = &((*deleteelements_node_handle)->node);
@@ -100,14 +102,28 @@ inline void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw, J
 		auto btree_node_handle = (std::shared_ptr<BTreeNode>*)node_handle;
 		auto left_handle = &((*btree_node_handle)->lhs);
 		auto right_handle = &((*btree_node_handle)->rhs);
+		long separator = (*btree_node_handle)->sep;
 		maint_array[maint_count].node_left = (unsigned long)left_handle;
 		maint_array[maint_count].node_right = (unsigned long)right_handle;
+		maint_array[maint_count].value = separator;
 	} else if (node_type == JITD_NODE_Concat) {
 		auto concat_node_handle = (std::shared_ptr<ConcatNode>*)node_handle;
 		auto left_handle = &((*concat_node_handle)->lhs);
 		auto right_handle = &((*concat_node_handle)->rhs);
 		maint_array[maint_count].node_left = (unsigned long)left_handle;
 		maint_array[maint_count].node_right = (unsigned long)right_handle;
+	} else if (node_type == JITD_NODE_SortedArray) {
+		auto sortedarray_node_handle = (std::shared_ptr<SortedArrayNode>*)node_handle;
+		size_t size = array_size((*sortedarray_node_handle)->data);
+		maint_array[maint_count].value = size;
+	} else if (node_type == JITD_NODE_Array) {
+		auto array_node_handle =  (std::shared_ptr<ArrayNode>*)node_handle;
+		size_t size = array_size((*array_node_handle)->data);
+		maint_array[maint_count].value = size;
+	} else if (node_type == JITD_NODE_Singleton) {
+		auto singleton_node_handle = (std::shared_ptr<SingletonNode>*)node_handle;
+		Record r = (*singleton_node_handle)->elem;
+		maint_array[maint_count].value = r.key;
 	}
 
 	maint_count++;
