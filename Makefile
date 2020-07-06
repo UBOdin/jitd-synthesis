@@ -6,7 +6,7 @@ CC = g++
 
 #CFLAGS  = -g -Wall -std=c++14
 #CFLAGS = -g -std=c++14 -pthread #-fwhole-program -flto -O2 # use -pthread, not -lpthread
-CFLAGS = -g -std=c++14 -pthread -O2 #-fwhole-program -flto -O2 -DTBB_USE_THREADING_TOOLS
+CFLAGS = -g -std=c++11 -pthread -O2 #-fwhole-program -flto -O2 -DTBB_USE_THREADING_TOOLS
 
 MAIN = jitd_harness.exe  # name of executable
 INCLUDES = -I src/main/cpp/include -I target -I /opt/intel/compilers_and_libraries_2020.0.166/linux/tbb/include
