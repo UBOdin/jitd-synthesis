@@ -6,7 +6,9 @@ CC = g++
 CFLAGS = -g -std=c++11 -O2
 
 MAIN = toaster_harness.exe  # name of executable
-INCLUDES = -I ../../../dbtoaster/lib/dbt_c++
+TOASTER_PATH = ../../../dbtoaster/lib/dbt_c++
+HARNESS_H_PATH = ../src/main/cpp/include
+INCLUDES = -I $(TOASTER_PATH) -I $(HARNESS_H_PATH)
 
 #SOURCE = .
 #HEADER = .
@@ -17,7 +19,7 @@ INCLUDES = -I ../../../dbtoaster/lib/dbt_c++
 default:  toaster_harness
 	@echo Build successful
 
-toaster_harness:  toaster_maintenance.cpp toaster_maintenance.hpp
+toaster_harness:  toaster_maintenance.cpp toaster_maintenance.hpp $(HARNESS_H_PATH)/harness.hpp
 	$(CC) $(CFLAGS) -o $(MAIN) toaster_maintenance.cpp $(INCLUDES) 
 
 clean: 
