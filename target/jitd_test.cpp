@@ -75,14 +75,10 @@ inline void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw, J
 	maint_array[maint_count].node_type = node_type;;
 	maint_array[maint_count].node_self = (unsigned long)node_handle;
 
-	// If Erase, return:
-	if (rw == 0) {
-		maint_count++;
-		return;
-	}
-
 	// Are we at the start of the viewAdd() block for a maintenance operation?  If so, get the parent of this node.
-	if (maint_count == maint_block_start) {
+	// Also get the parent for all viewErase() operations.  N.b. we do not get them for other viewAdd() operations,
+	// as they will be populated later through record_parent().
+	if ((maint_count == maint_block_start) || (rw == 0)) {
 		auto parent = jitd->getParent(node_handle);
 		maint_array[maint_count].node_parent = (unsigned long)parent;
 	}
