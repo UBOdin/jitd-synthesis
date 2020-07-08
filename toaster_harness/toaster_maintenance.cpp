@@ -114,7 +114,7 @@ int maintain_view_block(struct maint_node* node_array, int node_array_size) {
 		id = node_array[i].maint_id;
 		self = node_array[i].node_self;
 
-printf("Node rw %d type %d\n", rw, type);
+//printf("Node rw %d type %d\n", rw, type);
 
 
 		if (rw == 1) {
@@ -122,15 +122,15 @@ printf("Node rw %d type %d\n", rw, type);
 			if (type == JITD_NODE_DeleteSingleton) {
 				data.on_insert_DELETESINGLETON(id, self, node_array[i].node_child, node_array[i].value);
 			} else if (type == JITD_NODE_DeleteElements) {
-
+				goto err_missing_node;
 			} else if (type == JITD_NODE_BTree) {
 				data.on_insert_BTREE(id, self, node_array[i].node_left, node_array[i].node_right, node_array[i].value);
 			} else if (type == JITD_NODE_Concat) {
 				data.on_insert_CONCAT(id, self, node_array[i].node_left, node_array[i].node_right);
 			} else if (type == JITD_NODE_SortedArray) {
-
+				goto err_missing_node;
 			} else if (type == JITD_NODE_Array) {
-
+				data.on_insert_ARRAY(id, self, node_array[i].value);
 			} else if (type == JITD_NODE_Singleton) {
 				data.on_insert_SINGLETON(id, self, node_array[i].value);
 			}
@@ -140,15 +140,15 @@ printf("Node rw %d type %d\n", rw, type);
 			if (type == JITD_NODE_DeleteSingleton) {
 				data.on_delete_DELETESINGLETON(id, self, node_array[i].node_child, node_array[i].value);
 			} else if (type == JITD_NODE_DeleteElements) {
-
+				goto err_missing_node;
 			} else if (type == JITD_NODE_BTree) {
 				data.on_delete_BTREE(id, self, node_array[i].node_left, node_array[i].node_right, node_array[i].value);
 			} else if (type == JITD_NODE_Concat) {
 				data.on_delete_CONCAT(id, self, node_array[i].node_left, node_array[i].node_right);
 			} else if (type == JITD_NODE_SortedArray) {
-
+				goto err_missing_node;
 			} else if (type == JITD_NODE_Array) {
-
+				data.on_delete_ARRAY(id, self, node_array[i].value);
 			} else if (type == JITD_NODE_Singleton) {
 				data.on_delete_SINGLETON(id, self, node_array[i].value);
 			}
@@ -160,6 +160,10 @@ printf("Node rw %d type %d\n", rw, type);
 // TODO:  End timer; record data
 
 	return 0;
+
+    err_missing_node:
+	printf("Unsupported node type\n");
+	_exit(1);
 
 }
 
@@ -192,11 +196,11 @@ int process_input() {
 	while (1) {
 		i++;
 
-
+/*
 if (i == 300) {
 	break;
 }
-
+*/
 
 		chars_read = getline(&line_buffer, &buffer_size, input_stream);
 		if (chars_read == -1) {
@@ -214,7 +218,7 @@ if (i == 300) {
 				_exit(1);
 			}
 		} else {
-printf("Block size %d at iter %d and maint_id %d\n", node_index, i, node_array[node_index].maint_id);
+//printf("Block size %d at iter %d and maint_id %d\n", node_index, i, node_array[node_index].maint_id);
 
 			maintain_view_block(node_array, node_index);
 
