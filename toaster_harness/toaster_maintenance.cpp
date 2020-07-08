@@ -1,7 +1,8 @@
 
+#include <fcntl.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "toaster_maintenance.hpp"
 
@@ -17,7 +18,6 @@
 
 
 // Copied from jitd_test.hpp:
-
 typedef enum {
 
     JITD_NODE_DeleteSingleton,
@@ -37,16 +37,91 @@ typedef enum {
 } JITDNodeType;
 
 
+int ticks_count = 0;
+struct ticks_node ticks_array[TICKS_SIZE];
+
+
+
+// Copied from jitd_test.cpp:
+inline uint64_t rdtsc() {
+
+	unsigned int lo;
+	unsigned int hi;
+
+	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
+
+	return ((uint64_t)hi << 32) | lo;
+
+}
+
+
+// Copied from harness.cpp:
+#define errtrap(error) (__errtrap(result, error, __LINE__))
+void __errtrap(int result, const char* error, int line) {
+
+	if (result == -1) {
+		printf("Error in %s() on line %d:  %s\n", error, line, strerror(errno));
+		_exit(errno);
+	}
+
+	return;
+
+}
+
+
+// Copied from harness.cpp:
+int save_output() {
+
+	#define BUFFER_SIZE 256
+
+	int result;
+	char output_buffer[BUFFER_SIZE];
+	int charcount;
+
+	// Save out view performance data:
+	int view_fd;
+	char view_filename[] = "toaster_view_performance.txt";
+
+	// failsafe:
+	if (ticks_count > TICKS_SIZE) {
+		printf("Error:  view output overflow:  %d > %d\n", ticks_count, TICKS_SIZE);
+		_exit(1);
+	}
+
+	result = open(view_filename, O_CREAT | O_RDWR | O_TRUNC, 0666);
+	errtrap("open");
+	view_fd = result;
+
+	for (int i = 0; i < ticks_count; i++) {
+		charcount = 0;
+		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "%d\t%d", ticks_array[i].id, ticks_array[i].maint_type);
+		charcount += result;
+		for (int j = 0; j < 3; j++) {
+			result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%d", ticks_array[i].delta[j]);
+			charcount += result;
+		}
+		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\n");
+		charcount += result;
+		result = write(view_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
+		errtrap("write");
+	}
+
+	close(view_fd);
+	return 0;
+
+}
+
+
 inline void populate_node(char* line, size_t buffer, struct maint_node* node) {
 
 	char* token;
 	char* save;
-	const char delim[] = "\t";
+	const char delim[] = ",";
 
 	// Basic sanity:  are we using the correct delimiter?
 	token = strstr(line, delim);
 	if (token == NULL) {
-		printf("Invalid delimiter\n");
+		printf("Error:  invalid delimiter\n");
 		_exit(1);
 	}
 
@@ -105,8 +180,11 @@ int maintain_view_block(struct maint_node* node_array, int node_array_size) {
 	int type;
 	unsigned long id;
 	unsigned long self;
+	unsigned long time_start;
+	unsigned long time_delta;
 
-// TODO:  Start timer
+	time_start = rdtsc();
+
 	for (int i = 0; i < node_array_size; i++) {
 
 		rw = node_array[i].rw;
@@ -157,12 +235,24 @@ int maintain_view_block(struct maint_node* node_array, int node_array_size) {
 
 
 	}
-// TODO:  End timer; record data
+
+	time_delta = rdtsc() - time_start;
+
+	if (ticks_count >= TICKS_SIZE) {
+		printf("Error:  view overflow\n");
+		_exit(1);
+	}
+	ticks_array[ticks_count].id = ticks_count;
+	ticks_array[ticks_count].maint_type = node_array[0].maint_type;  // maintenance type should be the same for the entire block
+	ticks_array[ticks_count].delta[0] = time_delta;  // Sum of both erase / add
+	ticks_array[ticks_count].delta[1] = 0;
+	ticks_array[ticks_count].delta[2] = 0;
+	ticks_count++;
 
 	return 0;
 
     err_missing_node:
-	printf("Unsupported node type\n");
+	printf("Error:  unsupported node type\n");
 	_exit(1);
 
 }
@@ -171,7 +261,7 @@ int maintain_view_block(struct maint_node* node_array, int node_array_size) {
 int process_input() {
 
 	FILE* input_stream;
-	char input_file[] = "maintenance_input.tsv";
+	char input_file[] = "maintenance_input.csv";
 	int result;
 	ssize_t chars_read;
 	char* line_buffer = NULL;
@@ -214,7 +304,7 @@ if (i == 300) {
 //printf("Increment from %d on maint_id %d\n", node_index, node_array[node_index].maint_id);
 			node_index++;
 			if (node_index >= 16) {
-				printf("Node overflow\n");
+				printf("Error:  node overflow\n");
 				_exit(1);
 			}
 		} else {
@@ -236,6 +326,8 @@ if (i == 300) {
 	fclose(input_stream);
 
 printf("Lines read:  %d\n", i);
+
+	save_output();
 
 	return 0;
 
