@@ -66,6 +66,8 @@ struct storage_jitd_struct {
 	std::shared_ptr<JITD> jitd;
 };
 
+#endif
+
 #define TICKS_SIZE 100000
 #define MAINT_SIZE 100000
 
@@ -97,8 +99,6 @@ extern struct ticks_node ticks_array[];
 extern struct maint_node maint_array[];
 extern int ticks_count;
 extern int maint_count;
-
-#endif
 
 #ifdef STORAGE_MAP
 
