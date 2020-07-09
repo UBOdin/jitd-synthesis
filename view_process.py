@@ -79,6 +79,8 @@ def process_loglines(input_file_name, results_list_list, type_dict):
 	id_list = []
 	total_list = []
 
+	uber_total = 0
+
 	input_file_obj = open(input_file_name, "r")
 	#input_file_obj = open(input_file_name, "r")
 
@@ -116,8 +118,15 @@ def process_loglines(input_file_name, results_list_list, type_dict):
 
 		delta_total = delta0 + delta1 + delta2
 
+		if (delta_total > 100000):
+			print("100k")
+			print(iteration)
+		#end_if
+
 		id_list.append(iteration)
 		total_list.append(delta_total)
+
+		uber_total += delta_total
 
 		if (view_type not in type_dict):
 			type_dict[view_type] = [1, [iteration], [delta_total]]
@@ -129,6 +138,8 @@ def process_loglines(input_file_name, results_list_list, type_dict):
 
 	#end_while
 
+	print("Uber total:  " + str(uber_total))
+
 	results_list_list.append(id_list)
 	results_list_list.append(total_list)
 
@@ -137,14 +148,20 @@ def process_loglines(input_file_name, results_list_list, type_dict):
 #end_def
 
 
-def make_graph(workload):
+def make_graph(workload, maintenance):
 
-	#workload = ""
+	# workload = ""
+	# maintenance = ""
 	input_file_name = ""
 	results_list_list = []
 	type_dict = {}
 
-	input_file_name = "view_results/output_view_" + workload + ".txt"
+	if (maintenance == "jitd"):
+		input_file_name = "view_results/output_view_performance_" + workload + ".txt"
+	#end_if
+	if (maintenance == "dbt"):
+		input_file_name = "view_results/toaster_view_performance_" + workload + ".txt"
+	#end_if
 
 	process_loglines(input_file_name, results_list_list, type_dict)
 
@@ -188,14 +205,14 @@ def make_graph(workload):
 	print(len(results_list_list[0]))
 	print(max(results_list_list[1]))
 
-	ax2.set_title("JITD View Maintenance CDF:  YCSB " + workload + "\n(Crack size 100)", fontsize = 14, fontweight = "bold")
+	ax2.set_title(maintenance.upper() + " View Maintenance CDF:  YCSB " + workload + "\n(Crack size 100)", fontsize = 14, fontweight = "bold")
 	ax2.set_xlabel("View maintenance time (CPU ticks) (Max 100k)", fontsize = 14, fontweight = "bold")
 	ax2.set_ylabel("Number of view maintenance sets\ntaking a given time (cumulative)", fontsize = 14, fontweight = "bold")
 	ax2.axis([0, cdf_max_x * 1.05, 0, cdf_max_y * 1.05])
 	ax2.legend(loc = "center right", markerscale = 8)
 
-	fig.savefig("view_graphs/view_time_" + workload + ".png")
-	fig2.savefig("view_graphs/view_cdf_" + workload + ".png")
+	fig.savefig("view_graphs/view_time_" + workload + "_" + maintenance + ".png")
+	fig2.savefig("view_graphs/view_cdf_" + workload + "_" + maintenance + ".png")
 	#plt.show()
 
 #end_def
@@ -206,9 +223,13 @@ def script():
 	#workload_list = ["a", "b", "c", "d", "e", "f"]
 	workload_list = ["a", "b", "c", "d", "f"]
 
-	for workload in workload_list:
-		print("Processing workload " + workload)
-		make_graph(workload)
+	maintenance_list = ["jitd", "dbt"]
+
+	for maintenance in maintenance_list:
+		for workload in workload_list:
+			print("Processing maintenance " + maintenance + " and workload " + workload)
+			make_graph(workload, maintenance)
+		#end_for
 	#end_for
 
 #end_def
