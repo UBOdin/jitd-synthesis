@@ -321,6 +321,8 @@ if (i == 300) {
 		}
 
 	}
+	maintain_view_block(node_array, node_index);
+
 
 	free(line_buffer);
 	fclose(input_stream);
