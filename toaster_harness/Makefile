@@ -3,7 +3,7 @@
 
 CC = g++
 
-CFLAGS = -g -std=c++11 -O2
+CFLAGS = -g -std=c++11 -O3
 
 MAIN = toaster_harness.exe  # name of executable
 TOASTER_PATH = ../../../dbtoaster/lib/dbt_c++
