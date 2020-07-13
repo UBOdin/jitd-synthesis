@@ -189,7 +189,7 @@ int maintain_view_block(struct maint_node* node_array, int node_array_size) {
 
 		rw = node_array[i].rw;
 		type = node_array[i].node_type;
-		id = node_array[i].maint_id;
+		id = 0; // node_array[i].maint_id;
 		self = node_array[i].node_self;
 
 //printf("Node rw %d type %d\n", rw, type);
