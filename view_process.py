@@ -119,8 +119,7 @@ def process_loglines(input_file_name, results_list_list, type_dict):
 		delta_total = delta0 + delta1 + delta2
 
 		if (delta_total > 100000):
-			print("100k")
-			print(iteration)
+			print("Long latency:  %d on %d" % (iteration, delta_total))
 		#end_if
 
 		id_list.append(iteration)
@@ -148,7 +147,7 @@ def process_loglines(input_file_name, results_list_list, type_dict):
 #end_def
 
 
-def make_graph(workload, maintenance):
+def make_graph(workload, maintenance, fig, ax, fig2, ax2):
 
 	# workload = ""
 	# maintenance = ""
@@ -174,11 +173,13 @@ def make_graph(workload, maintenance):
 	#end_for
 	'''
 
+	'''
 	fig, ax = plt.subplots()
 	fig2, ax2 = plt.subplots()
 
 	fig.set_size_inches(16,8)
 	fig2.set_size_inches(16,8)
+	'''
 
 	index_list = []
 	cdf_list = []
@@ -189,17 +190,17 @@ def make_graph(workload, maintenance):
 		# Plot maintenance time over maintenance operation number:
 		ax.scatter(type_dict[view_type][1], type_dict[view_type][2], s = 1, label = name_dict[view_type] + " " + str(type_dict[view_type][0]))
 		# Generate and plot CDF of maintenance time:
-		index_list, cdf_list, _ = create_cdf(type_dict[view_type][2], maxitem = 100000)
+		index_list, cdf_list, _ = create_cdf(type_dict[view_type][2], maxitem = 1000000, scale = .1)
 		ax2.scatter(index_list, cdf_list, s = 1, label = name_dict[view_type] + " " + str(type_dict[view_type][0]))
 		cdf_max_x = max(cdf_max_x, max(index_list))
 		cdf_max_y = max(cdf_max_y, max(cdf_list))
 	#end_for
 
-	ax.set_title("JITD View Maintenance Time:  YCSB " + workload + "\n(Crack size 100)", fontsize = 14, fontweight = "bold")
+	ax.set_title(maintenance.upper() + " View Maintenance Time:  YCSB " + workload + "\n(Crack size 100)", fontsize = 14, fontweight = "bold")
 	ax.set_xlabel("View maintenance set number", fontsize = 14, fontweight = "bold")
 	ax.set_ylabel("Time (CPU ticks)", fontsize = 14, fontweight = "bold")
-	ax.axis([0, len(results_list_list[0]), 0, max(results_list_list[1]) * 1.05])
-	#ax.axis([0, len(results_list_list[0]), 0, 100000]) #max(results_list_list[1]) * 1.05])
+	#ax.axis([0, len(results_list_list[0]), 0, max(results_list_list[1]) * 1.05])
+	ax.axis([0, len(results_list_list[0]), 0, 80000]) #max(results_list_list[1]) * 1.05])
 	ax.legend(loc = "upper right", markerscale = 8)
 
 	print(len(results_list_list[0]))
@@ -208,11 +209,36 @@ def make_graph(workload, maintenance):
 	ax2.set_title(maintenance.upper() + " View Maintenance CDF:  YCSB " + workload + "\n(Crack size 100)", fontsize = 14, fontweight = "bold")
 	ax2.set_xlabel("View maintenance time (CPU ticks) (Max 100k)", fontsize = 14, fontweight = "bold")
 	ax2.set_ylabel("Number of view maintenance sets\ntaking a given time (cumulative)", fontsize = 14, fontweight = "bold")
-	ax2.axis([0, cdf_max_x * 1.05, 0, cdf_max_y * 1.05])
+	#ax2.axis([0, cdf_max_x * 1.05, 0, cdf_max_y * 1.05])
+	#ax2.axis([0, 750000, 0, cdf_max_y * 1.05])
 	ax2.legend(loc = "center right", markerscale = 8)
 
-	fig.savefig("view_graphs/view_time_" + workload + "_" + maintenance + ".png")
-	fig2.savefig("view_graphs/view_cdf_" + workload + "_" + maintenance + ".png")
+	#fig.savefig("view_graphs/view_time_" + workload + "_" + maintenance + ".png")
+	#fig2.savefig("view_graphs/view_cdf_" + workload + "_" + maintenance + ".png")
+	#plt.show()
+
+	return ax, ax2
+
+#end_def
+
+
+def make_pair(workload):
+
+	maintenance_list = ["jitd", "dbt"]
+
+	fig_time_stack, ax_time_list = plt.subplots(2, 1, sharex = True)
+	fig_cdf_stack, ax_cdf_list = plt.subplots(2, 1, sharex = True)
+
+	fig_time_stack.set_size_inches(18, 12)
+	fig_cdf_stack.set_size_inches(18, 12)
+
+	for i, maintenance in enumerate(maintenance_list):
+		make_graph(workload, maintenance, fig_time_stack, ax_time_list[i], fig_cdf_stack, ax_cdf_list[i])
+	#end_for
+
+	fig_time_stack.savefig("view_graphs/view_time_" + workload + "_" + maintenance + ".png");
+	fig_cdf_stack.savefig("view_graphs/view_cdf_" + workload + "_" + maintenance + ".png")
+
 	#plt.show()
 
 #end_def
@@ -223,13 +249,9 @@ def script():
 	#workload_list = ["a", "b", "c", "d", "e", "f"]
 	workload_list = ["a", "b", "c", "d", "f"]
 
-	maintenance_list = ["jitd", "dbt"]
-
-	for maintenance in maintenance_list:
-		for workload in workload_list:
-			print("Processing maintenance " + maintenance + " and workload " + workload)
-			make_graph(workload, maintenance)
-		#end_for
+	for workload in workload_list:
+		print("Processing maintenance " + workload)
+		make_pair(workload)
 	#end_for
 
 #end_def
@@ -237,7 +259,7 @@ def script():
 
 def specific():
 
-	make_graph(sys.argv[1])
+	make_pair(sys.argv[1])
 
 #end_def
 
