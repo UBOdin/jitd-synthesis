@@ -42,11 +42,11 @@ SELECT Concat.node_self FROM Concat, BTree, Array WHERE Concat.node_left = BTree
 
 /* PushDownSingletonLeft */
 /* SELECT a.id FROM Concat a, BTree b, Singleton c WHERE a.lhs = b.id AND a.rhs = c.id AND data < b.separator */
-SELECT Concat.node_self FROM Concat, BTree, Singleton WHERE Concat.node_left = BTree.node_self AND Concat.node_right = Singleton.node_self AND Singleton.key < BTree.separator;
+SELECT Concat.node_self FROM Concat, BTree, Singleton WHERE Concat.node_left = BTree.node_self AND Concat.node_right = Singleton.node_self /*AND Singleton.key < BTree.separator*/;
 
 /* PushDownSingletonRight */
 /* SELECT a.id FROM Concat a, BTree b, Singleton c WHERE a.lhs = b.id AND a.rhs = c.id AND data >= b.separator */
-SELECT Concat.node_self FROM Concat, BTree, Singleton WHERE Concat.node_left = BTree.node_self AND Concat.node_right = Singleton.node_self AND Singleton.key >= BTree.separator;
+/*SELECT Concat.node_self FROM Concat, BTree, Singleton WHERE Concat.node_left = BTree.node_self AND Concat.node_right = Singleton.node_self AND Singleton.key >= BTree.separator;*/
 
 /* PushDownDontDeleteElemBtree */
 /* SELECT a.id FROM DeleteElements a, BTree b WHERE a.lhs = b.id LIMIT 1 */
