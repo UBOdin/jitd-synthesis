@@ -6,7 +6,7 @@ CC = g++
 CFLAGS = -g -std=c++11 -O3
 
 MAIN = toaster_harness.exe  # name of executable
-TOASTER_PATH = ../../../dbtoaster/lib/dbt_c++
+TOASTER_PATH = ../../dbtoaster/lib/dbt_c++
 HARNESS_H_PATH = ../src/main/cpp/include
 INCLUDES = -I $(TOASTER_PATH) -I $(HARNESS_H_PATH)
 
