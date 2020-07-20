@@ -4,6 +4,8 @@ echo "Starting view batch"
 #workload_list="a b c d e f"
 workload_list="a b c d f"
 
+
+if [ "a" = "a" ]; then
 for workload in $workload_list; do
 
 	echo "Running workload ${workload}"
@@ -25,6 +27,8 @@ for workload in $workload_list; do
 	mv output_data.txt output_data_${workload}.txt
 
 done
+fi
+
 
 cd toaster_harness
 for workload in $workload_list; do
