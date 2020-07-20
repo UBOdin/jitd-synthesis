@@ -93,7 +93,9 @@ inline void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw, J
 	} else if (node_type == JITD_NODE_DeleteElements) {
 		auto deleteelements_node_handle = (std::shared_ptr<DeleteElementsNode>*)node_handle;
 		auto child_handle = &((*deleteelements_node_handle)->node);
+		size_t size = array_size((*deleteelements_node_handle)->data);
 		maint_array[maint_count].node_child = (unsigned long)child_handle;
+		maint_array[maint_count].value = size;
 	} else if (node_type == JITD_NODE_BTree) {
 		auto btree_node_handle = (std::shared_ptr<BTreeNode>*)node_handle;
 		auto left_handle = &((*btree_node_handle)->lhs);
