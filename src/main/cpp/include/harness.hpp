@@ -92,6 +92,7 @@ struct maint_node {
 	unsigned long node_left;
 	unsigned long node_right;
 	long value;  // Singleton => data; DeleteSingleton => key; BTree => sep; [Sorted]Array => size
+	long time_start;
 
 };
 

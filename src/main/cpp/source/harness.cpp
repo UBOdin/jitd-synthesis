@@ -685,8 +685,8 @@ int save_output() {
 
 	for (int i = 0; i < maint_count; i++) {
 		charcount = 0;
-//		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "%d\t%d\t%d\t%d\t%d\t%lu\t%lu\t%lu\t%lu\t%lu\t%ld\n", maint_array[i].maint_id, maint_array[i].ticks_id, maint_array[i].rw, maint_array[i].maint_type, maint_array[i].node_type, maint_array[i].node_self, maint_array[i].node_parent, maint_array[i].node_child, maint_array[i].node_left, maint_array[i].node_right, maint_array[i].value);
-		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "%d,%d,%d,%d,%d,%lu,%lu,%lu,%lu,%lu,%ld\n", maint_array[i].maint_id, maint_array[i].ticks_id, maint_array[i].rw, maint_array[i].maint_type, maint_array[i].node_type, maint_array[i].node_self, maint_array[i].node_parent, maint_array[i].node_child, maint_array[i].node_left, maint_array[i].node_right, maint_array[i].value);
+		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "%d\t%d\t%d\t%d\t%d\t%lu\t%lu\t%lu\t%lu\t%lu\t%ld\t%ld\n", maint_array[i].maint_id, maint_array[i].ticks_id, maint_array[i].rw, maint_array[i].maint_type, maint_array[i].node_type, maint_array[i].node_self, maint_array[i].node_parent, maint_array[i].node_child, maint_array[i].node_left, maint_array[i].node_right, maint_array[i].value, maint_array[i].time_start);
+//		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "%d,%d,%d,%d,%d,%lu,%lu,%lu,%lu,%lu,%ld,%ld\n", maint_array[i].maint_id, maint_array[i].ticks_id, maint_array[i].rw, maint_array[i].maint_type, maint_array[i].node_type, maint_array[i].node_self, maint_array[i].node_parent, maint_array[i].node_child, maint_array[i].node_left, maint_array[i].node_right, maint_array[i].value, maint_array[i].time_start);
 
 		charcount += result;
 		result = write(maint_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
