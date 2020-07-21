@@ -8,7 +8,7 @@
     std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
   
-
+    
     int count = 0;
     long bestScore = -1;
     long curr_score = -1;
@@ -16,8 +16,8 @@
     
     if(!(this->@{transform.name}_View).empty())
     {
-    
-      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      @{RenderPattern.iterator_declare(transform.from,scoreFn)}
+      //std::set< std::shared_ptr<JITDNode> * >::iterator it;
       
       it = (this->@{transform.name}_View).begin();
           
