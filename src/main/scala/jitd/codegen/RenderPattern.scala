@@ -121,6 +121,19 @@ object RenderPattern
       } 
     }
   }
+  def iterator_declare(from:MatchPattern,scoreFn:Expression):String=
+  {
+    val eligibility = PqPolicyImplementation.eligible(from)
+    if(eligibility == true && scoreFn != IntConstant(0))
+    {
+      s"std::set< std::shared_ptr<JITDNode> * >::iterator it;"
+    }
+    else
+    {
+      s"std::unordered_set< std::shared_ptr<JITDNode> * >::iterator it;"
+    }
+  }  
+
    def ViewDeclare(ctx:Render,rule:PolicyRule,init:Boolean): String = 
   {
     rule match {
@@ -161,7 +174,7 @@ object RenderPattern
           }
           val eligibility = PqPolicyImplementation.eligible(pattern)
               //println(trackablesets)
-              if (eligibility == true)
+              if (eligibility == true && scoreFn != IntConstant(0))
               {
                 if(init == true)
                 {
@@ -184,10 +197,10 @@ object RenderPattern
               else
               {
                  s"#ifdef CACHE_ALIGNED_ALLOCATOR\n"+
-                   s"std::set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> ${transfrom_name}_View;\n"+
+                   s"std::unordered_set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> ${transfrom_name}_View;\n"+
                    s"#endif\n"+
                     s"#ifdef DEFAULT_ALLOCATOR\n"+
-                  s"std::set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"+
+                  s"std::unordered_set<std::shared_ptr<JITDNode> *> ${transfrom_name}_View;\n"+
                    s"#endif\n"
                 
                 
