@@ -769,6 +769,44 @@ void run_worker_thread(STORAGE_HANDLE storage) {
 #endif
 
 
+int replay() {
+
+	FILE* input_stream;
+	char input_file[] = "output_view_maintenance.txt";
+	int result;
+	ssize_t chars_read;
+	char* line_buffer = NULL;
+	size_t buffer_size = 0;
+	int i = 0;
+
+	input_stream = fopen(input_file, "r");
+	if (input_stream == NULL) {
+		printf("Error:  opening input file\n");
+		_exit(1);
+	}
+
+	line_buffer = NULL;
+	buffer_size = 0;
+	i = -1;
+
+	// Skip first line (jitd structure creation):
+	chars_read = getline(&line_buffer, &buffer_size, input_stream);
+
+	while (1) {
+		i++;
+
+		chars_read = getline(&line_buffer, &buffer_size, input_stream);
+		if (chars_read == -1) {
+			break;
+		}
+
+	}
+
+	return 0;
+
+}
+
+
 int main(int argc, char** argv) {
 
 	STORAGE_HANDLE storage;
