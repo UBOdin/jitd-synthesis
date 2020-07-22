@@ -5,177 +5,12 @@
 #include "jitd_test.hpp"
 #include <thread>
 #ifdef RDTSC
-
-#define STORAGE_JITD
-#include "harness.hpp"
-
 uint64_t rdtsc(){
     unsigned int lo,hi;
     __asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
     return ((uint64_t)hi << 32) | lo;
 }
 long unsigned int sticks, diffticks;
-
-int delta_count = 0;
-int ticks_count = 0;
-int maint_count = 0;
-int maint_block_start = 0;
-int maint_type;
-struct ticks_node ticks_array[TICKS_SIZE];
-struct maint_node maint_array[MAINT_SIZE];
-
-int maint_size = sizeof(maint_array);
-
-std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0},
-	{"DeleteKeyFromSingleton", 1}, {"DeleteSingletonFromArray", 2}, {"DeleteElemFromArray", 3},
-	{"PushDownDontDeleteSingletonBtreeRight", 4}, {"PushDownDontDeleteSingletonBtreeLeft", 5},
-	{"PushDownDontDeleteElemBtree", 6}, {"PushDownSingletonRight", 7}, {"PushDownSingletonLeft", 8},
-	{"CrackArray", 9}, {"SortArray", 10}, {"after_remove_singleton", 11},
-	{"after_remove_elements", 12}, {"after_insert", 13}, {"after_insert_singleton", 14}, {"PushDownAndCrack", 15} };
-
-inline void view_end() {
-
-	diffticks = rdtsc() - sticks;
-	if (ticks_count >= TICKS_SIZE) {
-		printf("Error:  view overflow\n");
-		_exit(1);
-	}
-	ticks_array[ticks_count].delta[delta_count] = diffticks;
-	delta_count++;
-	if (delta_count == 2) {
-		maint_block_start = maint_count;  // Record the start index of viewAdd calls for a maintenence operations (either transform or mutator)
-	}
-	if (delta_count == 3) {
-		delta_count = 0;
-		ticks_array[ticks_count].id = ticks_count;
-		ticks_array[ticks_count].maint_type = maint_type;
-		ticks_count++;
-	}
-
-	return;
-
-}
-
-
-#define _viewErase(node_handle) record_maintenance(node_handle, 0, this)
-#define _viewAdd(node_handle) record_maintenance(node_handle, 1, this)
-#define _setParent(node_handle, parent) record_parent(node_handle, parent)
-#define _fixNodeDecendents(foo, bar)
-
-// XXX:  no longer need record_maintenance to be inline?
-
-
-// TODO:  N.b. -- Possibly use get() to get JITDNode*
-void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw, JITD* jitd) {
-
-	JITDNodeType node_type;
-
-	// Ignore null nodes (i.e. parent of jitd root):
-	if (node_handle == NULL) {
-		return;
-	}
-
-	if (maint_count > MAINT_SIZE) {
-		printf("Error:  maintenance overflow\n");
-		_exit(1);
-	}
-
-	node_type = (*node_handle)->type;
-
-	maint_array[maint_count].maint_id = maint_count;
-	maint_array[maint_count].ticks_id = ticks_count;
-	maint_array[maint_count].rw = rw;
-	maint_array[maint_count].maint_type = maint_type;
-	maint_array[maint_count].node_type = node_type;;
-	maint_array[maint_count].node_self = (unsigned long)node_handle;
-
-	// Are we at the start of the viewAdd() block for a maintenance operation?  If so, get the parent of this node.
-	// Also get the parent for all viewErase() operations.  N.b. we do not get them for other viewAdd() operations,
-	// as they will be populated later through record_parent().
-	if ((maint_count == maint_block_start) || (rw == 0)) {
-		auto parent = jitd->getParent(node_handle);
-		maint_array[maint_count].node_parent = (unsigned long)parent;
-	}
-
-	// As appropriate per node type, get child ("->node"), left and right nodes:
-	if (node_type == JITD_NODE_DeleteSingleton) {
-		auto deletesingleton_node_handle = (std::shared_ptr<DeleteSingletonNode>*)node_handle;
-		auto child_handle = &((*deletesingleton_node_handle)->node);
-		long key = (*deletesingleton_node_handle)->elem;
-		maint_array[maint_count].node_child = (unsigned long)child_handle;
-		maint_array[maint_count].value = key;
-	} else if (node_type == JITD_NODE_DeleteElements) {
-		auto deleteelements_node_handle = (std::shared_ptr<DeleteElementsNode>*)node_handle;
-		auto child_handle = &((*deleteelements_node_handle)->node);
-		size_t size = array_size((*deleteelements_node_handle)->data);
-		maint_array[maint_count].node_child = (unsigned long)child_handle;
-		maint_array[maint_count].value = size;
-	} else if (node_type == JITD_NODE_BTree) {
-		auto btree_node_handle = (std::shared_ptr<BTreeNode>*)node_handle;
-		auto left_handle = &((*btree_node_handle)->lhs);
-		auto right_handle = &((*btree_node_handle)->rhs);
-		long separator = (*btree_node_handle)->sep;
-		maint_array[maint_count].node_left = (unsigned long)left_handle;
-		maint_array[maint_count].node_right = (unsigned long)right_handle;
-		maint_array[maint_count].value = separator;
-	} else if (node_type == JITD_NODE_Concat) {
-		auto concat_node_handle = (std::shared_ptr<ConcatNode>*)node_handle;
-		auto left_handle = &((*concat_node_handle)->lhs);
-		auto right_handle = &((*concat_node_handle)->rhs);
-		maint_array[maint_count].node_left = (unsigned long)left_handle;
-		maint_array[maint_count].node_right = (unsigned long)right_handle;
-	} else if (node_type == JITD_NODE_SortedArray) {
-		auto sortedarray_node_handle = (std::shared_ptr<SortedArrayNode>*)node_handle;
-		size_t size = array_size((*sortedarray_node_handle)->data);
-		maint_array[maint_count].value = size;
-	} else if (node_type == JITD_NODE_Array) {
-		auto array_node_handle =  (std::shared_ptr<ArrayNode>*)node_handle;
-		size_t size = array_size((*array_node_handle)->data);
-		maint_array[maint_count].value = size;
-	} else if (node_type == JITD_NODE_Singleton) {
-		auto singleton_node_handle = (std::shared_ptr<SingletonNode>*)node_handle;
-		Record r = (*singleton_node_handle)->elem;
-		maint_array[maint_count].value = r.key;
-	}
-
-	maint_count++;
-
-	return;
-
-}
-
-void record_parent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr<JITDNode>* parent) {
-
-	int lookback_index;
-
-	// Search recent maintenance operations for this node:
-	for (lookback_index = maint_block_start; lookback_index < maint_count; lookback_index++) {
-		if (maint_array[lookback_index].node_self == (unsigned long)node_handle) {
-			// Found match.  Set parent:
-			maint_array[lookback_index].node_parent = (unsigned long)parent;
-			return;
-		}
-	}
-	printf("Error:  No match\n");
-	_exit(1);
-
-	return;
-
-}
-
-#define VIEW_START \
-	if (delta_count == 0) { \
-		maint_type = view_map[std::string(__func__)]; \
-	} \
-	sticks = rdtsc();
-
-#define VIEW_END view_end()
-
-#else
-
-#define VIEW_START
-#define VIEW_END
-
 #endif
 
 //#define JITD_DEBUG_POLICY true;
@@ -222,11 +57,6 @@ VIEW_END;
             SingletonNode *target_root_node = (SingletonNode *)(target_root_node_lock).get();
             {
               /*** ViewMaintenanceParent ***/
-
-              _viewErase(parent);
-              /*** ViewMaintenance ***/
-              _viewErase(target);
-              _viewErase(&(target_root->node));
 VIEW_START;
               viewErase(parent);
               /*** ViewMaintenance ***/
@@ -247,12 +77,6 @@ VIEW_END;
               std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
               #endif
               /*** ViewMaintenanceParent ***/
-
-              _viewAdd(parent);
-              /*** ViewMaintenance ***/
-              _viewAdd(target);
-              /*** ParentMaintenance ***/
-              _setParent(target,parent);
 VIEW_START;
               viewAdd(parent);
               /*** ViewMaintenance ***/
@@ -313,11 +137,6 @@ VIEW_END;
             SingletonNode *target_root_node = (SingletonNode *)(target_root_node_lock).get();
             {
               /*** ViewMaintenanceParent ***/
-
-              _viewErase(parent);
-              /*** ViewMaintenance ***/
-              _viewErase(target);
-              _viewErase(&(target_root->node));
 VIEW_START;
               viewErase(parent);
               /*** ViewMaintenance ***/
@@ -338,12 +157,6 @@ VIEW_END;
               std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
               #endif
               /*** ViewMaintenanceParent ***/
-
-              _viewAdd(parent);
-              /*** ViewMaintenance ***/
-              _viewAdd(target);
-              /*** ParentMaintenance ***/
-              _setParent(target,parent);
 VIEW_START;
               viewAdd(parent);
               /*** ViewMaintenance ***/
@@ -404,11 +217,6 @@ VIEW_END;
             ArrayNode *target_root_node = (ArrayNode *)(target_root_node_lock).get();
             {
               /*** ViewMaintenanceParent ***/
-
-              _viewErase(parent);
-              /*** ViewMaintenance ***/
-              _viewErase(target);
-              _viewErase(&(target_root->node));
 VIEW_START;
               viewErase(parent);
               /*** ViewMaintenance ***/
@@ -429,12 +237,6 @@ VIEW_END;
               std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
               #endif
               /*** ViewMaintenanceParent ***/
-
-              _viewAdd(parent);
-              /*** ViewMaintenance ***/
-              _viewAdd(target);
-              /*** ParentMaintenance ***/
-              _setParent(target,parent);
 VIEW_START;
               viewAdd(parent);
               /*** ViewMaintenance ***/
@@ -495,11 +297,6 @@ VIEW_END;
             ArrayNode *target_root_node = (ArrayNode *)(target_root_node_lock).get();
             {
               /*** ViewMaintenanceParent ***/
-
-              _viewErase(parent);
-              /*** ViewMaintenance ***/
-              _viewErase(target);
-              _viewErase(&(target_root->node));
 VIEW_START;
               viewErase(parent);
               /*** ViewMaintenance ***/
@@ -520,12 +317,6 @@ VIEW_END;
               std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
               #endif
               /*** ViewMaintenanceParent ***/
-
-              _viewAdd(parent);
-              /*** ViewMaintenance ***/
-              _viewAdd(target);
-              /*** ParentMaintenance ***/
-              _setParent(target,parent);
 VIEW_START;
               viewAdd(parent);
               /*** ViewMaintenance ***/
@@ -586,13 +377,6 @@ VIEW_END;
             BTreeNode *target_root_node = (BTreeNode *)(target_root_node_lock).get();
             {
               /*** ViewMaintenanceParent ***/
-
-              _viewErase(parent);
-              /*** ViewMaintenance ***/
-              _viewErase(target);
-              _viewErase(&(target_root->node));
-              _viewErase(&(target_root_node->lhs));
-              _viewErase(&(target_root_node->rhs));
 VIEW_START;
               viewErase(parent);
               /*** ViewMaintenance ***/
@@ -616,27 +400,6 @@ VIEW_END;
               std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
               #endif
               /*** ViewMaintenanceParent ***/
-
-              _viewAdd(parent);
-              /*** ViewMaintenance ***/
-              _viewAdd(target);
-              _viewAdd(&(to_ptr->lhs));
-              _viewAdd(&(to_ptr->rhs));
-              _viewAdd(&(to_ptr_rhs->node));
-              /*** ParentMaintenance ***/
-              _setParent(target,parent);
-              {
-                _setParent(&(to_ptr->lhs),target);
-                _fixNodeDecendents(&(to_ptr->lhs),&(to_ptr->lhs));
-              }
-              {
-                _setParent(&(to_ptr->rhs),target);
-                _fixNodeDecendents(&(to_ptr->rhs),&(to_ptr->rhs));
-              }
-              {
-                _setParent(&(to_ptr_rhs->node),&(to_ptr->rhs));
-                _fixNodeDecendents(&(to_ptr_rhs->node),&(to_ptr_rhs->node));
-              }
 VIEW_START;
               viewAdd(parent);
               /*** ViewMaintenance ***/
@@ -712,13 +475,6 @@ VIEW_END;
             BTreeNode *target_root_node = (BTreeNode *)(target_root_node_lock).get();
             {
               /*** ViewMaintenanceParent ***/
-
-              _viewErase(parent);
-              /*** ViewMaintenance ***/
-              _viewErase(target);
-              _viewErase(&(target_root->node));
-              _viewErase(&(target_root_node->lhs));
-              _viewErase(&(target_root_node->rhs));
 VIEW_START;
               viewErase(parent);
               /*** ViewMaintenance ***/
@@ -742,27 +498,6 @@ VIEW_END;
               std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
               #endif
               /*** ViewMaintenanceParent ***/
-
-              _viewAdd(parent);
-              /*** ViewMaintenance ***/
-              _viewAdd(target);
-              _viewAdd(&(to_ptr->lhs));
-              _viewAdd(&(to_ptr_lhs->node));
-              _viewAdd(&(to_ptr->rhs));
-              /*** ParentMaintenance ***/
-              _setParent(target,parent);
-              {
-                _setParent(&(to_ptr->lhs),target);
-                _fixNodeDecendents(&(to_ptr->lhs),&(to_ptr->lhs));
-              }
-              {
-                _setParent(&(to_ptr_lhs->node),&(to_ptr->lhs));
-                _fixNodeDecendents(&(to_ptr_lhs->node),&(to_ptr_lhs->node));
-              }
-              {
-                _setParent(&(to_ptr->rhs),target);
-                _fixNodeDecendents(&(to_ptr->rhs),&(to_ptr->rhs));
-              }
 VIEW_START;
               viewAdd(parent);
               /*** ViewMaintenance ***/
@@ -838,13 +573,6 @@ VIEW_END;
             BTreeNode *target_root_node = (BTreeNode *)(target_root_node_lock).get();
             {
               /*** ViewMaintenanceParent ***/
-
-              _viewErase(parent);
-              /*** ViewMaintenance ***/
-              _viewErase(target);
-              _viewErase(&(target_root->node));
-              _viewErase(&(target_root_node->lhs));
-              _viewErase(&(target_root_node->rhs));
 VIEW_START;
               viewErase(parent);
               /*** ViewMaintenance ***/
@@ -871,32 +599,6 @@ VIEW_END;
               std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
               #endif
               /*** ViewMaintenanceParent ***/
-
-              _viewAdd(parent);
-              /*** ViewMaintenance ***/
-              _viewAdd(target);
-              _viewAdd(&(to_ptr->lhs));
-              _viewAdd(&(to_ptr_lhs->node));
-              _viewAdd(&(to_ptr->rhs));
-              _viewAdd(&(to_ptr_rhs->node));
-              /*** ParentMaintenance ***/
-              _setParent(target,parent);
-              {
-                _setParent(&(to_ptr->lhs),target);
-                _fixNodeDecendents(&(to_ptr->lhs),&(to_ptr->lhs));
-              }
-              {
-                _setParent(&(to_ptr_lhs->node),&(to_ptr->lhs));
-                _fixNodeDecendents(&(to_ptr_lhs->node),&(to_ptr_lhs->node));
-              }
-              {
-                _setParent(&(to_ptr->rhs),target);
-                _fixNodeDecendents(&(to_ptr->rhs),&(to_ptr->rhs));
-              }
-              {
-                _setParent(&(to_ptr_rhs->node),&(to_ptr->rhs));
-                _fixNodeDecendents(&(to_ptr_rhs->node),&(to_ptr_rhs->node));
-              }
 VIEW_START;
               viewAdd(parent);
               /*** ViewMaintenance ***/
@@ -991,14 +693,6 @@ VIEW_END;
                 SingletonNode *target_root_rhs = (SingletonNode *)(target_root_rhs_lock).get();
                 {
                   /*** ViewMaintenanceParent ***/
-
-                  _viewErase(parent);
-                  /*** ViewMaintenance ***/
-                  _viewErase(target);
-                  _viewErase(&(target_root->lhs));
-                  _viewErase(&(target_root_lhs->lhs));
-                  _viewErase(&(target_root_lhs->rhs));
-                  _viewErase(&(target_root->rhs));
 VIEW_START;
                   viewErase(parent);
                   /*** ViewMaintenance ***/
@@ -1026,32 +720,6 @@ VIEW_END;
                   std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
                   #endif
                   /*** ViewMaintenanceParent ***/
-
-                  _viewAdd(parent);
-                  /*** ViewMaintenance ***/
-                  _viewAdd(target);
-                  _viewAdd(&(to_ptr->lhs));
-                  _viewAdd(&(to_ptr->rhs));
-                  _viewAdd(&(to_ptr_rhs->lhs));
-                  _viewAdd(&(to_ptr_rhs->rhs));
-                  /*** ParentMaintenance ***/
-                  _setParent(target,parent);
-                  {
-                    _setParent(&(to_ptr->lhs),target);
-                    _fixNodeDecendents(&(to_ptr->lhs),&(to_ptr->lhs));
-                  }
-                  {
-                    _setParent(&(to_ptr->rhs),target);
-                    _fixNodeDecendents(&(to_ptr->rhs),&(to_ptr->rhs));
-                  }
-                  {
-                    _setParent(&(to_ptr_rhs->lhs),&(to_ptr->rhs));
-                    _fixNodeDecendents(&(to_ptr_rhs->lhs),&(to_ptr_rhs->lhs));
-                  }
-                  {
-                    _setParent(&(to_ptr_rhs->rhs),&(to_ptr->rhs));
-                    _fixNodeDecendents(&(to_ptr_rhs->rhs),&(to_ptr_rhs->rhs));
-                  }
 VIEW_START;
                   viewAdd(parent);
                   /*** ViewMaintenance ***/
@@ -1151,14 +819,6 @@ VIEW_END;
                 SingletonNode *target_root_rhs = (SingletonNode *)(target_root_rhs_lock).get();
                 {
                   /*** ViewMaintenanceParent ***/
-
-                  _viewErase(parent);
-                  /*** ViewMaintenance ***/
-                  _viewErase(target);
-                  _viewErase(&(target_root->lhs));
-                  _viewErase(&(target_root_lhs->lhs));
-                  _viewErase(&(target_root_lhs->rhs));
-                  _viewErase(&(target_root->rhs));
 VIEW_START;
                   viewErase(parent);
                   /*** ViewMaintenance ***/
@@ -1186,33 +846,6 @@ VIEW_END;
                   std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
                   #endif
                   /*** ViewMaintenanceParent ***/
-
-                  _viewAdd(parent);
-                  /*** ViewMaintenance ***/
-                  _viewAdd(target);
-                  _viewAdd(&(to_ptr->lhs));
-                  _viewAdd(&(to_ptr_lhs->lhs));
-                  _viewAdd(&(to_ptr_lhs->rhs));
-                  _viewAdd(&(to_ptr->rhs));
-                  /*** ParentMaintenance ***/
-                  _setParent(target,parent);
-                  {
-                    _setParent(&(to_ptr->lhs),target);
-                    _fixNodeDecendents(&(to_ptr->lhs),&(to_ptr->lhs));
-                  }
-                  {
-                    _setParent(&(to_ptr_lhs->lhs),&(to_ptr->lhs));
-                    _fixNodeDecendents(&(to_ptr_lhs->lhs),&(to_ptr_lhs->lhs));
-                  }
-                  {
-                    _setParent(&(to_ptr_lhs->rhs),&(to_ptr->lhs));
-                    _fixNodeDecendents(&(to_ptr_lhs->rhs),&(to_ptr_lhs->rhs));
-                  }
-                  {
-                    _setParent(&(to_ptr->rhs),target);
-                    _fixNodeDecendents(&(to_ptr->rhs),&(to_ptr->rhs));
-                  }
-
 VIEW_START;
                   viewAdd(parent);
                   /*** ViewMaintenance ***/
@@ -1312,14 +945,6 @@ VIEW_END;
                 ArrayNode *target_root_rhs = (ArrayNode *)(target_root_rhs_lock).get();
                 {
                   /*** ViewMaintenanceParent ***/
-
-                  _viewErase(parent);
-                  /*** ViewMaintenance ***/
-                  _viewErase(target);
-                  _viewErase(&(target_root->lhs));
-                  _viewErase(&(target_root_lhs->lhs));
-                  _viewErase(&(target_root_lhs->rhs));
-                  _viewErase(&(target_root->rhs));
 VIEW_START;
                   viewErase(parent);
                   /*** ViewMaintenance ***/
@@ -1355,43 +980,6 @@ VIEW_END;
                   std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
                   #endif
                   /*** ViewMaintenanceParent ***/
-
-                  _viewAdd(parent);
-                  /*** ViewMaintenance ***/
-                  _viewAdd(target);
-                  _viewAdd(&(to_ptr->lhs));
-                  _viewAdd(&(to_ptr_lhs->lhs));
-                  _viewAdd(&(to_ptr_lhs->rhs));
-                  _viewAdd(&(to_ptr->rhs));
-                  _viewAdd(&(to_ptr_rhs->lhs));
-                  _viewAdd(&(to_ptr_rhs->rhs));
-                  /*** ParentMaintenance ***/
-                  _setParent(target,parent);
-                  {
-                    _setParent(&(to_ptr->lhs),target);
-                    _fixNodeDecendents(&(to_ptr->lhs),&(to_ptr->lhs));
-                  }
-                  {
-                    _setParent(&(to_ptr_lhs->lhs),&(to_ptr->lhs));
-                    _fixNodeDecendents(&(to_ptr_lhs->lhs),&(to_ptr_lhs->lhs));
-                  }
-                  {
-                    _setParent(&(to_ptr_lhs->rhs),&(to_ptr->lhs));
-                    _fixNodeDecendents(&(to_ptr_lhs->rhs),&(to_ptr_lhs->rhs));
-                  }
-                  {
-                    _setParent(&(to_ptr->rhs),target);
-                    _fixNodeDecendents(&(to_ptr->rhs),&(to_ptr->rhs));
-                  }
-                  {
-                    _setParent(&(to_ptr_rhs->lhs),&(to_ptr->rhs));
-                    _fixNodeDecendents(&(to_ptr_rhs->lhs),&(to_ptr_rhs->lhs));
-                  }
-                  {
-                    _setParent(&(to_ptr_rhs->rhs),&(to_ptr->rhs));
-                    _fixNodeDecendents(&(to_ptr_rhs->rhs),&(to_ptr_rhs->rhs));
-                  }
-
 VIEW_START;
                   viewAdd(parent);
                   /*** ViewMaintenance ***/
@@ -1473,10 +1061,6 @@ VIEW_END;
         ArrayNode *target_root = (ArrayNode *)(target_root_lock).get();
         {
           /*** ViewMaintenanceParent ***/
-
-          _viewErase(parent);
-          /*** ViewMaintenance ***/
-          _viewErase(target);
 VIEW_START;
           viewErase(parent);
           /*** ViewMaintenance ***/
@@ -1502,22 +1086,6 @@ VIEW_END;
           std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
           #endif
           /*** ViewMaintenanceParent ***/
-
-          _viewAdd(parent);
-          /*** ViewMaintenance ***/
-          _viewAdd(target);
-          _viewAdd(&(to_ptr->lhs));
-          _viewAdd(&(to_ptr->rhs));
-          /*** ParentMaintenance ***/
-          _setParent(target,parent);
-          {
-            _setParent(&(to_ptr->lhs),target);
-            _fixNodeDecendents(&(to_ptr->lhs),&(to_ptr->lhs));
-          }
-          {
-            _setParent(&(to_ptr->rhs),target);
-            _fixNodeDecendents(&(to_ptr->rhs),&(to_ptr->rhs));
-          }
 VIEW_START;
           viewAdd(parent);
           /*** ViewMaintenance ***/
@@ -1569,10 +1137,6 @@ VIEW_END;
         ArrayNode *target_root = (ArrayNode *)(target_root_lock).get();
         {
           /*** ViewMaintenanceParent ***/
-
-          _viewErase(parent);
-          /*** ViewMaintenance ***/
-          _viewErase(target);
 VIEW_START;
           viewErase(parent);
           /*** ViewMaintenance ***/
@@ -1592,12 +1156,6 @@ VIEW_END;
           std::atomic_store_explicit(target, to_ptr_ref,std::memory_order_release);
           #endif
           /*** ViewMaintenanceParent ***/
-
-          _viewAdd(parent);
-          /*** ViewMaintenance ***/
-          _viewAdd(target);
-          /*** ParentMaintenance ***/
-          _setParent(target,parent);
 VIEW_START;
           viewAdd(parent);
           /*** ViewMaintenance ***/
@@ -1765,8 +1323,6 @@ void JITD::after_remove_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITD
 {
 /*std::cout<<" The transform applied is:JITD::after_remove_singleton"<<std::endl;*/
   {
-
-    _viewErase(&( *(cq_elem.first)));
 VIEW_START;
     viewErase(&( *(cq_elem.first)));
 VIEW_END;
@@ -1785,19 +1341,11 @@ VIEW_END;
       std::atomic_store_explicit(&(cast_root->node),*(cq_elem.first),std::memory_order_release);
 
       #endif
-
-      _fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->node));
 VIEW_START;
       fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->node));
 VIEW_END;
     }
     /*** ViewMaintenance ***/
-
-    _viewAdd(&(*(cq_elem.second)));
-    _viewAdd(&(cast_root->node));
-    /*** ParentMaintenance ***/
-    _setParent(&(*(cq_elem.second)),NULL);
-    _setParent(&(cast_root->node),&(*(cq_elem.second)));
 VIEW_START;
     viewAdd(&(*(cq_elem.second)));
     viewAdd(&(cast_root->node));
@@ -1837,8 +1385,6 @@ void JITD::after_remove_elements(std::pair<std::shared_ptr<std::shared_ptr<JITDN
 {
 /*std::cout<<" The transform applied is:JITD::after_remove_elements"<<std::endl;*/
   {
-
-    _viewErase(&( *(cq_elem.first)));
 VIEW_START;
     viewErase(&( *(cq_elem.first)));
 VIEW_END;
@@ -1857,19 +1403,11 @@ VIEW_END;
       std::atomic_store_explicit(&(cast_root->node),*(cq_elem.first),std::memory_order_release);
 
       #endif
-
-      _fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->node));
 VIEW_START;
       fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->node));
 VIEW_END;
     }
     /*** ViewMaintenance ***/
-
-    _viewAdd(&(*(cq_elem.second)));
-    _viewAdd(&(cast_root->node));
-    /*** ParentMaintenance ***/
-    _setParent(&(*(cq_elem.second)),NULL);
-    _setParent(&(cast_root->node),&(*(cq_elem.second)));
 VIEW_START;
     viewAdd(&(*(cq_elem.second)));
     viewAdd(&(cast_root->node));
@@ -1912,8 +1450,6 @@ void JITD::after_insert(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std
 {
 /*std::cout<<" The transform applied is:JITD::after_insert"<<std::endl;*/
   {
-
-    _viewErase(&( *(cq_elem.first)));
 VIEW_START;
     viewErase(&( *(cq_elem.first)));
 VIEW_END;
@@ -1932,8 +1468,6 @@ VIEW_END;
       std::atomic_store_explicit(&(cast_root->lhs),*(cq_elem.first),std::memory_order_release);
 
       #endif
-
-      _fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->lhs));
 VIEW_START;
       fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->lhs));
 VIEW_END;
@@ -1941,14 +1475,6 @@ VIEW_END;
     {
     }
     /*** ViewMaintenance ***/
-
-    _viewAdd(&(*(cq_elem.second)));
-    _viewAdd(&(cast_root->lhs));
-    _viewAdd(&(cast_root->rhs));
-    /*** ParentMaintenance ***/
-    _setParent(&(*(cq_elem.second)),NULL);
-    _setParent(&(cast_root->lhs),&(*(cq_elem.second)));
-    _setParent(&(cast_root->rhs),&(*(cq_elem.second)));
 VIEW_START;
     viewAdd(&(*(cq_elem.second)));
     viewAdd(&(cast_root->lhs));
@@ -1993,8 +1519,6 @@ void JITD::after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITD
 {
 /*std::cout<<" The transform applied is:JITD::after_insert_singleton"<<std::endl;*/
   {
-
-    _viewErase(&( *(cq_elem.first)));
 VIEW_START;
     viewErase(&( *(cq_elem.first)));
 VIEW_END;
@@ -2013,8 +1537,6 @@ VIEW_END;
       std::atomic_store_explicit(&(cast_root->lhs),*(cq_elem.first),std::memory_order_release);
 
       #endif
-
-      _fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->lhs));
 VIEW_START;
       fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->lhs));
 VIEW_END;
@@ -2022,14 +1544,6 @@ VIEW_END;
     {
     }
     /*** ViewMaintenance ***/
-
-    _viewAdd(&(*(cq_elem.second)));
-    _viewAdd(&(cast_root->lhs));
-    _viewAdd(&(cast_root->rhs));
-    /*** ParentMaintenance ***/
-    _setParent(&(*(cq_elem.second)),NULL);
-    _setParent(&(cast_root->lhs),&(*(cq_elem.second)));
-    _setParent(&(cast_root->rhs),&(*(cq_elem.second)));
 VIEW_START;
     viewAdd(&(*(cq_elem.second)));
     viewAdd(&(cast_root->lhs));
@@ -2253,7 +1767,7 @@ bool JITD::matchCrackArray(std::shared_ptr<JITDNode> * &targetHandleRef)
 	if(target_root_lock->type != JITD_NODE_Array){return false; }
 ArrayNode *target_root_lock_real = (ArrayNode *)target_root_lock;
 
-	if((array_size((target_root_lock_real->data))) > (__array_size))
+	if((array_size((target_root_lock_real->data))) > (100))
     {
     	return true;
     }
@@ -2270,7 +1784,7 @@ ArrayNode *target_root_lock_real = (ArrayNode *)target_root_lock;
     std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
   
-
+    
     int count = 0;
     long bestScore = -1;
     long curr_score = -1;
@@ -2278,8 +1792,8 @@ ArrayNode *target_root_lock_real = (ArrayNode *)target_root_lock;
     
     if(!(this->PushDownSingletonLeft_View).empty())
     {
-    
-      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      std::unordered_set< std::shared_ptr<JITDNode> * >::iterator it;
+      //std::set< std::shared_ptr<JITDNode> * >::iterator it;
       
       it = (this->PushDownSingletonLeft_View).begin();
           
@@ -2320,7 +1834,7 @@ SingletonNode *iter_node_real_rhs_real = (SingletonNode *)iter_node_real_rhs;
     std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
   
-
+    
     int count = 0;
     long bestScore = -1;
     long curr_score = -1;
@@ -2328,8 +1842,8 @@ SingletonNode *iter_node_real_rhs_real = (SingletonNode *)iter_node_real_rhs;
     
     if(!(this->PushDownSingletonRight_View).empty())
     {
-    
-      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      std::unordered_set< std::shared_ptr<JITDNode> * >::iterator it;
+      //std::set< std::shared_ptr<JITDNode> * >::iterator it;
       
       it = (this->PushDownSingletonRight_View).begin();
           
@@ -2370,7 +1884,7 @@ SingletonNode *iter_node_real_rhs_real = (SingletonNode *)iter_node_real_rhs;
     std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
   
-
+    
     int count = 0;
     long bestScore = -1;
     long curr_score = -1;
@@ -2378,8 +1892,8 @@ SingletonNode *iter_node_real_rhs_real = (SingletonNode *)iter_node_real_rhs;
     
     if(!(this->PushDownDontDeleteSingletonBtreeLeft_View).empty())
     {
-    
-      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      std::unordered_set< std::shared_ptr<JITDNode> * >::iterator it;
+      //std::set< std::shared_ptr<JITDNode> * >::iterator it;
       
       it = (this->PushDownDontDeleteSingletonBtreeLeft_View).begin();
           
@@ -2417,7 +1931,7 @@ BTreeNode *iter_node_real_node_real = (BTreeNode *)iter_node_real_node;
     std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
   
-
+    
     int count = 0;
     long bestScore = -1;
     long curr_score = -1;
@@ -2425,8 +1939,8 @@ BTreeNode *iter_node_real_node_real = (BTreeNode *)iter_node_real_node;
     
     if(!(this->PushDownDontDeleteSingletonBtreeRight_View).empty())
     {
-    
-      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      std::unordered_set< std::shared_ptr<JITDNode> * >::iterator it;
+      //std::set< std::shared_ptr<JITDNode> * >::iterator it;
       
       it = (this->PushDownDontDeleteSingletonBtreeRight_View).begin();
           
@@ -2464,7 +1978,7 @@ BTreeNode *iter_node_real_node_real = (BTreeNode *)iter_node_real_node;
     std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
   
-
+    
     int count = 0;
     long bestScore = -1;
     long curr_score = -1;
@@ -2472,8 +1986,8 @@ BTreeNode *iter_node_real_node_real = (BTreeNode *)iter_node_real_node;
     
     if(!(this->DeleteSingletonFromArray_View).empty())
     {
-    
-      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      std::unordered_set< std::shared_ptr<JITDNode> * >::iterator it;
+      //std::set< std::shared_ptr<JITDNode> * >::iterator it;
       
       it = (this->DeleteSingletonFromArray_View).begin();
           
@@ -2511,7 +2025,7 @@ ArrayNode *iter_node_real_node_real = (ArrayNode *)iter_node_real_node;
     std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
   
-
+    
     int count = 0;
     long bestScore = -1;
     long curr_score = -1;
@@ -2519,8 +2033,8 @@ ArrayNode *iter_node_real_node_real = (ArrayNode *)iter_node_real_node;
     
     if(!(this->PushDownAndCrack_View).empty())
     {
-    
-      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      std::unordered_set< std::shared_ptr<JITDNode> * >::iterator it;
+      //std::set< std::shared_ptr<JITDNode> * >::iterator it;
       
       it = (this->PushDownAndCrack_View).begin();
           
@@ -2561,7 +2075,7 @@ ArrayNode *iter_node_real_rhs_real = (ArrayNode *)iter_node_real_rhs;
     std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
   
-
+    
     int count = 0;
     long bestScore = -1;
     long curr_score = -1;
@@ -2569,8 +2083,8 @@ ArrayNode *iter_node_real_rhs_real = (ArrayNode *)iter_node_real_rhs;
     
     if(!(this->CrackArray_View).empty())
     {
-    
       std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      //std::set< std::shared_ptr<JITDNode> * >::iterator it;
       
       it = (this->CrackArray_View).begin();
           
@@ -2583,7 +2097,7 @@ ArrayNode *iter_node_real_rhs_real = (ArrayNode *)iter_node_real_rhs;
 ArrayNode *iter_node_real = (ArrayNode *)iter_node;
 
 
-          if((array_size((iter_node_real->data))) > (__array_size)){
+          if((array_size((iter_node_real->data))) > (100)){
             bestScore = array_size((iter_node_real->data));
           
           targetHandleRef = (*it);
@@ -2635,7 +2149,7 @@ int JITD::organize_wait()
         #ifdef SPIN
         while(this->work_queue.try_pop(pop_mce) == false)
         {
-            std::this_thread::sleep_for(std::chrono::microseconds(__sleep_time));
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
         }
         #endif
 
@@ -3592,9 +3106,6 @@ std::shared_ptr<JITDNode> * JITD::getParentMap(std::shared_ptr<JITDNode> * &targ
 */
 void JITD::setParent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr<JITDNode>* parent)
 {
-
-record_parent(node_handle, parent);
-
     std::shared_ptr<JITDNode> node_ptr;
     #ifdef ATOMIC_LOAD
     node_ptr = std::atomic_load((node_handle));
@@ -4043,7 +3554,7 @@ iter->second = parent;
 ///////////////////// Debugging Utilities ///////////////////// 
 void JITD::times_transforms_called()
 {
-  #ifdef TRANSFORM_COUNT
+  
     std::cout<<"The transform DeleteElemFromSingleton was called "<< DeleteElemFromSingleton_count<<" times"<<std::endl;
   
     std::cout<<"The transform DeleteKeyFromSingleton was called "<< DeleteKeyFromSingleton_count<<" times"<<std::endl;
@@ -4067,7 +3578,7 @@ void JITD::times_transforms_called()
     std::cout<<"The transform CrackArray was called "<< CrackArray_count<<" times"<<std::endl;
   
     std::cout<<"The transform SortArray was called "<< SortArray_count<<" times"<<std::endl;
-  #endif
+  
 }
 std::shared_ptr<JITD> assemble_jitd(std::istream &in)
 {

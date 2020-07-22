@@ -440,40 +440,40 @@ std::set<std::shared_ptr<JITDNode> *> JITD_NODE_DeleteSingleton_set;
 std::set<std::shared_ptr<JITDNode> *, CrackArray_Cmp> CrackArray_PQ;
 */
     #ifdef CACHE_ALIGNED_ALLOCATOR
-std::set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownSingletonLeft_View;
+std::unordered_set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownSingletonLeft_View;
 #endif
 #ifdef DEFAULT_ALLOCATOR
-std::set<std::shared_ptr<JITDNode> *> PushDownSingletonLeft_View;
+std::unordered_set<std::shared_ptr<JITDNode> *> PushDownSingletonLeft_View;
 #endif
 #ifdef CACHE_ALIGNED_ALLOCATOR
-std::set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownSingletonRight_View;
+std::unordered_set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownSingletonRight_View;
 #endif
 #ifdef DEFAULT_ALLOCATOR
-std::set<std::shared_ptr<JITDNode> *> PushDownSingletonRight_View;
+std::unordered_set<std::shared_ptr<JITDNode> *> PushDownSingletonRight_View;
 #endif
 #ifdef CACHE_ALIGNED_ALLOCATOR
-std::set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownDontDeleteSingletonBtreeLeft_View;
+std::unordered_set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownDontDeleteSingletonBtreeLeft_View;
 #endif
 #ifdef DEFAULT_ALLOCATOR
-std::set<std::shared_ptr<JITDNode> *> PushDownDontDeleteSingletonBtreeLeft_View;
+std::unordered_set<std::shared_ptr<JITDNode> *> PushDownDontDeleteSingletonBtreeLeft_View;
 #endif
 #ifdef CACHE_ALIGNED_ALLOCATOR
-std::set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownDontDeleteSingletonBtreeRight_View;
+std::unordered_set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownDontDeleteSingletonBtreeRight_View;
 #endif
 #ifdef DEFAULT_ALLOCATOR
-std::set<std::shared_ptr<JITDNode> *> PushDownDontDeleteSingletonBtreeRight_View;
+std::unordered_set<std::shared_ptr<JITDNode> *> PushDownDontDeleteSingletonBtreeRight_View;
 #endif
 #ifdef CACHE_ALIGNED_ALLOCATOR
-std::set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> DeleteSingletonFromArray_View;
+std::unordered_set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> DeleteSingletonFromArray_View;
 #endif
 #ifdef DEFAULT_ALLOCATOR
-std::set<std::shared_ptr<JITDNode> *> DeleteSingletonFromArray_View;
+std::unordered_set<std::shared_ptr<JITDNode> *> DeleteSingletonFromArray_View;
 #endif
 #ifdef CACHE_ALIGNED_ALLOCATOR
-std::set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownAndCrack_View;
+std::unordered_set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownAndCrack_View;
 #endif
 #ifdef DEFAULT_ALLOCATOR
-std::set<std::shared_ptr<JITDNode> *> PushDownAndCrack_View;
+std::unordered_set<std::shared_ptr<JITDNode> *> PushDownAndCrack_View;
 #endif
 #ifdef CACHE_ALIGNED_ALLOCATOR
 std::set<std::shared_ptr<JITDNode> *, CrackArray_Cmp,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> CrackArray_View;
@@ -662,10 +662,7 @@ void after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>
 
     //void initialize_struts(std::shared_ptr<JITDNode>* node, std::shared_ptr<JITDNode>* parent);
     void initialize_struts_view(std::shared_ptr<JITDNode>* node, std::shared_ptr<JITDNode>* parent);
-
-	// Parameters for benchmark use:
-	int __array_size;                       // Array crack threshhold
-	int __sleep_time;                       // Worker intra-spin block time
+    
     
   private:
 
