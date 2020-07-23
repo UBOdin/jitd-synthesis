@@ -440,37 +440,37 @@ std::set<std::shared_ptr<JITDNode> *> JITD_NODE_DeleteSingleton_set;
 std::set<std::shared_ptr<JITDNode> *, CrackArray_Cmp> CrackArray_PQ;
 */
     #ifdef CACHE_ALIGNED_ALLOCATOR
-std::unordered_set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownSingletonLeft_View;
+std::unordered_set<std::shared_ptr<JITDNode> *,std::hash<std::shared_ptr<JITDNode> *>,std::equal_to<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownSingletonLeft_View;
 #endif
 #ifdef DEFAULT_ALLOCATOR
 std::unordered_set<std::shared_ptr<JITDNode> *> PushDownSingletonLeft_View;
 #endif
 #ifdef CACHE_ALIGNED_ALLOCATOR
-std::unordered_set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownSingletonRight_View;
+std::unordered_set<std::shared_ptr<JITDNode> *,std::hash<std::shared_ptr<JITDNode> *>,std::equal_to<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownSingletonRight_View;
 #endif
 #ifdef DEFAULT_ALLOCATOR
 std::unordered_set<std::shared_ptr<JITDNode> *> PushDownSingletonRight_View;
 #endif
 #ifdef CACHE_ALIGNED_ALLOCATOR
-std::unordered_set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownDontDeleteSingletonBtreeLeft_View;
+std::unordered_set<std::shared_ptr<JITDNode> *,std::hash<std::shared_ptr<JITDNode> *>,std::equal_to<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownDontDeleteSingletonBtreeLeft_View;
 #endif
 #ifdef DEFAULT_ALLOCATOR
 std::unordered_set<std::shared_ptr<JITDNode> *> PushDownDontDeleteSingletonBtreeLeft_View;
 #endif
 #ifdef CACHE_ALIGNED_ALLOCATOR
-std::unordered_set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownDontDeleteSingletonBtreeRight_View;
+std::unordered_set<std::shared_ptr<JITDNode> *,std::hash<std::shared_ptr<JITDNode> *>,std::equal_to<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownDontDeleteSingletonBtreeRight_View;
 #endif
 #ifdef DEFAULT_ALLOCATOR
 std::unordered_set<std::shared_ptr<JITDNode> *> PushDownDontDeleteSingletonBtreeRight_View;
 #endif
 #ifdef CACHE_ALIGNED_ALLOCATOR
-std::unordered_set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> DeleteSingletonFromArray_View;
+std::unordered_set<std::shared_ptr<JITDNode> *,std::hash<std::shared_ptr<JITDNode> *>,std::equal_to<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> DeleteSingletonFromArray_View;
 #endif
 #ifdef DEFAULT_ALLOCATOR
 std::unordered_set<std::shared_ptr<JITDNode> *> DeleteSingletonFromArray_View;
 #endif
 #ifdef CACHE_ALIGNED_ALLOCATOR
-std::unordered_set<std::shared_ptr<JITDNode> *,std::less<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownAndCrack_View;
+std::unordered_set<std::shared_ptr<JITDNode> *,std::hash<std::shared_ptr<JITDNode> *>,std::equal_to<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownAndCrack_View;
 #endif
 #ifdef DEFAULT_ALLOCATOR
 std::unordered_set<std::shared_ptr<JITDNode> *> PushDownAndCrack_View;
