@@ -1,5 +1,6 @@
 
 #include <string>
+#include <mutex>
 
 // N.b. using namespace to resolve enum collision (INSERT)
 
@@ -100,6 +101,7 @@ extern struct ticks_node ticks_array[];
 extern struct maint_node maint_array[];
 extern int ticks_count;
 extern int maint_count;
+extern std::mutex trace_lock;
 
 #ifdef STORAGE_MAP
 
@@ -138,5 +140,5 @@ extern long output_size;
 
 long gettime_us();
 void __errtrap(int result, const char* error, int line);
-
+void record_mutator(int, int, unsigned long, unsigned long);
 
