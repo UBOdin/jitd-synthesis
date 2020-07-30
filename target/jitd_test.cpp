@@ -1764,6 +1764,7 @@ void JITD::after_remove_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITD
 /*std::cout<<" The transform applied is:JITD::after_remove_singleton"<<std::endl;*/
   {
 
+maint_type = view_map[std::string(__func__)];
     _viewErase(&( *(cq_elem.first)));
 VIEW_START;
     viewErase(&( *(cq_elem.first)));
@@ -1836,6 +1837,7 @@ void JITD::after_remove_elements(std::pair<std::shared_ptr<std::shared_ptr<JITDN
 /*std::cout<<" The transform applied is:JITD::after_remove_elements"<<std::endl;*/
   {
 
+maint_type = view_map[std::string(__func__)];
     _viewErase(&( *(cq_elem.first)));
 VIEW_START;
     viewErase(&( *(cq_elem.first)));
@@ -1911,6 +1913,7 @@ void JITD::after_insert(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std
 /*std::cout<<" The transform applied is:JITD::after_insert"<<std::endl;*/
   {
 
+maint_type = view_map[std::string(__func__)];
     _viewErase(&( *(cq_elem.first)));
 VIEW_START;
     viewErase(&( *(cq_elem.first)));
@@ -1992,6 +1995,7 @@ void JITD::after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITD
 /*std::cout<<" The transform applied is:JITD::after_insert_singleton"<<std::endl;*/
   {
 
+maint_type = view_map[std::string(__func__)];
     _viewErase(&( *(cq_elem.first)));
 VIEW_START;
     viewErase(&( *(cq_elem.first)));
