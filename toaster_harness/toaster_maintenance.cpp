@@ -183,6 +183,66 @@ int maintain_view_block(struct maint_node* node_array, int node_array_size) {
 	unsigned long time_start;
 	unsigned long time_delta;
 
+const QUERY_1_COUNT_map& query_1 = data.get_QUERY_1_COUNT();
+const QUERY_2_COUNT_map& query_2 = data.get_QUERY_2_COUNT();
+const QUERY_3_COUNT_map& query_3 = data.get_QUERY_3_COUNT();
+const QUERY_4_COUNT_map& query_4 = data.get_QUERY_4_COUNT();
+const QUERY_5_COUNT_map& query_5 = data.get_QUERY_5_COUNT();
+const QUERY_6_COUNT_map& query_6 = data.get_QUERY_6_COUNT();
+
+struct QUERY_1_COUNT_entry* entry_1;
+struct QUERY_2_COUNT_entry* entry_2;
+struct QUERY_3_COUNT_entry* entry_3;
+struct QUERY_4_COUNT_entry* entry_4;
+struct QUERY_5_COUNT_entry* entry_5;
+struct QUERY_6_COUNT_entry* entry_6;
+
+
+Index<QUERY_3_COUNT_entry, long>* index_3;  // N.b. NOT HashIndex.  Also 2-parameter template <>, not 4-parameter one.
+index_3 = query_3.index[0];
+
+
+int transform = 0;
+
+if (query_3.head != nullptr) {
+	transform = 78;
+} else if (query_4.head != nullptr) {
+	transform = 5;
+} else if (query_5.head != nullptr) {
+	transform = 4;
+} else if (query_6.head != nullptr) {
+	transform = 2;
+} else if (query_2.head != nullptr) {
+	transform = 15;
+} else if (query_1.head != nullptr) {
+	transform = 9;
+} else {
+//	printf("Error:  No available transform\n");
+//	_exit(1);
+}
+
+
+printf("%d %d %d %d -- %lu %lu %lu %lu %lu %lu", node_array[0].maint_id, node_array[0].ticks_id, node_array[0].maint_type, transform, query_1.count(), query_2.count(), query_3.count(), query_4.count(), query_5.count(), query_6.count());
+
+
+long mt = node_array[0].maint_type;
+
+if ((mt == 7) || (mt == 8)) {
+	mt = 78;
+}
+if (transform != mt) {
+
+	if (((mt == 11) && (transform == 0)) || ((mt == 14) && ((transform == 4) || (transform == 5)))) {
+		printf("  PATTERN");
+	} else {
+		printf("  MISMATCH");
+	}
+
+}
+printf("\n");
+
+
+
 	time_start = rdtsc();
 
 	for (int i = 0; i < node_array_size; i++) {
@@ -320,14 +380,14 @@ if (i == 300) {
 			node_index = 1;
 		}
 
+
 	}
 	maintain_view_block(node_array, node_index);
-
 
 	free(line_buffer);
 	fclose(input_stream);
 
-printf("Lines read:  %d\n", i);
+printf("\nLines read:  %d\n", i);
 
 	save_output();
 
