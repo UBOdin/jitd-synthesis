@@ -8,6 +8,7 @@
 
 #define STORAGE_JITD
 #include "harness.hpp"
+#include <mutex>
 
 uint64_t rdtsc(){
     unsigned int lo,hi;
@@ -25,6 +26,7 @@ struct ticks_node ticks_array[TICKS_SIZE];
 struct maint_node maint_array[MAINT_SIZE];
 
 int maint_size = sizeof(maint_array);
+std::mutex trace_lock;
 
 std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0},
 	{"DeleteKeyFromSingleton", 1}, {"DeleteSingletonFromArray", 2}, {"DeleteElemFromArray", 3},
@@ -63,6 +65,26 @@ inline void view_end() {
 #define _fixNodeDecendents(foo, bar)
 
 // XXX:  no longer need record_maintenance to be inline?
+
+
+void record_mutator(int id, int optype, unsigned long key, unsigned long value) {
+
+	maint_array[maint_count].maint_id = maint_count;
+	maint_array[maint_count].ticks_id = 0;
+	maint_array[maint_count].rw = 2;
+	maint_array[maint_count].maint_type = 9999;
+	maint_array[maint_count].node_type = optype;
+//	maint_array[maint_count].node_self = (unsigned long)node_handle;
+
+	maint_array[maint_count].node_left = key;
+	maint_array[maint_count].node_right = value;
+
+	maint_array[maint_count].time_start = gettime_us();
+	maint_count++;
+
+	return;
+
+}
 
 
 // TODO:  N.b. -- Possibly use get() to get JITDNode*
@@ -138,6 +160,7 @@ void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw, JITD* ji
 		maint_array[maint_count].value = r.key;
 	}
 
+	maint_array[maint_count].time_start = gettime_us();
 	maint_count++;
 
 	return;
@@ -2617,7 +2640,9 @@ int JITD::organize_wait()
       if(this->work_queue.empty() && not_done == true)
       {
         
+trace_lock.lock();
         not_done = this->do_organize();
+trace_lock.unlock();
         t++;
         //std::cout<<"JITD_PRINT: "<<not_done<<std::endl;
         //this->print_debug();
@@ -2652,7 +2677,8 @@ int JITD::organize_wait()
           return t;
         }
         
-        else if(pop_mce.flag == FLAG_remove_singleton)
+trace_lock.lock();
+        /*else*/ if(pop_mce.flag == FLAG_remove_singleton)
         {
           this->after_remove_singleton(pop_mce.element);
           not_done = true;
@@ -2702,6 +2728,7 @@ int JITD::organize_wait()
           exit(-1);
         }
         
+trace_lock.unlock();
       }
       
     
