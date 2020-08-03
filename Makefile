@@ -72,13 +72,10 @@ help:
 default: $(MAIN)
 	@echo Build successful
 
-jitd_storage_jitd:  jitd_${atomic}_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o data.o
+jitd_storage_jitd:  jitd_${atomic}_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o harness_replay_${alloc}_${thread}.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_${atomic}_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o data.o $(TBB_LIBRARY) -ltbb
-	@echo built with jitd storage with ${atomic} atomic, ${alloc} allocator, ${thread} thread, and ${delay} delay
-
-replay:  jitd_${atomic}_${alloc}_${delay}.o harness_replay_${alloc}_${thread}.o data.o
 	$(CC) $(CFLAGS) -o replay_harness.exe jitd_${atomic}_${alloc}_${delay}.o harness_replay_${alloc}_${thread}.o data.o $(TBB_LIBRARY) -ltbb
-	@echo built replay framework with ${atomic} atomic, ${alloc} allocator, ${thread} thread, and ${delay} delay
+	@echo built with jitd storage with ${atomic} atomic, ${alloc} allocator, ${thread} thread, and ${delay} delay
 
 jitd_storage_sqlite:  jitd_test.o harness_sqlite.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_test.o harness_sqlite.o data.o -lsqlite3
