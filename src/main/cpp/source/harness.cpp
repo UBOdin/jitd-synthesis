@@ -654,7 +654,7 @@ int save_output() {
 	close(output_fd);
 	printf("Finished writing operation data\n");
 
-	#ifdef REPLAY
+	#if defined REPLAY_JITD || defined REPLAY_DBT
 
 	// Save out view performance data:
 	int view_fd;
@@ -687,8 +687,7 @@ int save_output() {
 	close(view_fd);
 	printf("Finished writing view timing data\n");
 
-	#endif
-	#ifndef REPLAY
+	#else
 
 	// Save out view maintenance data:
 	int maint_fd;
@@ -1085,9 +1084,13 @@ int main(int argc, char** argv) {
 	printf("Using Unordered Map storage\n");
 	#endif
 
-	#ifdef REPLAY
-	printf("Running REPLAY trace harness\n");
-	#else
+	#ifdef REPLAY_JITD
+	printf("Running REPLAY_JITD trace harness\n");
+	#endif
+	#ifdef REPLAY_DBT
+	printf("Running REPLAY_DBT trace harness");
+	#endif
+	#if not defined REPLAY_JITD && not defined REPLAY_DBT
 	printf("Running COLLECT trace harness\n");
 	#endif
 
@@ -1129,7 +1132,7 @@ memset(maint_array, 0, maint_size);
 	printf("worker sleeptime:  %d\n", storage->jitd->__sleep_time);
 	storage->jitd->get_node_count();
 
-#ifdef REPLAY
+#if defined REPLAY_JITD || defined REPLAY_DBT
 replay_trace(storage);
 _exit(0);
 #endif
