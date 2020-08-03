@@ -72,9 +72,9 @@ help:
 default: $(MAIN)
 	@echo Build successful
 
-jitd_storage_jitd:  jitd_${atomic}_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o harness_replay_${alloc}_${thread}.o data.o
+jitd_storage_jitd:  jitd_${atomic}_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o replay_${atomic}_${alloc}_${delay}.o harness_replay_${alloc}_${thread}.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_${atomic}_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o data.o $(TBB_LIBRARY) -ltbb
-	$(CC) $(CFLAGS) -o replay_harness.exe jitd_${atomic}_${alloc}_${delay}.o harness_replay_${alloc}_${thread}.o data.o $(TBB_LIBRARY) -ltbb
+	$(CC) $(CFLAGS) -o replay_harness.exe replay_${atomic}_${alloc}_${delay}.o harness_replay_${alloc}_${thread}.o data.o $(TBB_LIBRARY) -ltbb -D REPLAY
 	@echo built with jitd storage with ${atomic} atomic, ${alloc} allocator, ${thread} thread, and ${delay} delay
 
 jitd_storage_sqlite:  jitd_test.o harness_sqlite.o data.o
@@ -92,6 +92,9 @@ jitd_storage_uom:  harness_uom.o data.o
 
 jitd_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H)
 	$(CC) $(CFLAGS) -o jitd_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) ${jitd_defines}
+
+replay_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H)
+	$(CC) $(CFLAGS) -o replay_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) ${jitd_defines} -D REPLAY
 
 
 harness_jitd_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
