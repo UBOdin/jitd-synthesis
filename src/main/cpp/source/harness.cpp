@@ -893,7 +893,6 @@ int replay_trace(STORAGE_HANDLE storage) {
 
 // TODO:  TIME each searchFor operation and record that, too
 // TODO:  Replay on DBT
-// TODO:  Add additional preprocessor build parameters to switch between JITD and DBT
 
 	i = 0;  // Skip first line for JITD (the initial prepopulation)
 // TODO -- only do this for JITD
@@ -909,9 +908,11 @@ int replay_trace(STORAGE_HANDLE storage) {
 		rw = maint_array[i].rw;
 		if (rw == 0) {
 
+			#ifdef REPLAY_JITD
+
 			maint_type = maint_array[i].maint_type;
 
-			// For JITD, need to handle after_FOO maintenance separately:
+			// For JITD, need to spell out which (if any) after mutator operations:
 			if (maint_type == 11) {
 				storage->jitd->work_queue.pop(pop_mce);
 				assert(pop_mce.flag == FLAG_remove_singleton);
@@ -940,11 +941,23 @@ int replay_trace(STORAGE_HANDLE storage) {
 				i++;
 			}
 
+			#endif
+			#ifdef REPLAY_DBT
+
+			#endif
+
 		} else if (rw == 1) {
 
-// TODO:  Should be error only for JITD, not DBT
+			#ifdef REPLAY_JITD
+
 			printf("Error:  Unexpected Add\n");
 			_exit(1);
+
+			#endif
+			#ifdef REPLAY_DBT
+
+
+			#endif
 
 		} else if (rw == 2) {
 
