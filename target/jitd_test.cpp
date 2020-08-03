@@ -3038,7 +3038,7 @@ void JITD::viewAdd(std::shared_ptr<JITDNode>* node_handle)
 {
   if(node_handle == NULL){return;}
 
-#ifndef REPLAY
+#if not defined REPLAY_JITD && not defined REPLAY_DBT
 record_maintenance(node_handle, 1, this);
 #endif
 
@@ -3134,7 +3134,7 @@ void JITD::viewErase(std::shared_ptr<JITDNode>* node_handle)
 {
   if(node_handle == NULL){return;}
 
-#ifndef REPLAY
+#if not defined REPLAY_JITD && not defined REPLAY_DBT
 record_maintenance(node_handle, 0, this);
 #endif
 
@@ -3300,7 +3300,7 @@ std::shared_ptr<JITDNode> * JITD::getParentMap(std::shared_ptr<JITDNode> * &targ
 void JITD::setParent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr<JITDNode>* parent)
 {
 
-#ifndef REPLAY
+#if not defined REPLAY_JITD && not defined REPLAY_DBT
 record_parent(node_handle, parent);
 #endif
 
