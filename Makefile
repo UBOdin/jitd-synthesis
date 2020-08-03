@@ -72,9 +72,10 @@ help:
 default: $(MAIN)
 	@echo Build successful
 
-jitd_storage_jitd:  jitd_${atomic}_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o replay_${atomic}_${alloc}_${delay}.o harness_replay_${alloc}_${thread}.o data.o
+jitd_storage_jitd:  jitd_${atomic}_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o replay_jitd_${atomic}_${alloc}_${delay}.o harness_replay_jitd_${alloc}_${thread}.o replay_dbt_${atomic}_${alloc}_${delay}.o harness_replay_dbt_${alloc}_${thread}.o data.o
 	$(CC) $(CFLAGS) -o $(MAIN) jitd_${atomic}_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o data.o $(TBB_LIBRARY) -ltbb
-	$(CC) $(CFLAGS) -o replay_harness.exe replay_${atomic}_${alloc}_${delay}.o harness_replay_${alloc}_${thread}.o data.o $(TBB_LIBRARY) -ltbb -D REPLAY
+	$(CC) $(CFLAGS) -o replay_jitd.exe replay_jitd_${atomic}_${alloc}_${delay}.o harness_replay_jitd_${alloc}_${thread}.o data.o $(TBB_LIBRARY) -ltbb -D REPLAY_JITD
+	$(CC) $(CFLAGS) -o replay_dbt.exe replay_dbt_${atomic}_${alloc}_${delay}.o harness_replay_dbt_${alloc}_${thread}.o data.o $(TBB_LIBRARY) -ltbb -D REPLAY_DBT
 	@echo built with jitd storage with ${atomic} atomic, ${alloc} allocator, ${thread} thread, and ${delay} delay
 
 jitd_storage_sqlite:  jitd_test.o harness_sqlite.o data.o
@@ -93,17 +94,24 @@ jitd_storage_uom:  harness_uom.o data.o
 jitd_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H)
 	$(CC) $(CFLAGS) -o jitd_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) ${jitd_defines}
 
-replay_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H)
-	$(CC) $(CFLAGS) -o replay_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) ${jitd_defines} -D REPLAY
+replay_jitd_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H)
+	$(CC) $(CFLAGS) -o replay_jitd_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) ${jitd_defines} -D REPLAY_JITD
+
+replay_dbt_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H)
+	$(CC) $(CFLAGS) -o replay_dbt_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) ${jitd_defines} -D REPLAY_DBT
 
 
 harness_jitd_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_JITD" > $(CONF_H)
 	$(CC) $(CFLAGS) -o harness_jitd_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) ${harness_defines}
 
-harness_replay_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
+harness_replay_jitd_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_JITD" > $(CONF_H)
-	$(CC) $(CFLAGS) -o harness_replay_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) ${harness_defines} -D REPLAY
+	$(CC) $(CFLAGS) -o harness_replay_jitd_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) ${harness_defines} -D REPLAY_JITD
+
+harness_replay_dbt_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
+	@echo "#define STORAGE_JITD" > $(CONF_H)
+	$(CC) $(CFLAGS) -o harness_replay_dbt_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) ${harness_defines} -D REPLAY_DBT
 
 harness_sqlite.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_SQLITE" > $(CONF_H)
