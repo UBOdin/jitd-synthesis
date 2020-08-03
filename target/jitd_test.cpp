@@ -58,15 +58,6 @@ inline void view_end() {
 
 }
 
-
-//#define _viewErase(node_handle) record_maintenance(node_handle, 0, this)
-//#define _viewAdd(node_handle) record_maintenance(node_handle, 1, this)
-//#define _setParent(node_handle, parent) record_parent(node_handle, parent)
-//#define _fixNodeDecendents(foo, bar)
-
-// XXX:  no longer need record_maintenance to be inline?
-
-
 void record_mutator(int id, int optype, unsigned long key, unsigned long value) {
 
 	maint_array[maint_count].maint_id = maint_count;
@@ -85,7 +76,6 @@ void record_mutator(int id, int optype, unsigned long key, unsigned long value) 
 	return;
 
 }
-
 
 // TODO:  N.b. -- Possibly use get() to get JITDNode*
 inline void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw, JITD* jitd) {
@@ -3048,7 +3038,9 @@ void JITD::viewAdd(std::shared_ptr<JITDNode>* node_handle)
 {
   if(node_handle == NULL){return;}
 
+#ifndef REPLAY
 record_maintenance(node_handle, 1, this);
+#endif
 
   bool matched = false;
   std::shared_ptr<JITDNode> node_ptr;
@@ -3142,7 +3134,9 @@ void JITD::viewErase(std::shared_ptr<JITDNode>* node_handle)
 {
   if(node_handle == NULL){return;}
 
+#ifndef REPLAY
 record_maintenance(node_handle, 0, this);
+#endif
 
   bool matched = false;
   std::shared_ptr<JITDNode> node_ptr;
@@ -3306,7 +3300,9 @@ std::shared_ptr<JITDNode> * JITD::getParentMap(std::shared_ptr<JITDNode> * &targ
 void JITD::setParent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr<JITDNode>* parent)
 {
 
+#ifndef REPLAY
 record_parent(node_handle, parent);
+#endif
 
     std::shared_ptr<JITDNode> node_ptr;
     #ifdef ATOMIC_LOAD
