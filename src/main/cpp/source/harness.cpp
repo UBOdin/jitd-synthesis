@@ -54,10 +54,17 @@
 		trace_lock.unlock(); \
 	}
 
+#define REPLAY_START \
+	time_start = gettime_us();
+#define REPLAY_END \
+	time_delta = gettime_us() - time_start;
+
 #else
 
 #define TIME_START
 #define TIME_END
+#define REPLAY_START
+#define REPLAY_END
 
 #endif
 
@@ -647,6 +654,8 @@ int save_output() {
 	close(output_fd);
 	printf("Finished writing operation data\n");
 
+	#ifdef REPLAY
+
 	// Save out view performance data:
 	int view_fd;
 	char view_filename[] = "output_view_performance.txt";
@@ -678,6 +687,9 @@ int save_output() {
 	close(view_fd);
 	printf("Finished writing view timing data\n");
 
+	#endif
+	#ifndef REPLAY
+
 	// Save out view maintenance data:
 	int maint_fd;
 	char maint_filename[] = "output_view_maintenance.txt";
@@ -703,6 +715,8 @@ int save_output() {
 	}
 
 	close(maint_fd);
+
+	#endif
 
 	printf("Finished\n");
 	return 0;
@@ -778,7 +792,50 @@ void run_worker_thread(STORAGE_HANDLE storage) {
 #endif
 
 
-int replay() {
+inline void populate_node(char* line, struct maint_node* node) {
+
+	char* token;
+	char* save;
+	const char delim[] = ",";
+
+	// Basic sanity:  are we using the correct delimiter?
+	token = strstr(line, delim);
+	if (token == NULL) {
+		printf("Error:  invalid delimiter\n");
+		_exit(1);
+	}
+
+	token = strtok_r(line, delim, &save);
+	node->maint_id = atoi(token);
+	token = strtok_r(NULL, delim, &save);
+	node->ticks_id = atoi(token);
+	token = strtok_r(NULL, delim, &save);
+	node->rw = atoi(token);
+	token = strtok_r(NULL, delim, &save);
+	node->maint_type = atoi(token);
+	token = strtok_r(NULL, delim, &save);
+	node->node_type = atoi(token);
+	token = strtok_r(NULL, delim, &save);
+	node->node_self = strtoul(token, NULL, 0);
+	token = strtok_r(NULL, delim, &save);
+	node->node_parent = strtoul(token, NULL, 0);
+	token = strtok_r(NULL, delim, &save);
+	node->node_child = strtoul(token, NULL, 0);
+	token = strtok_r(NULL, delim, &save);
+	node->node_left = strtoul(token, NULL, 0);
+	token = strtok_r(NULL, delim, &save);
+	node->node_right = strtoul(token, NULL, 0);
+	token = strtok_r(NULL, delim, &save);
+	node->value = strtol(token, NULL, 0);
+
+	return;
+
+}
+
+
+int replay_trace(STORAGE_HANDLE storage) {
+
+// TODO:  For DBT, need to do on_insert() for initial array
 
 	FILE* input_stream;
 	char input_file[] = "output_view_maintenance.txt";
@@ -786,7 +843,15 @@ int replay() {
 	ssize_t chars_read;
 	char* line_buffer = NULL;
 	size_t buffer_size = 0;
-	int i = 0;
+	int i = 0;  // maintenance iterator
+	int j = 0;  // benchmark iterator
+	long time_start;
+	long time_delta;
+	enum operation optype;
+	unsigned long key;
+	unsigned long value;
+
+	// Step 1:  Read-in previously recorded maintenance tracefile
 
 	input_stream = fopen(input_file, "r");
 	if (input_stream == NULL) {
@@ -798,18 +863,144 @@ int replay() {
 	buffer_size = 0;
 	i = -1;
 
-	// Skip first line (jitd structure creation):
-	chars_read = getline(&line_buffer, &buffer_size, input_stream);
-
 	while (1) {
 		i++;
 
 		chars_read = getline(&line_buffer, &buffer_size, input_stream);
 		if (chars_read == -1) {
+			maint_count = i;  // Save linecount
 			break;
 		}
 
+		if (i >= MAINT_SIZE) {
+			printf("Error:  maintenance overflow\n");
+			_exit(1);
+		}
+
+		populate_node(line_buffer, &maint_array[i]);
+
 	}
+
+	printf("Read in %d maintenance tracelines\n", maint_count);
+
+	free(line_buffer);
+	fclose(input_stream);
+
+	// Step 2:  Replay trace (now in memory) on maintenance framework:
+
+	int rw;
+	int maint_type;
+	mutatorCqElement pop_mce;
+
+// TODO:  TIME each searchFor operation and record that, too
+// TODO:  Replay on DBT
+// TODO:  Add additional preprocessor build parameters to switch between JITD and DBT
+
+	i = 0;  // Skip first line for JITD (the initial prepopulation)
+// TODO -- only do this for JITD
+	j = 0;
+
+	while (1) {
+		i++;
+
+		if (i == maint_count) {
+			break;
+		}
+
+		rw = maint_array[i].rw;
+		if (rw == 0) {
+
+			maint_type = maint_array[i].maint_type;
+
+			// For JITD, need to handle after_FOO maintenance separately:
+			if (maint_type == 11) {
+				storage->jitd->work_queue.pop(pop_mce);
+				assert(pop_mce.flag == FLAG_remove_singleton);
+				storage->jitd->after_remove_singleton(pop_mce.element);
+			} else if (maint_type == 14) {
+				storage->jitd->work_queue.pop(pop_mce);
+				assert(pop_mce.flag == FLAG_insert_singleton);
+				storage->jitd->after_insert_singleton(pop_mce.element);
+			} else {
+				// For all other transforms, call into do_organize():
+				storage->jitd->do_organize();
+			}
+
+			//  Sanity check:  Replay operation originally recorded should match the one just selected:
+			if (maint_type != ticks_array[ticks_count - 1].maint_type) {
+				printf("Unexpected maintenance type\n");
+				_exit(1);
+			}
+
+			// Advance to next maintenance block:
+			int ticks_id_save = maint_array[i].ticks_id;
+			while (1) {
+				if (ticks_id_save != maint_array[i + 1].ticks_id) {
+					break;
+				}
+				i++;
+			}
+
+		} else if (rw == 1) {
+
+// TODO:  Should be error only for JITD, not DBT
+			printf("Error:  Unexpected Add\n");
+			_exit(1);
+
+		} else if (rw == 2) {
+
+			// node_type, node_left and node_right fields repurposed for mutators:
+			optype = (enum operation)maint_array[i].node_type;
+			key = maint_array[i].node_left;
+			value = maint_array[i].node_right;
+
+			// Replay mutator operation:
+			if (optype == harness::INSERT) {
+				REPLAY_START;
+				put_data(storage, key, value);
+				REPLAY_END;
+			} else if (optype == DELETE) {
+				REPLAY_START;
+				result += remove_data(storage, 1, &key);
+				REPLAY_END;
+			} else if (optype == UPDATE) {
+				REPLAY_START;
+				result += update_data(storage, key, value);
+				REPLAY_END;
+			} else if (optype == UPSERT) {
+				REPLAY_START;
+				result += upsert_data(storage, key, value);
+				REPLAY_END;
+			} else {
+				printf("Error:  Unexpected operation\n");
+				_exit(1);
+			}
+
+			// Save out operation time:
+			if (j >= output_size) {
+				printf("Error:  output replay overflow\n");
+				_exit(1);
+			}
+
+			output_array[j].time_start = time_start;
+			output_array[j].time_delta = time_delta;
+			output_array[j].type = optype;
+			output_array[j].key = key;
+			output_array[j].nkeys = 1;
+
+			j++;
+
+		} else {
+			printf("Invalid operation\n");
+			_exit(1);
+		}
+
+	}
+
+	printf("Maintenance lines replayed:  %d\n", i);
+	printf("Benchmark operations replayed:  %d\n", j);
+
+	save_output();
 
 	return 0;
 
@@ -894,6 +1085,12 @@ int main(int argc, char** argv) {
 	printf("Using Unordered Map storage\n");
 	#endif
 
+	#ifdef REPLAY
+	printf("Running REPLAY trace harness\n");
+	#else
+	printf("Running COLLECT trace harness\n");
+	#endif
+
 	// Extract debug parameters:  max keycount with which to populate structure and jitd crack threshhold:
 	if (argc != 4) {
 		printf("Unexpected parameter count\n");
@@ -902,16 +1099,16 @@ int main(int argc, char** argv) {
 	maxkeys = atoi(argv[2]);
 
 	// Initialize and populate structure:
+
+extern int maint_size;
+memset(maint_array, 0, maint_size);
+
 	printf("Creating and initializing data structure\n");
 	storage = create_storage(maxkeys);
 	memset(output_array, 0, sizeof(struct output_node) * output_size);
 	printf("Finished\n");
 	// Basic structural integrity check:
 //	test_struct(storage);
-
-extern int maint_size;
-memset(maint_array, 0, maint_size);
-
 	#ifdef STORAGE_JITD
 	// Populate jitd specific parameters:
 	storage->jitd->__array_size = atoi(argv[1]);
@@ -931,6 +1128,11 @@ memset(maint_array, 0, maint_size);
 	printf("crack threshhold:  %d\n", storage->jitd->__array_size);
 	printf("worker sleeptime:  %d\n", storage->jitd->__sleep_time);
 	storage->jitd->get_node_count();
+
+#ifdef REPLAY
+replay_trace(storage);
+_exit(0);
+#endif
 
 	#if defined PIN_SAME || defined PIN_DIFF
 	pin_thread(CORE_CLIENT);
@@ -973,12 +1175,6 @@ memset(maint_array, 0, maint_size);
 		if (i == 300) {
 			break;
 		}
-*/
-
-/*
-if (maint_count > 280) {
-	break;
-}
 */
 
 		// Get next operation:
