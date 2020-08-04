@@ -68,6 +68,21 @@
 
 #endif
 
+#ifdef REPLAY_DBT
+
+#include "../../../../toaster_harness/toaster_maintenance.hpp"
+
+#include "program_base.cpp"
+#include "event.cpp"
+#include "runtime.cpp"
+#include "streams.cpp"
+#include "iprogram.cpp"
+#include "standard_adaptors.cpp"
+#include "smhasher/MurmurHash2.cpp"
+
+#endif
+
+
 #ifdef STORAGE_SQLITE
 
 #include "sqlite3.h"
@@ -129,6 +144,18 @@ double total_time(timeval &start, timeval &end) {
 
 }
 
+
+// Copied from jitd_test.cpp:
+inline uint64_t rdtsc() {
+
+	unsigned int lo;
+	unsigned int hi;
+
+	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
+
+	return ((uint64_t)hi << 32) | lo;
+
+}
 
 
 //#define errtrap(error) (__errtrap(result, error, __LINE__))
@@ -832,6 +859,125 @@ inline void populate_node(char* line, struct maint_node* node) {
 }
 
 
+#ifdef REPLAY_DBT
+
+namespace dbtoaster { class Custom_toaster : public Program {
+
+	public:
+
+	Custom_toaster(int argc = 0, char* argv[] = 0) : Program(argc, argv) { }
+
+
+	void foo() {
+
+		data.on_insert_BTREE(0, 0, 0, 0, 0);
+
+	}
+
+
+int init_data() {
+
+	assert(maint_array[0].node_type == JITD_NODE_Array);
+
+	data.on_insert_ARRAY(0, maint_array[0].node_self, maint_array[0].value);
+
+	return 0;
+
+}
+
+
+int replay_dbt_block(int start_node, int end_node) {
+
+	int rw;
+	int type;
+	unsigned long id;
+	unsigned long self;
+	unsigned long time_start;
+	unsigned long time_delta;
+
+
+	time_start = rdtsc();
+
+	for (int i = start_node; i < end_node; i++) {
+
+		rw = maint_array[i].rw;
+		type = maint_array[i].node_type;
+		id = 0; // maint_array[i].maint_id;
+		self = maint_array[i].node_self;
+
+//printf("Node rw %d type %d\n", rw, type);
+
+
+		if (rw == 1) {
+
+			if (type == JITD_NODE_DeleteSingleton) {
+				data.on_insert_DELETESINGLETON(id, self, maint_array[i].node_child, maint_array[i].value);
+			} else if (type == JITD_NODE_DeleteElements) {
+				goto err_missing_node;
+			} else if (type == JITD_NODE_BTree) {
+				data.on_insert_BTREE(id, self, maint_array[i].node_left, maint_array[i].node_right, maint_array[i].value);
+			} else if (type == JITD_NODE_Concat) {
+				data.on_insert_CONCAT(id, self, maint_array[i].node_left, maint_array[i].node_right);
+			} else if (type == JITD_NODE_SortedArray) {
+				goto err_missing_node;
+			} else if (type == JITD_NODE_Array) {
+				data.on_insert_ARRAY(id, self, maint_array[i].value);
+			} else if (type == JITD_NODE_Singleton) {
+				data.on_insert_SINGLETON(id, self, maint_array[i].value);
+			}
+
+		} else if (rw == 0) {
+
+			if (type == JITD_NODE_DeleteSingleton) {
+				data.on_delete_DELETESINGLETON(id, self, maint_array[i].node_child, maint_array[i].value);
+			} else if (type == JITD_NODE_DeleteElements) {
+				goto err_missing_node;
+			} else if (type == JITD_NODE_BTree) {
+				data.on_delete_BTREE(id, self, maint_array[i].node_left, maint_array[i].node_right, maint_array[i].value);
+			} else if (type == JITD_NODE_Concat) {
+				data.on_delete_CONCAT(id, self, maint_array[i].node_left, maint_array[i].node_right);
+			} else if (type == JITD_NODE_SortedArray) {
+				goto err_missing_node;
+			} else if (type == JITD_NODE_Array) {
+				data.on_delete_ARRAY(id, self, maint_array[i].value);
+			} else if (type == JITD_NODE_Singleton) {
+				data.on_delete_SINGLETON(id, self, maint_array[i].value);
+			}
+
+		}
+
+
+	}
+
+	time_delta = rdtsc() - time_start;
+
+	if (ticks_count >= TICKS_SIZE) {
+		printf("Error:  view overflow\n");
+		_exit(1);
+	}
+	ticks_array[ticks_count].id = ticks_count;
+	ticks_array[ticks_count].maint_type = maint_array[0].maint_type;  // maintenance type should be the same for the entire block
+	ticks_array[ticks_count].delta[0] = time_delta;  // Sum of both erase / add
+	ticks_array[ticks_count].delta[1] = 0;
+	ticks_array[ticks_count].delta[2] = 0;
+	ticks_count++;
+
+	return 0;
+
+    err_missing_node:
+	printf("Error:  unsupported node type\n");
+	_exit(1);
+
+
+
+}
+
+
+}; }
+
+#endif
+
+
 int replay_trace(STORAGE_HANDLE storage) {
 
 // TODO:  For DBT, need to do on_insert() for initial array
@@ -891,11 +1037,21 @@ int replay_trace(STORAGE_HANDLE storage) {
 	int maint_type;
 	mutatorCqElement pop_mce;
 
-// TODO:  TIME each searchFor operation and record that, too
-// TODO:  Replay on DBT
+	#ifdef REPLAY_DBT
 
-	i = 0;  // Skip first line for JITD (the initial prepopulation)
-// TODO -- only do this for JITD
+	char foo_str[] = {"foobar\0"};
+	char* argv[] = {foo_str, NULL};
+
+	dbtoaster::Custom_toaster ct(1, argv);
+
+	ct.init();
+	ct.init_data();
+
+	#endif
+
+// TODO:  TIME each searchFor operation and record that, too
+
+	i = 0;  // Skip first line (the initial prepopulation)
 	j = 0;
 
 	while (1) {
@@ -944,20 +1100,29 @@ int replay_trace(STORAGE_HANDLE storage) {
 			#endif
 			#ifdef REPLAY_DBT
 
+			// Get end of current block:
+			int k = i;
+			while (1) {
+				if (maint_array[i].ticks_id != maint_array[k].ticks_id) {
+					break;
+				}
+				k++;
+			}
+
+//printf("DBT start/stop:  %d, %d\n", i, k);
+
+			ct.replay_dbt_block(i, k);
+
+			i = k - 1;
+
 			#endif
+
+// TODO:  Possibly split-up processing of Add and Erase subblocks for DBT
 
 		} else if (rw == 1) {
 
-			#ifdef REPLAY_JITD
-
-			printf("Error:  Unexpected Add\n");
+			printf("Error:  Unexpected Add on %d\n", i);
 			_exit(1);
-
-			#endif
-			#ifdef REPLAY_DBT
-
-
-			#endif
 
 		} else if (rw == 2) {
 
@@ -1101,7 +1266,7 @@ int main(int argc, char** argv) {
 	printf("Running REPLAY_JITD trace harness\n");
 	#endif
 	#ifdef REPLAY_DBT
-	printf("Running REPLAY_DBT trace harness");
+	printf("Running REPLAY_DBT trace harness\n");
 	#endif
 	#if not defined REPLAY_JITD && not defined REPLAY_DBT
 	printf("Running COLLECT trace harness\n");
