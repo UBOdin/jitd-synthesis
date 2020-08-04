@@ -956,7 +956,7 @@ int replay_dbt_block(int start_node, int end_node) {
 		_exit(1);
 	}
 	ticks_array[ticks_count].id = ticks_count;
-	ticks_array[ticks_count].maint_type = maint_array[0].maint_type;  // maintenance type should be the same for the entire block
+	ticks_array[ticks_count].maint_type = maint_array[start_node].maint_type;  // maintenance type should be the same for the entire block
 	ticks_array[ticks_count].delta[0] = time_delta;  // Sum of both erase / add
 	ticks_array[ticks_count].delta[1] = 0;
 	ticks_array[ticks_count].delta[2] = 0;
