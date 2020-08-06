@@ -176,6 +176,10 @@ inline void record_parent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr
 
 }
 
+#endif
+
+#ifndef REPLAY_DBT
+
 #define VIEW_START \
 	if (delta_count == 0) { \
 		maint_type = view_map[std::string(__func__)]; \
