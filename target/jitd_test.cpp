@@ -184,10 +184,23 @@ inline void record_parent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr
 
 #define VIEW_END view_end()
 
+#define SEARCH_START \
+	sticks = rdtsc();
+
+#define SEARCH_END \
+	diffticks = rdtsc() - sticks; \
+	ticks_array[ticks_count].id = ticks_count; \
+	ticks_array[ticks_count].maint_type = 100; \
+	ticks_array[ticks_count].delta[0] = diffticks; \
+	ticks_count++;
+
 #else
 
 #define VIEW_START
 #define VIEW_END
+
+#define SEARCH_START
+#define SEARCH_END
 
 #endif
 
@@ -2589,7 +2602,7 @@ bool JITD::do_organize()
 {
   
   
-
+SEARCH_START;
 
 
 {
@@ -2606,6 +2619,8 @@ bool JITD::do_organize()
   //std::cout<<"After calling searchForPushDownSingletonLeft Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
+SEARCH_END;
+
     //std::cout<<"Candidate shared_ptr for PushDownSingletonLeft: "<<(*targetHandleRef)<<std::endl;
     
       #ifdef TRANSFORM_COUNT
@@ -2650,6 +2665,8 @@ bool JITD::do_organize()
   //std::cout<<"After calling searchForPushDownSingletonRight Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
+SEARCH_END;
+
     //std::cout<<"Candidate shared_ptr for PushDownSingletonRight: "<<(*targetHandleRef)<<std::endl;
     
       #ifdef TRANSFORM_COUNT
@@ -2694,6 +2711,8 @@ bool JITD::do_organize()
   //std::cout<<"After calling searchForPushDownDontDeleteSingletonBtreeLeft Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
+SEARCH_END;
+
     //std::cout<<"Candidate shared_ptr for PushDownDontDeleteSingletonBtreeLeft: "<<(*targetHandleRef)<<std::endl;
     
       #ifdef TRANSFORM_COUNT
@@ -2738,6 +2757,8 @@ bool JITD::do_organize()
   //std::cout<<"After calling searchForPushDownDontDeleteSingletonBtreeRight Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
+SEARCH_END;
+
     //std::cout<<"Candidate shared_ptr for PushDownDontDeleteSingletonBtreeRight: "<<(*targetHandleRef)<<std::endl;
     
       #ifdef TRANSFORM_COUNT
@@ -2782,6 +2803,8 @@ bool JITD::do_organize()
   //std::cout<<"After calling searchForDeleteSingletonFromArray Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
+SEARCH_END;
+
     //std::cout<<"Candidate shared_ptr for DeleteSingletonFromArray: "<<(*targetHandleRef)<<std::endl;
     
       #ifdef TRANSFORM_COUNT
@@ -2826,6 +2849,8 @@ bool JITD::do_organize()
   //std::cout<<"After calling searchForPushDownAndCrack Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
+SEARCH_END;
+
     //std::cout<<"Candidate shared_ptr for PushDownAndCrack: "<<(*targetHandleRef)<<std::endl;
     
       #ifdef TRANSFORM_COUNT
@@ -2870,6 +2895,8 @@ bool JITD::do_organize()
   //std::cout<<"After calling searchForCrackArray Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
+SEARCH_END;
+
     //std::cout<<"Candidate shared_ptr for CrackArray: "<<(*targetHandleRef)<<std::endl;
     
       #ifdef TRANSFORM_COUNT
