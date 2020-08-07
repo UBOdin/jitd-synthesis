@@ -951,6 +951,10 @@ int replay_dbt_block(int start_node, int end_node) {
 
 	time_delta = rdtsc() - time_start;
 
+	// The maintenance performance framework in JITD has already advanced the ticks_counter index
+	// to the next available (free) slot.  Back up and overwrite with equivalent data from dbt:
+	ticks_count--;
+
 	if (ticks_count >= TICKS_SIZE) {
 		printf("Error:  view overflow\n");
 		_exit(1);
@@ -1064,8 +1068,6 @@ int replay_trace(STORAGE_HANDLE storage) {
 		rw = maint_array[i].rw;
 		if (rw == 0) {
 
-			#ifdef REPLAY_JITD
-
 			maint_type = maint_array[i].maint_type;
 
 			// For JITD, need to spell out which (if any) after mutator operations:
@@ -1084,21 +1086,9 @@ int replay_trace(STORAGE_HANDLE storage) {
 
 			//  Sanity check:  Replay operation originally recorded should match the one just selected:
 			if (maint_type != ticks_array[ticks_count - 1].maint_type) {
-				printf("Unexpected maintenance type\n");
+				printf("Unexpected maintenance type:  %d %d %d %d\n", i, maint_type, ticks_array[ticks_count - 1].maint_type, ticks_count - 1);
 				_exit(1);
 			}
-
-			// Advance to next maintenance block:
-			int ticks_id_save = maint_array[i].ticks_id;
-			while (1) {
-				if (ticks_id_save != maint_array[i + 1].ticks_id) {
-					break;
-				}
-				i++;
-			}
-
-			#endif
-			#ifdef REPLAY_DBT
 
 			// Get end of current block:
 			int k = i;
@@ -1111,11 +1101,13 @@ int replay_trace(STORAGE_HANDLE storage) {
 
 //printf("DBT start/stop:  %d, %d\n", i, k);
 
+			#ifdef REPLAY_DBT
 			ct.replay_dbt_block(i, k);
+			#endif
 
 			i = k - 1;
 
-			#endif
+//			#endif
 
 // TODO:  Possibly split-up processing of Add and Erase subblocks for DBT
 
