@@ -1061,6 +1061,14 @@ int replay_trace(STORAGE_HANDLE storage) {
 	while (1) {
 		i++;
 
+/*
+printf("i:  %d  ticks count:  %d\n", i, ticks_count);
+
+if (i > 300) {
+	break;
+}
+*/
+
 		if (i == maint_count) {
 			break;
 		}
@@ -1289,6 +1297,11 @@ memset(maint_array, 0, maint_size);
 	#ifdef TRACK_CACHING
 	#endif
 
+#if defined REPLAY_JITD || defined REPLAY_DBT
+replay_trace(storage);
+_exit(0);
+#endif
+
 	// Organize initial jitd structure until it reaches a stable state:
 	bool not_done = true;
 	i = 0;
@@ -1301,11 +1314,6 @@ memset(maint_array, 0, maint_size);
 	printf("crack threshhold:  %d\n", storage->jitd->__array_size);
 	printf("worker sleeptime:  %d\n", storage->jitd->__sleep_time);
 	storage->jitd->get_node_count();
-
-#if defined REPLAY_JITD || defined REPLAY_DBT
-replay_trace(storage);
-_exit(0);
-#endif
 
 	#if defined PIN_SAME || defined PIN_DIFF
 	pin_thread(CORE_CLIENT);
