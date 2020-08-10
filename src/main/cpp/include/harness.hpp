@@ -101,6 +101,7 @@ extern struct ticks_node ticks_array[];
 extern struct maint_node maint_array[];
 extern int ticks_index;
 extern int maint_index;
+extern int maint_block_end;
 extern std::mutex trace_lock;
 
 #ifdef STORAGE_MAP
