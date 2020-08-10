@@ -992,8 +992,8 @@ int replay_trace(STORAGE_HANDLE storage) {
 	ssize_t chars_read;
 	char* line_buffer = NULL;
 	size_t buffer_size = 0;
-	int i = 0;  // maintenance iterator
 	int j = 0;  // benchmark iterator
+	int maint_count;
 	long time_start;
 	long time_delta;
 	enum operation optype;
@@ -1010,27 +1010,27 @@ int replay_trace(STORAGE_HANDLE storage) {
 
 	line_buffer = NULL;
 	buffer_size = 0;
-	i = -1;
+	maint_index = -1;
 
 	while (1) {
-		i++;
+		maint_index++;
 
 		chars_read = getline(&line_buffer, &buffer_size, input_stream);
 		if (chars_read == -1) {
-			maint_index = i;  // Save linecount
+			maint_count = maint_index;  // Save linecount
 			break;
 		}
 
-		if (i >= MAINT_SIZE) {
+		if (maint_index >= MAINT_SIZE) {
 			printf("Error:  maintenance overflow\n");
 			_exit(1);
 		}
 
-		populate_node(line_buffer, &maint_array[i]);
+		populate_node(line_buffer, &maint_array[maint_index]);
 
 	}
 
-	printf("Read in %d maintenance tracelines\n", maint_index);
+	printf("Read in %d maintenance tracelines\n", maint_count);
 
 	free(line_buffer);
 	fclose(input_stream);
@@ -1055,11 +1055,11 @@ int replay_trace(STORAGE_HANDLE storage) {
 
 // TODO:  TIME each searchFor operation and record that, too
 
-	i = 0;  // Skip first line (the initial prepopulation)
+	maint_index = 0;  // Skip first line (the initial prepopulation)
 	j = 0;
 
 	while (1) {
-		i++;
+		maint_index++;
 
 /*
 printf("i:  %d  ticks count:  %d\n", i, ticks_index);
@@ -1069,14 +1069,19 @@ if (i > 300) {
 }
 */
 
-		if (i == maint_index) {
+if (maint_index > 50) {
+	storage->jitd->print_debug();
+	_exit(0);
+}
+
+		if (maint_index == maint_count) {
 			break;
 		}
 
-		rw = maint_array[i].rw;
+		rw = maint_array[maint_index].rw;
 		if (rw == 0) {
 
-			maint_type = maint_array[i].maint_type;
+			maint_type = maint_array[maint_index].maint_type;
 
 			// For JITD, need to spell out which (if any) after mutator operations:
 			if (maint_type == 11) {
@@ -1094,14 +1099,14 @@ if (i > 300) {
 
 			//  Sanity check:  Replay operation originally recorded should match the one just selected:
 			if (maint_type != ticks_array[ticks_index - 1].maint_type) {
-				printf("Unexpected maintenance type:  %d %d %d %d\n", i, maint_type, ticks_array[ticks_index - 1].maint_type, ticks_index - 1);
+				printf("Unexpected maintenance type:  %d %d %d %d\n", maint_index, maint_type, ticks_array[ticks_index - 1].maint_type, ticks_index - 1);
 				_exit(1);
 			}
 
 			// Get end of current block:
-			int k = i;
+			int k = maint_index;
 			while (1) {
-				if (maint_array[i].ticks_id != maint_array[k].ticks_id) {
+				if (maint_array[maint_index].ticks_id != maint_array[k].ticks_id) {
 					break;
 				}
 				k++;
@@ -1110,10 +1115,10 @@ if (i > 300) {
 //printf("DBT start/stop:  %d, %d\n", i, k);
 
 			#ifdef REPLAY_DBT
-			ct.replay_dbt_block(i, k);
+			ct.replay_dbt_block(maint_index, k);
 			#endif
 
-			i = k - 1;
+			maint_index = k - 1;
 
 //			#endif
 
@@ -1121,15 +1126,15 @@ if (i > 300) {
 
 		} else if (rw == 1) {
 
-			printf("Error:  Unexpected Add on %d\n", i);
+			printf("Error:  Unexpected Add on %d\n", maint_index);
 			_exit(1);
 
 		} else if (rw == 2) {
 
 			// node_type, node_left and node_right fields repurposed for mutators:
-			optype = (enum operation)maint_array[i].node_type;
-			key = maint_array[i].node_left;
-			value = maint_array[i].node_right;
+			optype = (enum operation)maint_array[maint_index].node_type;
+			key = maint_array[maint_index].node_left;
+			value = maint_array[maint_index].node_right;
 
 			// Replay mutator operation:
 			if (optype == harness::INSERT) {
@@ -1174,7 +1179,7 @@ if (i > 300) {
 
 	}
 
-	printf("Maintenance lines replayed:  %d\n", i);
+	printf("Maintenance lines replayed:  %d\n", maint_index);
 	printf("Benchmark operations replayed:  %d\n", j);
 
 	save_output();
