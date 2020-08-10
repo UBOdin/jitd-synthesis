@@ -688,8 +688,8 @@ int save_output() {
 	char view_filename[] = "output_view_performance.txt";
 
 	// failsafe:
-	if (ticks_count > TICKS_SIZE) {
-		printf("View output overflow:  %d > %d\n", ticks_count, TICKS_SIZE);
+	if (ticks_index > TICKS_SIZE) {
+		printf("View output overflow:  %d > %d\n", ticks_index, TICKS_SIZE);
 		_exit(1);
 	}
 
@@ -697,7 +697,7 @@ int save_output() {
 	errtrap("open");
 	view_fd = result;
 
-	for (int i = 0; i < ticks_count; i++) {
+	for (int i = 0; i < ticks_index; i++) {
 		charcount = 0;
 		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "%d\t%d", ticks_array[i].id, ticks_array[i].maint_type);
 		charcount += result;
@@ -721,8 +721,8 @@ int save_output() {
 	char maint_filename[] = "output_view_maintenance.txt";
 
 	// failsafe:
-	if (maint_count > MAINT_SIZE) {
-		printf("Maintenance output overflow:  %d > %d\n", maint_count, MAINT_SIZE);
+	if (maint_index > MAINT_SIZE) {
+		printf("Maintenance output overflow:  %d > %d\n", maint_index, MAINT_SIZE);
 		_exit(1);
 	}
 
@@ -730,7 +730,7 @@ int save_output() {
 	errtrap("open");
 	maint_fd = result;
 
-	for (int i = 0; i < maint_count; i++) {
+	for (int i = 0; i < maint_index; i++) {
 		charcount = 0;
 //		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "%d\t%d\t%d\t%d\t%d\t%lu\t%lu\t%lu\t%lu\t%lu\t%ld\t%ld\n", maint_array[i].maint_id, maint_array[i].ticks_id, maint_array[i].rw, maint_array[i].maint_type, maint_array[i].node_type, maint_array[i].node_self, maint_array[i].node_parent, maint_array[i].node_child, maint_array[i].node_left, maint_array[i].node_right, maint_array[i].value, maint_array[i].time_start);
 		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "%d,%d,%d,%d,%d,%lu,%lu,%lu,%lu,%lu,%ld,%ld\n", maint_array[i].maint_id, maint_array[i].ticks_id, maint_array[i].rw, maint_array[i].maint_type, maint_array[i].node_type, maint_array[i].node_self, maint_array[i].node_parent, maint_array[i].node_child, maint_array[i].node_left, maint_array[i].node_right, maint_array[i].value, maint_array[i].time_start);
@@ -810,7 +810,7 @@ void run_worker_thread(STORAGE_HANDLE storage) {
 	printf("Worker thread starting.\n");
 	steps_taken = storage->jitd->organize_wait();
 	printf("Worker thread exiting.  Steps taken:  %d\n", steps_taken);
-	printf("View steps:  %d\n", ticks_count);
+	printf("View steps:  %d\n", ticks_index);
 
 	return;
 
@@ -951,20 +951,20 @@ int replay_dbt_block(int start_node, int end_node) {
 
 	time_delta = rdtsc() - time_start;
 
-	// The maintenance performance framework in JITD has already advanced the ticks_counter index
+	// The maintenance performance framework in JITD has already advanced the ticks_indexer index
 	// to the next available (free) slot.  Back up and overwrite with equivalent data from dbt:
-	ticks_count--;
+	ticks_index--;
 
-	if (ticks_count >= TICKS_SIZE) {
+	if (ticks_index >= TICKS_SIZE) {
 		printf("Error:  view overflow\n");
 		_exit(1);
 	}
-	ticks_array[ticks_count].id = ticks_count;
-	ticks_array[ticks_count].maint_type = maint_array[start_node].maint_type;  // maintenance type should be the same for the entire block
-	ticks_array[ticks_count].delta[0] = time_delta;  // Sum of both erase / add
-	ticks_array[ticks_count].delta[1] = 0;
-	ticks_array[ticks_count].delta[2] = 0;
-	ticks_count++;
+	ticks_array[ticks_index].id = ticks_index;
+	ticks_array[ticks_index].maint_type = maint_array[start_node].maint_type;  // maintenance type should be the same for the entire block
+	ticks_array[ticks_index].delta[0] = time_delta;  // Sum of both erase / add
+	ticks_array[ticks_index].delta[1] = 0;
+	ticks_array[ticks_index].delta[2] = 0;
+	ticks_index++;
 
 	return 0;
 
@@ -1017,7 +1017,7 @@ int replay_trace(STORAGE_HANDLE storage) {
 
 		chars_read = getline(&line_buffer, &buffer_size, input_stream);
 		if (chars_read == -1) {
-			maint_count = i;  // Save linecount
+			maint_index = i;  // Save linecount
 			break;
 		}
 
@@ -1030,7 +1030,7 @@ int replay_trace(STORAGE_HANDLE storage) {
 
 	}
 
-	printf("Read in %d maintenance tracelines\n", maint_count);
+	printf("Read in %d maintenance tracelines\n", maint_index);
 
 	free(line_buffer);
 	fclose(input_stream);
@@ -1062,14 +1062,14 @@ int replay_trace(STORAGE_HANDLE storage) {
 		i++;
 
 /*
-printf("i:  %d  ticks count:  %d\n", i, ticks_count);
+printf("i:  %d  ticks count:  %d\n", i, ticks_index);
 
 if (i > 300) {
 	break;
 }
 */
 
-		if (i == maint_count) {
+		if (i == maint_index) {
 			break;
 		}
 
@@ -1093,8 +1093,8 @@ if (i > 300) {
 			}
 
 			//  Sanity check:  Replay operation originally recorded should match the one just selected:
-			if (maint_type != ticks_array[ticks_count - 1].maint_type) {
-				printf("Unexpected maintenance type:  %d %d %d %d\n", i, maint_type, ticks_array[ticks_count - 1].maint_type, ticks_count - 1);
+			if (maint_type != ticks_array[ticks_index - 1].maint_type) {
+				printf("Unexpected maintenance type:  %d %d %d %d\n", i, maint_type, ticks_array[ticks_index - 1].maint_type, ticks_index - 1);
 				_exit(1);
 			}
 
