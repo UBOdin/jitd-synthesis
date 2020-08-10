@@ -1061,19 +1061,6 @@ int replay_trace(STORAGE_HANDLE storage) {
 	while (1) {
 		maint_index++;
 
-/*
-printf("i:  %d  ticks count:  %d\n", i, ticks_index);
-
-if (i > 300) {
-	break;
-}
-*/
-
-if (maint_index > 50) {
-	storage->jitd->print_debug();
-	_exit(0);
-}
-
 		if (maint_index == maint_count) {
 			break;
 		}
@@ -1082,6 +1069,15 @@ if (maint_index > 50) {
 		if (rw == 0) {
 
 			maint_type = maint_array[maint_index].maint_type;
+
+			// Get end of current block:
+			maint_block_end = maint_index;
+			while (1) {
+				if (maint_array[maint_index].ticks_id != maint_array[maint_block_end].ticks_id) {
+					break;
+				}
+				maint_block_end++;
+			}
 
 			// For JITD, need to spell out which (if any) after mutator operations:
 			if (maint_type == 11) {
@@ -1103,22 +1099,13 @@ if (maint_index > 50) {
 				_exit(1);
 			}
 
-			// Get end of current block:
-			int k = maint_index;
-			while (1) {
-				if (maint_array[maint_index].ticks_id != maint_array[k].ticks_id) {
-					break;
-				}
-				k++;
-			}
-
 //printf("DBT start/stop:  %d, %d\n", i, k);
 
 			#ifdef REPLAY_DBT
-			ct.replay_dbt_block(maint_index, k);
+			ct.replay_dbt_block(maint_index, maint_block_end);
 			#endif
 
-			maint_index = k - 1;
+			maint_index = maint_block_end - 1;
 
 //			#endif
 
