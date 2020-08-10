@@ -99,8 +99,8 @@ struct maint_node {
 
 extern struct ticks_node ticks_array[];
 extern struct maint_node maint_array[];
-extern int ticks_count;
-extern int maint_count;
+extern int ticks_index;
+extern int maint_index;
 extern std::mutex trace_lock;
 
 #ifdef STORAGE_MAP
