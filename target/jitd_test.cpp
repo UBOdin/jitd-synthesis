@@ -21,6 +21,7 @@ int delta_count = 0;
 int ticks_index = 0;
 int maint_index = 0;
 int maint_block_start = 0;
+int maint_block_end = 0;
 int maint_type;
 struct ticks_node ticks_array[TICKS_SIZE];
 struct maint_node maint_array[MAINT_SIZE];
@@ -1265,7 +1266,14 @@ VIEW_END;
           ArrayNode * to_ptr_rhs_ref = new ArrayNode();
           std::shared_ptr<JITDNode> rhs_partition_ref = std::shared_ptr<JITDNode>(to_ptr_rhs_ref);
           /*** Assemble to_ptr as a BTree ***/
+
+          #ifdef REPLAY_DBT
+          // When replaying (dbt), use original randomly generated array crack separator (always 2nd from end of maintenance block):
+          BTreeNode * to_ptr = new BTreeNode(lhs_partition_ref, maint_array[maint_block_end - 3].value, rhs_partition_ref);
+          #else
           BTreeNode * to_ptr = new BTreeNode(lhs_partition_ref, pick_separator(target_root->data), rhs_partition_ref);
+          #endif
+
           std::shared_ptr<JITDNode> to_ptr_ref = std::shared_ptr<JITDNode>(to_ptr);
           /*** Handle post-processing for to_ptr ***/
           do_crack(target_root->data, to_ptr->sep, to_ptr_lhs_ref->data, to_ptr_rhs_ref->data);
