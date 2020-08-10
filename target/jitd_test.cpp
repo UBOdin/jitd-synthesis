@@ -18,8 +18,8 @@ uint64_t rdtsc(){
 long unsigned int sticks, diffticks;
 
 int delta_count = 0;
-int ticks_count = 0;
-int maint_count = 0;
+int ticks_index = 0;
+int maint_index = 0;
 int maint_block_start = 0;
 int maint_type;
 struct ticks_node ticks_array[TICKS_SIZE];
@@ -38,20 +38,20 @@ std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0}
 inline void view_end() {
 
 	diffticks = rdtsc() - sticks;
-	if (ticks_count >= TICKS_SIZE) {
+	if (ticks_index >= TICKS_SIZE) {
 		printf("Error:  view overflow\n");
 		_exit(1);
 	}
-	ticks_array[ticks_count].delta[delta_count] = diffticks;
+	ticks_array[ticks_index].delta[delta_count] = diffticks;
 	delta_count++;
 	if (delta_count == 2) {
-		maint_block_start = maint_count;  // Record the start index of viewAdd calls for a maintenence operations (either transform or mutator)
+		maint_block_start = maint_index;  // Record the start index of viewAdd calls for a maintenence operations (either transform or mutator)
 	}
 	if (delta_count == 3) {
 		delta_count = 0;
-		ticks_array[ticks_count].id = ticks_count;
-		ticks_array[ticks_count].maint_type = maint_type;
-		ticks_count++;
+		ticks_array[ticks_index].id = ticks_index;
+		ticks_array[ticks_index].maint_type = maint_type;
+		ticks_index++;
 	}
 
 	return;
@@ -60,18 +60,18 @@ inline void view_end() {
 
 void record_mutator(int id, int optype, unsigned long key, unsigned long value) {
 
-	maint_array[maint_count].maint_id = maint_count;
-	maint_array[maint_count].ticks_id = 0;
-	maint_array[maint_count].rw = 2;
-	maint_array[maint_count].maint_type = 9999;
-	maint_array[maint_count].node_type = optype;
-//	maint_array[maint_count].node_self = (unsigned long)node_handle;
+	maint_array[maint_index].maint_id = maint_index;
+	maint_array[maint_index].ticks_id = 0;
+	maint_array[maint_index].rw = 2;
+	maint_array[maint_index].maint_type = 9999;
+	maint_array[maint_index].node_type = optype;
+//	maint_array[maint_index].node_self = (unsigned long)node_handle;
 
-	maint_array[maint_count].node_left = key;
-	maint_array[maint_count].node_right = value;
+	maint_array[maint_index].node_left = key;
+	maint_array[maint_index].node_right = value;
 
-	maint_array[maint_count].time_start = gettime_us();
-	maint_count++;
+	maint_array[maint_index].time_start = gettime_us();
+	maint_index++;
 
 	return;
 
@@ -87,26 +87,26 @@ inline void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw, J
 		return;
 	}
 
-	if (maint_count > MAINT_SIZE) {
+	if (maint_index > MAINT_SIZE) {
 		printf("Error:  maintenance overflow\n");
 		_exit(1);
 	}
 
 	node_type = (*node_handle)->type;
 
-	maint_array[maint_count].maint_id = maint_count;
-	maint_array[maint_count].ticks_id = ticks_count;
-	maint_array[maint_count].rw = rw;
-	maint_array[maint_count].maint_type = maint_type;
-	maint_array[maint_count].node_type = node_type;;
-	maint_array[maint_count].node_self = (unsigned long)node_handle;
+	maint_array[maint_index].maint_id = maint_index;
+	maint_array[maint_index].ticks_id = ticks_index;
+	maint_array[maint_index].rw = rw;
+	maint_array[maint_index].maint_type = maint_type;
+	maint_array[maint_index].node_type = node_type;;
+	maint_array[maint_index].node_self = (unsigned long)node_handle;
 
 	// Are we at the start of the viewAdd() block for a maintenance operation?  If so, get the parent of this node.
 	// Also get the parent for all viewErase() operations.  N.b. we do not get them for other viewAdd() operations,
 	// as they will be populated later through record_parent().
-	if ((maint_count == maint_block_start) || (rw == 0)) {
+	if ((maint_index == maint_block_start) || (rw == 0)) {
 		auto parent = jitd->getParent(node_handle);
-		maint_array[maint_count].node_parent = (unsigned long)parent;
+		maint_array[maint_index].node_parent = (unsigned long)parent;
 	}
 
 	// As appropriate per node type, get child ("->node"), left and right nodes:
@@ -114,44 +114,44 @@ inline void record_maintenance(std::shared_ptr<JITDNode>* node_handle, int rw, J
 		auto deletesingleton_node_handle = (std::shared_ptr<DeleteSingletonNode>*)node_handle;
 		auto child_handle = &((*deletesingleton_node_handle)->node);
 		long key = (*deletesingleton_node_handle)->elem;
-		maint_array[maint_count].node_child = (unsigned long)child_handle;
-		maint_array[maint_count].value = key;
+		maint_array[maint_index].node_child = (unsigned long)child_handle;
+		maint_array[maint_index].value = key;
 	} else if (node_type == JITD_NODE_DeleteElements) {
 		auto deleteelements_node_handle = (std::shared_ptr<DeleteElementsNode>*)node_handle;
 		auto child_handle = &((*deleteelements_node_handle)->node);
 		size_t size = array_size((*deleteelements_node_handle)->data);
-		maint_array[maint_count].node_child = (unsigned long)child_handle;
-		maint_array[maint_count].value = size;
+		maint_array[maint_index].node_child = (unsigned long)child_handle;
+		maint_array[maint_index].value = size;
 	} else if (node_type == JITD_NODE_BTree) {
 		auto btree_node_handle = (std::shared_ptr<BTreeNode>*)node_handle;
 		auto left_handle = &((*btree_node_handle)->lhs);
 		auto right_handle = &((*btree_node_handle)->rhs);
 		long separator = (*btree_node_handle)->sep;
-		maint_array[maint_count].node_left = (unsigned long)left_handle;
-		maint_array[maint_count].node_right = (unsigned long)right_handle;
-		maint_array[maint_count].value = separator;
+		maint_array[maint_index].node_left = (unsigned long)left_handle;
+		maint_array[maint_index].node_right = (unsigned long)right_handle;
+		maint_array[maint_index].value = separator;
 	} else if (node_type == JITD_NODE_Concat) {
 		auto concat_node_handle = (std::shared_ptr<ConcatNode>*)node_handle;
 		auto left_handle = &((*concat_node_handle)->lhs);
 		auto right_handle = &((*concat_node_handle)->rhs);
-		maint_array[maint_count].node_left = (unsigned long)left_handle;
-		maint_array[maint_count].node_right = (unsigned long)right_handle;
+		maint_array[maint_index].node_left = (unsigned long)left_handle;
+		maint_array[maint_index].node_right = (unsigned long)right_handle;
 	} else if (node_type == JITD_NODE_SortedArray) {
 		auto sortedarray_node_handle = (std::shared_ptr<SortedArrayNode>*)node_handle;
 		size_t size = array_size((*sortedarray_node_handle)->data);
-		maint_array[maint_count].value = size;
+		maint_array[maint_index].value = size;
 	} else if (node_type == JITD_NODE_Array) {
 		auto array_node_handle =  (std::shared_ptr<ArrayNode>*)node_handle;
 		size_t size = array_size((*array_node_handle)->data);
-		maint_array[maint_count].value = size;
+		maint_array[maint_index].value = size;
 	} else if (node_type == JITD_NODE_Singleton) {
 		auto singleton_node_handle = (std::shared_ptr<SingletonNode>*)node_handle;
 		Record r = (*singleton_node_handle)->elem;
-		maint_array[maint_count].value = r.key;
+		maint_array[maint_index].value = r.key;
 	}
 
-	maint_array[maint_count].time_start = gettime_us();
-	maint_count++;
+	maint_array[maint_index].time_start = gettime_us();
+	maint_index++;
 
 	return;
 
@@ -162,7 +162,7 @@ inline void record_parent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr
 	int lookback_index;
 
 	// Search recent maintenance operations for this node:
-	for (lookback_index = maint_block_start; lookback_index < maint_count; lookback_index++) {
+	for (lookback_index = maint_block_start; lookback_index < maint_index; lookback_index++) {
 		if (maint_array[lookback_index].node_self == (unsigned long)node_handle) {
 			// Found match.  Set parent:
 			maint_array[lookback_index].node_parent = (unsigned long)parent;
@@ -189,10 +189,10 @@ inline void record_parent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr
 
 #define SEARCH_END \
 	diffticks = rdtsc() - sticks; \
-	ticks_array[ticks_count].id = ticks_count; \
-	ticks_array[ticks_count].maint_type = 100; \
-	ticks_array[ticks_count].delta[0] = diffticks; \
-	ticks_count++;
+	ticks_array[ticks_index].id = ticks_index; \
+	ticks_array[ticks_index].maint_type = 100; \
+	ticks_array[ticks_index].delta[0] = diffticks; \
+	ticks_index++;
 
 #else
 
