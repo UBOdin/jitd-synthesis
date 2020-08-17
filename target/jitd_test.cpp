@@ -10,6 +10,20 @@
 #include "harness.hpp"
 #include <mutex>
 
+#ifdef REPLAY_DBT
+
+#include "../toaster_harness/toaster_maintenance.hpp"
+
+#include "program_base.cpp"
+#include "event.cpp"
+#include "runtime.cpp"
+#include "streams.cpp"
+#include "iprogram.cpp"
+#include "standard_adaptors.cpp"
+#include "smhasher/MurmurHash2.cpp"
+
+#endif
+
 uint64_t rdtsc(){
     unsigned int lo,hi;
     __asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
@@ -35,6 +49,27 @@ std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0}
 	{"PushDownDontDeleteElemBtree", 6}, {"PushDownSingletonRight", 7}, {"PushDownSingletonLeft", 8},
 	{"CrackArray", 9}, {"SortArray", 10}, {"after_remove_singleton", 11},
 	{"after_remove_elements", 12}, {"after_insert", 13}, {"after_insert_singleton", 14}, {"PushDownAndCrack", 15} };
+
+#ifdef REPLAY_DBT
+
+namespace dbtoaster { class Custom_toaster : public Program {
+
+	public:
+
+	Custom_toaster(int argc = 0, char* argv[] = 0) : Program(argc, argv) { }
+
+}; }
+
+dbtoaster::Custom_toaster ct;
+
+const QUERY_1_COUNT_map* query_1;
+const QUERY_2_COUNT_map* query_2;
+const QUERY_3_COUNT_map* query_3;
+const QUERY_4_COUNT_map* query_4;
+const QUERY_5_COUNT_map* query_5;
+const QUERY_6_COUNT_map* query_6;
+
+#endif
 
 inline void view_end() {
 
@@ -188,12 +223,13 @@ inline void record_parent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr
 #define SEARCH_START \
 	sticks = rdtsc();
 
-#define SEARCH_END \
-	diffticks = rdtsc() - sticks; \
-	ticks_array[ticks_index].id = ticks_index; \
-	ticks_array[ticks_index].maint_type = 100; \
-	ticks_array[ticks_index].delta[0] = diffticks; \
-	ticks_index++;
+#define SEARCH_END
+//#define SEARCH_END \
+//	diffticks = rdtsc() - sticks; \
+//	ticks_array[ticks_index].id = ticks_index; \
+//	ticks_array[ticks_index].maint_type = 100; \
+//	ticks_array[ticks_index].delta[0] = diffticks; \
+//	ticks_index++;
 
 #else
 
@@ -2429,6 +2465,20 @@ trace_lock.unlock();
 }
 void JITD::initialize_struts_view(std::shared_ptr<JITDNode>* node,std::shared_ptr<JITDNode>* parent)
 {
+
+#ifdef REPLAY_DBT
+
+ct.init();
+
+query_1 = &ct.data.QUERY_1_COUNT;
+query_2 = &ct.data.QUERY_2_COUNT;
+query_3 = &ct.data.QUERY_3_COUNT;
+query_4 = &ct.data.QUERY_4_COUNT;
+query_5 = &ct.data.QUERY_5_COUNT;
+query_6 = &ct.data.QUERY_6_COUNT;
+
+#endif
+
     std::shared_ptr<JITDNode> target_root_lock;
     #ifdef ATOMIC_LOAD
     target_root_lock = std::atomic_load((node));
@@ -2612,6 +2662,26 @@ bool JITD::do_organize()
   
 SEARCH_START;
 
+/*
+int transform = 0;
+
+if (query_3.head != nullptr) {
+        transform = 78;
+} else if (query_4.head != nullptr) {
+        transform = 5;
+} else if (query_5.head != nullptr) {
+        transform = 4;
+} else if (query_6.head != nullptr) {
+        transform = 2;
+} else if (query_2.head != nullptr) {
+        transform = 15;
+} else if (query_1.head != nullptr) {
+        transform = 9;
+} else {
+//      printf("Error:  No available transform\n");
+//      _exit(1);
+*/
+
 
 {
   std::shared_ptr<JITDNode> * targetHandleRef;
@@ -2621,9 +2691,24 @@ SEARCH_START;
   //this->print_debug();
   //check_pq();
 
+#ifdef REPLAY_DBT
+long bestScore = -1;
+if (query_3->head != nullptr) {
+
+	// Kludge because DBT stream is combining PushDownSingletonLeft and PushDownSingletonRight:
+	if (maint_array[maint_index].maint_type == 7) {
+		goto do_pdsr;
+	}
+
+	bestScore = 1;
+	targetHandleRef = (std::shared_ptr<JITDNode>*)query_3->head->CONCAT_NODE_SELF;
+}
+
+#else
   long bestScore = searchForPushDownSingletonLeft(
     targetHandleRef
   );
+#endif
   //std::cout<<"After calling searchForPushDownSingletonLeft Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
@@ -2667,9 +2752,18 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
+#ifdef REPLAY_DBT
+do_pdsr:
+long bestScore = -1;
+if (query_3->head != nullptr) {
+	bestScore = 1;
+	targetHandleRef = (std::shared_ptr<JITDNode>*)query_3->head->CONCAT_NODE_SELF;
+}
+#else
   long bestScore = searchForPushDownSingletonRight(
     targetHandleRef
   );
+#endif
   //std::cout<<"After calling searchForPushDownSingletonRight Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
@@ -2713,9 +2807,17 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
+#ifdef REPLAY_DBT
+long bestScore = -1;
+if (query_4->head != nullptr) {
+	bestScore = 1;
+	targetHandleRef = (std::shared_ptr<JITDNode>*)query_4->head->DELETESINGLETON_NODE_SELF;
+}
+#else
   long bestScore = searchForPushDownDontDeleteSingletonBtreeLeft(
     targetHandleRef
   );
+#endif
   //std::cout<<"After calling searchForPushDownDontDeleteSingletonBtreeLeft Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
@@ -2759,9 +2861,17 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
+#ifdef REPLAY_DBT
+long bestScore = -1;
+if (query_5->head != nullptr) {
+	bestScore = 1;
+	targetHandleRef = (std::shared_ptr<JITDNode>*)query_5->head->DELETESINGLETON_NODE_SELF;
+}
+#else
   long bestScore = searchForPushDownDontDeleteSingletonBtreeRight(
     targetHandleRef
   );
+#endif
   //std::cout<<"After calling searchForPushDownDontDeleteSingletonBtreeRight Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
@@ -2805,9 +2915,17 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
+#ifdef REPLAY_DBT
+long bestScore = -1;
+if (query_6->head != nullptr) {
+	bestScore = 1;
+	targetHandleRef = (std::shared_ptr<JITDNode>*)query_6->head->DELETESINGLETON_NODE_SELF;
+}
+#else
   long bestScore = searchForDeleteSingletonFromArray(
     targetHandleRef
   );
+#endif
   //std::cout<<"After calling searchForDeleteSingletonFromArray Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
@@ -2851,9 +2969,17 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
+#ifdef REPLAY_DBT
+long bestScore = -1;
+if (query_2->head != nullptr) {
+	bestScore = 1;
+	targetHandleRef = (std::shared_ptr<JITDNode>*)query_2->head->CONCAT_NODE_SELF;
+}
+#else
   long bestScore = searchForPushDownAndCrack(
     targetHandleRef
   );
+#endif
   //std::cout<<"After calling searchForPushDownAndCrack Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
@@ -2897,9 +3023,17 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
+#ifdef REPLAY_DBT
+long bestScore = -1;
+if (query_1->head != nullptr) {
+	bestScore = 1;
+	targetHandleRef = (std::shared_ptr<JITDNode>*)query_1->head->ARRAY_NODE_SELF;
+}
+#else
   long bestScore = searchForCrackArray(
     targetHandleRef
   );
+#endif
   //std::cout<<"After calling searchForCrackArray Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
@@ -3077,6 +3211,8 @@ void JITD::viewAdd(std::shared_ptr<JITDNode>* node_handle)
 record_maintenance(node_handle, 1, this);
 #endif
 
+#if not defined REPLAY_DBT
+
   bool matched = false;
   std::shared_ptr<JITDNode> node_ptr;
     #ifdef ATOMIC_LOAD
@@ -3164,6 +3300,55 @@ this->CrackArray_View.emplace(node_handle);
 
   }
 
+#else
+
+	int id = 0;
+	unsigned long self = (unsigned long)node_handle;
+	JITDNodeType node_type = (*node_handle)->type;
+
+	if (node_type == JITD_NODE_DeleteSingleton) {
+		auto deletesingleton_node_handle = (std::shared_ptr<DeleteSingletonNode>*)node_handle;
+		auto child_handle = &((*deletesingleton_node_handle)->node);
+		long key = (*deletesingleton_node_handle)->elem;
+		ct.data.on_insert_DELETESINGLETON(id, self, (unsigned long)child_handle, key);
+	} else if (node_type == JITD_NODE_DeleteElements) {
+		auto deleteelements_node_handle = (std::shared_ptr<DeleteElementsNode>*)node_handle;
+		auto child_handle = &((*deleteelements_node_handle)->node);
+		size_t size = array_size((*deleteelements_node_handle)->data);
+		goto err_missing_node;
+	} else if (node_type == JITD_NODE_BTree) {
+		auto btree_node_handle = (std::shared_ptr<BTreeNode>*)node_handle;
+		auto left_handle = &((*btree_node_handle)->lhs);
+		auto right_handle = &((*btree_node_handle)->rhs);
+		long separator = (*btree_node_handle)->sep;
+		ct.data.on_insert_BTREE(id, self, (unsigned long)left_handle, (unsigned long)right_handle, separator);
+	} else if (node_type == JITD_NODE_Concat) {
+		auto concat_node_handle = (std::shared_ptr<ConcatNode>*)node_handle;
+		auto left_handle = &((*concat_node_handle)->lhs);
+		auto right_handle = &((*concat_node_handle)->rhs);
+		ct.data.on_insert_CONCAT(id, self, (unsigned long)left_handle, (unsigned long)right_handle);
+	} else if (node_type == JITD_NODE_SortedArray) {
+		auto sortedarray_node_handle = (std::shared_ptr<SortedArrayNode>*)node_handle;
+		size_t size = array_size((*sortedarray_node_handle)->data);
+		goto err_missing_node;
+	} else if (node_type == JITD_NODE_Array) {
+		auto array_node_handle =  (std::shared_ptr<ArrayNode>*)node_handle;
+		size_t size = array_size((*array_node_handle)->data);
+		ct.data.on_insert_ARRAY(id, self, size);
+	} else if (node_type == JITD_NODE_Singleton) {
+		auto singleton_node_handle = (std::shared_ptr<SingletonNode>*)node_handle;
+		Record r = (*singleton_node_handle)->elem;
+		ct.data.on_insert_SINGLETON(id, self, r.key);
+	}
+
+	return;
+
+    err_missing_node:
+	printf("Error:  Unsupported insert node type\n");
+	_exit(1);
+
+#endif
+
 }
 void JITD::viewErase(std::shared_ptr<JITDNode>* node_handle)
 {
@@ -3172,6 +3357,8 @@ void JITD::viewErase(std::shared_ptr<JITDNode>* node_handle)
 #if not defined REPLAY_JITD && not defined REPLAY_DBT
 record_maintenance(node_handle, 0, this);
 #endif
+
+#if not defined REPLAY_DBT
 
   bool matched = false;
   std::shared_ptr<JITDNode> node_ptr;
@@ -3245,6 +3432,55 @@ this->PushDownAndCrack_View.erase(node_handle);
     
 
   }
+
+#else
+
+	int id = 0;
+	unsigned long self = (unsigned long)node_handle;
+	JITDNodeType node_type = (*node_handle)->type;
+
+	if (node_type == JITD_NODE_DeleteSingleton) {
+		auto deletesingleton_node_handle = (std::shared_ptr<DeleteSingletonNode>*)node_handle;
+		auto child_handle = &((*deletesingleton_node_handle)->node);
+		long key = (*deletesingleton_node_handle)->elem;
+		ct.data.on_delete_DELETESINGLETON(id, self, (unsigned long)child_handle, key);
+	} else if (node_type == JITD_NODE_DeleteElements) {
+		auto deleteelements_node_handle = (std::shared_ptr<DeleteElementsNode>*)node_handle;
+		auto child_handle = &((*deleteelements_node_handle)->node);
+		size_t size = array_size((*deleteelements_node_handle)->data);
+		goto err_missing_node;
+	} else if (node_type == JITD_NODE_BTree) {
+		auto btree_node_handle = (std::shared_ptr<BTreeNode>*)node_handle;
+		auto left_handle = &((*btree_node_handle)->lhs);
+		auto right_handle = &((*btree_node_handle)->rhs);
+		long separator = (*btree_node_handle)->sep;
+		ct.data.on_delete_BTREE(id, self, (unsigned long)left_handle, (unsigned long)right_handle, separator);
+	} else if (node_type == JITD_NODE_Concat) {
+		auto concat_node_handle = (std::shared_ptr<ConcatNode>*)node_handle;
+		auto left_handle = &((*concat_node_handle)->lhs);
+		auto right_handle = &((*concat_node_handle)->rhs);
+		ct.data.on_delete_CONCAT(id, self, (unsigned long)left_handle, (unsigned long)right_handle);
+	} else if (node_type == JITD_NODE_SortedArray) {
+		auto sortedarray_node_handle = (std::shared_ptr<SortedArrayNode>*)node_handle;
+		size_t size = array_size((*sortedarray_node_handle)->data);
+		goto err_missing_node;
+	} else if (node_type == JITD_NODE_Array) {
+		auto array_node_handle =  (std::shared_ptr<ArrayNode>*)node_handle;
+		size_t size = array_size((*array_node_handle)->data);
+		ct.data.on_delete_ARRAY(id, self, size);
+	} else if (node_type == JITD_NODE_Singleton) {
+		auto singleton_node_handle = (std::shared_ptr<SingletonNode>*)node_handle;
+		Record r = (*singleton_node_handle)->elem;
+		ct.data.on_delete_SINGLETON(id, self, r.key);
+	}
+
+	return;
+
+    err_missing_node:
+	printf("Error:  Unsupported delete node type\n");
+	_exit(1);
+
+#endif
   
 }
 std::shared_ptr<JITDNode> * JITD::getParent(std::shared_ptr<JITDNode> * &target)
