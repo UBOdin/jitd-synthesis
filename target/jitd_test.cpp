@@ -226,6 +226,10 @@ inline void record_parent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr
 #define SEARCH_END
 //#define SEARCH_END \
 //	diffticks = rdtsc() - sticks; \
+//	if (ticks_index >= TICKS_SIZE) { \
+//		printf("Error:  view overflow\n"); \
+//		_exit(1); \
+//	} \
 //	ticks_array[ticks_index].id = ticks_index; \
 //	ticks_array[ticks_index].maint_type = 100; \
 //	ticks_array[ticks_index].delta[0] = diffticks; \
