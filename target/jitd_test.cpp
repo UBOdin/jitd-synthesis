@@ -1306,14 +1306,7 @@ VIEW_END;
           ArrayNode * to_ptr_rhs_ref = new ArrayNode();
           std::shared_ptr<JITDNode> rhs_partition_ref = std::shared_ptr<JITDNode>(to_ptr_rhs_ref);
           /*** Assemble to_ptr as a BTree ***/
-
-          #ifdef REPLAY_DBT
-          // When replaying (dbt), use original randomly generated array crack separator (always 2nd from end of maintenance block):
-          BTreeNode * to_ptr = new BTreeNode(lhs_partition_ref, maint_array[maint_block_end - 3].value, rhs_partition_ref);
-          #else
           BTreeNode * to_ptr = new BTreeNode(lhs_partition_ref, pick_separator(target_root->data), rhs_partition_ref);
-          #endif
-
           std::shared_ptr<JITDNode> to_ptr_ref = std::shared_ptr<JITDNode>(to_ptr);
           /*** Handle post-processing for to_ptr ***/
           do_crack(target_root->data, to_ptr->sep, to_ptr_lhs_ref->data, to_ptr_rhs_ref->data);
@@ -2698,14 +2691,23 @@ if (query_3.head != nullptr) {
 #ifdef REPLAY_DBT
 long bestScore = -1;
 if (query_3->head != nullptr) {
-
-	// Kludge because DBT stream is combining PushDownSingletonLeft and PushDownSingletonRight:
-	if (maint_array[maint_index].maint_type == 7) {
-		goto do_pdsr;
-	}
-
-	bestScore = 1;
+//	bestScore = 1;
 	targetHandleRef = (std::shared_ptr<JITDNode>*)query_3->head->CONCAT_NODE_SELF;
+
+	// For DBT, we are maintaining a combined view for PDSL and PSDR transforms.
+	// So manually inspect values to determine which transform to perform:
+	auto concat_node_handle = (std::shared_ptr<ConcatNode>*)targetHandleRef;
+	assert((*concat_node_handle)->type == JITD_NODE_Concat);
+	auto btree_node_handle = (std::shared_ptr<BTreeNode>*)&((*concat_node_handle)->lhs);
+	assert((*btree_node_handle)->type == JITD_NODE_BTree);
+	auto singleton_node_handle = (std::shared_ptr<SingletonNode>*)&((*concat_node_handle)->rhs);
+	assert((*singleton_node_handle)->type == JITD_NODE_Singleton);
+
+	if ((*singleton_node_handle)->elem.key < (*btree_node_handle)->sep) {
+		bestScore = 1;
+	}
+	// Else -- leave bestScore at -1 and fall through to PDSL
+
 }
 
 #else
@@ -2757,7 +2759,6 @@ SEARCH_END;
   //check_pq();
 
 #ifdef REPLAY_DBT
-do_pdsr:
 long bestScore = -1;
 if (query_3->head != nullptr) {
 	bestScore = 1;
