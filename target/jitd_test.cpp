@@ -212,6 +212,7 @@ inline void record_parent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr
 
 }
 
+
 #define VIEW_START \
 	if (delta_count == 0) { \
 		maint_type = view_map[std::string(__func__)]; \
@@ -219,6 +220,7 @@ inline void record_parent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr
 	sticks = rdtsc();
 
 #define VIEW_END view_end()
+
 
 #define SEARCH_START \
 	sticks = rdtsc();
@@ -234,6 +236,15 @@ inline void record_parent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr
 //	ticks_array[ticks_index].maint_type = 100; \
 //	ticks_array[ticks_index].delta[0] = diffticks; \
 //	ticks_index++;
+
+
+#if not defined REPLAY_DBT
+#define _viewErase(foo) (viewErase(foo))
+#define _viewAdd(foo) (viewAdd(foo))
+#else
+#define _viewErase(foo)
+#define _viewAdd(foo)
+#endif
 
 #else
 
@@ -370,7 +381,7 @@ VIEW_END;
             {
               /*** ViewMaintenanceParent ***/
 VIEW_START;
-              viewErase(parent);
+              _viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
@@ -450,7 +461,7 @@ VIEW_END;
             {
               /*** ViewMaintenanceParent ***/
 VIEW_START;
-              viewErase(parent);
+              _viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
@@ -470,7 +481,7 @@ VIEW_END;
               #endif
               /*** ViewMaintenanceParent ***/
 VIEW_START;
-              viewAdd(parent);
+              _viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
               /*** ParentMaintenance ***/
@@ -610,7 +621,7 @@ VIEW_END;
             {
               /*** ViewMaintenanceParent ***/
 VIEW_START;
-              viewErase(parent);
+              _viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
@@ -633,7 +644,7 @@ VIEW_END;
               #endif
               /*** ViewMaintenanceParent ***/
 VIEW_START;
-              viewAdd(parent);
+              _viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
               viewAdd(&(to_ptr->lhs));
@@ -708,7 +719,7 @@ VIEW_END;
             {
               /*** ViewMaintenanceParent ***/
 VIEW_START;
-              viewErase(parent);
+              _viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
@@ -731,7 +742,7 @@ VIEW_END;
               #endif
               /*** ViewMaintenanceParent ***/
 VIEW_START;
-              viewAdd(parent);
+              _viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
               viewAdd(&(to_ptr->lhs));
@@ -926,7 +937,7 @@ VIEW_END;
                 {
                   /*** ViewMaintenanceParent ***/
 VIEW_START;
-                  viewErase(parent);
+                  _viewErase(parent);
                   /*** ViewMaintenance ***/
                   viewErase(target);
                   viewErase(&(target_root->lhs));
@@ -953,7 +964,7 @@ VIEW_END;
                   #endif
                   /*** ViewMaintenanceParent ***/
 VIEW_START;
-                  viewAdd(parent);
+                  _viewAdd(parent);
                   /*** ViewMaintenance ***/
                   viewAdd(target);
                   viewAdd(&(to_ptr->lhs));
@@ -1052,7 +1063,7 @@ VIEW_END;
                 {
                   /*** ViewMaintenanceParent ***/
 VIEW_START;
-                  viewErase(parent);
+                  _viewErase(parent);
                   /*** ViewMaintenance ***/
                   viewErase(target);
                   viewErase(&(target_root->lhs));
@@ -1079,7 +1090,7 @@ VIEW_END;
                   #endif
                   /*** ViewMaintenanceParent ***/
 VIEW_START;
-                  viewAdd(parent);
+                  _viewAdd(parent);
                   /*** ViewMaintenance ***/
                   viewAdd(target);
                   viewAdd(&(to_ptr->lhs));
@@ -1178,7 +1189,7 @@ VIEW_END;
                 {
                   /*** ViewMaintenanceParent ***/
 VIEW_START;
-                  viewErase(parent);
+                  _viewErase(parent);
                   /*** ViewMaintenance ***/
                   viewErase(target);
                   viewErase(&(target_root->lhs));
@@ -1213,7 +1224,7 @@ VIEW_END;
                   #endif
                   /*** ViewMaintenanceParent ***/
 VIEW_START;
-                  viewAdd(parent);
+                  _viewAdd(parent);
                   /*** ViewMaintenance ***/
                   viewAdd(target);
                   viewAdd(&(to_ptr->lhs));
@@ -1294,7 +1305,7 @@ VIEW_END;
         {
           /*** ViewMaintenanceParent ***/
 VIEW_START;
-          viewErase(parent);
+          _viewErase(parent);
           /*** ViewMaintenance ***/
           viewErase(target);
 VIEW_END;
@@ -1319,7 +1330,7 @@ VIEW_END;
           #endif
           /*** ViewMaintenanceParent ***/
 VIEW_START;
-          viewAdd(parent);
+          _viewAdd(parent);
           /*** ViewMaintenance ***/
           viewAdd(target);
           viewAdd(&(to_ptr->lhs));
@@ -3069,6 +3080,13 @@ SEARCH_END;
 
 }
 
+#ifdef REPLAY_JITD
+//printf("NO JITD Xform\n");
+#endif
+#ifdef REPLAY_DBT
+//printf("NO DBT xform\n");
+ticks_index++;
+#endif
 
   return false;
 
@@ -3490,6 +3508,9 @@ this->PushDownAndCrack_View.erase(node_handle);
 }
 std::shared_ptr<JITDNode> * JITD::getParent(std::shared_ptr<JITDNode> * &target)
 {
+
+#if not defined REPLAY_DBT
+
     std::shared_ptr<JITDNode> node_ptr;
     #ifdef ATOMIC_LOAD
     node_ptr = std::atomic_load((target));
@@ -3553,6 +3574,12 @@ std::shared_ptr<JITDNode> * JITD::getParent(std::shared_ptr<JITDNode> * &target)
       
     }
   
+#else
+
+return NULL;
+
+#endif
+
   
 }
 /*
@@ -3579,6 +3606,8 @@ void JITD::setParent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr<JITD
 #if not defined REPLAY_JITD && not defined REPLAY_DBT
 record_parent(node_handle, parent);
 #endif
+
+#if not defined REPLAY_DBT
 
     std::shared_ptr<JITDNode> node_ptr;
     #ifdef ATOMIC_LOAD
@@ -3642,9 +3671,19 @@ record_parent(node_handle, parent);
 
       
     }
+
+#else
+
+return;
+
+#endif
+
 }
 void JITD::fixNodeDecendents(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr<JITDNode>* parent)
 {
+
+#if not defined REPLAY_DBT
+
   std::shared_ptr<JITDNode> node_ptr;
     #ifdef ATOMIC_LOAD
     node_ptr = std::atomic_load((node_handle));
@@ -3917,6 +3956,11 @@ break;}
   
 
   }
+
+#else
+return;
+#endif
+
   }
 /*
 void JITD::fixMap(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr<JITDNode>* parent)
