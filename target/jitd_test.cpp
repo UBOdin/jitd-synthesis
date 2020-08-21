@@ -3085,6 +3085,7 @@ SEARCH_END;
 #endif
 #ifdef REPLAY_DBT
 //printf("NO DBT xform\n");
+ticks_array[ticks_index].id = ticks_index;
 ticks_index++;
 #endif
 
