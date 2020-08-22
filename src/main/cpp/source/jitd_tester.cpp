@@ -309,6 +309,7 @@ int jitd_client_op(
     CASE("dump") {
       
       jitd->print_debug();
+      jitd->jitd_transforms_sanity_call();
       
     }
     CASE("depth")
@@ -479,6 +480,7 @@ int jitd_test(
     } CASE("dump") {
       
       jitd->print_debug();
+      jitd->jitd_transforms_sanity_call();
 
     }
     // CASE("dump_viz") {
