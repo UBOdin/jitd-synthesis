@@ -9,6 +9,7 @@
 #define STORAGE_JITD
 #include "harness.hpp"
 #include <mutex>
+#include <map>
 
 #ifdef REPLAY_DBT
 
@@ -225,8 +226,8 @@ inline void record_parent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr
 #define SEARCH_START \
 	sticks = rdtsc();
 
-//#define SEARCH_END
-#define SEARCH_END \
+#define SEARCH_END
+//#define SEARCH_END \
 	diffticks = rdtsc() - sticks; \
 	if (ticks_index >= TICKS_SIZE) { \
 		printf("Error:  view overflow\n"); \
@@ -3085,8 +3086,12 @@ SEARCH_END;
 #endif
 #ifdef REPLAY_DBT
 //printf("NO DBT xform\n");
+
 //ticks_array[ticks_index].id = ticks_index;
 //ticks_index++;
+//ticks_array[ticks_index].id = ticks_index;
+//ticks_index++;
+
 #endif
 
   return false;
@@ -4632,6 +4637,76 @@ jitd_node_count(node_real->rhs);
   }
   
 }
+
+
+// Debug routine:
+void get_key_bag(std::shared_ptr<JITDNode> node, std::multimap<long, int*>* bag){
+
+	long key;
+	std::vector<long>::iterator long_iter;
+	std::vector<Record>::iterator record_iter;
+
+	switch(node->type){
+
+		case JITD_NODE_DeleteSingleton : {
+			DeleteSingletonNode *node_real = (DeleteSingletonNode *)node.get();
+			key = node_real->elem;
+			bag->insert(std::pair<long, int*>(key, NULL));
+			get_key_bag(node_real->node, bag);
+			break;
+		}
+		case JITD_NODE_DeleteElements : {
+			DeleteElementsNode *node_real = (DeleteElementsNode *)node.get();
+			std::vector<long>* long_vector = &node_real->data;
+			for (long_iter = long_vector->begin(); long_iter != long_vector->end(); long_iter++) {
+				key = *long_iter;
+				bag->insert(std::pair<long, int*>(key, NULL));
+			}
+			get_key_bag(node_real->node, bag);
+			break;
+		}
+		case JITD_NODE_BTree : {
+			BTreeNode *node_real = (BTreeNode *)node.get();
+			get_key_bag(node_real->lhs, bag);
+			get_key_bag(node_real->rhs, bag);
+			break;
+		}
+		case JITD_NODE_Concat : {
+			ConcatNode *node_real = (ConcatNode *)node.get();
+			get_key_bag(node_real->lhs, bag);
+			get_key_bag(node_real->rhs, bag);
+			break;
+		}
+		case JITD_NODE_SortedArray : {
+			SortedArrayNode *node_real = (SortedArrayNode *)node.get();
+			std::vector<Record>* record_vector = &node_real->data;
+			for (record_iter = record_vector->begin(); record_iter != record_vector->end(); record_iter++) {
+				key = record_iter->key;
+				bag->insert(std::pair<long, int*>(key, NULL));
+			}
+			break;
+		}
+		case JITD_NODE_Array : {
+			ArrayNode *node_real = (ArrayNode *)node.get();
+			std::vector<Record>* record_vector = &node_real->data;
+			for (record_iter = record_vector->begin(); record_iter != record_vector->end(); record_iter++) {
+				key = record_iter->key;
+				bag->insert(std::pair<long, int*>(key, NULL));
+			}
+			break;
+		}
+		case JITD_NODE_Singleton : {
+			SingletonNode *node_real = (SingletonNode *)node.get();
+			key = node_real->elem.key;
+			bag->insert(std::pair<long, int*>(key, NULL));
+			break;
+		}
+
+	}
+
+}
+
+
 void print_JITD_node_structure(std::shared_ptr<JITDNode> node, const std::string &prefix){ 
   
   switch(node->type){
