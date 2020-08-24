@@ -12,12 +12,19 @@ import numpy as np
 import matplotlib.patches as mpatches
 import math
 
-
+'''
 name_dict = {0:"DeleteElemFromSingleton", 1:"DeleteKeyFromSingleton", 2:"DeleteSingletonFromArray", \
 	3:"DeleteElemFromArray", 4:"PushDownDontDeleteSingletonBtreeRight", 5:"PushDownDontDeleteSingletonBtreeLeft", \
 	6:"PushDownDontDeleteElemBtree", 7:"PushDownSingletonRight", 8:"PushDownSingletonLeft", 9:"CrackArray", \
 	10:"SortArray", 11:"after_remove_singleton", 12:"after_remove_elements", 13:"after_insert", \
 	14:"after_insert_singleton", 15:"PushDownAndCrack"}
+'''
+name_dict = {0:"DeleteElemFromSingleton", 1:"DeleteKeyFromSingleton", 2:"DeleteSingletonFromArray", \
+	3:"DeleteElemFromArray", 4:"PushDownDontDeleteSingletonBtreeRight", 5:"PushDownDontDeleteSingletonBtreeLeft", \
+	6:"PushDownDontDeleteElemBtree", 7:"PushDownSingletonRight", 8:"PushDownSingletonLeft", 9:"CrackArray", \
+	10:"SortArray", 11:"after_remove_singleton", 12:"after_remove_elements", 13:"after_insert", \
+	14:"after_insert_singleton", 15:"PushDownAndCrack", 100:"searchFor"}
+
 
 
 def create_cdf(input_list, maxitem = None, scale = 1.0):
@@ -156,10 +163,10 @@ def make_graph(workload, maintenance, fig, ax, fig2, ax2):
 	type_dict = {}
 
 	if (maintenance == "jitd"):
-		input_file_name = "view_results/output_view_performance_" + workload + ".txt"
+		input_file_name = "view_results/jitd_view_performance_" + workload + ".txt"
 	#end_if
 	if (maintenance == "dbt"):
-		input_file_name = "view_results/toaster_view_performance_" + workload + ".txt"
+		input_file_name = "view_results/dbt_view_performance_" + workload + ".txt"
 	#end_if
 
 	process_loglines(input_file_name, results_list_list, type_dict)
@@ -200,7 +207,7 @@ def make_graph(workload, maintenance, fig, ax, fig2, ax2):
 	ax.set_xlabel("View maintenance set number", fontsize = 14, fontweight = "bold")
 	ax.set_ylabel("Time (CPU ticks)", fontsize = 14, fontweight = "bold")
 	#ax.axis([0, len(results_list_list[0]), 0, max(results_list_list[1]) * 1.05])
-	ax.axis([0, len(results_list_list[0]), 0, 80000]) #max(results_list_list[1]) * 1.05])
+	ax.axis([0, len(results_list_list[0]), 0, 20000]) #max(results_list_list[1]) * 1.05])
 	ax.legend(loc = "upper right", markerscale = 8)
 
 	print(len(results_list_list[0]))
