@@ -2924,7 +2924,7 @@ SEARCH_END;
 
 
 
-/*
+
 {
   std::shared_ptr<JITDNode> * targetHandleRef;
   
@@ -2973,7 +2973,7 @@ SEARCH_END;
 
 
 }
-*/
+
 
     
 
@@ -4775,7 +4775,7 @@ void get_key_bag(std::shared_ptr<JITDNode> node, std::multimap<MMAP_TYPE>* inser
 			break;
 		}
 		case JITD_NODE_SortedArray : {
-break;
+//break;
 			SortedArrayNode *node_real = (SortedArrayNode *)node.get();
 			std::vector<Record>* record_vector = &node_real->data;
 			for (record_iter = record_vector->begin(); record_iter != record_vector->end(); record_iter++) {
@@ -4785,7 +4785,7 @@ break;
 			break;
 		}
 		case JITD_NODE_Array : {
-break;
+//break;
 			ArrayNode *node_real = (ArrayNode *)node.get();
 			std::vector<Record>* record_vector = &node_real->data;
 			for (record_iter = record_vector->begin(); record_iter != record_vector->end(); record_iter++) {
