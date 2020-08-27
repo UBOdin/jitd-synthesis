@@ -24,6 +24,8 @@
  
 #include "runtime.hpp"
 
+#define MMAP_TYPE long, int*
+
 
   #define JITD_DEBUG(cmd)
 
