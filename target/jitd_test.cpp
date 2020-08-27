@@ -2924,6 +2924,7 @@ SEARCH_END;
 
 
 
+/*
 {
   std::shared_ptr<JITDNode> * targetHandleRef;
   
@@ -2972,7 +2973,7 @@ SEARCH_END;
 
 
 }
-
+*/
 
     
 
@@ -4639,6 +4640,102 @@ jitd_node_count(node_real->rhs);
 }
 
 
+// Debug:
+
+bool JITD::jitd_transforms_sanity(std::shared_ptr<JITDNode>* node_ref)
+{
+  bool matched = false;
+  std::shared_ptr<JITDNode> node = std::atomic_load(node_ref);
+  switch(node->type){
+    
+      case JITD_NODE_DeleteSingleton : {
+        DeleteSingletonNode *node_real = (DeleteSingletonNode *)node.get();
+        matched = this->matchPushDownDontDeleteSingletonBtreeLeft(node_ref);
+if(matched == true){return true;}
+matched = this->matchPushDownDontDeleteSingletonBtreeRight(node_ref);
+if(matched == true){return true;}
+
+
+        matched = jitd_transforms_sanity(&(node_real->node));
+if(matched == true){return(true);
+} 
+        break;
+      }
+    
+/*
+      case JITD_NODE_DeleteElements : {
+        DeleteElementsNode *node_real = (DeleteElementsNode *)node.get();
+        matched = this->matchPushDownDontDeleteElemBtree(node_ref);
+if(matched == true){return true;}
+
+
+        matched = jitd_transforms_sanity(&(node_real->node));
+if(matched == true){return(true);
+} 
+        break;
+      }
+  
+*/  
+      case JITD_NODE_BTree : {
+        BTreeNode *node_real = (BTreeNode *)node.get();
+        
+
+        matched = jitd_transforms_sanity(&(node_real->lhs));
+if(matched == true){return(true);
+}matched = jitd_transforms_sanity(&(node_real->rhs));
+if(matched == true){return(true);
+} 
+        break;
+      }
+    
+      case JITD_NODE_Concat : {
+        ConcatNode *node_real = (ConcatNode *)node.get();
+        matched = this->matchPushDownSingletonLeft(node_ref);
+if(matched == true){return true;}
+matched = this->matchPushDownSingletonRight(node_ref);
+if(matched == true){return true;}
+
+
+        matched = jitd_transforms_sanity(&(node_real->lhs));
+if(matched == true){return(true);
+}matched = jitd_transforms_sanity(&(node_real->rhs));
+if(matched == true){return(true);
+} 
+        break;
+      }
+    
+      case JITD_NODE_SortedArray : {
+        SortedArrayNode *node_real = (SortedArrayNode *)node.get();
+        
+
+         
+        break;
+      }
+    
+      case JITD_NODE_Array : {
+        ArrayNode *node_real = (ArrayNode *)node.get();
+        matched = this->matchCrackArray(node_ref);
+if(matched == true){return true;}
+
+
+         
+        break;
+      }
+    
+      case JITD_NODE_Singleton : {
+        SingletonNode *node_real = (SingletonNode *)node.get();
+        
+
+         
+        break;
+      }
+    
+  }
+  return(matched);
+}
+
+
+
 // Debug routine:
 void get_key_bag(std::shared_ptr<JITDNode> node, std::multimap<long, int*>* bag){
 
@@ -4678,6 +4775,7 @@ void get_key_bag(std::shared_ptr<JITDNode> node, std::multimap<long, int*>* bag)
 			break;
 		}
 		case JITD_NODE_SortedArray : {
+break;
 			SortedArrayNode *node_real = (SortedArrayNode *)node.get();
 			std::vector<Record>* record_vector = &node_real->data;
 			for (record_iter = record_vector->begin(); record_iter != record_vector->end(); record_iter++) {
@@ -4687,6 +4785,7 @@ void get_key_bag(std::shared_ptr<JITDNode> node, std::multimap<long, int*>* bag)
 			break;
 		}
 		case JITD_NODE_Array : {
+break;
 			ArrayNode *node_real = (ArrayNode *)node.get();
 			std::vector<Record>* record_vector = &node_real->data;
 			for (record_iter = record_vector->begin(); record_iter != record_vector->end(); record_iter++) {

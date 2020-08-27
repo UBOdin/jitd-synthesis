@@ -610,6 +610,10 @@ void after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>
     //void print_map();
     void check_view();
     void jitd_node_count(std::shared_ptr<JITDNode> node);
+
+    bool jitd_transforms_sanity(std::shared_ptr<JITDNode>* jitd_node_ref);
+    void jitd_transforms_sanity_call(){std::cout<<"A match value: "<<jitd_transforms_sanity(&(*jitd_root))<<std::endl;}
+
     void get_node_count(){ jitd_node_count(*jitd_root);std::cout<<"The number of nodes in JITD: "<<node_count<<std::endl;}
     void times_transforms_called();
     std::shared_ptr<JITDNode> * getParent(std::shared_ptr<JITDNode> * &target);
@@ -667,7 +671,7 @@ void after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>
 	int __array_size;                       // Array crack threshhold
 	int __sleep_time;                       // Worker intra-spin block time
      
-  private:
+//  private:
 
     //std::shared_ptr<JITDNode> root;
     std::shared_ptr<std::shared_ptr<JITDNode>> jitd_root;
