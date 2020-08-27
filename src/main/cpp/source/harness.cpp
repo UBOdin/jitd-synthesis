@@ -111,6 +111,10 @@
 
 using namespace harness;
 
+#include <map>
+
+void get_key_bag(std::shared_ptr<JITDNode>, std::multimap<long, int*>*);
+
 
 long gettime_us() {
 
@@ -943,8 +947,8 @@ int replay_trace(STORAGE_HANDLE storage) {
 
 			//  Sanity check:  Replay operation originally recorded should match the one just selected:
 			if (maint_type != ticks_array[ticks_index - 1].maint_type) {
-				printf("Unexpected maintenance type:  %d %d %d %d\n", maint_index, maint_type, ticks_array[ticks_index - 1].maint_type, ticks_index - 1);
-				_exit(1);
+//				printf("Unexpected maintenance type:  %d %d %d %d\n", maint_index, maint_type, ticks_array[ticks_index - 1].maint_type, ticks_index - 1);
+//				_exit(1);
 			}
 
 			maint_index = maint_block_end - 1;
@@ -1009,7 +1013,55 @@ int replay_trace(STORAGE_HANDLE storage) {
 	printf("Maintenance lines replayed:  %d\n", maint_index);
 	printf("Benchmark operations replayed:  %d\n", j);
 
+	int i = 0;
+	while (1) {
+		if (storage->jitd->do_organize() == false) {
+			break;
+		}
+		i++;
+	}
+	printf("Post replay organization steps:  %d\n", i);
+
+	std::multimap<long, int*>* mmap = new(std::multimap<long, int*>);
+
+	get_key_bag(*(storage->jitd->jitd_root), mmap);
+
+	storage->jitd->jitd_transforms_sanity_call();
+
+//	#define BUFFER_SIZE 256
+
+//	int result;
+	int output_fd;
+	char output_filename[] = "output_keys.txt";
+	char output_buffer[BUFFER_SIZE];
+	int charcount;
+
+	printf("Saving results\n");
+	result = open(output_filename, O_CREAT | O_RDWR | O_TRUNC, 0666);
+	errtrap("open");
+	output_fd = result;
+
+	printf("Nodes in jitd:  %lu\n", mmap->size());
+	std::multimap<long, int*>::iterator mmap_iter = mmap->begin();
+	while (1) {
+		if (mmap_iter == mmap->end()) {
+			break;
+		}
+		key = mmap_iter->first;
+//		printf("KEY:  %lu\n", key);
+		result = snprintf(output_buffer, BUFFER_SIZE, "%ld\n", key);
+		result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
+		errtrap("write");
+
+		mmap_iter++;
+	}
+	printf("Nodes in jitd:  %lu\n", mmap->size());
+
+	close(output_fd);
+
 	save_output();
+
+//	storage->jitd->print_debug();
 
 	return 0;
 
@@ -1112,6 +1164,8 @@ int main(int argc, char** argv) {
 	maxkeys = atoi(argv[2]);
 
 	// Initialize and populate structure:
+
+srand(time(NULL));
 
 extern int maint_size;
 memset(maint_array, 0, maint_size);
