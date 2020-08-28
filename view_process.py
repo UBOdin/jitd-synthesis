@@ -148,13 +148,14 @@ def process_loglines(input_file_name, results_list_list, type_dict):
 
 	results_list_list.append(id_list)
 	results_list_list.append(total_list)
+	results_list_list.append(uber_total / 1000)
 
 	return
 
 #end_def
 
 
-def make_graph(workload, maintenance, fig, ax, fig2, ax2):
+def graph_latency_timeline(workload, maintenance, fig, ax, fig2, ax2):
 
 	# workload = ""
 	# maintenance = ""
@@ -229,7 +230,7 @@ def make_graph(workload, maintenance, fig, ax, fig2, ax2):
 #end_def
 
 
-def make_pair(workload):
+def graph_latency_timeline_pair(workload):
 
 	maintenance_list = ["jitd", "dbt"]
 
@@ -240,10 +241,10 @@ def make_pair(workload):
 	fig_cdf_stack.set_size_inches(18, 12)
 
 	for i, maintenance in enumerate(maintenance_list):
-		make_graph(workload, maintenance, fig_time_stack, ax_time_list[i], fig_cdf_stack, ax_cdf_list[i])
+		graph_latency_timeline(workload, maintenance, fig_time_stack, ax_time_list[i], fig_cdf_stack, ax_cdf_list[i])
 	#end_for
 
-	fig_time_stack.savefig("view_graphs/view_time_" + workload + "_" + maintenance + ".png");
+	fig_time_stack.savefig("view_graphs/view_timeline_" + workload + "_" + maintenance + ".png");
 	fig_cdf_stack.savefig("view_graphs/view_cdf_" + workload + "_" + maintenance + ".png")
 
 	#plt.show()
@@ -251,26 +252,109 @@ def make_pair(workload):
 #end_def
 
 
-def script():
+def graph_boxplot(workload):
+
+	# workload = ""
+	input_file_prefix = ""
+	input_file_name = ""
+	results_list_list = []
+	type_dict = {}
+
+	input_file_prefix = "view_results/jitd_view_performance_" + workload
+
+	fig, ax = plt.subplots()
+	ax2 = ax.twinx()
+
+	jitd_index_list = []
+	dbt_index_list = []
+	maint_list = []
+	jitd_total_list = []
+	dbt_total_list = []
+
+	for i in range(10):
+
+		print(i)
+		input_file_name = input_file_prefix + "_" + str(i) + ".txt"
+
+		results_list_list = []
+		type_dict = {}  # Clear; unused
+		process_loglines(input_file_name, results_list_list, type_dict)
+
+		jitd_index_list.append(i + 1)
+		maint_list.append(results_list_list[1])
+		jitd_total_list.append(results_list_list[2])
+
+	#end_for
+
+	maint_list.append([])
+
+	input_file_prefix = "view_results/dbt_view_performance_" + workload
+
+	for i in range(10):
+
+		print(i + 10 - 1)
+		input_file_name = input_file_prefix + "_" + str(i) + ".txt"
+
+		results_list_list = []
+		type_dict = {}  # Clear; unused
+		process_loglines(input_file_name, results_list_list, type_dict)
+
+		dbt_index_list.append(i + 10 + 2)
+		maint_list.append(results_list_list[1])
+		dbt_total_list.append(results_list_list[2])
+
+	#end_for
+
+
+
+	bp = ax.boxplot(maint_list)
+
+	for flier in bp['fliers']:
+		flier.set(marker='.', color='#e7298a', alpha=0.5)
+	#end_for
+
+	ax.set_xlabel("JITD Run #                         DBT Run #", fontsize = 14, fontweight = "bold")
+	ax.set_ylabel("View Operation Latency", fontsize = 14, fontweight = "bold")
+	ax.axis([0, 22, 0, 20000])
+
+	ax2.plot(jitd_index_list, jitd_total_list, marker = "o", color = "blue", label = "JITD Total time (right axis)")
+	ax2.plot(dbt_index_list, dbt_total_list, marker = "o", color = "red", label = "DBT Total time (right axis)")
+
+	ax2.set_ylabel("Total View Operation Latency", fontsize = 14, fontweight = "bold")
+	ax2.axis([0, 22, 0, 50000])
+	ax2.legend(loc = "upper right")
+
+	x_labels = []
+	for i in range(10):
+		x_labels.append(str(i))
+	#end_for
+	x_labels.append("")
+	for i in range(10):
+		x_labels.append(str(i))
+	#end_for
+
+	ax.set_xticklabels(x_labels)
+
+	plt.show()
+
+#end_def
+
+
+def main():
 
 	#workload_list = ["a", "b", "c", "d", "e", "f"]
-	workload_list = ["a", "b", "c", "d", "f"]
+	#workload_list = ["a", "b", "c", "d", "f"]
+	workload_list = ["f"]
 
 	for workload in workload_list:
 		print("Processing maintenance " + workload)
-		make_pair(workload)
+		#graph_latency_timeline_pair(workload)
+		graph_boxplot(workload)
 	#end_for
 
 #end_def
 
 
-def specific():
-
-	make_pair(sys.argv[1])
-
-#end_def
-
-
-script()
+main()
 
 
