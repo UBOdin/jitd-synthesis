@@ -113,7 +113,7 @@ using namespace harness;
 
 #include <map>
 
-void get_key_bag(std::shared_ptr<JITDNode>, std::multimap<MMAP_TYPE>*, std::multimap<MMAP_TYPE>*);
+void get_key_bag(std::shared_ptr<JITDNode>, std::multimap<long, int*>*);
 
 
 long gettime_us() {
@@ -1022,10 +1022,9 @@ int replay_trace(STORAGE_HANDLE storage) {
 	}
 	printf("Post replay organization steps:  %d\n", i);
 
-	std::multimap<MMAP_TYPE>* insert_bag = new(std::multimap<MMAP_TYPE>);
-	std::multimap<MMAP_TYPE>* delete_bag = new(std::multimap<MMAP_TYPE>);
+	std::multimap<long, int*>* mmap = new(std::multimap<long, int*>);
 
-	get_key_bag(*(storage->jitd->jitd_root), insert_bag, delete_bag);
+	get_key_bag(*(storage->jitd->jitd_root), mmap);
 
 	storage->jitd->jitd_transforms_sanity_call();
 
@@ -1042,42 +1041,21 @@ int replay_trace(STORAGE_HANDLE storage) {
 	errtrap("open");
 	output_fd = result;
 
-	printf("Nodes in jitd:  %lu - %lu\n", insert_bag->size(), delete_bag->size());
-	// Remove deleted keys from insert bag:
-	std::multimap<MMAP_TYPE>::iterator insert_iter;
-	std::multimap<MMAP_TYPE>::iterator delete_iter = delete_bag->begin();
+	printf("Nodes in jitd:  %lu\n", mmap->size());
+	std::multimap<long, int*>::iterator mmap_iter = mmap->begin();
 	while (1) {
-		if (delete_iter == delete_bag->end()) {
+		if (mmap_iter == mmap->end()) {
 			break;
 		}
-		key = delete_iter->first;
-		insert_iter = insert_bag->find(key);
-		// If deleted key is also in the insert bag, remove it:
-		if (insert_iter != insert_bag->end()) {
-			insert_bag->erase(insert_iter);
-		} else {
-			// Sanity check -- our use case (YCSB) should not be deleting nonexistent keys:
-			printf("Error:  Nonexistent key:  %ld\n", key);
-			_exit(1);
-		}
-		delete_iter++;
-	}
-
-	// Save results:
-	insert_iter = insert_bag->begin();
-	while (1) {
-		if (insert_iter == insert_bag->end()) {
-			break;
-		}
-		key = insert_iter->first;
+		key = mmap_iter->first;
 //		printf("KEY:  %lu\n", key);
 		result = snprintf(output_buffer, BUFFER_SIZE, "%ld\n", key);
 		result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
 		errtrap("write");
 
-		insert_iter++;
+		mmap_iter++;
 	}
-	printf("Nodes in jitd:  %lu\n", insert_bag->size());
+	printf("Nodes in jitd:  %lu\n", mmap->size());
 
 	close(output_fd);
 

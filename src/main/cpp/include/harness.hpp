@@ -65,6 +65,8 @@ struct storage_jitd_struct {
 	Record r;
 	std::vector<Record> element;
 	std::shared_ptr<JITD> jitd;
+	std::multimap<long, int>::iterator key_iter;
+	std::multimap<long, int>::iterator end_iter;
 };
 
 #endif
