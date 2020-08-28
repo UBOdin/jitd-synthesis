@@ -3,7 +3,9 @@ echo "Starting view batch"
 
 #workload_list="a b c d e f"
 workload_list="a b c d f"
+#workload_list="f"
 
+run_list="0 1 2 3 4 5 6 7 8 9"
 
 for workload in $workload_list; do
 
@@ -22,13 +24,17 @@ for workload in $workload_list; do
 		exit 1
 	fi
 
-	# WAIT?
-	./replay_jitd.exe 100 30000 100
-	mv output_view_performance.txt view_results/jitd_view_performance_${workload}.txt
+	for run in $run_list; do
 
-	# WAIT?
-	./replay_dbt.exe 100 30000 100
-	mv output_view_performance.txt view_results/dbt_view_performance_${workload}.txt
+		# WAIT?
+		./replay_jitd.exe 100 30000 100
+		mv output_view_performance.txt view_results/jitd_view_performance_${workload}_${run}.txt
+
+		# WAIT?
+		./replay_dbt.exe 100 30000 100
+		mv output_view_performance.txt view_results/dbt_view_performance_${workload}_${run}.txt
+
+	done
 
 	mv output_view_maintenance.txt view_results/output_view_maintenance_${workload}.txt
 
