@@ -7,9 +7,9 @@
 #ifdef RDTSC
 
 #define STORAGE_JITD
-#include "harness.hpp"
 #include <mutex>
 #include <map>
+#include "harness.hpp"
 
 #ifdef REPLAY_DBT
 
@@ -4737,19 +4737,22 @@ if(matched == true){return true;}
 
 
 // Debug routine:
-void get_key_bag(std::shared_ptr<JITDNode> node, std::multimap<MMAP_TYPE>* insert_bag, std::multimap<MMAP_TYPE>* delete_bag){
+void get_key_bag(std::shared_ptr<JITDNode> node, std::multimap<MMAP_TYPE>* bag){
 
 	long key;
 	std::vector<long>::iterator long_iter;
 	std::vector<Record>::iterator record_iter;
+	std::multimap<MMAP_TYPE>::iterator bag_iter;
 
 	switch(node->type){
 
 		case JITD_NODE_DeleteSingleton : {
 			DeleteSingletonNode *node_real = (DeleteSingletonNode *)node.get();
 			key = node_real->elem;
-			delete_bag->insert(std::pair<MMAP_TYPE>(key, NULL));
-			get_key_bag(node_real->node, insert_bag, delete_bag);
+			if (bag->find(key) == bag->end()) {
+				bag->insert(std::pair<MMAP_TYPE>(key, 0));
+			}
+			get_key_bag(node_real->node, bag);
 			break;
 		}
 		case JITD_NODE_DeleteElements : {
@@ -4757,21 +4760,23 @@ void get_key_bag(std::shared_ptr<JITDNode> node, std::multimap<MMAP_TYPE>* inser
 			std::vector<long>* long_vector = &node_real->data;
 			for (long_iter = long_vector->begin(); long_iter != long_vector->end(); long_iter++) {
 				key = *long_iter;
-				delete_bag->insert(std::pair<MMAP_TYPE>(key, NULL));
+				if (bag->find(key) == bag->end()) {
+					bag->insert(std::pair<MMAP_TYPE>(key, 0));
+				}
 			}
-			get_key_bag(node_real->node, insert_bag, delete_bag);
+			get_key_bag(node_real->node, bag);
 			break;
 		}
 		case JITD_NODE_BTree : {
 			BTreeNode *node_real = (BTreeNode *)node.get();
-			get_key_bag(node_real->lhs, insert_bag, delete_bag);
-			get_key_bag(node_real->rhs, insert_bag, delete_bag);
+			get_key_bag(node_real->lhs, bag);
+			get_key_bag(node_real->rhs, bag);
 			break;
 		}
 		case JITD_NODE_Concat : {
 			ConcatNode *node_real = (ConcatNode *)node.get();
-			get_key_bag(node_real->lhs, insert_bag, delete_bag);
-			get_key_bag(node_real->rhs, insert_bag, delete_bag);
+			get_key_bag(node_real->lhs, bag);
+			get_key_bag(node_real->rhs, bag);
 			break;
 		}
 		case JITD_NODE_SortedArray : {
@@ -4780,7 +4785,9 @@ void get_key_bag(std::shared_ptr<JITDNode> node, std::multimap<MMAP_TYPE>* inser
 			std::vector<Record>* record_vector = &node_real->data;
 			for (record_iter = record_vector->begin(); record_iter != record_vector->end(); record_iter++) {
 				key = record_iter->key;
-				insert_bag->insert(std::pair<MMAP_TYPE>(key, NULL));
+				if (bag->find(key) == bag->end()) {
+					bag->insert(std::pair<MMAP_TYPE>(key, 1));
+				}
 			}
 			break;
 		}
@@ -4790,14 +4797,18 @@ void get_key_bag(std::shared_ptr<JITDNode> node, std::multimap<MMAP_TYPE>* inser
 			std::vector<Record>* record_vector = &node_real->data;
 			for (record_iter = record_vector->begin(); record_iter != record_vector->end(); record_iter++) {
 				key = record_iter->key;
-				insert_bag->insert(std::pair<MMAP_TYPE>(key, NULL));
+				if (bag->find(key) == bag->end()) {
+					bag->insert(std::pair<MMAP_TYPE>(key, 1));
+				}
 			}
 			break;
 		}
 		case JITD_NODE_Singleton : {
 			SingletonNode *node_real = (SingletonNode *)node.get();
 			key = node_real->elem.key;
-			insert_bag->insert(std::pair<MMAP_TYPE>(key, NULL));
+			if (bag->find(key) == bag->end()) {
+				bag->insert(std::pair<MMAP_TYPE>(key, 1));
+			}
 			break;
 		}
 
