@@ -78,6 +78,7 @@
 
 #ifdef STORAGE_JITD
 
+#include <map>
 #include <sstream>
 #include "jitd_test.hpp"
 #include "IteratorDefinition.hpp"
@@ -111,9 +112,9 @@
 
 using namespace harness;
 
-#include <map>
+//#include <map>
 
-void get_key_bag(std::shared_ptr<JITDNode>, std::multimap<long, int*>*);
+void get_key_bag(std::shared_ptr<JITDNode>, std::multimap<MMAP_TYPE>*);
 
 
 long gettime_us() {
@@ -1022,7 +1023,7 @@ int replay_trace(STORAGE_HANDLE storage) {
 	}
 	printf("Post replay organization steps:  %d\n", i);
 
-	std::multimap<long, int*>* mmap = new(std::multimap<long, int*>);
+	std::multimap<MMAP_TYPE>* mmap = new(std::multimap<MMAP_TYPE>);
 
 	get_key_bag(*(storage->jitd->jitd_root), mmap);
 
@@ -1042,7 +1043,7 @@ int replay_trace(STORAGE_HANDLE storage) {
 	output_fd = result;
 
 	printf("Nodes in jitd:  %lu\n", mmap->size());
-	std::multimap<long, int*>::iterator mmap_iter = mmap->begin();
+	std::multimap<MMAP_TYPE>::iterator mmap_iter = mmap->begin();
 	while (1) {
 		if (mmap_iter == mmap->end()) {
 			break;
