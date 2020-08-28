@@ -298,9 +298,19 @@ def graph_boxplot(workload):
 		flier.set(marker='.', color='#e7298a', alpha=0.5)
 	#end_for
 
+	ax_list[0].set_title("Maintenance Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax_list[0].set_xlabel("JITD Run #", fontsize = 14, fontweight = "bold")
 	ax_list[0].set_ylabel("View Operation Latency", fontsize = 14, fontweight = "bold")
 	ax_list[0].axis([0, 11, 0, 20000])
+
+	ax2_list[0].plot(index_list, jitd_total_list, marker = "o", color = "blue", label = "JITD Total time (right axis)")
+	ax2_list[0].axis([0, 11, 0, 50000])
+	ax2_list[0].legend(loc = "upper right")
+
+	# Remove RH Y tick labels on LH subplot:
+	y_labels = ax2_list[0].get_yticklabels()
+	y_labels = [ "" for e in y_labels]
+	ax2_list[0].set_yticklabels(y_labels)
 
 
 	bp = ax_list[1].boxplot(dbt_maint_list)
@@ -309,8 +319,8 @@ def graph_boxplot(workload):
 		flier.set(marker='.', color='#e7298a', alpha=0.5)
 	#end_for
 
+	ax_list[1].set_title("Maintenance Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax_list[1].set_xlabel("DBT Run #", fontsize = 14, fontweight = "bold")
-	#ax_list[1].set_ylabel("View Operation Latency", fontsize = 14, fontweight = "bold")
 	ax_list[1].axis([0, 11, 0, 20000])
 
 	# Remove LH Y tick labels on RH subplot:
@@ -318,28 +328,16 @@ def graph_boxplot(workload):
 	y_labels = [ "" for e in y_labels]
 	ax_list[1].set_yticklabels(y_labels)
 
-
-	ax2_list[0].plot(index_list, jitd_total_list, marker = "o", color = "blue", label = "JITD Total time (right axis)")
-	ax2_list[0].axis([0, 11, 0, 50000])
-
 	ax2_list[1].plot(index_list, dbt_total_list, marker = "o", color = "red", label = "DBT Total time (right axis)")
-
 	ax2_list[1].set_ylabel("Total View Operation Latency", fontsize = 14, fontweight = "bold")
 	ax2_list[1].axis([0, 11, 0, 50000])
-
-	# Remove RH Y tick labels on LH subplot:
-	y_labels = ax2_list[0].get_yticklabels()
-	y_labels = [ "" for e in y_labels]
-	ax2_list[0].set_yticklabels(y_labels)
-
-	ax2_list[0].legend(loc = "upper right")
 	ax2_list[1].legend(loc = "upper right")
 
 
 	fig_list.savefig("view_graphs/view_boxplot_" + workload + ".png");
 
 
-	plt.show()
+	#plt.show()
 
 #end_def
 
@@ -347,8 +345,8 @@ def graph_boxplot(workload):
 def main():
 
 	#workload_list = ["a", "b", "c", "d", "e", "f"]
-	#workload_list = ["a", "b", "c", "d", "f"]
-	workload_list = ["f"]
+	workload_list = ["a", "b", "c", "d", "f"]
+	#workload_list = ["f"]
 
 	for workload in workload_list:
 		print("Processing maintenance " + workload)
