@@ -260,80 +260,84 @@ def graph_boxplot(workload):
 	results_list_list = []
 	type_dict = {}
 
-	input_file_prefix = "view_results/jitd_view_performance_" + workload
+	fig_list, ax_list = plt.subplots(1, 2, sharex = True)
+	ax2_list = [ax_list[0].twinx(), ax_list[1].twinx()]
 
-	fig, ax = plt.subplots()
-	ax2 = ax.twinx()
+	fig_list.set_size_inches(22, 12)
 
-	jitd_index_list = []
-	dbt_index_list = []
-	maint_list = []
+	index_list = []
+	jitd_maint_list = []
 	jitd_total_list = []
+	dbt_maint_list = []
 	dbt_total_list = []
 
 	for i in range(10):
 
 		print(i)
-		input_file_name = input_file_prefix + "_" + str(i) + ".txt"
-
+		index_list.append(i + 1)
+	
+		input_file_name = "view_results/jitd_view_performance_" + workload + "_" + str(i) + ".txt"
 		results_list_list = []
 		type_dict = {}  # Clear; unused
 		process_loglines(input_file_name, results_list_list, type_dict)
-
-		jitd_index_list.append(i + 1)
-		maint_list.append(results_list_list[1])
+		jitd_maint_list.append(results_list_list[1])
 		jitd_total_list.append(results_list_list[2])
 
-	#end_for
-
-	maint_list.append([])
-
-	input_file_prefix = "view_results/dbt_view_performance_" + workload
-
-	for i in range(10):
-
-		print(i + 10 - 1)
-		input_file_name = input_file_prefix + "_" + str(i) + ".txt"
-
+		input_file_name = "view_results/dbt_view_performance_" + workload + "_" + str(i) + ".txt"
 		results_list_list = []
 		type_dict = {}  # Clear; unused
 		process_loglines(input_file_name, results_list_list, type_dict)
-
-		dbt_index_list.append(i + 10 + 2)
-		maint_list.append(results_list_list[1])
+		dbt_maint_list.append(results_list_list[1])
 		dbt_total_list.append(results_list_list[2])
 
 	#end_for
 
-
-
-	bp = ax.boxplot(maint_list)
+	bp = ax_list[0].boxplot(jitd_maint_list)
 
 	for flier in bp['fliers']:
 		flier.set(marker='.', color='#e7298a', alpha=0.5)
 	#end_for
 
-	ax.set_xlabel("JITD Run #                         DBT Run #", fontsize = 14, fontweight = "bold")
-	ax.set_ylabel("View Operation Latency", fontsize = 14, fontweight = "bold")
-	ax.axis([0, 22, 0, 20000])
+	ax_list[0].set_xlabel("JITD Run #", fontsize = 14, fontweight = "bold")
+	ax_list[0].set_ylabel("View Operation Latency", fontsize = 14, fontweight = "bold")
+	ax_list[0].axis([0, 11, 0, 20000])
 
-	ax2.plot(jitd_index_list, jitd_total_list, marker = "o", color = "blue", label = "JITD Total time (right axis)")
-	ax2.plot(dbt_index_list, dbt_total_list, marker = "o", color = "red", label = "DBT Total time (right axis)")
 
-	ax2.set_ylabel("Total View Operation Latency", fontsize = 14, fontweight = "bold")
-	ax2.axis([0, 22, 0, 50000])
-	ax2.legend(loc = "upper right")
+	bp = ax_list[1].boxplot(dbt_maint_list)
 
-	x_labels = []
-	for i in range(10):
-		x_labels.append(str(i))
-	#end_for
-	x_labels.append("")
-	for i in range(10):
-		x_labels.append(str(i))
+	for flier in bp['fliers']:
+		flier.set(marker='.', color='#e7298a', alpha=0.5)
 	#end_for
 
-	ax.set_xticklabels(x_labels)
+	ax_list[1].set_xlabel("DBT Run #", fontsize = 14, fontweight = "bold")
+	#ax_list[1].set_ylabel("View Operation Latency", fontsize = 14, fontweight = "bold")
+	ax_list[1].axis([0, 11, 0, 20000])
+
+	# Remove LH Y tick labels on RH subplot:
+	y_labels = ax_list[1].get_yticklabels()
+	y_labels = [ "" for e in y_labels]
+	ax_list[1].set_yticklabels(y_labels)
+
+
+	ax2_list[0].plot(index_list, jitd_total_list, marker = "o", color = "blue", label = "JITD Total time (right axis)")
+	ax2_list[0].axis([0, 11, 0, 50000])
+
+	ax2_list[1].plot(index_list, dbt_total_list, marker = "o", color = "red", label = "DBT Total time (right axis)")
+
+	ax2_list[1].set_ylabel("Total View Operation Latency", fontsize = 14, fontweight = "bold")
+	ax2_list[1].axis([0, 11, 0, 50000])
+
+	# Remove RH Y tick labels on LH subplot:
+	y_labels = ax2_list[0].get_yticklabels()
+	y_labels = [ "" for e in y_labels]
+	ax2_list[0].set_yticklabels(y_labels)
+
+	ax2_list[0].legend(loc = "upper right")
+	ax2_list[1].legend(loc = "upper right")
+
+
+	fig_list.savefig("view_graphs/view_boxplot_" + workload + ".png");
+
 
 	plt.show()
 
