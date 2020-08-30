@@ -112,10 +112,6 @@
 
 using namespace harness;
 
-//#include <map>
-
-void get_key_bag(std::shared_ptr<JITDNode>, std::multimap<MMAP_TYPE>*);
-
 
 long gettime_us() {
 
@@ -1022,43 +1018,6 @@ int replay_trace(STORAGE_HANDLE storage) {
 		i++;
 	}
 	printf("Post replay organization steps:  %d\n", i);
-
-	std::multimap<MMAP_TYPE>* mmap = new(std::multimap<MMAP_TYPE>);
-
-	get_key_bag(*(storage->jitd->jitd_root), mmap);
-
-	storage->jitd->jitd_transforms_sanity_call();
-
-//	#define BUFFER_SIZE 256
-
-//	int result;
-	int output_fd;
-	char output_filename[] = "output_keys.txt";
-	char output_buffer[BUFFER_SIZE];
-	int charcount;
-
-	printf("Saving results\n");
-	result = open(output_filename, O_CREAT | O_RDWR | O_TRUNC, 0666);
-	errtrap("open");
-	output_fd = result;
-
-	printf("Nodes in jitd:  %lu\n", mmap->size());
-	std::multimap<MMAP_TYPE>::iterator mmap_iter = mmap->begin();
-	while (1) {
-		if (mmap_iter == mmap->end()) {
-			break;
-		}
-		key = mmap_iter->first;
-//		printf("KEY:  %lu\n", key);
-		result = snprintf(output_buffer, BUFFER_SIZE, "%ld\n", key);
-		result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
-		errtrap("write");
-
-		mmap_iter++;
-	}
-	printf("Nodes in jitd:  %lu\n", mmap->size());
-
-	close(output_fd);
 
 	save_output();
 
