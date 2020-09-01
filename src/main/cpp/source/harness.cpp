@@ -205,26 +205,75 @@ STORAGE_HANDLE create_storage(int maxkeys) {
 	STORAGE_HANDLE storage = new storage_jitd_struct();
 	std::vector<Record> data;  // TODO switch to pre-existing struct
 
+	FILE* input_stream;
+	char input_file[] = "initialize_data.txt";
+	int result;
+	ssize_t chars_read;
+	char* line_buffer = NULL;
+	size_t buffer_size = 0;
+	int input_index;
+	int input_count;
+
+	char* token;
+	char* save;
+	const char delim[] = "\t";
+
+	int id;
+	enum operation optype;
+	unsigned long key;
+	unsigned long value;
+
+	input_stream = fopen(input_file, "r");
+	if (input_stream == NULL) {
+		printf("Error:  opening benchmark input file\n");
+		_exit(1);
+	}
+
+	line_buffer = NULL;
+	buffer_size = 0;
+	input_index = 0;
+
 	//storage->element.clear();
 	while (true) {
+/*
 		// Debug:  Populate structure with only a subset of keys:
 		if (k == maxkeys) {
 			break;
 		}
 		k++;
-		node = initialize_array[i];
+		node = initialize_array[input_index];
 		if (node.type == STOP) {
 			break;
 		}
-		if (node.type != harness::INSERT) {
+*/
+		chars_read = getline(&line_buffer, &buffer_size, input_stream);
+		if ((chars_read == -1) || (k == maxkeys)) {
+			input_count = input_index;  // Save linecount
+			break;
+		}
+
+		// Basic sanity:  are we using the correct delimiter?
+		token = strstr(line_buffer, delim);
+		if (token == NULL) {
+			printf("Error:  invalid delimiter\n");
+			_exit(1);
+		}
+
+		token = strtok_r(line_buffer, delim, &save);
+		id = atoi(token);
+		assert(id == input_index);  // Sanity
+		token = strtok_r(NULL, delim, &save);
+		optype = (harness::operation)atoi(token);
+		token = strtok_r(NULL, delim, &save);
+		key = strtoul(token, NULL, 0);
+
+		if (optype != harness::INSERT) {
 			printf("Error:  expected Insert\n");
 			_exit(1);
 		}
-		storage->r.key = node.key;
-//		storage->r.value = new int(node.value);
-// TODO:  support for YCSB struct
+		storage->r.key = key;
 		data.push_back(storage->r);
-		i++;
+		input_index++;
 	}
 	storage->jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(std::make_shared<std::shared_ptr<JITDNode>>(new ArrayNode(data)))));
 
@@ -849,8 +898,8 @@ int replay_trace(STORAGE_HANDLE storage) {
 
 // TODO:  For DBT, need to do on_insert() for initial array
 
-	FILE* input_stream;
-	char input_file[] = "output_view_maintenance.txt";
+	FILE* benchmark_stream;
+	char benchmark_file[] = "benchmark_data.txt";
 	int result;
 	ssize_t chars_read;
 	char* line_buffer = NULL;
@@ -863,6 +912,7 @@ int replay_trace(STORAGE_HANDLE storage) {
 	unsigned long key;
 	unsigned long value;
 
+/*
 	// Step 1:  Read-in previously recorded maintenance tracefile
 
 	input_stream = fopen(input_file, "r");
@@ -899,14 +949,146 @@ int replay_trace(STORAGE_HANDLE storage) {
 	fclose(input_stream);
 
 	// Step 2:  Replay trace (now in memory) on maintenance framework:
+*/
 
-	int rw;
-	int maint_type;
+	int benchmark_index;
+	int benchmark_count;
+
+	char* token;
+	char* save;
+	const char delim[] = "\t";
+
+	int id;
+	bool not_done;
+
+//	int rw;
+//	int maint_type;
 	mutatorCqElement pop_mce;
 
-	maint_index = 0;  // Skip first line (the initial prepopulation)
-	j = 0;
+//	maint_index = 0;  // Skip first line (the initial prepopulation)
+//	j = 0;
 
+	benchmark_stream = fopen(benchmark_file, "r");
+	if (benchmark_stream == NULL) {
+		printf("Error:  opening benchmark operation file\n");
+		_exit(1);
+	}
+
+	line_buffer = NULL;
+	buffer_size = 0;
+	benchmark_index = 0;
+
+	while (1) {
+
+		chars_read = getline(&line_buffer, &buffer_size, benchmark_stream);
+		if (chars_read == -1) {
+			benchmark_count = benchmark_index;  // Save linecount
+			break;
+		}
+
+		token = strtok_r(line_buffer, delim, &save);
+		id = atoi(token);
+		assert(id == benchmark_index);  // Sanity
+		token = strtok_r(NULL, delim, &save);
+		optype = (harness::operation)atoi(token);
+		token = strtok_r(NULL, delim, &save);
+		key = strtoul(token, NULL, 0);
+		value = 0;
+
+		// Replay mutator operation:
+		if (optype == harness::INSERT) {
+			REPLAY_START;
+			put_data(storage, key, value);
+			REPLAY_END;
+		} else if (optype == SELECT) {
+			REPLAY_START;
+			result += get_data(storage, 1, &key);
+			REPLAY_END;
+		} else if (optype == DELETE) {
+			REPLAY_START;
+			result += remove_data(storage, 1, &key);
+			REPLAY_END;
+		} else if (optype == UPDATE) {
+			REPLAY_START;
+			result += update_data(storage, key, value);
+			REPLAY_END;
+		} else if (optype == UPSERT) {
+			REPLAY_START;
+			result += upsert_data(storage, key, value);
+			REPLAY_END;
+		} else {
+			printf("Error:  Unexpected operation\n");
+			_exit(1);
+		}
+
+		// Save out operation time:
+		if (benchmark_index >= output_size) {
+			printf("Error:  benchmark output overflow\n");
+			_exit(1);
+		}
+		output_array[benchmark_index].time_start = time_start;
+		output_array[benchmark_index].time_delta = time_delta;
+		output_array[benchmark_index].type = optype;
+		output_array[benchmark_index].key = key;
+		output_array[benchmark_index].nkeys = 1;
+
+		time_start = gettime_us();
+
+		while (1) {
+
+			if (gettime_us() > time_start + 1000) {
+				break;
+			}
+
+			if (storage->jitd->work_queue.empty() == false) {
+				storage->jitd->work_queue.pop(pop_mce);
+				if (pop_mce.flag == FLAG_remove_singleton) {
+					storage->jitd->after_remove_singleton(pop_mce.element);
+				} else if(pop_mce.flag == FLAG_insert_singleton) {
+					storage->jitd->after_insert_singleton(pop_mce.element);
+				} else {
+					printf("Unexpected mutator\n");
+					_exit(1);
+				}
+			} else {
+				not_done = storage->jitd->do_organize();
+			}
+
+			if (not_done == false) {
+
+break;
+// OR -- SLEEP?  TODO
+
+			}
+
+		}
+
+		benchmark_index++;
+	}
+
+
+
+	printf("Benchmark operations replayed:  %d\n", benchmark_count);
+
+/*
+	int i = 0;
+	while (1) {
+		if (storage->jitd->do_organize() == false) {
+			break;
+		}
+		i++;
+	}
+	printf("Post replay organization steps:  %d\n", i);
+*/
+
+	save_output();
+
+//	storage->jitd->print_debug();
+
+	return 0;
+
+
+/*
 	while (1) {
 		maint_index++;
 
@@ -1024,6 +1206,7 @@ int replay_trace(STORAGE_HANDLE storage) {
 //	storage->jitd->print_debug();
 
 	return 0;
+*/
 
 }
 
