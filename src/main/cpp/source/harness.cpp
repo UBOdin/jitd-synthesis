@@ -904,69 +904,19 @@ int replay_trace(STORAGE_HANDLE storage) {
 	ssize_t chars_read;
 	char* line_buffer = NULL;
 	size_t buffer_size = 0;
-	int j = 0;  // benchmark iterator
-	int maint_count;
 	long time_start;
 	long time_delta;
 	enum operation optype;
 	unsigned long key;
 	unsigned long value;
-
-/*
-	// Step 1:  Read-in previously recorded maintenance tracefile
-
-	input_stream = fopen(input_file, "r");
-	if (input_stream == NULL) {
-		printf("Error:  opening input file\n");
-		_exit(1);
-	}
-
-	line_buffer = NULL;
-	buffer_size = 0;
-	maint_index = -1;
-
-	while (1) {
-		maint_index++;
-
-		chars_read = getline(&line_buffer, &buffer_size, input_stream);
-		if (chars_read == -1) {
-			maint_count = maint_index;  // Save linecount
-			break;
-		}
-
-		if (maint_index >= MAINT_SIZE) {
-			printf("Error:  maintenance overflow\n");
-			_exit(1);
-		}
-
-		populate_node(line_buffer, &maint_array[maint_index]);
-
-	}
-
-	printf("Read in %d maintenance tracelines\n", maint_count);
-
-	free(line_buffer);
-	fclose(input_stream);
-
-	// Step 2:  Replay trace (now in memory) on maintenance framework:
-*/
-
 	int benchmark_index;
 	int benchmark_count;
-
 	char* token;
 	char* save;
 	const char delim[] = "\t";
-
 	int id;
 	bool not_done;
-
-//	int rw;
-//	int maint_type;
 	mutatorCqElement pop_mce;
-
-//	maint_index = 0;  // Skip first line (the initial prepopulation)
-//	j = 0;
 
 	benchmark_stream = fopen(benchmark_file, "r");
 	if (benchmark_stream == NULL) {
@@ -1070,128 +1020,6 @@ break;
 
 	printf("Benchmark operations replayed:  %d\n", benchmark_count);
 
-/*
-	int i = 0;
-	while (1) {
-		if (storage->jitd->do_organize() == false) {
-			break;
-		}
-		i++;
-	}
-	printf("Post replay organization steps:  %d\n", i);
-*/
-
-	save_output();
-
-//	storage->jitd->print_debug();
-
-	return 0;
-
-
-/*
-	while (1) {
-		maint_index++;
-
-		if (maint_index == maint_count) {
-			break;
-		}
-
-		rw = maint_array[maint_index].rw;
-		if (rw == 0) {
-
-			maint_type = maint_array[maint_index].maint_type;
-
-			// Get end of current block:
-			maint_block_end = maint_index;
-			while (1) {
-				if (maint_array[maint_index].ticks_id != maint_array[maint_block_end].ticks_id) {
-					break;
-				}
-				maint_block_end++;
-			}
-
-			// For JITD, need to spell out which (if any) after mutator operations:
-			if (maint_type == 11) {
-				storage->jitd->work_queue.pop(pop_mce);
-				assert(pop_mce.flag == FLAG_remove_singleton);
-				storage->jitd->after_remove_singleton(pop_mce.element);
-			} else if (maint_type == 14) {
-				storage->jitd->work_queue.pop(pop_mce);
-				assert(pop_mce.flag == FLAG_insert_singleton);
-				storage->jitd->after_insert_singleton(pop_mce.element);
-			} else {
-				// For all other transforms, call into do_organize():
-				storage->jitd->do_organize();
-			}
-
-			//  Sanity check:  Replay operation originally recorded should match the one just selected:
-			if (maint_type != ticks_array[ticks_index - 1].maint_type) {
-//				printf("Unexpected maintenance type:  %d %d %d %d\n", maint_index, maint_type, ticks_array[ticks_index - 1].maint_type, ticks_index - 1);
-//				_exit(1);
-			}
-
-			maint_index = maint_block_end - 1;
-
-// TODO:  Possibly split-up processing of Add and Erase subblocks for DBT
-
-		} else if (rw == 1) {
-
-			printf("Error:  Unexpected Add on %d\n", maint_index);
-			_exit(1);
-
-		} else if (rw == 2) {
-
-			// node_type, node_left and node_right fields repurposed for mutators:
-			optype = (enum operation)maint_array[maint_index].node_type;
-			key = maint_array[maint_index].node_left;
-			value = maint_array[maint_index].node_right;
-
-			// Replay mutator operation:
-			if (optype == harness::INSERT) {
-				REPLAY_START;
-				put_data(storage, key, value);
-				REPLAY_END;
-			} else if (optype == DELETE) {
-				REPLAY_START;
-				result += remove_data(storage, 1, &key);
-				REPLAY_END;
-			} else if (optype == UPDATE) {
-				REPLAY_START;
-				result += update_data(storage, key, value);
-				REPLAY_END;
-			} else if (optype == UPSERT) {
-				REPLAY_START;
-				result += upsert_data(storage, key, value);
-				REPLAY_END;
-			} else {
-				printf("Error:  Unexpected operation\n");
-				_exit(1);
-			}
-
-			// Save out operation time:
-			if (j >= output_size) {
-				printf("Error:  output replay overflow\n");
-				_exit(1);
-			}
-
-			output_array[j].time_start = time_start;
-			output_array[j].time_delta = time_delta;
-			output_array[j].type = optype;
-			output_array[j].key = key;
-			output_array[j].nkeys = 1;
-
-			j++;
-
-		} else {
-			printf("Invalid operation\n");
-			_exit(1);
-		}
-
-	}
-
-	printf("Maintenance lines replayed:  %d\n", maint_index);
-	printf("Benchmark operations replayed:  %d\n", j);
-
 	int i = 0;
 	while (1) {
 		if (storage->jitd->do_organize() == false) {
@@ -1206,7 +1034,6 @@ break;
 //	storage->jitd->print_debug();
 
 	return 0;
-*/
 
 }
 
