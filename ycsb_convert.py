@@ -4,6 +4,9 @@ import os
 import json
 
 
+op_dict = { "INSERT":"0", "READ":"1", "DELETE":"2", "UPDATE":"3", "UPSERT":"4" }
+
+
 def sort_key(input_list):
 
 	return input_list[0]
@@ -22,6 +25,7 @@ def get_data(workload):
 	output_file = "" # file obj
 	iteration = -1
 	header_flag = True
+	offset = 0
 	logline = ""
 	index = 0
 	logline_header_list = []
@@ -57,6 +61,7 @@ def get_data(workload):
 		if (header_flag == True):
 			if (logline[0:20] == "********************"):
 				header_flag = False
+				offset = iteration + 1
 			#end_if
 			continue
 		#end_if
@@ -131,7 +136,7 @@ def get_data(workload):
 
 		presort_list = sorted(presort_list, key = sort_key)
 
-		output_line = operation + "\t" + key[4:]
+		output_line = str(iteration - offset) + "\t" + op_dict[operation] + "\t" + key[4:]
 
 		for e in presort_list:
 			output_line += "\t" + e[0] + "\t" + e[1]
@@ -158,6 +163,7 @@ def main():
 
 	#workload = sys.argv[1]
 	workload_list = ["a", "b", "c", "d", "e", "f"]
+	workload_list = ["a", "b", "c", "d", "f"]
 	#workload_list = ["b"]
 
 	datatype_list = ["initialize", "benchmark"]
