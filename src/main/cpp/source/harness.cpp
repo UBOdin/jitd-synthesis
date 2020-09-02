@@ -113,6 +113,10 @@
 using namespace harness;
 
 
+struct output_node* output_array;
+long output_size;
+
+
 long gettime_us() {
 
 	timeval now;
@@ -276,6 +280,8 @@ STORAGE_HANDLE create_storage(int maxkeys) {
 		input_index++;
 	}
 	storage->jitd = std::shared_ptr<JITD>(new JITD(std::shared_ptr<std::shared_ptr<JITDNode>>(std::make_shared<std::shared_ptr<JITDNode>>(new ArrayNode(data)))));
+
+	fclose(input_stream);
 
 	printf("Keys prepopulated:  %d\n", k);
 
@@ -928,6 +934,20 @@ int replay_trace(STORAGE_HANDLE storage) {
 	buffer_size = 0;
 	benchmark_index = 0;
 
+	// Get output array size from linecount of benchmark workload:
+	while (1) {
+		chars_read = getline(&line_buffer, &buffer_size, benchmark_stream);
+		if (chars_read == -1) {
+			break;
+		}
+		output_size++;
+	}
+	output_array = new(output_node[output_size]);
+
+	// Reset benchmark file:
+	rewind(benchmark_stream);
+
+	benchmark_index = 0;
 	while (1) {
 
 		chars_read = getline(&line_buffer, &buffer_size, benchmark_stream);
@@ -1016,7 +1036,7 @@ break;
 		benchmark_index++;
 	}
 
-
+	fclose(benchmark_stream);
 
 	printf("Benchmark operations replayed:  %d\n", benchmark_count);
 
@@ -1153,11 +1173,6 @@ memset(maint_array, 0, maint_size);
 	#ifdef TRACK_CACHING
 	#endif
 
-#if defined REPLAY_JITD || defined REPLAY_DBT
-replay_trace(storage);
-_exit(0);
-#endif
-
 	// Organize initial jitd structure until it reaches a stable state:
 	bool not_done = true;
 	i = 0;
@@ -1175,244 +1190,14 @@ _exit(0);
 	pin_thread(CORE_CLIENT);
 	#endif
 
-	// Kick off background worker thread:
-	std::thread worker_thread(run_worker_thread, storage);
 	#endif
 
-	// Block :30 to stabilize system:
-	printf("Waiting -- stabilize system\n");
-//	std::this_thread::sleep_for(std::chrono::milliseconds(30 * 1000));
-
-	printf("Starting operations\n");
-	gettimeofday(&start, NULL);
-
-	time_base = gettime_us();
-	printf("Start base time:  %ld\n", time_base);
-
-	#ifdef TRACK_CACHING
-	ioctl(perf_ref_fd, PERF_EVENT_IOC_RESET, 0);
-	ioctl(perf_ref_fd, PERF_EVENT_IOC_ENABLE, 0);
-	#endif
-
-	i = 0;
-	j = 0;
-	while (true) {
-
-		if ((i % 100) == 0) {
-			printf("Iteration:  %d\n", i);
-			depth = 0;
-			#ifdef STORAGE_JITD
-//			storage->jitd->get_depth(1, depth);
-			#endif
-		} else {
-			depth = -1;
-		}
-
-/*
-		if (i == 300) {
-			break;
-		}
-*/
-
-		// Get next operation:
-		optype = benchmark_array[i].type;
-		key = benchmark_array[i].key;
-		value = benchmark_array[i].value;
-		nkeys = benchmark_array[i].nkeys;
-
-		// Benchmark next operation:
-		if (optype == STOP) {
-			break;
-		} else if (optype == harness::INSERT) {
-			TIME_START;
-			put_data(storage, key, value);
-			TIME_END;
-		} else if (optype == SELECT) {
-			if (nkeys == 1) {
-				key_array = &benchmark_array[i].key;
-			} else if (nkeys > 1) {
-				key_array = benchmark_array[i].key_array;
-			} else if (nkeys == -1) {
-				// TODO:  Return all rows (iterator)
-				//printf("Return all\n");
-			}
-			TIME_START;
-			result += get_data(storage, nkeys, key_array);
-			TIME_END;
-		} else if (optype == DELETE) {
-			if (nkeys == 1) {
-				key_array = &benchmark_array[i].key;
-				TIME_START;
-				result += remove_data(storage, 1, key_array);
-				TIME_END;
-			} else if (nkeys > 1) {
-				key_array = benchmark_array[i].key_array;
-				#ifdef STORAGE_JITD
-				std::vector<long> data;
-				// TODO create pre-existing vector<long> in storage struct and use clear() on storage->element?
-				for (int k = 0; k < nkeys; k++) {
-					key = key_array[k];
-					data.push_back(key);
-				}
-				#endif
-				TIME_START;
-				#ifdef STORAGE_JITD
-				result += remove_data(storage, data);
-				#else
-				result += remove_data(storage, nkeys, key_array);
-				#endif
-				TIME_END;
-			}
-		} else if (optype == UPDATE) {
-			TIME_START;
-			result += update_data(storage, key, value);
-			TIME_END;
-		} else if (optype == UPSERT) {
-			TIME_START;
-			result += upsert_data(storage, key, value);
-			TIME_END;
-		} else {
-			printf("Error:  Unexpected operation\n");
-			_exit(1);
-		}
-
-		// Save out operation time:
-		if (i >= output_size) {
-			printf("Error:  output overflow\n");
-			_exit(1);
-		}
-
-		output_array[i].time_start = time_start;
-		output_array[i].time_delta = time_delta;
-		output_array[i].type = optype;
-		output_array[i].key = key;
-		output_array[i].rows = rows;
-		output_array[i].nkeys = nkeys;
-
-		#ifdef TRACK_CACHING
-		result = read(perf_ref_fd, perf_buff, PERFBUFF_SIZE);
-		errtrap("read");
-		output_array[i].cache_refs = ((unsigned long*)perf_buff)[1];
-		output_array[i].cache_misses = ((unsigned long*)perf_buff)[2];
-		#endif
-
-		#ifdef STORAGE_JITD
-		output_array[i].depth = depth;
-		#ifdef TRANSFORM_COUNT
-		output_array[i].count_array[0] = storage->jitd->PushDownSingletonLeft_count;
-		output_array[i].count_array[1] = storage->jitd->PushDownSingletonRight_count;
-		output_array[i].count_array[2] = storage->jitd->PushDownDontDeleteSingletonBtreeLeft_count;
-		output_array[i].count_array[3] = storage->jitd->PushDownDontDeleteSingletonBtreeRight_count;
-		output_array[i].count_array[5] = storage->jitd->PushDownDontDeleteElemBtree_count;
-		output_array[i].count_array[7] = storage->jitd->CrackArray_count;
-		output_array[i].size_array[0] = storage->jitd->PushDownSingletonLeft_View.size();
-		output_array[i].size_array[1] = storage->jitd->PushDownSingletonRight_View.size();
-		output_array[i].size_array[2] = storage->jitd->PushDownDontDeleteSingletonBtreeLeft_View.size();
-		output_array[i].size_array[3] = storage->jitd->PushDownDontDeleteSingletonBtreeRight_View.size();
-//		output_array[i].size_array[5] = storage->jitd->PushDownDontDeleteElemBtree_View.size();
-		output_array[i].size_array[7] = storage->jitd->CrackArray_View.size();
-		output_array[i].work_queue = storage->jitd->work_queue.size();
-		#endif
-		#endif
-
-		// Advance to next frame
-		i++;
-		optype = benchmark_array[i].type;
-		if (optype == STOP) {
-			break;
-		}
-
-		#ifdef TIME_EACH_OP
-
-
-		// Fixed sleep for now:
-		ms = 1;
-		std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-
-/*
-		// Spin for desired time:
-		k = 0;
-		TIME_START;
-		while (true) {
-			sum += sin(k);
-			k++;
-			TIME_END;
-			if (time_delta > 1000) {
-				break;
-			}
-		}
-*/
-
-		#endif
-
-	}
-
-	#ifdef TRACK_CACHING
-	ioctl(perf_ref_fd, PERF_EVENT_IOC_DISABLE, 0);
-	#endif
-
-	gettimeofday(&end, NULL);
-	printf("Total runtime:  %f us\n", total_time(start, end));
-	printf("In seconds:  %f us\n", total_time(start, end) / 1000000.0);
-
-	// Failsafe:  if input < output:
-	if (i < output_size) {
-		output_size = i;
-	}
-	save_output();
-	#ifdef STORAGE_SQLITE
-	sqlite3_close((sqlite3*)storage);
-	#endif
-
-	#ifdef STORAGE_JITD
-	// Wakeup worker thread and get thread metadata:
-//printf("Blocking for worker to finish\n");
-//std::this_thread::sleep_for(std::chrono::milliseconds(1000 * 10));
-
-	printf("Waking worker thread\n");
-	storage->jitd->work_queue.emplace(EXIT, nullptr, nullptr);
-	printf("Blocking on worker thread exit\n");
-	worker_thread.join();
-
-	storage->jitd->get_node_count();
-	storage->jitd->get_depth(1, depth);
-	printf("jitd depth:  %d\n", depth);
-/*
-	printf("Starting cleanup.  Main thread TID:  %d\n", getpid());
-	long start_time = gettime_us();
-	long diff_time;
-	bool not_done;
-	i = 0;
-	while (true) {
-		not_done = storage->jitd->do_organize();
-		if (not_done == false) {
-			break;
-		}
-		if ((i % 1000) == 0) {
-			printf("Cleanup iteration:  %d\n", i);
-		}
-		i++;
-	}
-	diff_time = gettime_us() - start_time;
-	printf("Finished cleanup.  Steps:  %d  Time (s):  %f\n", i, (double)diff_time / 1000000.0);
-*/
-
-//	jitd_debug(storage, "debug_jitd_final.txt");
-
-	printf("Worker thread exited\n");
-	#endif
-
-	#ifdef TRACK_CACHING
-	close(perf_ref_fd);
-	close(perf_miss_fd);
-	#endif
-
-	printf("Dummy sum:  %f\n", sum);
-
-	printf("Result:  %d\n", result);
-	printf("End base time:  %ld\n", time_base);
-	printf("End\n");
-	return 0;
+#if defined REPLAY_JITD || defined REPLAY_DBT
+replay_trace(storage);
+_exit(0);
+#endif
+printf("Unexpected path\n");
+_exit(1);
 
 }
 
