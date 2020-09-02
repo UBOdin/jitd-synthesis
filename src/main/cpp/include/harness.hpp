@@ -128,13 +128,6 @@ struct storage_uom_struct {
 
 #endif
 
-// Machine-generated static data:
-
-extern struct operation_node initialize_array[];
-extern struct operation_node benchmark_array[];
-extern struct output_node output_array[];
-extern long output_size;
-
 // Benchmark use:
 
 #define PERFBUFF_SIZE 64
