@@ -942,7 +942,7 @@ int replay_trace(STORAGE_HANDLE storage) {
 		}
 		output_size++;
 	}
-	output_array = new(output_node[output_size]);
+	output_array = new output_node[output_size];
 
 	// Reset benchmark file:
 	rewind(benchmark_stream);
