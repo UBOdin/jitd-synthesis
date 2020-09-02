@@ -664,7 +664,7 @@ int test_struct(STORAGE_HANDLE storage) {
 
 int save_output() {
 
-	#define BUFFER_SIZE 256
+	#define BUFFER_SIZE 512
 
 	int result;
 	int output_fd;
@@ -712,7 +712,7 @@ int save_output() {
 		charcount += result;
 		// Sanity check (overflow):
 		if (charcount >= BUFFER_SIZE) {
-			printf("Error:  output format overflow\n");
+			printf("Error:  output format overflow:  %d >= %d\n", charcount, BUFFER_SIZE);
 			_exit(1);
 		}
 		result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
