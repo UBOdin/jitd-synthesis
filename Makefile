@@ -73,10 +73,10 @@ help:
 default: $(MAIN)
 	@echo Build successful
 
-jitd_storage_jitd:  jitd_${atomic}_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o replay_jitd_${atomic}_${alloc}_${delay}.o harness_replay_jitd_${alloc}_${thread}.o replay_dbt_${atomic}_${alloc}_${delay}.o harness_replay_dbt_${alloc}_${thread}.o data.o
-	$(CC) $(CFLAGS) -o $(MAIN) jitd_${atomic}_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o data.o $(TBB_LIBRARY) -ltbb
-	$(CC) $(CFLAGS) -o replay_jitd.exe replay_jitd_${atomic}_${alloc}_${delay}.o harness_replay_jitd_${alloc}_${thread}.o data.o $(TBB_LIBRARY) -ltbb -D REPLAY_JITD
-	$(CC) $(CFLAGS) -o replay_dbt.exe replay_dbt_${atomic}_${alloc}_${delay}.o harness_replay_dbt_${alloc}_${thread}.o data.o $(TBB_LIBRARY) -ltbb -D REPLAY_DBT
+jitd_storage_jitd:  jitd_${atomic}_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o replay_jitd_${atomic}_${alloc}_${delay}.o harness_replay_jitd_${alloc}_${thread}.o replay_dbt_${atomic}_${alloc}_${delay}.o harness_replay_dbt_${alloc}_${thread}.o
+	$(CC) $(CFLAGS) -o $(MAIN) jitd_${atomic}_${alloc}_${delay}.o harness_jitd_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb
+	$(CC) $(CFLAGS) -o replay_jitd.exe replay_jitd_${atomic}_${alloc}_${delay}.o harness_replay_jitd_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_JITD
+	$(CC) $(CFLAGS) -o replay_dbt.exe replay_dbt_${atomic}_${alloc}_${delay}.o harness_replay_dbt_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_DBT
 	@echo built with jitd storage with ${atomic} atomic, ${alloc} allocator, ${thread} thread, and ${delay} delay
 
 jitd_storage_sqlite:  jitd_test.o harness_sqlite.o data.o
