@@ -741,34 +741,6 @@ int save_output() {
 	close(view_fd);
 	printf("Finished writing view timing data\n");
 
-	#else
-
-	// Save out view maintenance data:
-	int maint_fd;
-	char maint_filename[] = "output_view_maintenance.txt";
-
-	// failsafe:
-	if (maint_index > MAINT_SIZE) {
-		printf("Maintenance output overflow:  %d > %d\n", maint_index, MAINT_SIZE);
-		_exit(1);
-	}
-
-	result = open(maint_filename, O_CREAT | O_RDWR | O_TRUNC, 0666);
-	errtrap("open");
-	maint_fd = result;
-
-	for (int i = 0; i < maint_index; i++) {
-		charcount = 0;
-//		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "%d\t%d\t%d\t%d\t%d\t%lu\t%lu\t%lu\t%lu\t%lu\t%ld\t%ld\n", maint_array[i].maint_id, maint_array[i].ticks_id, maint_array[i].rw, maint_array[i].maint_type, maint_array[i].node_type, maint_array[i].node_self, maint_array[i].node_parent, maint_array[i].node_child, maint_array[i].node_left, maint_array[i].node_right, maint_array[i].value, maint_array[i].time_start);
-		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "%d,%d,%d,%d,%d,%lu,%lu,%lu,%lu,%lu,%ld,%ld\n", maint_array[i].maint_id, maint_array[i].ticks_id, maint_array[i].rw, maint_array[i].maint_type, maint_array[i].node_type, maint_array[i].node_self, maint_array[i].node_parent, maint_array[i].node_child, maint_array[i].node_left, maint_array[i].node_right, maint_array[i].value, maint_array[i].time_start);
-
-		charcount += result;
-		result = write(maint_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
-		errtrap("write");
-	}
-
-	close(maint_fd);
-
 	#endif
 
 	printf("Finished\n");
@@ -843,47 +815,6 @@ void run_worker_thread(STORAGE_HANDLE storage) {
 
 }
 #endif
-
-
-inline void populate_node(char* line, struct maint_node* node) {
-
-	char* token;
-	char* save;
-	const char delim[] = ",";
-
-	// Basic sanity:  are we using the correct delimiter?
-	token = strstr(line, delim);
-	if (token == NULL) {
-		printf("Error:  invalid delimiter\n");
-		_exit(1);
-	}
-
-	token = strtok_r(line, delim, &save);
-	node->maint_id = atoi(token);
-	token = strtok_r(NULL, delim, &save);
-	node->ticks_id = atoi(token);
-	token = strtok_r(NULL, delim, &save);
-	node->rw = atoi(token);
-	token = strtok_r(NULL, delim, &save);
-	node->maint_type = atoi(token);
-	token = strtok_r(NULL, delim, &save);
-	node->node_type = atoi(token);
-	token = strtok_r(NULL, delim, &save);
-	node->node_self = strtoul(token, NULL, 0);
-	token = strtok_r(NULL, delim, &save);
-	node->node_parent = strtoul(token, NULL, 0);
-	token = strtok_r(NULL, delim, &save);
-	node->node_child = strtoul(token, NULL, 0);
-	token = strtok_r(NULL, delim, &save);
-	node->node_left = strtoul(token, NULL, 0);
-	token = strtok_r(NULL, delim, &save);
-	node->node_right = strtoul(token, NULL, 0);
-	token = strtok_r(NULL, delim, &save);
-	node->value = strtol(token, NULL, 0);
-
-	return;
-
-}
 
 
 int replay_trace(STORAGE_HANDLE storage) {
@@ -1142,9 +1073,6 @@ int main(int argc, char** argv) {
 	// Initialize and populate structure:
 
 srand(time(NULL));
-
-extern int maint_size;
-memset(maint_array, 0, maint_size);
 
 	printf("Creating and initializing data structure\n");
 	storage = create_storage(maxkeys);
