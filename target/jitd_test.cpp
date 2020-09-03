@@ -40,8 +40,6 @@ int maint_block_end = 0;
 int maint_type;
 struct ticks_node ticks_array[TICKS_SIZE];
 
-std::mutex trace_lock;
-
 std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0},
 	{"DeleteKeyFromSingleton", 1}, {"DeleteSingletonFromArray", 2}, {"DeleteElemFromArray", 3},
 	{"PushDownDontDeleteSingletonBtreeRight", 4}, {"PushDownDontDeleteSingletonBtreeLeft", 5},
@@ -2253,9 +2251,7 @@ int JITD::organize_wait()
       if(this->work_queue.empty() && not_done == true)
       {
         
-trace_lock.lock();
         not_done = this->do_organize();
-trace_lock.unlock();
         t++;
         //std::cout<<"JITD_PRINT: "<<not_done<<std::endl;
         //this->print_debug();
@@ -2290,8 +2286,7 @@ trace_lock.unlock();
           return t;
         }
         
-trace_lock.lock();
-        /*else*/ if(pop_mce.flag == FLAG_remove_singleton)
+        if(pop_mce.flag == FLAG_remove_singleton)
         {
           this->after_remove_singleton(pop_mce.element);
           not_done = true;
@@ -2341,7 +2336,6 @@ trace_lock.lock();
           exit(-1);
         }
         
-trace_lock.unlock();
       }
       
     
