@@ -181,7 +181,7 @@ VIEW_END;
             {
               /*** ViewMaintenanceParent ***/
 VIEW_START;
-              viewErase(parent);
+              _viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
@@ -201,7 +201,7 @@ VIEW_END;
               #endif
               /*** ViewMaintenanceParent ***/
 VIEW_START;
-              viewAdd(parent);
+              _viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
               /*** ParentMaintenance ***/
@@ -281,7 +281,7 @@ VIEW_END;
               #endif
               /*** ViewMaintenanceParent ***/
 VIEW_START;
-              viewAdd(parent);
+              _viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
               /*** ParentMaintenance ***/
@@ -421,7 +421,7 @@ VIEW_END;
             {
               /*** ViewMaintenanceParent ***/
 VIEW_START;
-              viewErase(parent);
+              _viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
@@ -441,7 +441,7 @@ VIEW_END;
               #endif
               /*** ViewMaintenanceParent ***/
 VIEW_START;
-              viewAdd(parent);
+              _viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
               /*** ParentMaintenance ***/
@@ -697,7 +697,7 @@ VIEW_END;
             {
               /*** ViewMaintenanceParent ***/
 VIEW_START;
-              viewErase(parent);
+              _viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
@@ -723,7 +723,7 @@ VIEW_END;
               #endif
               /*** ViewMaintenanceParent ***/
 VIEW_START;
-              viewAdd(parent);
+              _viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
               viewAdd(&(to_ptr->lhs));
@@ -1261,7 +1261,7 @@ VIEW_END;
         {
           /*** ViewMaintenanceParent ***/
 VIEW_START;
-          viewErase(parent);
+          _viewErase(parent);
           /*** ViewMaintenance ***/
           viewErase(target);
 VIEW_END;
@@ -1280,7 +1280,7 @@ VIEW_END;
           #endif
           /*** ViewMaintenanceParent ***/
 VIEW_START;
-          viewAdd(parent);
+          _viewAdd(parent);
           /*** ViewMaintenance ***/
           viewAdd(target);
           /*** ParentMaintenance ***/
