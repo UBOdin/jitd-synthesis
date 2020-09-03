@@ -667,7 +667,7 @@ void after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>
 	int __array_size;                       // Array crack threshhold
 	int __sleep_time;                       // Worker intra-spin block time
      
-  private:
+//  private:
 
     //std::shared_ptr<JITDNode> root;
     std::shared_ptr<std::shared_ptr<JITDNode>> jitd_root;
