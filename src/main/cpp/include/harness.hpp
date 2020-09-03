@@ -1,6 +1,6 @@
 
 #include <string>
-#include <mutex>
+//#include <mutex>
 
 // N.b. using namespace to resolve enum collision (INSERT)
 
@@ -72,7 +72,6 @@ struct storage_jitd_struct {
 #endif
 
 #define TICKS_SIZE 100000
-#define MAINT_SIZE 100000
 
 struct ticks_node {
 
@@ -82,29 +81,9 @@ struct ticks_node {
 
 };
 
-struct maint_node {
-
-	int maint_id;
-	int ticks_id;
-	int rw;
-	int maint_type;
-	int node_type;
-	unsigned long node_self;
-	unsigned long node_parent;
-	unsigned long node_child;
-	unsigned long node_left;
-	unsigned long node_right;
-	long value;  // Singleton => data; DeleteSingleton => key; BTree => sep; [Sorted]Array => size
-	long time_start;
-
-};
 
 extern struct ticks_node ticks_array[];
-extern struct maint_node maint_array[];
 extern int ticks_index;
-extern int maint_index;
-extern int maint_block_end;
-extern std::mutex trace_lock;
 
 #ifdef STORAGE_MAP
 
@@ -136,5 +115,4 @@ struct storage_uom_struct {
 
 long gettime_us();
 void __errtrap(int result, const char* error, int line);
-void record_mutator(int, int, unsigned long, unsigned long);
 
