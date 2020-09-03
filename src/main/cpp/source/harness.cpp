@@ -42,18 +42,6 @@
 
 #ifdef TIME_EACH_OP
 
-#define TIME_START \
-	if (optype != SELECT) { \
-		trace_lock.lock(); \
-		record_mutator(benchmark_array[i].id, optype, key, value); \
-	} \
-	time_start = gettime_us();
-#define TIME_END \
-	time_delta = gettime_us() - time_start; \
-	if (optype != SELECT) { \
-		trace_lock.unlock(); \
-	}
-
 #define REPLAY_START \
 	time_start = gettime_us();
 #define REPLAY_END \
@@ -61,8 +49,6 @@
 
 #else
 
-#define TIME_START
-#define TIME_END
 #define REPLAY_START
 #define REPLAY_END
 
