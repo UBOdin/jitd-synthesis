@@ -7,39 +7,38 @@ workload_list="a b c d f"
 
 run_list="0 1 2 3 4 5 6 7 8 9"
 
+crack_size="10000"
+prepopulate="300000"
+
 for workload in $workload_list; do
 
 	echo "Running workload ${workload}"
-	make clean
-	cp data_${workload}.x data.o
-	make jitd_storage_jitd
-	if [ "$?" != "0" ]; then
-		echo "Error on build"
-		exit 1
-	fi
-	echo "Clean build"
-	./jitd_harness.exe 100 30000 100
-	if [ "$?" != "0" ]; then
-		echo "Error on harness"
-		exit 1
-	fi
+
+	cp ycsb_benchmark/ycsb_tab_initialize_${workload}.tsv initialize_data.txt
+	cp ycsb_benchmark/ycsb_tab_benchmark_${workload}.tsv benchmark_data.txt
 
 	for run in $run_list; do
 
-		# WAIT?
-		./replay_jitd.exe 100 30000 100
-		mv output_view_performance.txt view_results/jitd_view_performance_${workload}_${run}.txt
+		echo "Running run ${run}"
 
-		# WAIT?
-		./replay_dbt.exe 100 30000 100
+		sleep 2
+		./replay_jitd.exe $crack_size $prepopulate 100
+		if [ "$?" != "0" ]; then
+			echo "Error on jitd replay"
+			exit 1
+		fi
+		mv output_view_performance.txt view_results/jitd_view_performance_${workload}_${run}.txt
+		mv output_data.txt view_results/jitd_data_performance_${workload}_${run}.txt
+		sleep 2
+		./replay_dbt.exe $crack_size $prepopulate 100
+		if [ "$?" != "0" ]; then
+			echo "Error on dbt replay"
+			exit 1
+		fi
 		mv output_view_performance.txt view_results/dbt_view_performance_${workload}_${run}.txt
+		mv output_data.txt view_results/dbt_data_performance_${workload}_${run}.txt
 
 	done
-
-	mv output_view_maintenance.txt view_results/output_view_maintenance_${workload}.txt
-
-	# N.b. benchmark latency is per-VM structure
-	#mv output_data.txt output_data_${workload}.txt
 
 done
 
