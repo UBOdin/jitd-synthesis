@@ -239,7 +239,7 @@ STORAGE_HANDLE create_storage(int maxkeys) {
 		}
 */
 		chars_read = getline(&line_buffer, &buffer_size, input_stream);
-		if ((chars_read == -1) || (k == maxkeys)) {
+		if ((chars_read == -1) || (input_index == maxkeys)) {
 			input_count = input_index;  // Save linecount
 			break;
 		}
@@ -271,7 +271,7 @@ STORAGE_HANDLE create_storage(int maxkeys) {
 
 	fclose(input_stream);
 
-	printf("Keys prepopulated:  %d\n", k);
+	printf("Keys prepopulated:  %d\n", input_index);
 
 	return storage;
 
