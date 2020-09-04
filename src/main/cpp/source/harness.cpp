@@ -99,6 +99,8 @@
 using namespace harness;
 
 
+int __array_size;
+int __sleep_time;
 struct output_node* output_array;
 long output_size;
 
@@ -1034,9 +1036,11 @@ int main(int argc, char** argv) {
 	}
 	maxkeys = atoi(argv[2]);
 
-	// Initialize and populate structure:
+	srand(time(NULL));
 
-srand(time(NULL));
+	// Populate jitd specific parameters (must be done *before* JITD() constructor call):
+	__array_size = atoi(argv[1]);
+	__sleep_time = atoi(argv[3]);
 
 	printf("Creating and initializing data structure\n");
 	storage = create_storage(maxkeys);
@@ -1044,9 +1048,6 @@ srand(time(NULL));
 	printf("Finished\n");
 	// Basic structural integrity check:
 //	test_struct(storage);
-	// Populate jitd specific parameters:
-	storage->jitd->__array_size = atoi(argv[1]);
-	storage->jitd->__sleep_time = atoi(argv[3]);
 
 	// Organize initial jitd structure until it reaches a stable state:
 	bool not_done = true;
@@ -1057,8 +1058,8 @@ srand(time(NULL));
 	}
 
 	printf("Initial Organization Steps:  %d\n", i);
-	printf("crack threshhold:  %d\n", storage->jitd->__array_size);
-	printf("worker sleeptime:  %d\n", storage->jitd->__sleep_time);
+	printf("crack threshhold:  %d\n", __array_size);
+	printf("worker sleeptime:  %d\n", __sleep_time);
 	storage->jitd->get_node_count();
 
 	#if defined REPLAY_JITD || defined REPLAY_DBT
