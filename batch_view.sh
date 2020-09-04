@@ -7,12 +7,14 @@ workload_list="a b c d f"
 
 run_list="0 1 2 3 4 5 6 7 8 9"
 
-crack_size="10000"
-prepopulate="300000"
+crack_size="100"
+prepopulate="30000000"
+
+echo "Running with CRACKSIZE ${crack_size}"
 
 for workload in $workload_list; do
 
-	echo "Running workload ${workload}"
+	echo "\nRunning workload ${workload}"
 
 	cp ycsb_benchmark/ycsb_tab_initialize_${workload}.tsv initialize_data.txt
 	cp ycsb_benchmark/ycsb_tab_benchmark_${workload}.tsv benchmark_data.txt
@@ -41,6 +43,8 @@ for workload in $workload_list; do
 	done
 
 done
+
+echo "Running with CRACKSIZE ${crack_size}"
 
 echo "Finished"
 
