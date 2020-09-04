@@ -98,7 +98,7 @@ jitd_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) 
 replay_jitd_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H)
 	$(CC) $(CFLAGS) -o replay_jitd_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) ${jitd_defines} -D REPLAY_JITD
 
-replay_dbt_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H)
+replay_dbt_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H) toaster_harness/toaster_maintenance.hpp
 	$(CC) $(CFLAGS) -o replay_dbt_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) $(TOASTER_INCLUDES) ${jitd_defines} -D REPLAY_DBT
 
 
