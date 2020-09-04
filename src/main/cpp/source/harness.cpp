@@ -998,42 +998,6 @@ int main(int argc, char** argv) {
 	long time_start;
 	double sum = 0;  // dummy variable -- to prevent structure val's from being optimized out
 	int maxkeys;  // debug -- the keycount with which the structure will be initially populated
-	#ifdef TRACK_CACHING
-//	#define PERFBUFF_SIZE 64
-	int perf_ref_fd;
-	int perf_miss_fd;
-	struct perf_event_attr pea_struct;
-	char perf_buff[PERFBUFF_SIZE];
-
-	// Initialize HW performance monitoring structure:
-	memset(&pea_struct, 0, sizeof(pea_struct));
-	pea_struct.type = PERF_TYPE_HARDWARE;
-	pea_struct.size = sizeof(struct perf_event_attr);
-	pea_struct.config = PERF_COUNT_HW_CACHE_REFERENCES;  // Track cache references with this monitor
-	pea_struct.sample_period = 0;  // Not using sample periods; will do manual collection
-	pea_struct.sample_type = 0;  // ditto above
-	pea_struct.read_format = PERF_FORMAT_GROUP;  // | PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
-	// Some bitfields:
-	pea_struct.disabled = 1;  // Disabled for now -- will start collection later
-	pea_struct.inherit = 0;  // Yes, track both client and worker (n.b. documentation says this = 1 is incompatible with PERF_FORMAT_GROUP -- it is _not_; bug?)
-	pea_struct.pinned = 0;  // N.b. pinned = 1 _is_ incompatible with PERF_FORMAT_GROUP -- either a bug in kernel or documentation?
-	pea_struct.exclusive = 0;
-	pea_struct.exclude_user = 0;  // Track userspace
-	pea_struct.exclude_kernel = 1;  // But not kernel
-	pea_struct.exclude_hv = 1;  // And not hv (if any)
-
-	// Group leader for first of 2 events (cache references):
-	result = syscall(__NR_perf_event_open, &pea_struct, 0, -1, -1, 0);
-	errtrap("perf_event_open");
-	perf_ref_fd = result;
-	// Configure second event to monitor cache misses:
-	pea_struct.config = PERF_COUNT_HW_CACHE_MISSES;
-	pea_struct.disabled = 0;  // N.b. -- enabled, but dependent on status of leader event (initially disabled)
-	// Include in monitoring group:
-	result = syscall(__NR_perf_event_open, &pea_struct, 0, -1, perf_ref_fd, 0);
-	errtrap("perf_event_open");
-	perf_miss_fd = result;
-	#endif
 
 	#ifdef STORAGE_SQLITE
 	printf("Using SQLite storage\n");
@@ -1080,12 +1044,9 @@ srand(time(NULL));
 	printf("Finished\n");
 	// Basic structural integrity check:
 //	test_struct(storage);
-	#ifdef STORAGE_JITD
 	// Populate jitd specific parameters:
 	storage->jitd->__array_size = atoi(argv[1]);
 	storage->jitd->__sleep_time = atoi(argv[3]);
-	#ifdef TRACK_CACHING
-	#endif
 
 	// Organize initial jitd structure until it reaches a stable state:
 	bool not_done = true;
@@ -1100,18 +1061,14 @@ srand(time(NULL));
 	printf("worker sleeptime:  %d\n", storage->jitd->__sleep_time);
 	storage->jitd->get_node_count();
 
-	#if defined PIN_SAME || defined PIN_DIFF
-	pin_thread(CORE_CLIENT);
+	#if defined REPLAY_JITD || defined REPLAY_DBT
+	replay_trace(storage);
+	_exit(0);
 	#endif
+	printf("Unexpected path\n");
+	_exit(1);
 
-	#endif
-
-#if defined REPLAY_JITD || defined REPLAY_DBT
-replay_trace(storage);
-_exit(0);
-#endif
-printf("Unexpected path\n");
-_exit(1);
+	return 0;
 
 }
 
