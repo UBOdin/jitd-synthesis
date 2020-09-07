@@ -35,7 +35,7 @@ SELECT Array.node_self FROM Array WHERE Array.size > 100;  /* crackAt */
 
 /* PushDownAndCrack */
 /* SELECT a.id FROM Concat a, BTree b, Array c WHERE a.lhs = b.id AND a.rhs = c.id ORDER BY c.arraySize LIMIT 1 */
-SELECT Concat.node_self FROM Concat, BTree, Array WHERE Concat.node_left = BTree.node_self AND Concat.node_right = Array.node_self;
+/* SELECT Concat.node_self FROM Concat, BTree, Array WHERE Concat.node_left = BTree.node_self AND Concat.node_right = Array.node_self; */
 
 /* PushDownSingleton */
 /* SELECT a.id FROM Concat a, BTree b, Singleton c WHERE a.lhs = b.id AND a.rhs = c.id LIMIT 1 */
