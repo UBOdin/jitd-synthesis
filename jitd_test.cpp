@@ -60,6 +60,26 @@ bool JITD::DeleteElemFromSingleton(std::shared_ptr<JITDNode> * &target )
                   {
                     {
                       {
+                        {
+                          {
+                            {
+                              {
+                                {
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
                       }
                       {
                       }
@@ -98,6 +118,26 @@ bool JITD::DeleteElemFromSingleton(std::shared_ptr<JITDNode> * &target )
                   {
                     {
                       {
+                        {
+                          {
+                            {
+                              {
+                                {
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
                       }
                       {
                       }
@@ -171,6 +211,26 @@ bool JITD::DeleteKeyFromSingleton(std::shared_ptr<JITDNode> * &target )
                   {
                     {
                       {
+                        {
+                          {
+                            {
+                              {
+                                {
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
                       }
                       {
                       }
@@ -209,6 +269,26 @@ bool JITD::DeleteKeyFromSingleton(std::shared_ptr<JITDNode> * &target )
                   {
                     {
                       {
+                        {
+                          {
+                            {
+                              {
+                                {
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
                       }
                       {
                       }
@@ -282,6 +362,26 @@ bool JITD::DeleteSingletonFromArray(std::shared_ptr<JITDNode> * &target )
                   {
                     {
                       {
+                        {
+                          {
+                            {
+                              {
+                                {
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
                       }
                       {
                       }
@@ -292,10 +392,9 @@ bool JITD::DeleteSingletonFromArray(std::shared_ptr<JITDNode> * &target )
                   {
                   }
                 }
-                {
-                }
+                this->CrackArray_PQ.erase(&(target_root->node));
               }
-              this->CrackArray_PQ.erase(&(target_root->node));
+              this->SortArray_PQ.erase(&(target_root->node));
             }
             this->JITD_NODE_DeleteSingleton_set.erase(target);
             {
@@ -319,6 +418,26 @@ bool JITD::DeleteSingletonFromArray(std::shared_ptr<JITDNode> * &target )
                   {
                     {
                       {
+                        {
+                          {
+                            {
+                              {
+                                {
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
                       }
                       {
                       }
@@ -329,10 +448,9 @@ bool JITD::DeleteSingletonFromArray(std::shared_ptr<JITDNode> * &target )
                   {
                   }
                 }
-                {
-                }
+                this->CrackArray_PQ.emplace(target);
               }
-              this->CrackArray_PQ.emplace(target);
+              this->SortArray_PQ.emplace(target);
             }
             {
             }
@@ -391,6 +509,26 @@ bool JITD::DeleteElemFromArray(std::shared_ptr<JITDNode> * &target )
                   {
                     {
                       {
+                        {
+                          {
+                            {
+                              {
+                                {
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
                       }
                       {
                       }
@@ -401,10 +539,9 @@ bool JITD::DeleteElemFromArray(std::shared_ptr<JITDNode> * &target )
                   {
                   }
                 }
-                {
-                }
+                this->CrackArray_PQ.erase(&(target_root->node));
               }
-              this->CrackArray_PQ.erase(&(target_root->node));
+              this->SortArray_PQ.erase(&(target_root->node));
             }
             this->JITD_NODE_DeleteElements_set.erase(target);
             {
@@ -428,6 +565,26 @@ bool JITD::DeleteElemFromArray(std::shared_ptr<JITDNode> * &target )
                   {
                     {
                       {
+                        {
+                          {
+                            {
+                              {
+                                {
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
                       }
                       {
                       }
@@ -438,10 +595,9 @@ bool JITD::DeleteElemFromArray(std::shared_ptr<JITDNode> * &target )
                   {
                   }
                 }
-                {
-                }
+                this->CrackArray_PQ.emplace(target);
               }
-              this->CrackArray_PQ.emplace(target);
+              this->SortArray_PQ.emplace(target);
             }
             {
             }
@@ -500,6 +656,26 @@ bool JITD::PushDownDontDeleteSingletonBtreeRight(std::shared_ptr<JITDNode> * &ta
                   {
                     {
                       {
+                        {
+                          {
+                            {
+                              {
+                                {
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
                       }
                       {
                       }
@@ -549,6 +725,26 @@ bool JITD::PushDownDontDeleteSingletonBtreeRight(std::shared_ptr<JITDNode> * &ta
                   {
                     {
                       {
+                        {
+                          {
+                            {
+                              {
+                                {
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
                       }
                       {
                       }
@@ -627,6 +823,26 @@ bool JITD::PushDownDontDeleteSingletonBtreeLeft(std::shared_ptr<JITDNode> * &tar
                   {
                     {
                       {
+                        {
+                          {
+                            {
+                              {
+                                {
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
                       }
                       {
                       }
@@ -674,6 +890,26 @@ bool JITD::PushDownDontDeleteSingletonBtreeLeft(std::shared_ptr<JITDNode> * &tar
                   {
                     {
                       {
+                        {
+                          {
+                            {
+                              {
+                                {
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
                       }
                       {
                       }
@@ -754,6 +990,26 @@ bool JITD::PushDownDontDeleteElemBtree(std::shared_ptr<JITDNode> * &target )
                   {
                     {
                       {
+                        {
+                          {
+                            {
+                              {
+                                {
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
                       }
                       {
                       }
@@ -804,6 +1060,26 @@ bool JITD::PushDownDontDeleteElemBtree(std::shared_ptr<JITDNode> * &target )
                   {
                     {
                       {
+                        {
+                          {
+                            {
+                              {
+                                {
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
                       }
                       {
                       }
@@ -828,6 +1104,26 @@ bool JITD::PushDownDontDeleteElemBtree(std::shared_ptr<JITDNode> * &target )
                   {
                     {
                       {
+                        {
+                          {
+                            {
+                              {
+                                {
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
                       }
                       {
                       }
@@ -921,6 +1217,26 @@ bool JITD::PushDownSingletonRight(std::shared_ptr<JITDNode> * &target )
                       {
                         {
                           {
+                            {
+                              {
+                                {
+                                  {
+                                    {
+                                    }
+                                    {
+                                    }
+                                  }
+                                  {
+                                  }
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
                           }
                           {
                           }
@@ -947,6 +1263,26 @@ bool JITD::PushDownSingletonRight(std::shared_ptr<JITDNode> * &target )
                       {
                         {
                           {
+                            {
+                              {
+                                {
+                                  {
+                                    {
+                                    }
+                                    {
+                                    }
+                                  }
+                                  {
+                                  }
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
                           }
                           {
                           }
@@ -1001,6 +1337,26 @@ bool JITD::PushDownSingletonRight(std::shared_ptr<JITDNode> * &target )
                       {
                         {
                           {
+                            {
+                              {
+                                {
+                                  {
+                                    {
+                                    }
+                                    {
+                                    }
+                                  }
+                                  {
+                                  }
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
                           }
                           {
                           }
@@ -1098,6 +1454,26 @@ bool JITD::PushDownSingletonLeft(std::shared_ptr<JITDNode> * &target )
                       {
                         {
                           {
+                            {
+                              {
+                                {
+                                  {
+                                    {
+                                    }
+                                    {
+                                    }
+                                  }
+                                  {
+                                  }
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
                           }
                           {
                           }
@@ -1124,6 +1500,26 @@ bool JITD::PushDownSingletonLeft(std::shared_ptr<JITDNode> * &target )
                       {
                         {
                           {
+                            {
+                              {
+                                {
+                                  {
+                                    {
+                                    }
+                                    {
+                                    }
+                                  }
+                                  {
+                                  }
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
                           }
                           {
                           }
@@ -1176,6 +1572,26 @@ bool JITD::PushDownSingletonLeft(std::shared_ptr<JITDNode> * &target )
                       {
                         {
                           {
+                            {
+                              {
+                                {
+                                  {
+                                    {
+                                    }
+                                    {
+                                    }
+                                  }
+                                  {
+                                  }
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
                           }
                           {
                           }
@@ -1275,6 +1691,26 @@ bool JITD::PushDownAndCrack(std::shared_ptr<JITDNode> * &target )
                       {
                         {
                           {
+                            {
+                              {
+                                {
+                                  {
+                                    {
+                                    }
+                                    {
+                                    }
+                                  }
+                                  {
+                                  }
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
                           }
                           {
                           }
@@ -1301,6 +1737,26 @@ bool JITD::PushDownAndCrack(std::shared_ptr<JITDNode> * &target )
                       {
                         {
                           {
+                            {
+                              {
+                                {
+                                  {
+                                    {
+                                    }
+                                    {
+                                    }
+                                  }
+                                  {
+                                  }
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
                           }
                           {
                           }
@@ -1311,10 +1767,9 @@ bool JITD::PushDownAndCrack(std::shared_ptr<JITDNode> * &target )
                       {
                       }
                     }
-                    {
-                    }
+                    this->CrackArray_PQ.erase(&(target_root->rhs));
                   }
-                  this->CrackArray_PQ.erase(&(target_root->rhs));
+                  this->SortArray_PQ.erase(&(target_root->rhs));
                 }
                 this->JITD_NODE_Concat_set.erase(target);
                 {
@@ -1360,6 +1815,26 @@ bool JITD::PushDownAndCrack(std::shared_ptr<JITDNode> * &target )
                       {
                         {
                           {
+                            {
+                              {
+                                {
+                                  {
+                                    {
+                                    }
+                                    {
+                                    }
+                                  }
+                                  {
+                                  }
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
                           }
                           {
                           }
@@ -1370,10 +1845,9 @@ bool JITD::PushDownAndCrack(std::shared_ptr<JITDNode> * &target )
                       {
                       }
                     }
-                    {
-                    }
+                    this->CrackArray_PQ.emplace(&(to_ptr_lhs->rhs));
                   }
-                  this->CrackArray_PQ.emplace(&(to_ptr_lhs->rhs));
+                  this->SortArray_PQ.emplace(&(to_ptr_lhs->rhs));
                 }
                 {
                 }
@@ -1385,6 +1859,26 @@ bool JITD::PushDownAndCrack(std::shared_ptr<JITDNode> * &target )
                       {
                         {
                           {
+                            {
+                              {
+                                {
+                                  {
+                                    {
+                                    }
+                                    {
+                                    }
+                                  }
+                                  {
+                                  }
+                                }
+                                {
+                                }
+                              }
+                              {
+                              }
+                            }
+                            {
+                            }
                           }
                           {
                           }
@@ -1395,10 +1889,9 @@ bool JITD::PushDownAndCrack(std::shared_ptr<JITDNode> * &target )
                       {
                       }
                     }
-                    {
-                    }
+                    this->CrackArray_PQ.emplace(&(to_ptr_rhs->rhs));
                   }
-                  this->CrackArray_PQ.emplace(&(to_ptr_rhs->rhs));
+                  this->SortArray_PQ.emplace(&(to_ptr_rhs->rhs));
                 }
                 {
                 }
@@ -1454,6 +1947,26 @@ bool JITD::CrackArray(std::shared_ptr<JITDNode> * &target )
               {
                 {
                   {
+                    {
+                      {
+                        {
+                          {
+                            {
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
+                      }
+                      {
+                      }
+                    }
+                    {
+                    }
                   }
                   {
                   }
@@ -1464,10 +1977,9 @@ bool JITD::CrackArray(std::shared_ptr<JITDNode> * &target )
               {
               }
             }
-            {
-            }
+            this->CrackArray_PQ.erase(target);
           }
-          this->CrackArray_PQ.erase(target);
+          this->SortArray_PQ.erase(target);
         }
         {
         }
@@ -1498,6 +2010,26 @@ bool JITD::CrackArray(std::shared_ptr<JITDNode> * &target )
               {
                 {
                   {
+                    {
+                      {
+                        {
+                          {
+                            {
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
+                      }
+                      {
+                      }
+                    }
+                    {
+                    }
                   }
                   {
                   }
@@ -1508,10 +2040,9 @@ bool JITD::CrackArray(std::shared_ptr<JITDNode> * &target )
               {
               }
             }
-            {
-            }
+            this->CrackArray_PQ.emplace(&(to_ptr->lhs));
           }
-          this->CrackArray_PQ.emplace(&(to_ptr->lhs));
+          this->SortArray_PQ.emplace(&(to_ptr->lhs));
         }
         {
           {
@@ -1519,6 +2050,26 @@ bool JITD::CrackArray(std::shared_ptr<JITDNode> * &target )
               {
                 {
                   {
+                    {
+                      {
+                        {
+                          {
+                            {
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
+                      }
+                      {
+                      }
+                    }
+                    {
+                    }
                   }
                   {
                   }
@@ -1529,10 +2080,9 @@ bool JITD::CrackArray(std::shared_ptr<JITDNode> * &target )
               {
               }
             }
-            {
-            }
+            this->CrackArray_PQ.emplace(&(to_ptr->rhs));
           }
-          this->CrackArray_PQ.emplace(&(to_ptr->rhs));
+          this->SortArray_PQ.emplace(&(to_ptr->rhs));
         }
         {
         }
@@ -1574,6 +2124,26 @@ bool JITD::SortArray(std::shared_ptr<JITDNode> * &target )
               {
                 {
                   {
+                    {
+                      {
+                        {
+                          {
+                            {
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
+                      }
+                      {
+                      }
+                    }
+                    {
+                    }
                   }
                   {
                   }
@@ -1584,10 +2154,9 @@ bool JITD::SortArray(std::shared_ptr<JITDNode> * &target )
               {
               }
             }
-            {
-            }
+            this->CrackArray_PQ.erase(target);
           }
-          this->CrackArray_PQ.erase(target);
+          this->SortArray_PQ.erase(target);
         }
         {
         }
@@ -1610,6 +2179,26 @@ bool JITD::SortArray(std::shared_ptr<JITDNode> * &target )
               {
                 {
                   {
+                    {
+                      {
+                        {
+                          {
+                            {
+                            }
+                            {
+                            }
+                          }
+                          {
+                          }
+                        }
+                        {
+                        }
+                      }
+                      {
+                      }
+                    }
+                    {
+                    }
                   }
                   {
                   }
@@ -1802,6 +2391,26 @@ this->rdtsc_vector.emplace_back(diffticks);
           {
             {
               {
+                {
+                  {
+                    {
+                      {
+                        {
+                        }
+                        {
+                        }
+                      }
+                      {
+                      }
+                    }
+                    {
+                    }
+                  }
+                  {
+                  }
+                }
+                {
+                }
               }
               {
               }
@@ -1872,6 +2481,26 @@ this->rdtsc_vector.emplace_back(diffticks);
           {
             {
               {
+                {
+                  {
+                    {
+                      {
+                        {
+                        }
+                        {
+                        }
+                      }
+                      {
+                      }
+                    }
+                    {
+                    }
+                  }
+                  {
+                  }
+                }
+                {
+                }
               }
               {
               }
@@ -1949,6 +2578,26 @@ this->rdtsc_vector.emplace_back(diffticks);
           {
             {
               {
+                {
+                  {
+                    {
+                      {
+                        {
+                        }
+                        {
+                        }
+                      }
+                      {
+                      }
+                    }
+                    {
+                    }
+                  }
+                  {
+                  }
+                }
+                {
+                }
               }
               {
               }
@@ -1959,10 +2608,9 @@ this->rdtsc_vector.emplace_back(diffticks);
           {
           }
         }
-        {
-        }
+        this->CrackArray_PQ.emplace(&(cast_root->rhs));
       }
-      this->CrackArray_PQ.emplace(&(cast_root->rhs));
+      this->SortArray_PQ.emplace(&(cast_root->rhs));
     }
     this->JITD_NODE_Concat_set.emplace(&(*(cq_elem.second)));
     {
@@ -2025,6 +2673,26 @@ this->rdtsc_vector.emplace_back(diffticks);
           {
             {
               {
+                {
+                  {
+                    {
+                      {
+                        {
+                        }
+                        {
+                        }
+                      }
+                      {
+                      }
+                    }
+                    {
+                    }
+                  }
+                  {
+                  }
+                }
+                {
+                }
               }
               {
               }
@@ -2320,6 +2988,210 @@ BTreeNode *iter_node_real_node_real = (BTreeNode *)iter_node_real_node;
   
   }
 
+  long JITD::searchForDeleteElemFromSingleton(          // Return the "best" score available 
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+  
+    //std::cout<<"STARTING TRANSFORMDeleteElemFromSingleton"<<std::endl;
+    int count = 0;
+    long best_score = -1;
+    long curr_score = -1;
+    if(!(this->JITD_NODE_DeleteElements_set).empty())
+    {
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      std::set< std::shared_ptr<JITDNode> * >::iterator begin_it = (this->JITD_NODE_DeleteElements_set).begin();
+      std::set< std::shared_ptr<JITDNode> * >::iterator end_it = (this->JITD_NODE_DeleteElements_set).end();
+      for(it = begin_it; it!= end_it; ++it)
+      {
+        
+
+           JITDNode *iter_node = (*it)->get();
+          
+
+           if(iter_node->type != JITD_NODE_DeleteElements){continue; }
+DeleteElementsNode *iter_node_real = (DeleteElementsNode *)iter_node;
+JITDNode *iter_node_real_node = iter_node_real->node.get();
+if(iter_node_real_node->type != JITD_NODE_Singleton){continue; }
+SingletonNode *iter_node_real_node_real = (SingletonNode *)iter_node_real_node;
+
+          
+           if(true){
+            best_score = 0;
+          }
+
+          if(best_score>curr_score)
+          {
+            //std::cout<<"BESTSCORE: "<<best_score<<std::endl;
+            curr_score = best_score;
+            
+            targetHandleRef = (*it);
+            return best_score;
+            
+          
+      }
+    }
+
+
+
+
+}
+    return best_score;
+  
+  }
+
+  long JITD::searchForDeleteKeyFromSingleton(          // Return the "best" score available 
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+  
+    //std::cout<<"STARTING TRANSFORMDeleteKeyFromSingleton"<<std::endl;
+    int count = 0;
+    long best_score = -1;
+    long curr_score = -1;
+    if(!(this->JITD_NODE_DeleteSingleton_set).empty())
+    {
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      std::set< std::shared_ptr<JITDNode> * >::iterator begin_it = (this->JITD_NODE_DeleteSingleton_set).begin();
+      std::set< std::shared_ptr<JITDNode> * >::iterator end_it = (this->JITD_NODE_DeleteSingleton_set).end();
+      for(it = begin_it; it!= end_it; ++it)
+      {
+        
+
+           JITDNode *iter_node = (*it)->get();
+          
+
+           if(iter_node->type != JITD_NODE_DeleteSingleton){continue; }
+DeleteSingletonNode *iter_node_real = (DeleteSingletonNode *)iter_node;
+JITDNode *iter_node_real_node = iter_node_real->node.get();
+if(iter_node_real_node->type != JITD_NODE_Singleton){continue; }
+SingletonNode *iter_node_real_node_real = (SingletonNode *)iter_node_real_node;
+
+          
+           if(true){
+            best_score = 0;
+          }
+
+          if(best_score>curr_score)
+          {
+            //std::cout<<"BESTSCORE: "<<best_score<<std::endl;
+            curr_score = best_score;
+            
+            targetHandleRef = (*it);
+            return best_score;
+            
+          
+      }
+    }
+
+
+
+
+}
+    return best_score;
+  
+  }
+
+  long JITD::searchForDeleteSingletonFromArray(          // Return the "best" score available 
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+  
+    //std::cout<<"STARTING TRANSFORMDeleteSingletonFromArray"<<std::endl;
+    int count = 0;
+    long best_score = -1;
+    long curr_score = -1;
+    if(!(this->JITD_NODE_DeleteSingleton_set).empty())
+    {
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      std::set< std::shared_ptr<JITDNode> * >::iterator begin_it = (this->JITD_NODE_DeleteSingleton_set).begin();
+      std::set< std::shared_ptr<JITDNode> * >::iterator end_it = (this->JITD_NODE_DeleteSingleton_set).end();
+      for(it = begin_it; it!= end_it; ++it)
+      {
+        
+
+           JITDNode *iter_node = (*it)->get();
+          
+
+           if(iter_node->type != JITD_NODE_DeleteSingleton){continue; }
+DeleteSingletonNode *iter_node_real = (DeleteSingletonNode *)iter_node;
+JITDNode *iter_node_real_node = iter_node_real->node.get();
+if(iter_node_real_node->type != JITD_NODE_Array){continue; }
+ArrayNode *iter_node_real_node_real = (ArrayNode *)iter_node_real_node;
+
+          
+           if(true){
+            best_score = 0;
+          }
+
+          if(best_score>curr_score)
+          {
+            //std::cout<<"BESTSCORE: "<<best_score<<std::endl;
+            curr_score = best_score;
+            
+            targetHandleRef = (*it);
+            return best_score;
+            
+          
+      }
+    }
+
+
+
+
+}
+    return best_score;
+  
+  }
+
+  long JITD::searchForDeleteElemFromArray(          // Return the "best" score available 
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+  
+    //std::cout<<"STARTING TRANSFORMDeleteElemFromArray"<<std::endl;
+    int count = 0;
+    long best_score = -1;
+    long curr_score = -1;
+    if(!(this->JITD_NODE_DeleteElements_set).empty())
+    {
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      std::set< std::shared_ptr<JITDNode> * >::iterator begin_it = (this->JITD_NODE_DeleteElements_set).begin();
+      std::set< std::shared_ptr<JITDNode> * >::iterator end_it = (this->JITD_NODE_DeleteElements_set).end();
+      for(it = begin_it; it!= end_it; ++it)
+      {
+        
+
+           JITDNode *iter_node = (*it)->get();
+          
+
+           if(iter_node->type != JITD_NODE_DeleteElements){continue; }
+DeleteElementsNode *iter_node_real = (DeleteElementsNode *)iter_node;
+JITDNode *iter_node_real_node = iter_node_real->node.get();
+if(iter_node_real_node->type != JITD_NODE_Array){continue; }
+ArrayNode *iter_node_real_node_real = (ArrayNode *)iter_node_real_node;
+
+          
+           if(true){
+            best_score = 0;
+          }
+
+          if(best_score>curr_score)
+          {
+            //std::cout<<"BESTSCORE: "<<best_score<<std::endl;
+            curr_score = best_score;
+            
+            targetHandleRef = (*it);
+            return best_score;
+            
+          
+      }
+    }
+
+
+
+
+}
+    return best_score;
+  
+  }
+
   long JITD::searchForCrackArray(          // Return the "best" score available     
     std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
   ) {
@@ -2364,6 +3236,65 @@ ArrayNode *iter_node_real = (ArrayNode *)iter_node;
 
 
           if((array_size((iter_node_real->data))) > (100)){
+            bestScore = array_size((iter_node_real->data));
+          targetHandleRef = (*it);
+          }
+
+          
+      
+    }
+
+
+
+
+
+    return bestScore;
+  }
+
+  long JITD::searchForSortArray(          // Return the "best" score available     
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+  
+
+    int count = 0;
+    long bestScore = -1;
+    long curr_score = -1;
+   
+    
+    if(!(this->SortArray_PQ).empty())
+    {
+    
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      
+      it = (this->SortArray_PQ).begin();
+          
+          /*#ifdef DEBUG
+          assert(*it!=NULL);
+          #endif
+          
+          std::shared_ptr<JITDNode> * pspjn = *it;
+          
+          #ifdef DEBUG
+          assert(pspjn!=NULL);
+          #endif
+
+          std::shared_ptr<JITDNode> spjn = *pspjn;
+
+          #ifdef DEBUG
+          assert(spjn!=NULL);
+          #endif
+          
+          JITDNode *iter_node = (spjn).get();
+          */
+
+           JITDNode *iter_node = (*it)->get();
+          
+          
+          if(iter_node->type != JITD_NODE_Array){return -1; }
+ArrayNode *iter_node_real = (ArrayNode *)iter_node;
+
+
+          if(true){
             bestScore = array_size((iter_node_real->data));
           targetHandleRef = (*it);
           }
@@ -2647,6 +3578,7 @@ initialize_struts(&(node_real->rhs),node);
       case JITD_NODE_Array : {
       
       this->CrackArray_PQ.emplace(node);
+this->SortArray_PQ.emplace(node);
 
       ArrayNode *node_real = (ArrayNode *)target_root_lock.get();
          
@@ -2899,6 +3831,182 @@ bool JITD::do_organize()
   std::shared_ptr<JITDNode> * targetHandleRef;
   
   //std::shared_ptr<JITDNode> target;
+  //std::cout<<"Before calling searchForDeleteElemFromSingleton" <<std::endl;
+  //this->print_debug();
+  //check_pq();
+
+  long bestScore = searchForDeleteElemFromSingleton(
+    targetHandleRef
+  );
+  //std::cout<<"After calling searchForDeleteElemFromSingleton Best Score is "<<bestScore<<std::endl;
+  if(bestScore >= 0) {
+  
+    //std::cout<<"Candidate shared_ptr for DeleteElemFromSingleton: "<<(*targetHandleRef)<<std::endl;
+    
+      #ifdef TRANSFORM_COUNT
+    DeleteElemFromSingleton_count++;
+    #endif
+      DeleteElemFromSingleton(targetHandleRef);
+    
+    return true;
+
+  } 
+  
+  
+  
+  else { 
+     
+  }
+
+
+
+
+
+
+
+}
+
+
+    
+
+
+
+{
+  std::shared_ptr<JITDNode> * targetHandleRef;
+  
+  //std::shared_ptr<JITDNode> target;
+  //std::cout<<"Before calling searchForDeleteKeyFromSingleton" <<std::endl;
+  //this->print_debug();
+  //check_pq();
+
+  long bestScore = searchForDeleteKeyFromSingleton(
+    targetHandleRef
+  );
+  //std::cout<<"After calling searchForDeleteKeyFromSingleton Best Score is "<<bestScore<<std::endl;
+  if(bestScore >= 0) {
+  
+    //std::cout<<"Candidate shared_ptr for DeleteKeyFromSingleton: "<<(*targetHandleRef)<<std::endl;
+    
+      #ifdef TRANSFORM_COUNT
+    DeleteKeyFromSingleton_count++;
+    #endif
+      DeleteKeyFromSingleton(targetHandleRef);
+    
+    return true;
+
+  } 
+  
+  
+  
+  else { 
+     
+  }
+
+
+
+
+
+
+
+}
+
+
+    
+
+
+
+{
+  std::shared_ptr<JITDNode> * targetHandleRef;
+  
+  //std::shared_ptr<JITDNode> target;
+  //std::cout<<"Before calling searchForDeleteSingletonFromArray" <<std::endl;
+  //this->print_debug();
+  //check_pq();
+
+  long bestScore = searchForDeleteSingletonFromArray(
+    targetHandleRef
+  );
+  //std::cout<<"After calling searchForDeleteSingletonFromArray Best Score is "<<bestScore<<std::endl;
+  if(bestScore >= 0) {
+  
+    //std::cout<<"Candidate shared_ptr for DeleteSingletonFromArray: "<<(*targetHandleRef)<<std::endl;
+    
+      #ifdef TRANSFORM_COUNT
+    DeleteSingletonFromArray_count++;
+    #endif
+      DeleteSingletonFromArray(targetHandleRef);
+    
+    return true;
+
+  } 
+  
+  
+  
+  else { 
+     
+  }
+
+
+
+
+
+
+
+}
+
+
+    
+
+
+
+{
+  std::shared_ptr<JITDNode> * targetHandleRef;
+  
+  //std::shared_ptr<JITDNode> target;
+  //std::cout<<"Before calling searchForDeleteElemFromArray" <<std::endl;
+  //this->print_debug();
+  //check_pq();
+
+  long bestScore = searchForDeleteElemFromArray(
+    targetHandleRef
+  );
+  //std::cout<<"After calling searchForDeleteElemFromArray Best Score is "<<bestScore<<std::endl;
+  if(bestScore >= 0) {
+  
+    //std::cout<<"Candidate shared_ptr for DeleteElemFromArray: "<<(*targetHandleRef)<<std::endl;
+    
+      #ifdef TRANSFORM_COUNT
+    DeleteElemFromArray_count++;
+    #endif
+      DeleteElemFromArray(targetHandleRef);
+    
+    return true;
+
+  } 
+  
+  
+  
+  else { 
+     
+  }
+
+
+
+
+
+
+
+}
+
+
+    
+
+
+
+{
+  std::shared_ptr<JITDNode> * targetHandleRef;
+  
+  //std::shared_ptr<JITDNode> target;
   //std::cout<<"Before calling searchForCrackArray" <<std::endl;
   //this->print_debug();
   //check_pq();
@@ -2915,6 +4023,50 @@ bool JITD::do_organize()
     CrackArray_count++;
     #endif
       CrackArray(targetHandleRef);
+    
+    return true;
+
+  } 
+  
+  
+  
+  else { 
+     
+  }
+
+
+
+
+
+
+
+}
+
+
+    
+
+
+
+{
+  std::shared_ptr<JITDNode> * targetHandleRef;
+  
+  //std::shared_ptr<JITDNode> target;
+  //std::cout<<"Before calling searchForSortArray" <<std::endl;
+  //this->print_debug();
+  //check_pq();
+
+  long bestScore = searchForSortArray(
+    targetHandleRef
+  );
+  //std::cout<<"After calling searchForSortArray Best Score is "<<bestScore<<std::endl;
+  if(bestScore >= 0) {
+  
+    //std::cout<<"Candidate shared_ptr for SortArray: "<<(*targetHandleRef)<<std::endl;
+    
+      #ifdef TRANSFORM_COUNT
+    SortArray_count++;
+    #endif
+      SortArray(targetHandleRef);
     
     return true;
 
@@ -2993,6 +4145,7 @@ void JITD::SetPqErase(std::shared_ptr<JITDNode> * node_handle)
       case JITD_NODE_Array : {
           
           this->CrackArray_PQ.erase(node_handle);
+this->SortArray_PQ.erase(node_handle);
 
           };break;
         
@@ -3060,6 +4213,7 @@ void JITD::SetPqAdd(std::shared_ptr<JITDNode> * node_handle)
       case JITD_NODE_Array : {
           
           this->CrackArray_PQ.emplace(node_handle);
+this->SortArray_PQ.emplace(node_handle);
 
           };break;
         
@@ -3102,6 +4256,14 @@ matched = this->matchPushDownDontDeleteSingletonBtreeRight(node_handle);
 if(matched == true){
 this->PushDownDontDeleteSingletonBtreeRight_View.emplace(node_handle);
 }
+matched = this->matchDeleteKeyFromSingleton(node_handle);
+if(matched == true){
+this->DeleteKeyFromSingleton_View.emplace(node_handle);
+}
+matched = this->matchDeleteSingletonFromArray(node_handle);
+if(matched == true){
+this->DeleteSingletonFromArray_View.emplace(node_handle);
+}
 
         break;
       }
@@ -3111,6 +4273,14 @@ this->PushDownDontDeleteSingletonBtreeRight_View.emplace(node_handle);
         matched = this->matchPushDownDontDeleteElemBtree(node_handle);
 if(matched == true){
 this->PushDownDontDeleteElemBtree_View.emplace(node_handle);
+}
+matched = this->matchDeleteElemFromSingleton(node_handle);
+if(matched == true){
+this->DeleteElemFromSingleton_View.emplace(node_handle);
+}
+matched = this->matchDeleteElemFromArray(node_handle);
+if(matched == true){
+this->DeleteElemFromArray_View.emplace(node_handle);
 }
 
         break;
@@ -3148,6 +4318,10 @@ this->PushDownSingletonRight_View.emplace(node_handle);
 if(matched == true){
 this->CrackArray_View.emplace(node_handle);
 }
+matched = this->matchSortArray(node_handle);
+if(matched == true){
+this->SortArray_View.emplace(node_handle);
+}
 
         break;
       }
@@ -3183,6 +4357,8 @@ void JITD::viewErase(std::shared_ptr<JITDNode>* node_handle)
       case JITD_NODE_DeleteSingleton : {
         this->PushDownDontDeleteSingletonBtreeLeft_View.erase(node_handle);
 this->PushDownDontDeleteSingletonBtreeRight_View.erase(node_handle);
+this->DeleteKeyFromSingleton_View.erase(node_handle);
+this->DeleteSingletonFromArray_View.erase(node_handle);
 
         break;
       
@@ -3191,6 +4367,8 @@ this->PushDownDontDeleteSingletonBtreeRight_View.erase(node_handle);
     
       case JITD_NODE_DeleteElements : {
         this->PushDownDontDeleteElemBtree_View.erase(node_handle);
+this->DeleteElemFromSingleton_View.erase(node_handle);
+this->DeleteElemFromArray_View.erase(node_handle);
 
         break;
       
@@ -3222,6 +4400,7 @@ this->PushDownSingletonRight_View.erase(node_handle);
     
       case JITD_NODE_Array : {
         this->CrackArray_View.erase(node_handle);
+this->SortArray_View.erase(node_handle);
 
         break;
       
