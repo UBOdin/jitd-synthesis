@@ -38,7 +38,6 @@ int maint_index = 0;
 int maint_block_start = 0;
 int maint_block_end = 0;
 int maint_type;
-struct ticks_node ticks_array[TICKS_SIZE];
 
 std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0},
 	{"DeleteKeyFromSingleton", 1}, {"DeleteSingletonFromArray", 2}, {"DeleteElemFromArray", 3},
@@ -71,8 +70,11 @@ const QUERY_6_COUNT_map* query_6;
 inline void view_end() {
 
 	diffticks = rdtsc() - sticks;
-	if (ticks_index >= TICKS_SIZE) {
+	if (ticks_index >= ticks_size) {
 		printf("Error:  view overflow\n");
+
+printf("%d > %d\n", ticks_index, ticks_size);
+
 		_exit(1);
 	}
 	ticks_array[ticks_index].delta[delta_count] = diffticks;
@@ -106,7 +108,7 @@ inline void view_end() {
 //#define SEARCH_END
 #define SEARCH_END \
 	diffticks = rdtsc() - sticks; \
-	if (ticks_index >= TICKS_SIZE) { \
+	if (ticks_index >= ticks_size) { \
 		printf("Error:  view overflow\n"); \
 		_exit(1); \
 	} \
