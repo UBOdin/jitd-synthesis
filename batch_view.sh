@@ -44,7 +44,7 @@ for workload in $workload_list; do
 
 done
 
-echo "Running with CRACKSIZE ${crack_size}"
+echo "\nRunning with CRACKSIZE ${crack_size}"
 
-echo "Finished"
+echo "\nFinished"
 
