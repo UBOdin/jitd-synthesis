@@ -71,8 +71,6 @@ struct storage_jitd_struct {
 
 #endif
 
-#define TICKS_SIZE 100000
-
 struct ticks_node {
 
 	int id;
@@ -82,7 +80,8 @@ struct ticks_node {
 };
 
 
-extern struct ticks_node ticks_array[];
+extern int ticks_size;
+extern struct ticks_node* ticks_array;
 extern int ticks_index;
 
 #ifdef STORAGE_MAP
