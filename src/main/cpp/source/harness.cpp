@@ -103,6 +103,8 @@ int __array_size;
 int __sleep_time;
 struct output_node* output_array;
 long output_size;
+int ticks_size;
+struct ticks_node* ticks_array;
 
 
 long gettime_us() {
@@ -717,8 +719,8 @@ int save_output() {
 	char view_filename[] = "output_view_performance.txt";
 
 	// failsafe:
-	if (ticks_index > TICKS_SIZE) {
-		printf("View output overflow:  %d > %d\n", ticks_index, TICKS_SIZE);
+	if (ticks_index > ticks_size) {
+		printf("View output overflow:  %d > %d\n", ticks_index, ticks_size);
 		_exit(1);
 	}
 
@@ -848,23 +850,6 @@ int replay_trace(STORAGE_HANDLE storage) {
 		printf("Error:  opening benchmark operation file\n");
 		_exit(1);
 	}
-
-	line_buffer = NULL;
-	buffer_size = 0;
-	benchmark_index = 0;
-
-	// Get output array size from linecount of benchmark workload:
-	while (1) {
-		chars_read = getline(&line_buffer, &buffer_size, benchmark_stream);
-		if (chars_read == -1) {
-			break;
-		}
-		output_size++;
-	}
-	output_array = new output_node[output_size]();
-
-	// Reset benchmark file:
-	rewind(benchmark_stream);
 
 	benchmark_index = 0;
 	while (1) {
@@ -1041,6 +1026,33 @@ int main(int argc, char** argv) {
 	// Populate jitd specific parameters (must be done *before* JITD() constructor call):
 	__array_size = atoi(argv[1]);
 	__sleep_time = atoi(argv[3]);
+
+	FILE* benchmark_stream;
+	char benchmark_file[] = "benchmark_data.txt";
+	ssize_t chars_read;
+	char* line_buffer = NULL;
+	size_t buffer_size = 0;
+
+	benchmark_stream = fopen(benchmark_file, "r");
+	if (benchmark_stream == NULL) {
+		printf("Error:  opening benchmark operation file\n");
+		_exit(1);
+	}
+	// Get output array size from linecount of benchmark workload:
+	while (1) {
+		chars_read = getline(&line_buffer, &buffer_size, benchmark_stream);
+		if (chars_read == -1) {
+			break;
+		}
+		output_size++;
+	}
+	fclose(benchmark_stream);
+
+	output_array = new output_node[output_size]();
+	ticks_size = output_size * 20;  // Adjust to taste; estimation based on workloads A, F
+	ticks_array = new ticks_node[ticks_size]();
+	printf("Output size:  %ld  Ticks size:  %d\n", output_size, ticks_size);
+
 
 	printf("Creating and initializing data structure\n");
 	storage = create_storage(maxkeys);
