@@ -801,7 +801,7 @@ namespace dbtoaster {
       return QUERY_6_COUNT;
     }
   
-  protected:
+//  protected:
     /* Data structures used for storing / computing top-level queries */
     QUERY_1_COUNT_map QUERY_1_COUNT;
     QUERY_2_COUNT_map QUERY_2_COUNT;
@@ -1157,7 +1157,7 @@ namespace dbtoaster {
     void on_insert_ARRAY(const long array_iter_id, const long array_node_self, const long array_size) {
       
       ++tN;
-      if (array_size > 100) {
+      if (array_size > __array_size) {
         QUERY_1_COUNT.addOrDelOnZero(se67.modify(array_node_self), 1);
       }
       
@@ -1208,7 +1208,7 @@ namespace dbtoaster {
     void on_delete_ARRAY(const long array_iter_id, const long array_node_self, const long array_size) {
       
       ++tN;
-      if ((array_size > 100)) {
+      if ((array_size > __array_size)) {
         QUERY_1_COUNT.addOrDelOnZero(se75.modify(array_node_self), -1);
       }
       
@@ -1516,7 +1516,7 @@ namespace dbtoaster {
           return snapshot_t( d );
       }
   
-    protected:
+//    protected:
       data_t data;
   };
   
