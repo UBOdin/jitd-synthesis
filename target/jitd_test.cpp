@@ -117,12 +117,14 @@ printf("%d > %d\n", ticks_index, ticks_size);
 	ticks_index++;
 
 
+#if defined REPLAY_VIEW
 #if not defined REPLAY_DBT
 #define _viewErase(foo) (viewErase(foo))
 #define _viewAdd(foo) (viewAdd(foo))
 #else
 #define _viewErase(foo)
 #define _viewAdd(foo)
+#endif
 #endif
 
 #else
@@ -147,7 +149,9 @@ bool JITD::DeleteElemFromSingleton(std::shared_ptr<JITDNode> * &target )
 /*std::cout<<" The transform applied is:JITD::DeleteElemFromSingleton"<<std::endl;*/
   {
 VIEW_START;
+#if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#endif
 VIEW_END;
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into DeleteElements
@@ -180,10 +184,15 @@ VIEW_END;
             {
               /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+
+#endif
+#if defined REPLAY_VIEW
               _viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
+#endif
 VIEW_END;
               /*** BEGIN ASSEMBLING to_ptr ***/
               /*** Assemble to_ptr as a Singleton ***/
@@ -200,11 +209,16 @@ VIEW_END;
               #endif
               /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+
+#endif
+#if defined REPLAY_VIEW
               _viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
               /*** ParentMaintenance ***/
               setParent(target,parent);
+#endif
 VIEW_END;
               return true;
             }
@@ -227,7 +241,9 @@ bool JITD::DeleteKeyFromSingleton(std::shared_ptr<JITDNode> * &target )
 /*std::cout<<" The transform applied is:JITD::DeleteKeyFromSingleton"<<std::endl;*/
   {
 VIEW_START;
+#if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#endif
 VIEW_END;
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into DeleteSingleton
@@ -260,10 +276,15 @@ VIEW_END;
             {
               /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+
+#endif
+#if defined REPLAY_VIEW
               _viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
+#endif
 VIEW_END;
               /*** BEGIN ASSEMBLING to_ptr ***/
               /*** Assemble to_ptr as a Singleton ***/
@@ -280,11 +301,16 @@ VIEW_END;
               #endif
               /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+
+#endif
+#if defined REPLAY_VIEW
               _viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
               /*** ParentMaintenance ***/
               setParent(target,parent);
+#endif
 VIEW_END;
               return true;
             }
@@ -307,7 +333,9 @@ bool JITD::DeleteSingletonFromArray(std::shared_ptr<JITDNode> * &target )
 /*std::cout<<" The transform applied is:JITD::DeleteSingletonFromArray"<<std::endl;*/
   {
 VIEW_START;
+#if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#endif
 VIEW_END;
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into DeleteSingleton
@@ -340,10 +368,17 @@ VIEW_END;
             {
               /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+              this->CrackArray_PQ.erase(&(target_root->node));
+              this->SortArray_PQ.erase(&(target_root->node));
+              this->JITD_NODE_DeleteSingleton_set.erase(target);
+#endif
+#if defined REPLAY_VIEW
               _viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
+#endif
 VIEW_END;
               /*** BEGIN ASSEMBLING to_ptr ***/
               /*** Assemble to_ptr as a Array ***/
@@ -360,11 +395,17 @@ VIEW_END;
               #endif
               /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+              this->CrackArray_PQ.emplace(target);
+              this->SortArray_PQ.emplace(target);
+#endif
+#if defined REPLAY_VIEW
               _viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
               /*** ParentMaintenance ***/
               setParent(target,parent);
+#endif
 VIEW_END;
               return true;
             }
@@ -387,7 +428,9 @@ bool JITD::DeleteElemFromArray(std::shared_ptr<JITDNode> * &target )
 /*std::cout<<" The transform applied is:JITD::DeleteElemFromArray"<<std::endl;*/
   {
 VIEW_START;
+#if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#endif
 VIEW_END;
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into DeleteElements
@@ -420,10 +463,15 @@ VIEW_END;
             {
               /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+
+#endif
+#if defined REPLAY_VIEW
               _viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
+#endif
 VIEW_END;
               /*** BEGIN ASSEMBLING to_ptr ***/
               /*** Assemble to_ptr as a Array ***/
@@ -440,11 +488,16 @@ VIEW_END;
               #endif
               /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+
+#endif
+#if defined REPLAY_VIEW
               _viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
               /*** ParentMaintenance ***/
               setParent(target,parent);
+#endif
 VIEW_END;
               return true;
             }
@@ -467,7 +520,9 @@ bool JITD::PushDownDontDeleteSingletonBtreeRight(std::shared_ptr<JITDNode> * &ta
 /*std::cout<<" The transform applied is:JITD::PushDownDontDeleteSingletonBtreeRight"<<std::endl;*/
   {
 VIEW_START;
+#if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#endif
 VIEW_END;
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into DeleteSingleton
@@ -500,12 +555,19 @@ VIEW_END;
             {
               /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+              this->JITD_NODE_DeleteSingleton_set.erase(target);
+              SetPqErase(&(target_root_node->lhs));
+              SetPqErase(&(target_root_node->rhs));
+#endif
+#if defined REPLAY_VIEW
               _viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
               viewErase(&(target_root_node->lhs));
               viewErase(&(target_root_node->rhs));
+#endif
 VIEW_END;
               /*** BEGIN ASSEMBLING to_ptr ***/
               /*** Assemble to_ptr_rhs as a DeleteSingleton ***/
@@ -523,6 +585,12 @@ VIEW_END;
               #endif
               /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+              SetPqAdd(&(to_ptr->lhs));
+              this->JITD_NODE_DeleteSingleton_set.emplace(&(to_ptr->rhs));
+              SetPqAdd(&(to_ptr_rhs->node));
+#endif
+#if defined REPLAY_VIEW
               _viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
@@ -543,6 +611,7 @@ VIEW_START;
                 setParent(&(to_ptr_rhs->node),&(to_ptr->rhs));
                 fixNodeDecendents(&(to_ptr_rhs->node),&(to_ptr_rhs->node));
               }
+#endif
 VIEW_END;
               return true;
             }
@@ -565,7 +634,9 @@ bool JITD::PushDownDontDeleteSingletonBtreeLeft(std::shared_ptr<JITDNode> * &tar
 /*std::cout<<" The transform applied is:JITD::PushDownDontDeleteSingletonBtreeLeft"<<std::endl;*/
   {
 VIEW_START;
+#if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#endif
 VIEW_END;
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into DeleteSingleton
@@ -598,12 +669,19 @@ VIEW_END;
             {
               /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+              this->JITD_NODE_DeleteSingleton_set.erase(target);
+              SetPqErase(&(target_root_node->lhs));
+              SetPqErase(&(target_root_node->rhs));
+#endif
+#if defined REPLAY_VIEW
               _viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
               viewErase(&(target_root_node->lhs));
               viewErase(&(target_root_node->rhs));
+#endif
 VIEW_END;
               /*** BEGIN ASSEMBLING to_ptr ***/
               /*** Assemble to_ptr_lhs as a DeleteSingleton ***/
@@ -621,6 +699,12 @@ VIEW_END;
               #endif
               /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+              this->JITD_NODE_DeleteSingleton_set.emplace(&(to_ptr->lhs));
+              SetPqAdd(&(to_ptr_lhs->node));
+              SetPqAdd(&(to_ptr->rhs));
+#endif
+#if defined REPLAY_VIEW
               _viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
@@ -641,6 +725,7 @@ VIEW_START;
                 setParent(&(to_ptr->rhs),target);
                 fixNodeDecendents(&(to_ptr->rhs),&(to_ptr->rhs));
               }
+#endif
 VIEW_END;
               return true;
             }
@@ -663,7 +748,9 @@ bool JITD::PushDownDontDeleteElemBtree(std::shared_ptr<JITDNode> * &target )
 /*std::cout<<" The transform applied is:JITD::PushDownDontDeleteElemBtree"<<std::endl;*/
   {
 VIEW_START;
+#if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#endif
 VIEW_END;
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into DeleteElements
@@ -696,12 +783,17 @@ VIEW_END;
             {
               /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+
+#endif
+#if defined REPLAY_VIEW
               _viewErase(parent);
               /*** ViewMaintenance ***/
               viewErase(target);
               viewErase(&(target_root->node));
               viewErase(&(target_root_node->lhs));
               viewErase(&(target_root_node->rhs));
+#endif
 VIEW_END;
               /*** BEGIN ASSEMBLING to_ptr ***/
               /*** Assemble to_ptr_lhs as a DeleteElements ***/
@@ -722,6 +814,10 @@ VIEW_END;
               #endif
               /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+
+#endif
+#if defined REPLAY_VIEW
               _viewAdd(parent);
               /*** ViewMaintenance ***/
               viewAdd(target);
@@ -747,6 +843,7 @@ VIEW_START;
                 setParent(&(to_ptr_rhs->node),&(to_ptr->rhs));
                 fixNodeDecendents(&(to_ptr_rhs->node),&(to_ptr_rhs->node));
               }
+#endif
 VIEW_END;
               return true;
             }
@@ -769,7 +866,9 @@ bool JITD::PushDownSingletonRight(std::shared_ptr<JITDNode> * &target )
 /*std::cout<<" The transform applied is:JITD::PushDownSingletonRight"<<std::endl;*/
   {
 VIEW_START;
+#if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#endif
 VIEW_END;
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into Concat
@@ -816,6 +915,12 @@ VIEW_END;
                 {
                   /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+                  this->JITD_NODE_Concat_set.erase(target);
+                  SetPqErase(&(target_root_lhs->lhs));
+                  SetPqErase(&(target_root_lhs->rhs));
+#endif
+#if defined REPLAY_VIEW
                   _viewErase(parent);
                   /*** ViewMaintenance ***/
                   viewErase(target);
@@ -823,6 +928,7 @@ VIEW_START;
                   viewErase(&(target_root_lhs->lhs));
                   viewErase(&(target_root_lhs->rhs));
                   viewErase(&(target_root->rhs));
+#endif
 VIEW_END;
                   /*** BEGIN ASSEMBLING to_ptr ***/
                   /*** Assemble to_ptr_rhs_rhs as a Singleton ***/
@@ -843,6 +949,12 @@ VIEW_END;
                   #endif
                   /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+                  SetPqAdd(&(to_ptr->lhs));
+                  this->JITD_NODE_Concat_set.emplace(&(to_ptr->rhs));
+                  SetPqAdd(&(to_ptr_rhs->lhs));
+#endif
+#if defined REPLAY_VIEW
                   _viewAdd(parent);
                   /*** ViewMaintenance ***/
                   viewAdd(target);
@@ -868,6 +980,7 @@ VIEW_START;
                     setParent(&(to_ptr_rhs->rhs),&(to_ptr->rhs));
                     fixNodeDecendents(&(to_ptr_rhs->rhs),&(to_ptr_rhs->rhs));
                   }
+#endif
 VIEW_END;
                   return true;
                 }
@@ -895,7 +1008,9 @@ bool JITD::PushDownSingletonLeft(std::shared_ptr<JITDNode> * &target )
 /*std::cout<<" The transform applied is:JITD::PushDownSingletonLeft"<<std::endl;*/
   {
 VIEW_START;
+#if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#endif
 VIEW_END;
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into Concat
@@ -942,6 +1057,12 @@ VIEW_END;
                 {
                   /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+                  this->JITD_NODE_Concat_set.erase(target);
+                  SetPqErase(&(target_root_lhs->lhs));
+                  SetPqErase(&(target_root_lhs->rhs));
+#endif
+#if defined REPLAY_VIEW
                   _viewErase(parent);
                   /*** ViewMaintenance ***/
                   viewErase(target);
@@ -949,6 +1070,7 @@ VIEW_START;
                   viewErase(&(target_root_lhs->lhs));
                   viewErase(&(target_root_lhs->rhs));
                   viewErase(&(target_root->rhs));
+#endif
 VIEW_END;
                   /*** BEGIN ASSEMBLING to_ptr ***/
                   /*** Assemble to_ptr_lhs_rhs as a Singleton ***/
@@ -969,6 +1091,12 @@ VIEW_END;
                   #endif
                   /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+                  this->JITD_NODE_Concat_set.emplace(&(to_ptr->lhs));
+                  SetPqAdd(&(to_ptr_lhs->lhs));
+                  SetPqAdd(&(to_ptr->rhs));
+#endif
+#if defined REPLAY_VIEW
                   _viewAdd(parent);
                   /*** ViewMaintenance ***/
                   viewAdd(target);
@@ -994,6 +1122,7 @@ VIEW_START;
                     setParent(&(to_ptr->rhs),target);
                     fixNodeDecendents(&(to_ptr->rhs),&(to_ptr->rhs));
                   }
+#endif
 VIEW_END;
                   return true;
                 }
@@ -1021,7 +1150,9 @@ bool JITD::PushDownAndCrack(std::shared_ptr<JITDNode> * &target )
 /*std::cout<<" The transform applied is:JITD::PushDownAndCrack"<<std::endl;*/
   {
 VIEW_START;
+#if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#endif
 VIEW_END;
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into Concat
@@ -1068,6 +1199,10 @@ VIEW_END;
                 {
                   /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+
+#endif
+#if defined REPLAY_VIEW
                   _viewErase(parent);
                   /*** ViewMaintenance ***/
                   viewErase(target);
@@ -1075,6 +1210,7 @@ VIEW_START;
                   viewErase(&(target_root_lhs->lhs));
                   viewErase(&(target_root_lhs->rhs));
                   viewErase(&(target_root->rhs));
+#endif
 VIEW_END;
                   /*** BEGIN ASSEMBLING to_ptr ***/
                   /*** Assemble to_ptr_lhs_rhs as a Array ***/
@@ -1103,6 +1239,10 @@ VIEW_END;
                   #endif
                   /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+
+#endif
+#if defined REPLAY_VIEW
                   _viewAdd(parent);
                   /*** ViewMaintenance ***/
                   viewAdd(target);
@@ -1138,6 +1278,7 @@ VIEW_START;
                     setParent(&(to_ptr_rhs->rhs),&(to_ptr->rhs));
                     fixNodeDecendents(&(to_ptr_rhs->rhs),&(to_ptr_rhs->rhs));
                   }
+#endif
 VIEW_END;
                   return true;
                 }
@@ -1165,7 +1306,9 @@ bool JITD::CrackArray(std::shared_ptr<JITDNode> * &target )
 /*std::cout<<" The transform applied is:JITD::CrackArray"<<std::endl;*/
   {
 VIEW_START;
+#if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#endif
 VIEW_END;
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into Array
@@ -1184,9 +1327,15 @@ VIEW_END;
         {
           /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+          this->CrackArray_PQ.erase(target);
+          this->SortArray_PQ.erase(target);
+#endif
+#if defined REPLAY_VIEW
           _viewErase(parent);
           /*** ViewMaintenance ***/
           viewErase(target);
+#endif
 VIEW_END;
           /*** BEGIN ASSEMBLING to_ptr ***/
           /*** Assemble to_ptr_lhs as a Array ***/
@@ -1209,6 +1358,13 @@ VIEW_END;
           #endif
           /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+          this->CrackArray_PQ.emplace(&(to_ptr->lhs));
+          this->SortArray_PQ.emplace(&(to_ptr->lhs));
+          this->CrackArray_PQ.emplace(&(to_ptr->rhs));
+          this->SortArray_PQ.emplace(&(to_ptr->rhs));
+#endif
+#if defined REPLAY_VIEW
           _viewAdd(parent);
           /*** ViewMaintenance ***/
           viewAdd(target);
@@ -1224,6 +1380,7 @@ VIEW_START;
             setParent(&(to_ptr->rhs),target);
             fixNodeDecendents(&(to_ptr->rhs),&(to_ptr->rhs));
           }
+#endif
 VIEW_END;
           return true;
         }
@@ -1241,7 +1398,9 @@ bool JITD::SortArray(std::shared_ptr<JITDNode> * &target )
 /*std::cout<<" The transform applied is:JITD::SortArray"<<std::endl;*/
   {
 VIEW_START;
+#if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
+#endif
 VIEW_END;
     std::shared_ptr<JITDNode> target_root_lock;
     // Extract target into Array
@@ -1260,9 +1419,14 @@ VIEW_END;
         {
           /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+
+#endif
+#if defined REPLAY_VIEW
           _viewErase(parent);
           /*** ViewMaintenance ***/
           viewErase(target);
+#endif
 VIEW_END;
           /*** BEGIN ASSEMBLING to_ptr ***/
           /*** Assemble to_ptr as a SortedArray ***/
@@ -1279,11 +1443,16 @@ VIEW_END;
           #endif
           /*** ViewMaintenanceParent ***/
 VIEW_START;
+#if defined REPLAY_SET
+
+#endif
+#if defined REPLAY_VIEW
           _viewAdd(parent);
           /*** ViewMaintenance ***/
           viewAdd(target);
           /*** ParentMaintenance ***/
           setParent(target,parent);
+#endif
 VIEW_END;
           return true;
         }
@@ -1446,13 +1615,24 @@ void JITD::after_remove_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITD
 /*std::cout<<" The transform applied is:JITD::after_remove_singleton"<<std::endl;*/
   {
 VIEW_START;
+#if defined REPLAY_SET
+    SetPqErase(&( *(cq_elem.first)));
+#endif
+#if defined REPLAY_VIEW
     viewErase(&( *(cq_elem.first)));
+#endif
 VIEW_END;
     DeleteSingletonNode *cast_root = (DeleteSingletonNode*)((cq_elem.second)->get());
     /*** UpdateTarget ***/
     {
     }
     {
+
+#if defined REPLAY_SET
+VIEW_START;
+    this->JITD_NODE_DeleteSingleton_set.emplace(&(*(cq_elem.second)));
+VIEW_END;
+#endif
 
       #ifdef ATOMIC_STORE
       std::atomic_store(&(cast_root->node),*(cq_elem.first));
@@ -1463,17 +1643,24 @@ VIEW_END;
       std::atomic_store_explicit(&(cast_root->node),*(cq_elem.first),std::memory_order_release);
 
       #endif
+#if defined REPLAY_VIEW
 VIEW_START;
       fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->node));
 VIEW_END;
+#endif
     }
     /*** ViewMaintenance ***/
 VIEW_START;
+#if defined REPLAY_SET
+    SetPqAdd(&(cast_root->node));
+#endif
+#if defined REPLAY_VIEW
     viewAdd(&(*(cq_elem.second)));
     viewAdd(&(cast_root->node));
     /*** ParentMaintenance ***/
     setParent(&(*(cq_elem.second)),NULL);
     setParent(&(cast_root->node),&(*(cq_elem.second)));
+#endif
 VIEW_END;
   }
 
@@ -1508,13 +1695,24 @@ void JITD::after_remove_elements(std::pair<std::shared_ptr<std::shared_ptr<JITDN
 /*std::cout<<" The transform applied is:JITD::after_remove_elements"<<std::endl;*/
   {
 VIEW_START;
+#if defined REPLAY_SET
+    SetPqErase(&( *(cq_elem.first)));
+#endif
+#if defined REPLAY_VIEW
     viewErase(&( *(cq_elem.first)));
+#endif
 VIEW_END;
     DeleteElementsNode *cast_root = (DeleteElementsNode*)((cq_elem.second)->get());
     /*** UpdateTarget ***/
     {
     }
     {
+
+#if defined REPLAY_SET
+VIEW_START;
+    this->JITD_NODE_DeleteElements_set.emplace(&(*(cq_elem.second)));
+VIEW_END;
+#endif
 
       #ifdef ATOMIC_STORE
       std::atomic_store(&(cast_root->node),*(cq_elem.first));
@@ -1526,17 +1724,24 @@ VIEW_END;
 
       #endif
 
+#if defined REPLAY_VIEW
 VIEW_START;
       fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->node));
 VIEW_END;
+#endif
     }
     /*** ViewMaintenance ***/
 VIEW_START;
+#if defined REPLAY_SET
+    SetPqAdd(&(cast_root->node));
+#endif
+#if defined REPLAY_VIEW
     viewAdd(&(*(cq_elem.second)));
     viewAdd(&(cast_root->node));
     /*** ParentMaintenance ***/
     setParent(&(*(cq_elem.second)),NULL);
     setParent(&(cast_root->node),&(*(cq_elem.second)));
+#endif
 VIEW_END;
   }
 
@@ -1574,13 +1779,26 @@ void JITD::after_insert(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std
 /*std::cout<<" The transform applied is:JITD::after_insert"<<std::endl;*/
   {
 VIEW_START;
+#if defined REPLAY_SET
+    SetPqErase(&( *(cq_elem.first)));
+#endif
+#if defined REPLAY_VIEW
     viewErase(&( *(cq_elem.first)));
+#endif
 VIEW_END;
     ConcatNode *cast_root = (ConcatNode*)((cq_elem.second)->get());
     /*** UpdateTarget ***/
     {
     }
     {
+
+#if defined REPLAY_SET
+VIEW_START;
+    this->CrackArray_PQ.emplace(&(cast_root->rhs));
+    this->SortArray_PQ.emplace(&(cast_root->rhs));
+    this->JITD_NODE_Concat_set.emplace(&(*(cq_elem.second)));
+VIEW_END;
+#endif
 
       #ifdef ATOMIC_STORE
       std::atomic_store(&(cast_root->lhs),*(cq_elem.first));
@@ -1591,14 +1809,20 @@ VIEW_END;
       std::atomic_store_explicit(&(cast_root->lhs),*(cq_elem.first),std::memory_order_release);
 
       #endif
+#if defined REPLAY_VIEW
 VIEW_START;
       fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->lhs));
 VIEW_END;
+#endif
     }
     {
     }
     /*** ViewMaintenance ***/
 VIEW_START;
+#if defined REPLAY_SET
+    SetPqAdd(&(cast_root->lhs));
+#endif
+#if defined REPLAY_VIEW
     viewAdd(&(*(cq_elem.second)));
     viewAdd(&(cast_root->lhs));
     viewAdd(&(cast_root->rhs));
@@ -1606,6 +1830,7 @@ VIEW_START;
     setParent(&(*(cq_elem.second)),NULL);
     setParent(&(cast_root->lhs),&(*(cq_elem.second)));
     setParent(&(cast_root->rhs),&(*(cq_elem.second)));
+#endif
 VIEW_END;
   }
 
@@ -1643,13 +1868,24 @@ void JITD::after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITD
 /*std::cout<<" The transform applied is:JITD::after_insert_singleton"<<std::endl;*/
   {
 VIEW_START;
+#if defined REPLAY_SET
+    SetPqErase(&( *(cq_elem.first)));
+#endif
+#if defined REPLAY_VIEW
     viewErase(&( *(cq_elem.first)));
+#endif
 VIEW_END;
     ConcatNode *cast_root = (ConcatNode*)((cq_elem.second)->get());
     /*** UpdateTarget ***/
     {
     }
     {
+
+#if defined REPLAY_SET
+VIEW_START;
+    this->JITD_NODE_Concat_set.emplace(&(*(cq_elem.second)));
+VIEW_END;
+#endif
 
       #ifdef ATOMIC_STORE
       std::atomic_store(&(cast_root->lhs),*(cq_elem.first));
@@ -1660,14 +1896,20 @@ VIEW_END;
       std::atomic_store_explicit(&(cast_root->lhs),*(cq_elem.first),std::memory_order_release);
 
       #endif
+#if defined REPLAY_VIEW
 VIEW_START;
       fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->lhs));
 VIEW_END;
+#endif
     }
     {
     }
     /*** ViewMaintenance ***/
 VIEW_START;
+#if defined REPLAY_SET
+    SetPqAdd(&(cast_root->lhs));
+#endif
+#if defined REPLAY_VIEW
     viewAdd(&(*(cq_elem.second)));
     viewAdd(&(cast_root->lhs));
     viewAdd(&(cast_root->rhs));
@@ -1675,6 +1917,7 @@ VIEW_START;
     setParent(&(*(cq_elem.second)),NULL);
     setParent(&(cast_root->lhs),&(*(cq_elem.second)));
     setParent(&(cast_root->rhs),&(*(cq_elem.second)));
+#endif
 VIEW_END;
   }
 
@@ -1901,6 +2144,334 @@ ArrayNode *target_root_lock_real = (ArrayNode *)target_root_lock;
 	
 }
 ///////////////////// Policy Implementation ///////////////////// 
+
+
+#ifdef REPLAY_SET
+
+
+  long JITD::searchForPushDownSingletonLeft(          // Return the "best" score available 
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+  
+    //std::cout<<"STARTING TRANSFORMPushDownSingletonLeft"<<std::endl;
+    int count = 0;
+    long best_score = -1;
+    long curr_score = -1;
+    if(!(this->JITD_NODE_Concat_set).empty())
+    {
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      std::set< std::shared_ptr<JITDNode> * >::iterator begin_it = (this->JITD_NODE_Concat_set).begin();
+      std::set< std::shared_ptr<JITDNode> * >::iterator end_it = (this->JITD_NODE_Concat_set).end();
+      for(it = begin_it; it!= end_it; ++it)
+      {
+        
+
+           JITDNode *iter_node = (*it)->get();
+          
+
+           if(iter_node->type != JITD_NODE_Concat){continue; }
+ConcatNode *iter_node_real = (ConcatNode *)iter_node;
+JITDNode *iter_node_real_lhs = iter_node_real->lhs.get();
+if(iter_node_real_lhs->type != JITD_NODE_BTree){continue; }
+BTreeNode *iter_node_real_lhs_real = (BTreeNode *)iter_node_real_lhs;
+JITDNode *iter_node_real_rhs = iter_node_real->rhs.get();
+if(iter_node_real_rhs->type != JITD_NODE_Singleton){continue; }
+SingletonNode *iter_node_real_rhs_real = (SingletonNode *)iter_node_real_rhs;
+
+          
+           if((key_cmp((iter_node_real_rhs_real->elem), (iter_node_real_lhs_real->sep))) == (true)){
+            best_score = 0;
+          }
+
+          if(best_score>curr_score)
+          {
+            //std::cout<<"BESTSCORE: "<<best_score<<std::endl;
+            curr_score = best_score;
+            
+            targetHandleRef = (*it);
+            return best_score;
+            
+          
+      }
+    }
+
+
+
+
+}
+    return best_score;
+  
+  }
+
+  long JITD::searchForPushDownSingletonRight(          // Return the "best" score available 
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+  
+    //std::cout<<"STARTING TRANSFORMPushDownSingletonRight"<<std::endl;
+    int count = 0;
+    long best_score = -1;
+    long curr_score = -1;
+    if(!(this->JITD_NODE_Concat_set).empty())
+    {
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      std::set< std::shared_ptr<JITDNode> * >::iterator begin_it = (this->JITD_NODE_Concat_set).begin();
+      std::set< std::shared_ptr<JITDNode> * >::iterator end_it = (this->JITD_NODE_Concat_set).end();
+      for(it = begin_it; it!= end_it; ++it)
+      {
+        
+
+           JITDNode *iter_node = (*it)->get();
+          
+
+           if(iter_node->type != JITD_NODE_Concat){continue; }
+ConcatNode *iter_node_real = (ConcatNode *)iter_node;
+JITDNode *iter_node_real_lhs = iter_node_real->lhs.get();
+if(iter_node_real_lhs->type != JITD_NODE_BTree){continue; }
+BTreeNode *iter_node_real_lhs_real = (BTreeNode *)iter_node_real_lhs;
+JITDNode *iter_node_real_rhs = iter_node_real->rhs.get();
+if(iter_node_real_rhs->type != JITD_NODE_Singleton){continue; }
+SingletonNode *iter_node_real_rhs_real = (SingletonNode *)iter_node_real_rhs;
+
+          
+           if((key_cmp((iter_node_real_rhs_real->elem), (iter_node_real_lhs_real->sep))) == (false)){
+            best_score = 0;
+          }
+
+          if(best_score>curr_score)
+          {
+            //std::cout<<"BESTSCORE: "<<best_score<<std::endl;
+            curr_score = best_score;
+            
+            targetHandleRef = (*it);
+            return best_score;
+            
+          
+      }
+    }
+
+
+
+
+}
+    return best_score;
+  
+  }
+
+  long JITD::searchForPushDownDontDeleteSingletonBtreeLeft(          // Return the "best" score available 
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+  
+    //std::cout<<"STARTING TRANSFORMPushDownDontDeleteSingletonBtreeLeft"<<std::endl;
+    int count = 0;
+    long best_score = -1;
+    long curr_score = -1;
+    if(!(this->JITD_NODE_DeleteSingleton_set).empty())
+    {
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      std::set< std::shared_ptr<JITDNode> * >::iterator begin_it = (this->JITD_NODE_DeleteSingleton_set).begin();
+      std::set< std::shared_ptr<JITDNode> * >::iterator end_it = (this->JITD_NODE_DeleteSingleton_set).end();
+      for(it = begin_it; it!= end_it; ++it)
+      {
+        
+
+           JITDNode *iter_node = (*it)->get();
+          
+
+           if(iter_node->type != JITD_NODE_DeleteSingleton){continue; }
+DeleteSingletonNode *iter_node_real = (DeleteSingletonNode *)iter_node;
+JITDNode *iter_node_real_node = iter_node_real->node.get();
+if(iter_node_real_node->type != JITD_NODE_BTree){continue; }
+BTreeNode *iter_node_real_node_real = (BTreeNode *)iter_node_real_node;
+
+          
+           if((keys_cmp((iter_node_real->elem), (iter_node_real_node_real->sep))) == (true)){
+            best_score = 0;
+          }
+
+          if(best_score>curr_score)
+          {
+            //std::cout<<"BESTSCORE: "<<best_score<<std::endl;
+            curr_score = best_score;
+            
+            targetHandleRef = (*it);
+            return best_score;
+            
+          
+      }
+    }
+
+
+
+
+}
+    return best_score;
+  
+  }
+
+  long JITD::searchForPushDownDontDeleteSingletonBtreeRight(          // Return the "best" score available 
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+  
+    //std::cout<<"STARTING TRANSFORMPushDownDontDeleteSingletonBtreeRight"<<std::endl;
+    int count = 0;
+    long best_score = -1;
+    long curr_score = -1;
+    if(!(this->JITD_NODE_DeleteSingleton_set).empty())
+    {
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      std::set< std::shared_ptr<JITDNode> * >::iterator begin_it = (this->JITD_NODE_DeleteSingleton_set).begin();
+      std::set< std::shared_ptr<JITDNode> * >::iterator end_it = (this->JITD_NODE_DeleteSingleton_set).end();
+      for(it = begin_it; it!= end_it; ++it)
+      {
+        
+
+           JITDNode *iter_node = (*it)->get();
+          
+
+           if(iter_node->type != JITD_NODE_DeleteSingleton){continue; }
+DeleteSingletonNode *iter_node_real = (DeleteSingletonNode *)iter_node;
+JITDNode *iter_node_real_node = iter_node_real->node.get();
+if(iter_node_real_node->type != JITD_NODE_BTree){continue; }
+BTreeNode *iter_node_real_node_real = (BTreeNode *)iter_node_real_node;
+
+          
+           if((keys_cmp((iter_node_real->elem), (iter_node_real_node_real->sep))) == (false)){
+            best_score = 0;
+          }
+
+          if(best_score>curr_score)
+          {
+            //std::cout<<"BESTSCORE: "<<best_score<<std::endl;
+            curr_score = best_score;
+            
+            targetHandleRef = (*it);
+            return best_score;
+            
+          
+      }
+    }
+
+
+
+
+}
+    return best_score;
+  
+  }
+
+  long JITD::searchForDeleteSingletonFromArray(          // Return the "best" score available 
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+  
+    //std::cout<<"STARTING TRANSFORMDeleteSingletonFromArray"<<std::endl;
+    int count = 0;
+    long best_score = -1;
+    long curr_score = -1;
+    if(!(this->JITD_NODE_DeleteSingleton_set).empty())
+    {
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      std::set< std::shared_ptr<JITDNode> * >::iterator begin_it = (this->JITD_NODE_DeleteSingleton_set).begin();
+      std::set< std::shared_ptr<JITDNode> * >::iterator end_it = (this->JITD_NODE_DeleteSingleton_set).end();
+      for(it = begin_it; it!= end_it; ++it)
+      {
+        
+
+           JITDNode *iter_node = (*it)->get();
+          
+
+           if(iter_node->type != JITD_NODE_DeleteSingleton){continue; }
+DeleteSingletonNode *iter_node_real = (DeleteSingletonNode *)iter_node;
+JITDNode *iter_node_real_node = iter_node_real->node.get();
+if(iter_node_real_node->type != JITD_NODE_Array){continue; }
+ArrayNode *iter_node_real_node_real = (ArrayNode *)iter_node_real_node;
+
+          
+           if(true){
+            best_score = 0;
+          }
+
+          if(best_score>curr_score)
+          {
+            //std::cout<<"BESTSCORE: "<<best_score<<std::endl;
+            curr_score = best_score;
+            
+            targetHandleRef = (*it);
+            return best_score;
+            
+          
+      }
+    }
+
+
+
+
+}
+    return best_score;
+  
+  }
+
+  long JITD::searchForCrackArray(          // Return the "best" score available     
+    std::shared_ptr<JITDNode> * &targetHandleRef // Return value: The pointer with the "best" score
+  ) {
+  
+
+    int count = 0;
+    long bestScore = -1;
+    long curr_score = -1;
+   
+    
+    if(!(this->CrackArray_PQ).empty())
+    {
+    
+      std::set< std::shared_ptr<JITDNode> * >::iterator it;
+      
+      it = (this->CrackArray_PQ).begin();
+          
+          /*#ifdef DEBUG
+          assert(*it!=NULL);
+          #endif
+          
+          std::shared_ptr<JITDNode> * pspjn = *it;
+          
+          #ifdef DEBUG
+          assert(pspjn!=NULL);
+          #endif
+
+          std::shared_ptr<JITDNode> spjn = *pspjn;
+
+          #ifdef DEBUG
+          assert(spjn!=NULL);
+          #endif
+          
+          JITDNode *iter_node = (spjn).get();
+          */
+
+           JITDNode *iter_node = (*it)->get();
+          
+          
+          if(iter_node->type != JITD_NODE_Array){return -1; }
+ArrayNode *iter_node_real = (ArrayNode *)iter_node;
+
+
+          if((array_size((iter_node_real->data))) > (100)){
+            bestScore = array_size((iter_node_real->data));
+          targetHandleRef = (*it);
+          }
+
+          
+      
+    }
+
+
+
+
+
+    return bestScore;
+  }
+
+
+#endif
+#ifdef REPLAY_VIEW
 
 
   long JITD::searchForPushDownSingletonLeft(          // Return the "best" score available     
@@ -2239,6 +2810,8 @@ ArrayNode *iter_node_real = (ArrayNode *)iter_node;
   }
 
 
+#endif
+
 
 int JITD::organize_wait()
 {
@@ -2346,6 +2919,9 @@ int JITD::organize_wait()
        
   return t;
 }
+
+#ifdef REPLAY_VIEW
+
 void JITD::initialize_struts_view(std::shared_ptr<JITDNode>* node,std::shared_ptr<JITDNode>* parent)
 {
 
@@ -2442,7 +3018,10 @@ initialize_struts_view(&(node_real->rhs),node);
 
   }
 }
-/*
+
+#endif
+#ifdef REPLAY_SET
+
 void JITD::initialize_struts(std::shared_ptr<JITDNode>* node,std::shared_ptr<JITDNode>* parent)
 {
     std::shared_ptr<JITDNode> target_root_lock;
@@ -2456,8 +3035,8 @@ void JITD::initialize_struts(std::shared_ptr<JITDNode>* node,std::shared_ptr<JIT
     target_root_lock = std::atomic_load_explicit(node,std::memory_order_acquire);
     #endif
   //std::shared_ptr<JITDNode> target_root_lock = std::atomic_load((node));
-  this->childParentMap.emplace(node,parent);
-  viewAdd(node);
+  //this->childParentMap.emplace(node,parent);
+  //viewAdd(node);
   switch(target_root_lock->type)
   {
     
@@ -2537,7 +3116,9 @@ initialize_struts(&(node_real->rhs),node);
   }
 
 }
-*/
+
+#endif
+
 bool JITD::do_organize()
 {
   
@@ -2973,8 +3554,11 @@ SEARCH_END;
 
 
 }
+
+#if defined REPLAY_SET
+
 ///////////////////// Set/PQ/View populate ///////////////////// 
-/*
+
 void JITD::SetPqErase(std::shared_ptr<JITDNode> * node_handle)
 {
   #ifdef DEBUG
@@ -3106,7 +3690,11 @@ void JITD::SetPqAdd(std::shared_ptr<JITDNode> * node_handle)
       #ifdef DEBUG
         //check_pq();
       #endif  
-}*/
+}
+
+#endif
+#if defined REPLAY_VIEW
+
 void JITD::viewAdd(std::shared_ptr<JITDNode>* node_handle)
 {
   if(node_handle == NULL){return;}
@@ -3831,6 +4419,9 @@ return;
 #endif
 
   }
+
+#endif
+
 /*
 void JITD::fixMap(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr<JITDNode>* parent)
 {

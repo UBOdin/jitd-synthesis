@@ -436,12 +436,38 @@ class JITD {
  }
 };
 
+#ifdef REPLAY_SET
+
+struct SortArray_Cmp{
+ bool operator()( std::shared_ptr<JITDNode> * e1, std::shared_ptr<JITDNode> * e2) const{
+  size_t e1_score = 0;
+  JITDNode * e1_node_ptr = (*e1).get();
+  size_t e2_score = 0;
+  JITDNode * e2_node_ptr = (*e2).get();
+  ArrayNode * e1_node_ptr_real = (ArrayNode *)e1_node_ptr;
+  ArrayNode * e2_node_ptr_real = (ArrayNode *)e2_node_ptr;
+  e1_score = array_size((e1_node_ptr_real->data));
+  e2_score = array_size((e2_node_ptr_real->data));
+  if(e1_score == e2_score){
+    return (e1<e2);
+  }
+  else{
+    return (e1_score > e2_score);
+  }
+ }
+};
 
 
-    /*std::set<std::shared_ptr<JITDNode> *> JITD_NODE_Concat_set;
+
+    std::set<std::shared_ptr<JITDNode> *> JITD_NODE_Concat_set;
 std::set<std::shared_ptr<JITDNode> *> JITD_NODE_DeleteSingleton_set;
+std::set<std::shared_ptr<JITDNode> *> JITD_NODE_DeleteElements_set;
 std::set<std::shared_ptr<JITDNode> *, CrackArray_Cmp> CrackArray_PQ;
-*/
+std::set<std::shared_ptr<JITDNode> *, SortArray_Cmp> SortArray_PQ;
+
+#endif
+#ifdef REPLAY_VIEW
+
     #ifdef CACHE_ALIGNED_ALLOCATOR
 std::unordered_set<std::shared_ptr<JITDNode> *,std::hash<std::shared_ptr<JITDNode> *>,std::equal_to<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<std::shared_ptr<JITDNode> *>> PushDownSingletonLeft_View;
 #endif
@@ -485,6 +511,8 @@ std::set<std::shared_ptr<JITDNode> *, CrackArray_Cmp,tbb::cache_aligned_allocato
 std::set<std::shared_ptr<JITDNode> *, CrackArray_Cmp> CrackArray_View;
 #endif
 
+#endif
+
     #ifdef CACHE_ALIGNED_ALLOCATOR
     //typedef std::pair<std::shared_ptr<JITDNode> * const,std::shared_ptr<JITDNode> *> elem_pair;
     //std::unordered_multimap<std::shared_ptr<JITDNode> *,std::shared_ptr<JITDNode> *,std::hash<std::shared_ptr<JITDNode> *>,std::equal_to<std::shared_ptr<JITDNode> *>,tbb::cache_aligned_allocator<elem_pair>> childParentMap;
@@ -504,7 +532,12 @@ std::set<std::shared_ptr<JITDNode> *, CrackArray_Cmp> CrackArray_View;
       this->work_queue.set_capacity(36000);
       //this->childParentMap.reserve(1500);
       std::shared_ptr<JITDNode> *root_handle = &(*(this->jitd_root));
+#ifdef REPLAY_SET
+initialize_struts(root_handle,NULL);
+#endif
+#ifdef REPLAY_VIEW
 initialize_struts_view(root_handle,NULL);
+#endif
 
       //print_map();
     }
@@ -617,13 +650,17 @@ void after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>
     void times_transforms_called();
     std::shared_ptr<JITDNode> * getParent(std::shared_ptr<JITDNode> * &target);
     //std::shared_ptr<JITDNode> * getParentMap(std::shared_ptr<JITDNode> * &target);
-    //void SetPqErase(std::shared_ptr<JITDNode> * node_handle);
-    //void SetPqAdd(std::shared_ptr<JITDNode> * node_handle);
+#ifdef REPLAY_SET
+    void SetPqErase(std::shared_ptr<JITDNode> * node_handle);
+    void SetPqAdd(std::shared_ptr<JITDNode> * node_handle);
+#endif
+#ifdef REPLAY_VIEW
     void viewAdd(std::shared_ptr<JITDNode> * node_handle);
     void viewErase(std::shared_ptr<JITDNode> * node_handle);
     //void fixMap(std::shared_ptr<JITDNode> * node_handle,std::shared_ptr<JITDNode> * parent);
     void fixNodeDecendents(std::shared_ptr<JITDNode> * node_handle,std::shared_ptr<JITDNode> * parent);
     void setParent(std::shared_ptr<JITDNode> * node_handle,std::shared_ptr<JITDNode> * parent);
+#endif
 
     void print_debug() {print_JITD_node_structure(*jitd_root, std::string("")); }
     void get_depth(int depth,int &maxdepth) {jitd_get_depth(*jitd_root,depth,maxdepth);}
@@ -663,8 +700,12 @@ void after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>
     bool matchCrackArray(std::shared_ptr<JITDNode> * &targetHandleRef);
     bool matchSortArray(std::shared_ptr<JITDNode> * &targetHandleRef);
 
-    //void initialize_struts(std::shared_ptr<JITDNode>* node, std::shared_ptr<JITDNode>* parent);
+#ifdef REPLAY_SET
+    void initialize_struts(std::shared_ptr<JITDNode>* node, std::shared_ptr<JITDNode>* parent);
+#endif
+#ifdef REPLAY_VIEW
     void initialize_struts_view(std::shared_ptr<JITDNode>* node, std::shared_ptr<JITDNode>* parent);
+#endif
     
      
 //  private:
