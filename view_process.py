@@ -278,6 +278,13 @@ def graph_boxplot(workload):
 		print(i)
 		index_list.append(i + 1)
 
+		input_file_name = "view_results/set_view_performance_" + workload + "_" + str(i) + ".txt"
+		results_list_list = []
+		type_dict = {}  # Clear; unused
+		process_loglines(input_file_name, results_list_list, type_dict)
+		set_maint_list.append(results_list_list[1])
+		set_total_list.append(results_list_list[2])
+
 		input_file_name = "view_results/jitd_view_performance_" + workload + "_" + str(i) + ".txt"
 		results_list_list = []
 		type_dict = {}  # Clear; unused
@@ -292,27 +299,20 @@ def graph_boxplot(workload):
 		dbt_maint_list.append(results_list_list[1])
 		dbt_total_list.append(results_list_list[2])
 
-		input_file_name = "view_results/set_view_performance_" + workload + "_" + str(i) + ".txt"
-		results_list_list = []
-		type_dict = {}  # Clear; unused
-		process_loglines(input_file_name, results_list_list, type_dict)
-		set_maint_list.append(results_list_list[1])
-		set_total_list.append(results_list_list[2])
-
 	#end_for
 
-	bp = ax_list[0].boxplot(jitd_maint_list)
+	bp = ax_list[0].boxplot(set_maint_list)
 
 	for flier in bp['fliers']:
 		flier.set(marker='.', color='#e7298a', alpha=0.5)
 	#end_for
 
 	ax_list[0].set_title("Maintenance Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list[0].set_xlabel("JITD View Run #", fontsize = 14, fontweight = "bold")
+	ax_list[0].set_xlabel("JITD Set Run #", fontsize = 14, fontweight = "bold")
 	ax_list[0].set_ylabel("View Operation Latency", fontsize = 14, fontweight = "bold")
 	ax_list[0].axis([0, 11, 0, 20000])
 
-	ax2_list[0].plot(index_list, jitd_total_list, marker = "o", color = "blue", label = "JITD Total time (right axis)")
+	ax2_list[0].plot(index_list, set_total_list, marker = "o", color = "blue", label = "JITD Total time (right axis)")
 	ax2_list[0].axis([0, 11, 0, 50000])
 	ax2_list[0].legend(loc = "upper right")
 
@@ -322,17 +322,17 @@ def graph_boxplot(workload):
 	ax2_list[0].set_yticklabels(y_labels)
 
 
-	bp = ax_list[1].boxplot(dbt_maint_list)
+	bp = ax_list[1].boxplot(jitd_maint_list)
 
 	for flier in bp['fliers']:
 		flier.set(marker='.', color='#e7298a', alpha=0.5)
 	#end_for
 
 	ax_list[1].set_title("Maintenance Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list[1].set_xlabel("DBT View Run #", fontsize = 14, fontweight = "bold")
+	ax_list[1].set_xlabel("JITD View Run #", fontsize = 14, fontweight = "bold")
 	ax_list[1].axis([0, 11, 0, 20000])
 
-	ax2_list[1].plot(index_list, dbt_total_list, marker = "o", color = "red", label = "DBT Total time (right axis)")
+	ax2_list[1].plot(index_list, jitd_total_list, marker = "o", color = "red", label = "DBT Total time (right axis)")
 	#ax2_list[1].set_ylabel("Total View Operation Latency", fontsize = 14, fontweight = "bold")
 	ax2_list[1].axis([0, 11, 0, 50000])
 	ax2_list[1].legend(loc = "upper right")
@@ -348,15 +348,15 @@ def graph_boxplot(workload):
 	ax2_list[1].set_yticklabels(y_labels)
 
 
-	bp = ax_list[2].boxplot(set_maint_list)
+	bp = ax_list[2].boxplot(dbt_maint_list)
 
-	ax2_list[2].plot(index_list, set_total_list, marker = "o", color = "green", label = "Set Total time (right axis)")
+	ax2_list[2].plot(index_list, dbt_total_list, marker = "o", color = "green", label = "Set Total time (right axis)")
 	ax2_list[2].set_ylabel("Total View Operation Latency", fontsize = 14, fontweight = "bold")
 	ax2_list[2].axis([0, 11, 0, 50000])
 	ax2_list[2].legend(loc = "upper right")
 
 	ax_list[2].set_title("Maintenance Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list[2].set_xlabel("JITD Set Run #", fontsize = 14, fontweight = "bold")
+	ax_list[2].set_xlabel("DBT View Run #", fontsize = 14, fontweight = "bold")
 	ax_list[2].axis([0, 11, 0, 20000])
 
 	# Remove LH Y tick labels on RH subplot:
@@ -376,8 +376,8 @@ def graph_boxplot(workload):
 def main():
 
 	#workload_list = ["a", "b", "c", "d", "e", "f"]
-	workload_list = ["a", "b", "c", "d", "f"]
-	#workload_list = ["a", "f"]
+	#workload_list = ["a", "b", "c", "d", "f"]
+	workload_list = ["a", "f"]
 
 	for workload in workload_list:
 		print("Processing maintenance " + workload)
