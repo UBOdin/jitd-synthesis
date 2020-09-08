@@ -63,7 +63,6 @@ const QUERY_2_COUNT_map* query_2;
 const QUERY_3_COUNT_map* query_3;
 const QUERY_4_COUNT_map* query_4;
 const QUERY_5_COUNT_map* query_5;
-const QUERY_6_COUNT_map* query_6;
 
 #endif
 
@@ -2359,7 +2358,6 @@ query_2 = &ct.data.QUERY_2_COUNT;
 query_3 = &ct.data.QUERY_3_COUNT;
 query_4 = &ct.data.QUERY_4_COUNT;
 query_5 = &ct.data.QUERY_5_COUNT;
-query_6 = &ct.data.QUERY_6_COUNT;
 
 #endif
 
@@ -2577,9 +2575,9 @@ if (query_3.head != nullptr) {
 
 #ifdef REPLAY_DBT
 long bestScore = -1;
-if (query_3->head != nullptr) {
+if (query_2->head != nullptr) {
 //	bestScore = 1;
-	targetHandleRef = (std::shared_ptr<JITDNode>*)query_3->head->CONCAT_NODE_SELF;
+	targetHandleRef = (std::shared_ptr<JITDNode>*)query_2->head->CONCAT_NODE_SELF;
 
 	// For DBT, we are maintaining a combined view for PDSL and PSDR transforms.
 	// So manually inspect values to determine which transform to perform:
@@ -2647,9 +2645,9 @@ SEARCH_END;
 
 #ifdef REPLAY_DBT
 long bestScore = -1;
-if (query_3->head != nullptr) {
+if (query_2->head != nullptr) {
 	bestScore = 1;
-	targetHandleRef = (std::shared_ptr<JITDNode>*)query_3->head->CONCAT_NODE_SELF;
+	targetHandleRef = (std::shared_ptr<JITDNode>*)query_2->head->CONCAT_NODE_SELF;
 }
 #else
   long bestScore = searchForPushDownSingletonRight(
@@ -2701,9 +2699,9 @@ SEARCH_END;
 
 #ifdef REPLAY_DBT
 long bestScore = -1;
-if (query_4->head != nullptr) {
+if (query_3->head != nullptr) {
 	bestScore = 1;
-	targetHandleRef = (std::shared_ptr<JITDNode>*)query_4->head->DELETESINGLETON_NODE_SELF;
+	targetHandleRef = (std::shared_ptr<JITDNode>*)query_3->head->DELETESINGLETON_NODE_SELF;
 }
 #else
   long bestScore = searchForPushDownDontDeleteSingletonBtreeLeft(
@@ -2755,9 +2753,9 @@ SEARCH_END;
 
 #ifdef REPLAY_DBT
 long bestScore = -1;
-if (query_5->head != nullptr) {
+if (query_4->head != nullptr) {
 	bestScore = 1;
-	targetHandleRef = (std::shared_ptr<JITDNode>*)query_5->head->DELETESINGLETON_NODE_SELF;
+	targetHandleRef = (std::shared_ptr<JITDNode>*)query_4->head->DELETESINGLETON_NODE_SELF;
 }
 #else
   long bestScore = searchForPushDownDontDeleteSingletonBtreeRight(
@@ -2799,7 +2797,6 @@ SEARCH_END;
 
 
 
-
 {
   std::shared_ptr<JITDNode> * targetHandleRef;
   
@@ -2810,9 +2807,9 @@ SEARCH_END;
 
 #ifdef REPLAY_DBT
 long bestScore = -1;
-if (query_6->head != nullptr) {
+if (query_5->head != nullptr) {
 	bestScore = 1;
-	targetHandleRef = (std::shared_ptr<JITDNode>*)query_6->head->DELETESINGLETON_NODE_SELF;
+	targetHandleRef = (std::shared_ptr<JITDNode>*)query_5->head->DELETESINGLETON_NODE_SELF;
 }
 #else
   long bestScore = searchForDeleteSingletonFromArray(
@@ -2854,6 +2851,7 @@ SEARCH_END;
 
 
 
+/*
 {
   std::shared_ptr<JITDNode> * targetHandleRef;
   
@@ -2902,6 +2900,7 @@ SEARCH_END;
 
 
 }
+*/
 
 
     
