@@ -370,7 +370,7 @@ VIEW_END;
 VIEW_START;
 #if defined REPLAY_SET
               this->CrackArray_PQ.erase(&(target_root->node));
-              this->SortArray_PQ.erase(&(target_root->node));
+              //this->SortArray_PQ.erase(&(target_root->node));
               this->JITD_NODE_DeleteSingleton_set.erase(target);
 #endif
 #if defined REPLAY_VIEW
@@ -397,7 +397,7 @@ VIEW_END;
 VIEW_START;
 #if defined REPLAY_SET
               this->CrackArray_PQ.emplace(target);
-              this->SortArray_PQ.emplace(target);
+              //this->SortArray_PQ.emplace(target);
 #endif
 #if defined REPLAY_VIEW
               _viewAdd(parent);
@@ -1329,7 +1329,7 @@ VIEW_END;
 VIEW_START;
 #if defined REPLAY_SET
           this->CrackArray_PQ.erase(target);
-          this->SortArray_PQ.erase(target);
+          //this->SortArray_PQ.erase(target);
 #endif
 #if defined REPLAY_VIEW
           _viewErase(parent);
@@ -1360,9 +1360,9 @@ VIEW_END;
 VIEW_START;
 #if defined REPLAY_SET
           this->CrackArray_PQ.emplace(&(to_ptr->lhs));
-          this->SortArray_PQ.emplace(&(to_ptr->lhs));
+          //this->SortArray_PQ.emplace(&(to_ptr->lhs));
           this->CrackArray_PQ.emplace(&(to_ptr->rhs));
-          this->SortArray_PQ.emplace(&(to_ptr->rhs));
+          //this->SortArray_PQ.emplace(&(to_ptr->rhs));
 #endif
 #if defined REPLAY_VIEW
           _viewAdd(parent);
@@ -2453,7 +2453,7 @@ ArrayNode *iter_node_real_node_real = (ArrayNode *)iter_node_real_node;
 ArrayNode *iter_node_real = (ArrayNode *)iter_node;
 
 
-          if((array_size((iter_node_real->data))) > (100)){
+          if((array_size((iter_node_real->data))) > (__array_size)){
             bestScore = array_size((iter_node_real->data));
           targetHandleRef = (*it);
           }
