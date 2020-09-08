@@ -260,12 +260,14 @@ def graph_boxplot(workload):
 	results_list_list = []
 	type_dict = {}
 
-	fig_list, ax_list = plt.subplots(1, 2, sharex = True)
-	ax2_list = [ax_list[0].twinx(), ax_list[1].twinx()]
+	fig_list, ax_list = plt.subplots(1, 3, sharex = True)
+	ax2_list = [ax_list[0].twinx(), ax_list[1].twinx(), ax_list[2].twinx()]
 
 	fig_list.set_size_inches(22, 12)
 
 	index_list = []
+	set_maint_list = []
+	set_total_list = []
 	jitd_maint_list = []
 	jitd_total_list = []
 	dbt_maint_list = []
@@ -275,7 +277,7 @@ def graph_boxplot(workload):
 
 		print(i)
 		index_list.append(i + 1)
-	
+
 		input_file_name = "view_results/jitd_view_performance_" + workload + "_" + str(i) + ".txt"
 		results_list_list = []
 		type_dict = {}  # Clear; unused
@@ -290,6 +292,13 @@ def graph_boxplot(workload):
 		dbt_maint_list.append(results_list_list[1])
 		dbt_total_list.append(results_list_list[2])
 
+		input_file_name = "view_results/set_view_performance_" + workload + "_" + str(i) + ".txt"
+		results_list_list = []
+		type_dict = {}  # Clear; unused
+		process_loglines(input_file_name, results_list_list, type_dict)
+		set_maint_list.append(results_list_list[1])
+		set_total_list.append(results_list_list[2])
+
 	#end_for
 
 	bp = ax_list[0].boxplot(jitd_maint_list)
@@ -299,7 +308,7 @@ def graph_boxplot(workload):
 	#end_for
 
 	ax_list[0].set_title("Maintenance Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list[0].set_xlabel("JITD Run #", fontsize = 14, fontweight = "bold")
+	ax_list[0].set_xlabel("JITD View Run #", fontsize = 14, fontweight = "bold")
 	ax_list[0].set_ylabel("View Operation Latency", fontsize = 14, fontweight = "bold")
 	ax_list[0].axis([0, 11, 0, 20000])
 
@@ -320,18 +329,40 @@ def graph_boxplot(workload):
 	#end_for
 
 	ax_list[1].set_title("Maintenance Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list[1].set_xlabel("DBT Run #", fontsize = 14, fontweight = "bold")
+	ax_list[1].set_xlabel("DBT View Run #", fontsize = 14, fontweight = "bold")
 	ax_list[1].axis([0, 11, 0, 20000])
 
-	# Remove LH Y tick labels on RH subplot:
+	ax2_list[1].plot(index_list, dbt_total_list, marker = "o", color = "red", label = "DBT Total time (right axis)")
+	#ax2_list[1].set_ylabel("Total View Operation Latency", fontsize = 14, fontweight = "bold")
+	ax2_list[1].axis([0, 11, 0, 50000])
+	ax2_list[1].legend(loc = "upper right")
+
+	# Remove both LH and RH labels from middle subplot:
+
 	y_labels = ax_list[1].get_yticklabels()
 	y_labels = [ "" for e in y_labels]
 	ax_list[1].set_yticklabels(y_labels)
 
-	ax2_list[1].plot(index_list, dbt_total_list, marker = "o", color = "red", label = "DBT Total time (right axis)")
-	ax2_list[1].set_ylabel("Total View Operation Latency", fontsize = 14, fontweight = "bold")
-	ax2_list[1].axis([0, 11, 0, 50000])
-	ax2_list[1].legend(loc = "upper right")
+	y_labels = ax2_list[1].get_yticklabels()
+	y_labels = [ "" for e in y_labels]
+	ax2_list[1].set_yticklabels(y_labels)
+
+
+	bp = ax_list[2].boxplot(set_maint_list)
+
+	ax2_list[2].plot(index_list, set_total_list, marker = "o", color = "green", label = "Set Total time (right axis)")
+	ax2_list[2].set_ylabel("Total View Operation Latency", fontsize = 14, fontweight = "bold")
+	ax2_list[2].axis([0, 11, 0, 50000])
+	ax2_list[2].legend(loc = "upper right")
+
+	ax_list[2].set_title("Maintenance Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
+	ax_list[2].set_xlabel("JITD Set Run #", fontsize = 14, fontweight = "bold")
+	ax_list[2].axis([0, 11, 0, 20000])
+
+	# Remove LH Y tick labels on RH subplot:
+	y_labels = ax_list[2].get_yticklabels()
+	y_labels = [ "" for e in y_labels]
+	ax_list[2].set_yticklabels(y_labels)
 
 
 	fig_list.savefig("view_graphs/view_boxplot_" + workload + ".png");
@@ -346,7 +377,7 @@ def main():
 
 	#workload_list = ["a", "b", "c", "d", "e", "f"]
 	workload_list = ["a", "b", "c", "d", "f"]
-	#workload_list = ["f"]
+	#workload_list = ["a", "f"]
 
 	for workload in workload_list:
 		print("Processing maintenance " + workload)
