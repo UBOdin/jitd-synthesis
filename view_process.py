@@ -312,7 +312,7 @@ def graph_boxplot(workload):
 	ax_list[0].set_ylabel("View Operation Latency", fontsize = 14, fontweight = "bold")
 	ax_list[0].axis([0, 11, 0, 20000])
 
-	ax2_list[0].plot(index_list, set_total_list, marker = "o", color = "blue", label = "JITD Total time (right axis)")
+	ax2_list[0].plot(index_list, set_total_list, marker = "o", color = "blue", label = "JITD Set Total time (right axis)")
 	ax2_list[0].axis([0, 11, 0, 50000])
 	ax2_list[0].legend(loc = "upper right")
 
@@ -332,17 +332,14 @@ def graph_boxplot(workload):
 	ax_list[1].set_xlabel("JITD View Run #", fontsize = 14, fontweight = "bold")
 	ax_list[1].axis([0, 11, 0, 20000])
 
-	ax2_list[1].plot(index_list, jitd_total_list, marker = "o", color = "red", label = "DBT Total time (right axis)")
-	#ax2_list[1].set_ylabel("Total View Operation Latency", fontsize = 14, fontweight = "bold")
+	ax2_list[1].plot(index_list, jitd_total_list, marker = "o", color = "red", label = "JITD View Total time (right axis)")
 	ax2_list[1].axis([0, 11, 0, 50000])
 	ax2_list[1].legend(loc = "upper right")
 
 	# Remove both LH and RH labels from middle subplot:
-
 	y_labels = ax_list[1].get_yticklabels()
 	y_labels = [ "" for e in y_labels]
 	ax_list[1].set_yticklabels(y_labels)
-
 	y_labels = ax2_list[1].get_yticklabels()
 	y_labels = [ "" for e in y_labels]
 	ax2_list[1].set_yticklabels(y_labels)
@@ -350,7 +347,7 @@ def graph_boxplot(workload):
 
 	bp = ax_list[2].boxplot(dbt_maint_list)
 
-	ax2_list[2].plot(index_list, dbt_total_list, marker = "o", color = "green", label = "Set Total time (right axis)")
+	ax2_list[2].plot(index_list, dbt_total_list, marker = "o", color = "green", label = "DBT View Total time (right axis)")
 	ax2_list[2].set_ylabel("Total View Operation Latency", fontsize = 14, fontweight = "bold")
 	ax2_list[2].axis([0, 11, 0, 50000])
 	ax2_list[2].legend(loc = "upper right")
