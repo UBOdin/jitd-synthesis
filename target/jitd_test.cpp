@@ -3125,26 +3125,6 @@ bool JITD::do_organize()
   
 SEARCH_START;
 
-/*
-int transform = 0;
-
-if (query_3.head != nullptr) {
-        transform = 78;
-} else if (query_4.head != nullptr) {
-        transform = 5;
-} else if (query_5.head != nullptr) {
-        transform = 4;
-} else if (query_6.head != nullptr) {
-        transform = 2;
-} else if (query_2.head != nullptr) {
-        transform = 15;
-} else if (query_1.head != nullptr) {
-        transform = 9;
-} else {
-//      printf("Error:  No available transform\n");
-//      _exit(1);
-*/
-
 
 {
   std::shared_ptr<JITDNode> * targetHandleRef;
