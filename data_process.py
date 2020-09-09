@@ -128,10 +128,10 @@ def graph_boxplot(workload):
 	ax_list[0].set_title("Database Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax_list[0].set_xlabel("JITD Set Run #", fontsize = 14, fontweight = "bold")
 	ax_list[0].set_ylabel("Database Operation Latency ($ms$)", fontsize = 14, fontweight = "bold")
-	ax_list[0].axis([0, 11, 0, 30])
+	ax_list[0].axis([0, 11, 0, 200])
 
 	ax2_list[0].plot(index_list, set_total_list, marker = "o", color = "blue", label = "Set Total time (right axis)")
-	ax2_list[0].axis([0, 11, 0, 3000])
+	ax2_list[0].axis([0, 11, 0, 70000])
 	ax2_list[0].legend(loc = "upper right")
 
 	# Remove RH Y tick labels on LH subplot:
@@ -148,10 +148,10 @@ def graph_boxplot(workload):
 
 	ax_list[1].set_title("Database Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax_list[1].set_xlabel("JITD View Run #", fontsize = 14, fontweight = "bold")
-	ax_list[1].axis([0, 11, 0, 30])
+	ax_list[1].axis([0, 11, 0, 200])
 
 	ax2_list[1].plot(index_list, jitd_total_list, marker = "o", color = "red", label = "JITD View Total time (right axis)")
-	ax2_list[1].axis([0, 11, 0, 3000])
+	ax2_list[1].axis([0, 11, 0, 70000])
 	ax2_list[1].legend(loc = "upper right")
 
 	# Remove both LH and RH labels from middle subplot:
@@ -165,14 +165,14 @@ def graph_boxplot(workload):
 
 	bp = ax_list[2].boxplot(dbt_latency_list)
 
-	ax2_list[2].plot(index_list, dbt_total_list, marker = "o", color = "green", label = "DBT View Total time (right axis)")
-	ax2_list[2].set_ylabel("Total View Operation Latency", fontsize = 14, fontweight = "bold")
-	ax2_list[2].axis([0, 11, 0, 30])
-	ax2_list[2].legend(loc = "upper right")
-
 	ax_list[2].set_title("Database Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax_list[2].set_xlabel("DBT View Run #", fontsize = 14, fontweight = "bold")
-	ax_list[2].axis([0, 11, 0, 3000])
+	ax_list[2].axis([0, 11, 0, 200])
+
+	ax2_list[2].plot(index_list, dbt_total_list, marker = "o", color = "green", label = "DBT View Total time (right axis)")
+	ax2_list[2].set_ylabel("Total View Operation Latency", fontsize = 14, fontweight = "bold")
+	ax2_list[2].axis([0, 11, 0, 70000])
+	ax2_list[2].legend(loc = "upper right")
 
 	# Remove LH Y tick labels on RH subplot:
 	y_labels = ax_list[2].get_yticklabels()
@@ -192,8 +192,8 @@ def graph_boxplot(workload):
 def main():
 
 	#workload_list = ["a", "b", "c", "d", "e", "f"]
-	#workload_list = ["a", "b", "c", "d", "f"]
-	workload_list = ["a", "f"]
+	workload_list = ["a", "b", "c", "d", "f"]
+	#workload_list = ["a", "f"]
 
 	for workload in workload_list:
 		print("Processing workload " + workload)
