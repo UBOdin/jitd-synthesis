@@ -80,12 +80,14 @@ def graph_boxplot(workload):
 	input_file_name = ""
 	results_list_list = []
 
-	fig_list, ax_list = plt.subplots(1, 2, sharex = True)
-	ax2_list = [ax_list[0].twinx(), ax_list[1].twinx()]
+	fig_list, ax_list = plt.subplots(1, 3, sharex = True)
+	ax2_list = [ax_list[0].twinx(), ax_list[1].twinx(), ax_list[2].twinx()]
 
 	fig_list.set_size_inches(22, 12)
 
 	index_list = []
+	set_latency_list = []
+	set_total_list = []
 	jitd_latency_list = []
 	jitd_total_list = []
 	dbt_latency_list = []
@@ -95,7 +97,13 @@ def graph_boxplot(workload):
 
 		print(i)
 		index_list.append(i + 1)
-	
+
+		input_file_name = "view_results/set_data_performance_" + workload + "_" + str(i) + ".txt"
+		results_list_list = []
+		process_loglines(input_file_name, results_list_list)
+		set_latency_list.append(results_list_list[1])
+		set_total_list.append(results_list_list[2])
+
 		input_file_name = "view_results/jitd_data_performance_" + workload + "_" + str(i) + ".txt"
 		results_list_list = []
 		process_loglines(input_file_name, results_list_list)
@@ -110,50 +118,67 @@ def graph_boxplot(workload):
 
 	#end_for
 
-	bp = ax_list[0].boxplot(jitd_latency_list)
+
+	bp = ax_list[0].boxplot(set_latency_list)
 
 	for flier in bp['fliers']:
 		flier.set(marker='.', color='#e7298a', alpha=0.5)
 	#end_for
 
 	ax_list[0].set_title("Database Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list[0].set_xlabel("JITD Run #", fontsize = 14, fontweight = "bold")
+	ax_list[0].set_xlabel("JITD Set Run #", fontsize = 14, fontweight = "bold")
 	ax_list[0].set_ylabel("Database Operation Latency ($ms$)", fontsize = 14, fontweight = "bold")
 	ax_list[0].axis([0, 11, 0, 30])
 
-	ax2_list[0].plot(index_list, jitd_total_list, marker = "o", color = "blue", label = "JITD Total time (right axis)")
+	ax2_list[0].plot(index_list, set_total_list, marker = "o", color = "blue", label = "Set Total time (right axis)")
 	ax2_list[0].axis([0, 11, 0, 3000])
 	ax2_list[0].legend(loc = "upper right")
 
-	#'''
 	# Remove RH Y tick labels on LH subplot:
 	y_labels = ax2_list[0].get_yticklabels()
 	y_labels = [ "" for e in y_labels]
 	ax2_list[0].set_yticklabels(y_labels)
-	#'''
 
 
-	bp = ax_list[1].boxplot(dbt_latency_list)
+	bp = ax_list[1].boxplot(jitd_latency_list)
 
 	for flier in bp['fliers']:
 		flier.set(marker='.', color='#e7298a', alpha=0.5)
 	#end_for
 
 	ax_list[1].set_title("Database Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list[1].set_xlabel("DBT Run #", fontsize = 14, fontweight = "bold")
+	ax_list[1].set_xlabel("JITD View Run #", fontsize = 14, fontweight = "bold")
 	ax_list[1].axis([0, 11, 0, 30])
 
-	#'''
-	# Remove LH Y tick labels on RH subplot:
+	ax2_list[1].plot(index_list, jitd_total_list, marker = "o", color = "red", label = "JITD View Total time (right axis)")
+	ax2_list[1].axis([0, 11, 0, 3000])
+	ax2_list[1].legend(loc = "upper right")
+
+	# Remove both LH and RH labels from middle subplot:
 	y_labels = ax_list[1].get_yticklabels()
 	y_labels = [ "" for e in y_labels]
 	ax_list[1].set_yticklabels(y_labels)
-	#'''
+	y_labels = ax2_list[1].get_yticklabels()
+	y_labels = [ "" for e in y_labels]
+	ax2_list[1].set_yticklabels(y_labels)
 
-	ax2_list[1].plot(index_list, dbt_total_list, marker = "o", color = "red", label = "DBT Total time (right axis)")
-	ax2_list[1].set_ylabel("Total Database Operation Latency ($ms$)", fontsize = 14, fontweight = "bold")
-	ax2_list[1].axis([0, 11, 0, 3000])
-	ax2_list[1].legend(loc = "upper right")
+
+	bp = ax_list[2].boxplot(dbt_latency_list)
+
+	ax2_list[2].plot(index_list, dbt_total_list, marker = "o", color = "green", label = "DBT View Total time (right axis)")
+	ax2_list[2].set_ylabel("Total View Operation Latency", fontsize = 14, fontweight = "bold")
+	ax2_list[2].axis([0, 11, 0, 30])
+	ax2_list[2].legend(loc = "upper right")
+
+	ax_list[2].set_title("Database Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
+	ax_list[2].set_xlabel("DBT View Run #", fontsize = 14, fontweight = "bold")
+	ax_list[2].axis([0, 11, 0, 3000])
+
+	# Remove LH Y tick labels on RH subplot:
+	y_labels = ax_list[2].get_yticklabels()
+	y_labels = [ "" for e in y_labels]
+	ax_list[2].set_yticklabels(y_labels)
+
 
 
 	fig_list.savefig("view_graphs/data_boxplot_" + workload + ".png");
@@ -167,8 +192,8 @@ def graph_boxplot(workload):
 def main():
 
 	#workload_list = ["a", "b", "c", "d", "e", "f"]
-	workload_list = ["a", "b", "c", "d", "f"]
-	#workload_list = ["f"]
+	#workload_list = ["a", "b", "c", "d", "f"]
+	workload_list = ["a", "f"]
 
 	for workload in workload_list:
 		print("Processing workload " + workload)
