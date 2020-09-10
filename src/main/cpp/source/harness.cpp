@@ -662,6 +662,8 @@ int save_output() {
 	char output_buffer[BUFFER_SIZE];
 	int charcount;
 
+	#if not defined PER_NODE
+
 	printf("Saving results\n");
 	result = open(output_filename, O_CREAT | O_RDWR | O_TRUNC, 0666);
 	errtrap("open");
@@ -671,7 +673,7 @@ int save_output() {
 	snprintf(output_buffer, BUFFER_SIZE, "Schema version 8fea69...\n");
 	result = write(output_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
 	errtrap("write");
-	
+
 	for (int i = 0; i < output_size; i++) {
 		// Basic information (latency, operation info):
 		charcount = 0;
@@ -712,7 +714,7 @@ int save_output() {
 	close(output_fd);
 	printf("Finished writing operation data\n");
 
-	#if defined REPLAY_JITD || defined REPLAY_DBT
+	#else
 
 	// Save out view performance data:
 	int view_fd;
