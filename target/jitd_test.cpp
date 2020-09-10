@@ -71,9 +71,6 @@ inline void view_end() {
 	diffticks = rdtsc() - sticks;
 	if (ticks_index >= ticks_size) {
 		printf("Error:  view overflow\n");
-
-printf("%d > %d\n", ticks_index, ticks_size);
-
 		_exit(1);
 	}
 	ticks_array[ticks_index].delta[delta_count] = diffticks;
@@ -92,6 +89,43 @@ printf("%d > %d\n", ticks_index, ticks_size);
 
 }
 
+inline void node_end(int node_rw, int node_type) {
+
+	diffticks = rdtsc() - sticks;
+	if (ticks_index >= ticks_size) {
+		printf("Error:  node overflow\n");
+		_exit(1);
+	}
+	ticks_array[ticks_index].id = ticks_index;
+	ticks_array[ticks_index].maint_type = maint_type;
+	ticks_array[ticks_index].delta[0] = diffticks;
+	ticks_array[ticks_index].node_rw = node_rw;
+	ticks_array[ticks_index].node_type = node_type;
+	assert(delta_count == 0);
+	ticks_index++;
+
+	return;
+
+}
+
+inline void search_end() {
+
+	diffticks = rdtsc() - sticks;
+	if (ticks_index >= ticks_size) {
+		printf("Error:  view overflow\n");
+		_exit(1);
+	}
+	ticks_array[ticks_index].id = ticks_index;
+	ticks_array[ticks_index].maint_type = 100;
+	ticks_array[ticks_index].delta[0] = diffticks;
+	assert (delta_count == 0);
+	ticks_index++;
+
+	return;
+
+}
+
+#ifdef PER_TRANSFORM
 #define VIEW_START \
 	if (delta_count == 0) { \
 		maint_type = view_map[std::string(__func__)]; \
@@ -99,23 +133,30 @@ printf("%d > %d\n", ticks_index, ticks_size);
 	sticks = rdtsc();
 
 #define VIEW_END view_end()
+#else
+#define VIEW_START
+#define VIEW_END
+#endif
 
-
-#define SEARCH_START \
+#ifdef PER_NODE
+#define NODE_START \
+	JITDNodeType node_type = node_ptr->type; \
 	sticks = rdtsc();
+#define _NODE_START sticks = rdtsc();
+#define NODE_END(node_rw) node_end(node_rw, node_type);
+#else
+#define NODE_START
+#define _NODE_START
+#define NODE_END
+#endif
 
-//#define SEARCH_END
-#define SEARCH_END \
-	diffticks = rdtsc() - sticks; \
-	if (ticks_index >= ticks_size) { \
-		printf("Error:  view overflow\n"); \
-		_exit(1); \
-	} \
-	ticks_array[ticks_index].id = ticks_index; \
-	ticks_array[ticks_index].maint_type = 100; \
-	ticks_array[ticks_index].delta[0] = diffticks; \
-	ticks_index++;
-
+#if defined PER_TRANSFORM || defined PER_NODE
+#define SEARCH_START sticks = rdtsc();
+#define SEARCH_END search_end();
+#else
+#define SEARCH_START
+#define SEARCH_END
+#endif
 
 #if defined REPLAY_VIEW
 #if not defined REPLAY_DBT
@@ -3558,6 +3599,9 @@ void JITD::SetPqErase(std::shared_ptr<JITDNode> * node_handle)
    #ifdef DEBUG
     assert(node_ptr!=NULL);
   #endif
+
+NODE_START;
+
   switch((node_ptr)->type){
     
       case JITD_NODE_DeleteSingleton : {
@@ -3601,6 +3645,9 @@ void JITD::SetPqErase(std::shared_ptr<JITDNode> * node_handle)
         default:{std::cerr << "Unhandled Node Type in get" << std::endl;
         exit(-1);};break;
       }
+
+NODE_END(0);
+
       #ifdef DEBUG
         //check_pq();
       #endif 
@@ -3624,6 +3671,9 @@ void JITD::SetPqAdd(std::shared_ptr<JITDNode> * node_handle)
    #ifdef DEBUG
     assert(node_ptr!=NULL);
   #endif
+
+NODE_START;
+
   switch((node_ptr)->type){
     
       case JITD_NODE_DeleteSingleton : {
@@ -3667,6 +3717,9 @@ void JITD::SetPqAdd(std::shared_ptr<JITDNode> * node_handle)
       default:{std::cerr << "Unhandled Node Type in get" << std::endl;
       exit(-1);};break;
       }
+
+NODE_END(1);
+
       #ifdef DEBUG
         //check_pq();
       #endif  
@@ -3693,6 +3746,9 @@ void JITD::viewAdd(std::shared_ptr<JITDNode>* node_handle)
     node_ptr = std::atomic_load_explicit(node_handle,std::memory_order_acquire);
     #endif
   //std::shared_ptr<JITDNode> node_ptr = std::atomic_load((node_handle));
+
+NODE_START;
+
   switch((node_ptr)->type){
     
       case JITD_NODE_DeleteSingleton : {
@@ -3768,11 +3824,15 @@ this->CrackArray_View.emplace(node_handle);
 
   }
 
+NODE_END(1);
+
 #else
 
 	int id = 0;
 	unsigned long self = (unsigned long)node_handle;
 	JITDNodeType node_type = (*node_handle)->type;
+
+_NODE_START;
 
 	if (node_type == JITD_NODE_DeleteSingleton) {
 		auto deletesingleton_node_handle = (std::shared_ptr<DeleteSingletonNode>*)node_handle;
@@ -3809,6 +3869,8 @@ this->CrackArray_View.emplace(node_handle);
 		ct.data.on_insert_SINGLETON(id, self, r.key);
 	}
 
+NODE_END(1);
+
 	return;
 
     err_missing_node:
@@ -3836,6 +3898,9 @@ void JITD::viewErase(std::shared_ptr<JITDNode>* node_handle)
     node_ptr = std::atomic_load_explicit(node_handle,std::memory_order_acquire);
     #endif
   //std::shared_ptr<JITDNode> node_ptr = std::atomic_load((node_handle));
+
+NODE_START;
+
   switch((node_ptr)->type){
     
       case JITD_NODE_DeleteSingleton : {
@@ -3897,11 +3962,15 @@ this->PushDownAndCrack_View.erase(node_handle);
 
   }
 
+NODE_END(0);
+
 #else
 
 	int id = 0;
 	unsigned long self = (unsigned long)node_handle;
 	JITDNodeType node_type = (*node_handle)->type;
+
+_NODE_START;
 
 	if (node_type == JITD_NODE_DeleteSingleton) {
 		auto deletesingleton_node_handle = (std::shared_ptr<DeleteSingletonNode>*)node_handle;
@@ -3937,6 +4006,8 @@ this->PushDownAndCrack_View.erase(node_handle);
 		Record r = (*singleton_node_handle)->elem;
 		ct.data.on_delete_SINGLETON(id, self, r.key);
 	}
+
+NODE_END(0);
 
 	return;
 
