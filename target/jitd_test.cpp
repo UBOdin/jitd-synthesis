@@ -112,7 +112,7 @@ inline void search_end() {
 
 	diffticks = rdtsc() - sticks;
 	if (ticks_index >= ticks_size) {
-		printf("Error:  view overflow\n");
+		printf("Error:  search overflow\n");
 		_exit(1);
 	}
 	ticks_array[ticks_index].id = ticks_index;
@@ -125,15 +125,16 @@ inline void search_end() {
 
 }
 
-#ifdef PER_TRANSFORM
-#define VIEW_START \
-	if (delta_count == 0) { \
-		maint_type = view_map[std::string(__func__)]; \
-	} \
-	sticks = rdtsc();
+// Per-transform timing:  include timing brackets.  Regardless, for the first
+// bracket ("_VIEW_START"), fetch transform name:
 
+#ifdef PER_TRANSFORM
+#define _VIEW_START maint_type = view_map[std::string(__func__)]; \
+	sticks = rdtsc();
+#define VIEW_START sticks = rdtsc();
 #define VIEW_END view_end()
 #else
+#define _VIEW_START maint_type = view_map[std::string(__func__)];
 #define VIEW_START
 #define VIEW_END
 #endif
@@ -189,7 +190,7 @@ bool JITD::DeleteElemFromSingleton(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::DeleteElemFromSingleton"<<std::endl;*/
   {
-VIEW_START;
+_VIEW_START;
 #if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
 #endif
@@ -281,7 +282,7 @@ bool JITD::DeleteKeyFromSingleton(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::DeleteKeyFromSingleton"<<std::endl;*/
   {
-VIEW_START;
+_VIEW_START;
 #if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
 #endif
@@ -373,7 +374,7 @@ bool JITD::DeleteSingletonFromArray(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::DeleteSingletonFromArray"<<std::endl;*/
   {
-VIEW_START;
+_VIEW_START;
 #if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
 #endif
@@ -468,7 +469,7 @@ bool JITD::DeleteElemFromArray(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::DeleteElemFromArray"<<std::endl;*/
   {
-VIEW_START;
+_VIEW_START;
 #if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
 #endif
@@ -560,7 +561,7 @@ bool JITD::PushDownDontDeleteSingletonBtreeRight(std::shared_ptr<JITDNode> * &ta
 {
 /*std::cout<<" The transform applied is:JITD::PushDownDontDeleteSingletonBtreeRight"<<std::endl;*/
   {
-VIEW_START;
+_VIEW_START;
 #if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
 #endif
@@ -674,7 +675,7 @@ bool JITD::PushDownDontDeleteSingletonBtreeLeft(std::shared_ptr<JITDNode> * &tar
 {
 /*std::cout<<" The transform applied is:JITD::PushDownDontDeleteSingletonBtreeLeft"<<std::endl;*/
   {
-VIEW_START;
+_VIEW_START;
 #if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
 #endif
@@ -788,7 +789,7 @@ bool JITD::PushDownDontDeleteElemBtree(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::PushDownDontDeleteElemBtree"<<std::endl;*/
   {
-VIEW_START;
+_VIEW_START;
 #if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
 #endif
@@ -906,7 +907,7 @@ bool JITD::PushDownSingletonRight(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::PushDownSingletonRight"<<std::endl;*/
   {
-VIEW_START;
+_VIEW_START;
 #if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
 #endif
@@ -1048,7 +1049,7 @@ bool JITD::PushDownSingletonLeft(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::PushDownSingletonLeft"<<std::endl;*/
   {
-VIEW_START;
+_VIEW_START;
 #if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
 #endif
@@ -1190,7 +1191,7 @@ bool JITD::PushDownAndCrack(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::PushDownAndCrack"<<std::endl;*/
   {
-VIEW_START;
+_VIEW_START;
 #if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
 #endif
@@ -1346,7 +1347,7 @@ bool JITD::CrackArray(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::CrackArray"<<std::endl;*/
   {
-VIEW_START;
+_VIEW_START;
 #if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
 #endif
@@ -1438,7 +1439,7 @@ bool JITD::SortArray(std::shared_ptr<JITDNode> * &target )
 {
 /*std::cout<<" The transform applied is:JITD::SortArray"<<std::endl;*/
   {
-VIEW_START;
+_VIEW_START;
 #if defined REPLAY_VIEW
     std::shared_ptr<JITDNode>* parent = getParent(target);
 #endif
@@ -1655,7 +1656,7 @@ void JITD::after_remove_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITD
 {
 /*std::cout<<" The transform applied is:JITD::after_remove_singleton"<<std::endl;*/
   {
-VIEW_START;
+_VIEW_START;
 #if defined REPLAY_SET
     SetPqErase(&( *(cq_elem.first)));
 #endif
@@ -1735,7 +1736,7 @@ void JITD::after_remove_elements(std::pair<std::shared_ptr<std::shared_ptr<JITDN
 {
 /*std::cout<<" The transform applied is:JITD::after_remove_elements"<<std::endl;*/
   {
-VIEW_START;
+_VIEW_START;
 #if defined REPLAY_SET
     SetPqErase(&( *(cq_elem.first)));
 #endif
@@ -1819,7 +1820,7 @@ void JITD::after_insert(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>,std
 {
 /*std::cout<<" The transform applied is:JITD::after_insert"<<std::endl;*/
   {
-VIEW_START;
+_VIEW_START;
 #if defined REPLAY_SET
     SetPqErase(&( *(cq_elem.first)));
 #endif
@@ -1908,7 +1909,7 @@ void JITD::after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITD
 {
 /*std::cout<<" The transform applied is:JITD::after_insert_singleton"<<std::endl;*/
   {
-VIEW_START;
+_VIEW_START;
 #if defined REPLAY_SET
     SetPqErase(&( *(cq_elem.first)));
 #endif
