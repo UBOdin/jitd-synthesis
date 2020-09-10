@@ -34,9 +34,6 @@ long unsigned int sticks, diffticks;
 
 int delta_count = 0;
 int ticks_index = 0;
-int maint_index = 0;
-int maint_block_start = 0;
-int maint_block_end = 0;
 int maint_type;
 
 std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0},
@@ -75,9 +72,6 @@ inline void view_end() {
 	}
 	ticks_array[ticks_index].delta[delta_count] = diffticks;
 	delta_count++;
-	if (delta_count == 2) {
-		maint_block_start = maint_index;  // Record the start index of viewAdd calls for a maintenence operations (either transform or mutator)
-	}
 	if (delta_count == 3) {
 		delta_count = 0;
 		ticks_array[ticks_index].id = ticks_index;
