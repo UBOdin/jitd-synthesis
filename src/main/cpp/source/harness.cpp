@@ -738,7 +738,7 @@ int save_output() {
 			result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%d", ticks_array[i].delta[j]);
 			charcount += result;
 		}
-		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\n");
+		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%d\t%d\n", ticks_array[i].node_rw, ticks_array[i].node_type);
 		charcount += result;
 		result = write(view_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
 		errtrap("write");
@@ -1051,14 +1051,14 @@ int main(int argc, char** argv) {
 	fclose(benchmark_stream);
 
 	output_array = new output_node[output_size]();
-	ticks_size = output_size * 20;  // Adjust to taste; estimation based on workloads A, F
+	#if defined PER_NODE
+	ticks_size = output_size * 100;  // Adjust to taste; estimation based on workloads A, F
 	ticks_array = new ticks_node[ticks_size]();
+	#endif
 	printf("Output size:  %ld  Ticks size:  %d\n", output_size, ticks_size);
-
 
 	printf("Creating and initializing data structure\n");
 	storage = create_storage(maxkeys);
-	memset(output_array, 0, sizeof(struct output_node) * output_size);
 	printf("Finished\n");
 	// Basic structural integrity check:
 //	test_struct(storage);
