@@ -104,7 +104,7 @@ inline void node_end(int node_rw, int node_type) {
 
 }
 
-inline void search_end() {
+inline void search_end(int search_type) {
 
 	trans_index++;  // NOT ticks_index;
 
@@ -114,7 +114,7 @@ inline void search_end() {
 		_exit(1);
 	}
 	ticks_array[ticks_index].id = ticks_index;
-	ticks_array[ticks_index].maint_type = 100;
+	ticks_array[ticks_index].maint_type = search_type;
 	ticks_array[ticks_index].delta[0] = diffticks;
 	ticks_array[ticks_index].trans_id = trans_index;
 	assert (delta_count == 0);
@@ -154,10 +154,10 @@ inline void search_end() {
 
 #if defined PER_TRANSFORM || defined PER_NODE
 #define SEARCH_START sticks = rdtsc();
-#define SEARCH_END search_end();
+#define SEARCH_END(search_type) search_end(search_type);
 #else
 #define SEARCH_START
-#define SEARCH_END
+#define SEARCH_END(search_type)
 #endif
 
 #if defined REPLAY_VIEW
@@ -178,7 +178,7 @@ inline void search_end() {
 #define VIEW_END
 
 #define SEARCH_START
-#define SEARCH_END
+#define SEARCH_END(search_type)
 
 #endif
 
@@ -3250,7 +3250,6 @@ bool JITD::do_organize()
 {
   
   
-SEARCH_START;
 
 
 {
@@ -3261,14 +3260,14 @@ SEARCH_START;
   //this->print_debug();
   //check_pq();
 
+SEARCH_START;
   long bestScore = searchForPushDownSingletonLeft(
     targetHandleRef
   );
+SEARCH_END(108);
   //std::cout<<"After calling searchForPushDownSingletonLeft Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
-SEARCH_END;
-
     //std::cout<<"Candidate shared_ptr for PushDownSingletonLeft: "<<(*targetHandleRef)<<std::endl;
     
       #ifdef TRANSFORM_COUNT
@@ -3307,14 +3306,14 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
+SEARCH_START;
   long bestScore = searchForPushDownSingletonRight(
     targetHandleRef
   );
+SEARCH_END(107);
   //std::cout<<"After calling searchForPushDownSingletonRight Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
-SEARCH_END;
-
     //std::cout<<"Candidate shared_ptr for PushDownSingletonRight: "<<(*targetHandleRef)<<std::endl;
     
       #ifdef TRANSFORM_COUNT
@@ -3353,14 +3352,14 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
+SEARCH_START;
   long bestScore = searchForPushDownDontDeleteSingletonBtreeLeft(
     targetHandleRef
   );
+SEARCH_END(105);
   //std::cout<<"After calling searchForPushDownDontDeleteSingletonBtreeLeft Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
-SEARCH_END;
-
     //std::cout<<"Candidate shared_ptr for PushDownDontDeleteSingletonBtreeLeft: "<<(*targetHandleRef)<<std::endl;
     
       #ifdef TRANSFORM_COUNT
@@ -3399,14 +3398,14 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
+SEARCH_START;
   long bestScore = searchForPushDownDontDeleteSingletonBtreeRight(
     targetHandleRef
   );
+SEARCH_END(104);
   //std::cout<<"After calling searchForPushDownDontDeleteSingletonBtreeRight Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
-SEARCH_END;
-
     //std::cout<<"Candidate shared_ptr for PushDownDontDeleteSingletonBtreeRight: "<<(*targetHandleRef)<<std::endl;
     
       #ifdef TRANSFORM_COUNT
@@ -3445,14 +3444,14 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
+SEARCH_START;
   long bestScore = searchForDeleteSingletonFromArray(
     targetHandleRef
   );
+SEARCH_END(102);
   //std::cout<<"After calling searchForDeleteSingletonFromArray Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
-SEARCH_END;
-
     //std::cout<<"Candidate shared_ptr for DeleteSingletonFromArray: "<<(*targetHandleRef)<<std::endl;
     
       #ifdef TRANSFORM_COUNT
@@ -3539,21 +3538,21 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
+SEARCH_START;
   long bestScore = searchForCrackArray(
     targetHandleRef
   );
+SEARCH_END(109);
   //std::cout<<"After calling searchForCrackArray Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
-SEARCH_END;
-
     //std::cout<<"Candidate shared_ptr for CrackArray: "<<(*targetHandleRef)<<std::endl;
     
       #ifdef TRANSFORM_COUNT
     CrackArray_count++;
     #endif
       CrackArray(targetHandleRef);
-    
+
     return true;
 
   } 
