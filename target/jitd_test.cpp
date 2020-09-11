@@ -161,10 +161,11 @@ inline void search_end() {
 #endif
 
 #if defined REPLAY_VIEW
-#if not defined REPLAY_DBT
+#if defined REPLAY_JITD
 #define _viewErase(foo) (viewErase(foo))
 #define _viewAdd(foo) (viewAdd(foo))
-#else
+#endif
+#if defined REPLAY_DBT
 #define _viewErase(foo)
 #define _viewAdd(foo)
 #endif
@@ -2516,6 +2517,7 @@ ArrayNode *iter_node_real = (ArrayNode *)iter_node;
 
 #endif
 #ifdef REPLAY_VIEW
+#ifdef REPLAY_JITD
 
 
   long JITD::searchForPushDownSingletonLeft(          // Return the "best" score available     
@@ -2854,6 +2856,10 @@ ArrayNode *iter_node_real = (ArrayNode *)iter_node;
   }
 
 
+#endif
+#ifdef REPLAY_DBT
+
+#endif
 #endif
 
 
@@ -3735,7 +3741,7 @@ void JITD::viewAdd(std::shared_ptr<JITDNode>* node_handle)
 {
   if(node_handle == NULL){return;}
 
-#if not defined REPLAY_DBT
+#if defined REPLAY_JITD
 
   bool matched = false;
   std::shared_ptr<JITDNode> node_ptr;
@@ -3829,7 +3835,8 @@ this->CrackArray_View.emplace(node_handle);
 
 NODE_END(1);
 
-#else
+#endif
+#if defined REPLAY_DBT
 
 	int id = 0;
 	unsigned long self = (unsigned long)node_handle;
@@ -3887,7 +3894,7 @@ void JITD::viewErase(std::shared_ptr<JITDNode>* node_handle)
 {
   if(node_handle == NULL){return;}
 
-#if not defined REPLAY_DBT
+#if defined REPLAY_JITD
 
   bool matched = false;
   std::shared_ptr<JITDNode> node_ptr;
@@ -3967,7 +3974,8 @@ this->PushDownAndCrack_View.erase(node_handle);
 
 NODE_END(0);
 
-#else
+#endif
+#if defined REPLAY_DBT
 
 	int id = 0;
 	unsigned long self = (unsigned long)node_handle;
@@ -4024,7 +4032,7 @@ NODE_END(0);
 std::shared_ptr<JITDNode> * JITD::getParent(std::shared_ptr<JITDNode> * &target)
 {
 
-#if not defined REPLAY_DBT
+#if defined REPLAY_JITD
 
     std::shared_ptr<JITDNode> node_ptr;
     #ifdef ATOMIC_LOAD
@@ -4089,7 +4097,8 @@ std::shared_ptr<JITDNode> * JITD::getParent(std::shared_ptr<JITDNode> * &target)
       
     }
   
-#else
+#endif
+#if defined REPLAY_DBT
 
 return NULL;
 
@@ -4118,7 +4127,7 @@ std::shared_ptr<JITDNode> * JITD::getParentMap(std::shared_ptr<JITDNode> * &targ
 void JITD::setParent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr<JITDNode>* parent)
 {
 
-#if not defined REPLAY_DBT
+#if defined REPLAY_JITD
 
     std::shared_ptr<JITDNode> node_ptr;
     #ifdef ATOMIC_LOAD
@@ -4183,7 +4192,8 @@ void JITD::setParent(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr<JITD
       
     }
 
-#else
+#endif
+#if defined REPLAY_DBT
 
 return;
 
@@ -4193,7 +4203,7 @@ return;
 void JITD::fixNodeDecendents(std::shared_ptr<JITDNode>* node_handle,std::shared_ptr<JITDNode>* parent)
 {
 
-#if not defined REPLAY_DBT
+#if defined REPLAY_JITD
 
   std::shared_ptr<JITDNode> node_ptr;
     #ifdef ATOMIC_LOAD
@@ -4468,7 +4478,8 @@ break;}
 
   }
 
-#else
+#endif
+#if defined REPLAY_DBT
 return;
 #endif
 
