@@ -68,13 +68,12 @@ def create_cdf(input_list, maxitem = None, scale = 1.0):
 
 
 
-def process_loglines(input_file_name, results_list_list, type_dict):
+def process_loglines(input_file_name, results_list_list):
 
 	# input_file_name = ""
 	# results_list_list = []
-	# type_dict = {}
 	input_file_obj = "" # file obj
-	iteration = -1
+	iteration = 0
 	logline = ""
 	logline_list = []
 	view_type = 0
@@ -83,6 +82,11 @@ def process_loglines(input_file_name, results_list_list, type_dict):
 	delta2 = 0
 	delta_total = 0
 
+	trans_list_list = results_list_list[0]
+	node_list_list = results_list_list[1]
+
+	node_type = 0  # table node 0-6
+
 	id_list = []
 	total_list = []
 
@@ -90,6 +94,8 @@ def process_loglines(input_file_name, results_list_list, type_dict):
 
 	input_file_obj = open(input_file_name, "r")
 	#input_file_obj = open(input_file_name, "r")
+
+	logline = input_file_obj.readline()  # Skip first line
 
 	while (True):
 
@@ -108,7 +114,7 @@ def process_loglines(input_file_name, results_list_list, type_dict):
 		#end_if
 
 		logline_list = logline.split("\t")
-		if (len(logline_list) != 5):
+		if (len(logline_list) != 8):
 			print("Unexpected length")
 			sys.exit(1)
 		#end_if
@@ -129,125 +135,35 @@ def process_loglines(input_file_name, results_list_list, type_dict):
 			print("Long latency:  %d on %d" % (iteration, delta_total))
 		#end_if
 
-		id_list.append(iteration)
-		total_list.append(delta_total)
+		node_type = int(logline_list[7])
 
-		uber_total += delta_total
-
-		if (view_type not in type_dict):
-			type_dict[view_type] = [1, [iteration], [delta_total]]
-		else:
-			type_dict[view_type][0] += 1
-			type_dict[view_type][1].append(iteration)
-			type_dict[view_type][2].append(delta_total)
+		# Read operations (>= 100) are not node table maintenance operations.  Skip:
+		if (view_type < 100):
+			try:
+				node_list_list[node_type].append(delta_total)
+			except:
+				print(iteration)
+				print(node_type)
+				sys.exit(1)
+			#end_try
 		#end_if
+
+		#uber_total += delta_total
 
 	#end_while
 
-	print("Uber total:  " + str(uber_total))
-
-	results_list_list.append(id_list)
-	results_list_list.append(total_list)
-	results_list_list.append(uber_total / 1000)
+	#'''
+	print("\nIteration\n")
+	node_list = []
+	for i in range(len(node_list_list)):
+		node_list = node_list_list[i]
+		print(i)
+		print(len(node_list))
+		#print(node_list)
+	#end_for
+	#'''
 
 	return
-
-#end_def
-
-
-def graph_latency_timeline(workload, maintenance, fig, ax, fig2, ax2):
-
-	# workload = ""
-	# maintenance = ""
-	input_file_name = ""
-	results_list_list = []
-	type_dict = {}
-
-	if (maintenance == "jitd"):
-		input_file_name = "view_results/jitd_view_performance_" + workload + ".txt"
-	#end_if
-	if (maintenance == "dbt"):
-		input_file_name = "view_results/dbt_view_performance_" + workload + ".txt"
-	#end_if
-
-	process_loglines(input_file_name, results_list_list, type_dict)
-
-	'''
-	print(len(type_dict))
-	for e in type_dict:
-		print(type_dict[e][0])
-		print(len(type_dict[e][1]))
-		print(len(type_dict[e][2]))
-	#end_for
-	'''
-
-	'''
-	fig, ax = plt.subplots()
-	fig2, ax2 = plt.subplots()
-
-	fig.set_size_inches(16,8)
-	fig2.set_size_inches(16,8)
-	'''
-
-	index_list = []
-	cdf_list = []
-	cdf_max_x = 0
-	cdf_max_y = 0
-	#ax.scatter(results_list_list[0], results_list_list[1], s = 1)
-	for view_type in type_dict:
-		# Plot maintenance time over maintenance operation number:
-		ax.scatter(type_dict[view_type][1], type_dict[view_type][2], s = 1, label = name_dict[view_type] + " " + str(type_dict[view_type][0]))
-		# Generate and plot CDF of maintenance time:
-		index_list, cdf_list, _ = create_cdf(type_dict[view_type][2], maxitem = 1000000, scale = .1)
-		ax2.scatter(index_list, cdf_list, s = 1, label = name_dict[view_type] + " " + str(type_dict[view_type][0]))
-		cdf_max_x = max(cdf_max_x, max(index_list))
-		cdf_max_y = max(cdf_max_y, max(cdf_list))
-	#end_for
-
-	ax.set_title(maintenance.upper() + " View Maintenance Time:  YCSB " + workload + "\n(Crack size 100)", fontsize = 14, fontweight = "bold")
-	ax.set_xlabel("View maintenance set number", fontsize = 14, fontweight = "bold")
-	ax.set_ylabel("Time (CPU ticks)", fontsize = 14, fontweight = "bold")
-	#ax.axis([0, len(results_list_list[0]), 0, max(results_list_list[1]) * 1.05])
-	ax.axis([0, len(results_list_list[0]), 0, 20000]) #max(results_list_list[1]) * 1.05])
-	ax.legend(loc = "upper right", markerscale = 8)
-
-	print(len(results_list_list[0]))
-	print(max(results_list_list[1]))
-
-	ax2.set_title(maintenance.upper() + " View Maintenance CDF:  YCSB " + workload + "\n(Crack size 100)", fontsize = 14, fontweight = "bold")
-	ax2.set_xlabel("View maintenance time (CPU ticks) (Max 100k)", fontsize = 14, fontweight = "bold")
-	ax2.set_ylabel("Number of view maintenance sets\ntaking a given time (cumulative)", fontsize = 14, fontweight = "bold")
-	#ax2.axis([0, cdf_max_x * 1.05, 0, cdf_max_y * 1.05])
-	#ax2.axis([0, 750000, 0, cdf_max_y * 1.05])
-	ax2.legend(loc = "center right", markerscale = 8)
-
-	#fig.savefig("view_graphs/view_time_" + workload + "_" + maintenance + ".png")
-	#fig2.savefig("view_graphs/view_cdf_" + workload + "_" + maintenance + ".png")
-	#plt.show()
-
-	return ax, ax2
-
-#end_def
-
-
-def graph_latency_timeline_pair(workload):
-
-	maintenance_list = ["jitd", "dbt"]
-
-	fig_time_stack, ax_time_list = plt.subplots(2, 1, sharex = True)
-	fig_cdf_stack, ax_cdf_list = plt.subplots(2, 1, sharex = True)
-
-	fig_time_stack.set_size_inches(18, 12)
-	fig_cdf_stack.set_size_inches(18, 12)
-
-	for i, maintenance in enumerate(maintenance_list):
-		graph_latency_timeline(workload, maintenance, fig_time_stack, ax_time_list[i], fig_cdf_stack, ax_cdf_list[i])
-	#end_for
-
-	fig_time_stack.savefig("view_graphs/view_timeline_" + workload + "_" + maintenance + ".png");
-	fig_cdf_stack.savefig("view_graphs/view_cdf_" + workload + "_" + maintenance + ".png")
-
-	#plt.show()
 
 #end_def
 
@@ -257,115 +173,94 @@ def graph_boxplot(workload):
 	# workload = ""
 	input_file_prefix = ""
 	input_file_name = ""
-	results_list_list = []
-	type_dict = {}
+	set_results_list_list = [[], []]
+	jitd_results_list_list = [[], []]
+	dbt_results_list_list = [[], []]
 
-	fig_list, ax_list = plt.subplots(1, 3, sharex = True)
-	ax2_list = [ax_list[0].twinx(), ax_list[1].twinx(), ax_list[2].twinx()]
+	for i in range(20):
+		set_results_list_list[0].append([])
+		jitd_results_list_list[0].append([])
+		dbt_results_list_list[0].append([])
+	#end_for
+	for i in range(7):
+		set_results_list_list[1].append([])
+		jitd_results_list_list[1].append([])
+		dbt_results_list_list[1].append([])
+	#end_for
+
+	'''
+	process_loglines("output_view_performance.txt", results_list_list)
+	exit(0)
+	'''
+
+	fig_list, ax_list = plt.subplots()  #1, 3, sharex = True)
+	#ax2_list = [ax_list[0].twinx(), ax_list[1].twinx(), ax_list[2].twinx()]
 
 	fig_list.set_size_inches(22, 12)
-
-	index_list = []
-	set_maint_list = []
-	set_total_list = []
-	jitd_maint_list = []
-	jitd_total_list = []
-	dbt_maint_list = []
-	dbt_total_list = []
 
 	for i in range(10):
 
 		print(i)
-		index_list.append(i + 1)
 
 		input_file_name = "view_results/set_view_performance_" + workload + "_" + str(i) + ".txt"
-		results_list_list = []
-		type_dict = {}  # Clear; unused
-		process_loglines(input_file_name, results_list_list, type_dict)
-		set_maint_list.append(results_list_list[1])
-		set_total_list.append(results_list_list[2])
+		#results_list_list = []
+		process_loglines(input_file_name, set_results_list_list)
+		#set_maint_list.append(results_list_list[1])
+		#set_total_list.append(results_list_list[2])
 
 		input_file_name = "view_results/jitd_view_performance_" + workload + "_" + str(i) + ".txt"
-		results_list_list = []
-		type_dict = {}  # Clear; unused
-		process_loglines(input_file_name, results_list_list, type_dict)
-		jitd_maint_list.append(results_list_list[1])
-		jitd_total_list.append(results_list_list[2])
+		#results_list_list = []
+		process_loglines(input_file_name, jitd_results_list_list)
+		#jitd_maint_list.append(results_list_list[1])
+		#jitd_total_list.append(results_list_list[2])
 
 		input_file_name = "view_results/dbt_view_performance_" + workload + "_" + str(i) + ".txt"
-		results_list_list = []
-		type_dict = {}  # Clear; unused
-		process_loglines(input_file_name, results_list_list, type_dict)
-		dbt_maint_list.append(results_list_list[1])
-		dbt_total_list.append(results_list_list[2])
+		#results_list_list = []
+		process_loglines(input_file_name, dbt_results_list_list)
+		#dbt_maint_list.append(results_list_list[1])
+		#dbt_total_list.append(results_list_list[2])
 
 	#end_for
 
-	bp = ax_list[0].boxplot(set_maint_list)
 
-	for flier in bp['fliers']:
-		flier.set(marker='.', color='#e7298a', alpha=0.5)
+	index_list = []
+	for i in range(7 * 4 + 2):
+		index_list.append(i)
 	#end_for
 
-	ax_list[0].set_title("Maintenance Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list[0].set_xlabel("JITD Set Run #", fontsize = 14, fontweight = "bold")
-	ax_list[0].set_ylabel("View Operation Latency", fontsize = 14, fontweight = "bold")
-	ax_list[0].axis([0, 11, 0, 20000])
+	boxplot_list = []
+	boxplot_list.append([])
+	for i in range(7):
 
-	ax2_list[0].plot(index_list, set_total_list, marker = "o", color = "blue", label = "JITD Set Total time (right axis)")
-	ax2_list[0].axis([0, 11, 0, 50000])
-	ax2_list[0].legend(loc = "upper right")
+		boxplot_list.append(set_results_list_list[1][i])
+		boxplot_list.append(jitd_results_list_list[1][i])
+		boxplot_list.append(dbt_results_list_list[1][i])
+		boxplot_list.append([])
 
-	# Remove RH Y tick labels on LH subplot:
-	y_labels = ax2_list[0].get_yticklabels()
-	y_labels = [ "" for e in y_labels]
-	ax2_list[0].set_yticklabels(y_labels)
-
-
-	bp = ax_list[1].boxplot(jitd_maint_list)
-
-	for flier in bp['fliers']:
-		flier.set(marker='.', color='#e7298a', alpha=0.5)
 	#end_for
 
-	ax_list[1].set_title("Maintenance Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list[1].set_xlabel("JITD View Run #", fontsize = 14, fontweight = "bold")
-	ax_list[1].axis([0, 11, 0, 20000])
+	bp = ax_list.boxplot(boxplot_list)
 
-	ax2_list[1].plot(index_list, jitd_total_list, marker = "o", color = "red", label = "JITD View Total time (right axis)")
-	ax2_list[1].axis([0, 11, 0, 50000])
-	ax2_list[1].legend(loc = "upper right")
+	ax_list.set_title("Node (Table) Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
+	ax_list.set_xlabel("Node Operation Type", fontsize = 14, fontweight = "bold")
+	ax_list.set_ylabel("Operation Latency", fontsize = 14, fontweight = "bold")
+	ax_list.axis([1, 29, 0, 3000])
 
-	# Remove both LH and RH labels from middle subplot:
-	y_labels = ax_list[1].get_yticklabels()
-	y_labels = [ "" for e in y_labels]
-	ax_list[1].set_yticklabels(y_labels)
-	y_labels = ax2_list[1].get_yticklabels()
-	y_labels = [ "" for e in y_labels]
-	ax2_list[1].set_yticklabels(y_labels)
+	x_labels = ax_list.get_xticklabels()
+	x_labels = ["", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", ""]
+	x_labels[0] = "\n                                                Delete Singleton"
+	x_labels[4] = "\n                                                Delete Elements"
+	x_labels[8] = "\n                                                     B-Tree"
+	x_labels[12] = "\n                                                    Concat"
+	x_labels[16] = "\n                                                  Sorted Array"
+	x_labels[20] = "\n                                                     Array"
+	x_labels[24] = "\n                                                   Singleton"
 
-
-	bp = ax_list[2].boxplot(dbt_maint_list)
-
-	ax2_list[2].plot(index_list, dbt_total_list, marker = "o", color = "green", label = "DBT View Total time (right axis)")
-	ax2_list[2].set_ylabel("Total View Operation Latency", fontsize = 14, fontweight = "bold")
-	ax2_list[2].axis([0, 11, 0, 50000])
-	ax2_list[2].legend(loc = "upper right")
-
-	ax_list[2].set_title("Maintenance Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list[2].set_xlabel("DBT View Run #", fontsize = 14, fontweight = "bold")
-	ax_list[2].axis([0, 11, 0, 20000])
-
-	# Remove LH Y tick labels on RH subplot:
-	y_labels = ax_list[2].get_yticklabels()
-	y_labels = [ "" for e in y_labels]
-	ax_list[2].set_yticklabels(y_labels)
-
+	ax_list.set_xticklabels(x_labels)
 
 	fig_list.savefig("view_graphs/view_boxplot_" + workload + ".png");
 
-
-	#plt.show()
+	plt.show()
 
 #end_def
 
@@ -373,8 +268,8 @@ def graph_boxplot(workload):
 def main():
 
 	#workload_list = ["a", "b", "c", "d", "e", "f"]
-	#workload_list = ["a", "b", "c", "d", "f"]
-	workload_list = ["a", "f"]
+	workload_list = ["a", "b", "c", "d", "f"]
+	#workload_list = ["a", "f"]
 
 	for workload in workload_list:
 		print("Processing maintenance " + workload)
