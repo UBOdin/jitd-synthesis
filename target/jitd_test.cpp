@@ -3567,18 +3567,6 @@ SEARCH_END;
 
 }
 
-#ifdef REPLAY_JITD
-//printf("NO JITD Xform\n");
-#endif
-#ifdef REPLAY_DBT
-//printf("NO DBT xform\n");
-
-//ticks_array[ticks_index].id = ticks_index;
-//ticks_index++;
-//ticks_array[ticks_index].id = ticks_index;
-//ticks_index++;
-
-#endif
 
   return false;
 
