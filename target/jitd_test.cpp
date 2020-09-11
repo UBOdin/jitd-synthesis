@@ -35,6 +35,7 @@ long unsigned int sticks, diffticks;
 int delta_count = 0;
 int ticks_index = 0;
 int maint_type;
+int trans_index = -1;
 
 std::unordered_map<std::string, int> view_map = { {"DeleteElemFromSingleton", 0},
 	{"DeleteKeyFromSingleton", 1}, {"DeleteSingletonFromArray", 2}, {"DeleteElemFromArray", 3},
@@ -93,6 +94,7 @@ inline void node_end(int node_rw, int node_type) {
 	ticks_array[ticks_index].id = ticks_index;
 	ticks_array[ticks_index].maint_type = maint_type;
 	ticks_array[ticks_index].delta[0] = diffticks;
+	ticks_array[ticks_index].trans_id = trans_index;
 	ticks_array[ticks_index].node_rw = node_rw;
 	ticks_array[ticks_index].node_type = node_type;
 	assert(delta_count == 0);
@@ -104,6 +106,8 @@ inline void node_end(int node_rw, int node_type) {
 
 inline void search_end() {
 
+	trans_index++;  // NOT ticks_index;
+
 	diffticks = rdtsc() - sticks;
 	if (ticks_index >= ticks_size) {
 		printf("Error:  search overflow\n");
@@ -112,6 +116,7 @@ inline void search_end() {
 	ticks_array[ticks_index].id = ticks_index;
 	ticks_array[ticks_index].maint_type = 100;
 	ticks_array[ticks_index].delta[0] = diffticks;
+	ticks_array[ticks_index].trans_id = trans_index;
 	assert (delta_count == 0);
 	ticks_index++;
 
@@ -124,11 +129,13 @@ inline void search_end() {
 
 #ifdef PER_TRANSFORM
 #define _VIEW_START maint_type = view_map[std::string(__func__)]; \
+	trans_index++; \
 	sticks = rdtsc();
 #define VIEW_START sticks = rdtsc();
 #define VIEW_END view_end()
 #else
-#define _VIEW_START maint_type = view_map[std::string(__func__)];
+#define _VIEW_START maint_type = view_map[std::string(__func__)]; \
+	trans_index++;
 #define VIEW_START
 #define VIEW_END
 #endif
@@ -165,6 +172,7 @@ inline void search_end() {
 
 #else
 
+#define _VIEW_START
 #define VIEW_START
 #define VIEW_END
 
