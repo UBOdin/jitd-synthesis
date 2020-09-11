@@ -3261,35 +3261,9 @@ SEARCH_START;
   //this->print_debug();
   //check_pq();
 
-/*
-#ifdef REPLAY_DBT
-long bestScore = -1;
-if (query_2->head != nullptr) {
-//	bestScore = 1;
-	targetHandleRef = (std::shared_ptr<JITDNode>*)query_2->head->CONCAT_NODE_SELF;
-
-	// For DBT, we are maintaining a combined view for PDSL and PSDR transforms.
-	// So manually inspect values to determine which transform to perform:
-	auto concat_node_handle = (std::shared_ptr<ConcatNode>*)targetHandleRef;
-	assert((*concat_node_handle)->type == JITD_NODE_Concat);
-	auto btree_node_handle = (std::shared_ptr<BTreeNode>*)&((*concat_node_handle)->lhs);
-	assert((*btree_node_handle)->type == JITD_NODE_BTree);
-	auto singleton_node_handle = (std::shared_ptr<SingletonNode>*)&((*concat_node_handle)->rhs);
-	assert((*singleton_node_handle)->type == JITD_NODE_Singleton);
-
-	if ((*singleton_node_handle)->elem.key < (*btree_node_handle)->sep) {
-		bestScore = 1;
-	}
-	// Else -- leave bestScore at -1 and fall through to PDSL
-
-}
-
-#else
-*/
   long bestScore = searchForPushDownSingletonLeft(
     targetHandleRef
   );
-//#endif
   //std::cout<<"After calling searchForPushDownSingletonLeft Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
@@ -3333,19 +3307,9 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
-/*
-#ifdef REPLAY_DBT
-long bestScore = -1;
-if (query_2->head != nullptr) {
-	bestScore = 1;
-	targetHandleRef = (std::shared_ptr<JITDNode>*)query_2->head->CONCAT_NODE_SELF;
-}
-#else
-*/
   long bestScore = searchForPushDownSingletonRight(
     targetHandleRef
   );
-//#endif
   //std::cout<<"After calling searchForPushDownSingletonRight Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
@@ -3389,19 +3353,9 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
-/*
-#ifdef REPLAY_DBT
-long bestScore = -1;
-if (query_3->head != nullptr) {
-	bestScore = 1;
-	targetHandleRef = (std::shared_ptr<JITDNode>*)query_3->head->DELETESINGLETON_NODE_SELF;
-}
-#else
-*/
   long bestScore = searchForPushDownDontDeleteSingletonBtreeLeft(
     targetHandleRef
   );
-//#endif
   //std::cout<<"After calling searchForPushDownDontDeleteSingletonBtreeLeft Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
@@ -3445,19 +3399,9 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
-/*
-#ifdef REPLAY_DBT
-long bestScore = -1;
-if (query_4->head != nullptr) {
-	bestScore = 1;
-	targetHandleRef = (std::shared_ptr<JITDNode>*)query_4->head->DELETESINGLETON_NODE_SELF;
-}
-#else
-*/
   long bestScore = searchForPushDownDontDeleteSingletonBtreeRight(
     targetHandleRef
   );
-//#endif
   //std::cout<<"After calling searchForPushDownDontDeleteSingletonBtreeRight Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
@@ -3501,19 +3445,9 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
-/*
-#ifdef REPLAY_DBT
-long bestScore = -1;
-if (query_5->head != nullptr) {
-	bestScore = 1;
-	targetHandleRef = (std::shared_ptr<JITDNode>*)query_5->head->DELETESINGLETON_NODE_SELF;
-}
-#else
-*/
   long bestScore = searchForDeleteSingletonFromArray(
     targetHandleRef
   );
-//#endif
   //std::cout<<"After calling searchForDeleteSingletonFromArray Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
@@ -3558,17 +3492,9 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
-#ifdef REPLAY_DBT
-long bestScore = -1;
-if (query_2->head != nullptr) {
-	bestScore = 1;
-	targetHandleRef = (std::shared_ptr<JITDNode>*)query_2->head->CONCAT_NODE_SELF;
-}
-#else
   long bestScore = searchForPushDownAndCrack(
     targetHandleRef
   );
-#endif
   //std::cout<<"After calling searchForPushDownAndCrack Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
@@ -3613,19 +3539,9 @@ SEARCH_END;
   //this->print_debug();
   //check_pq();
 
-/*
-#ifdef REPLAY_DBT
-long bestScore = -1;
-if (query_1->head != nullptr) {
-	bestScore = 1;
-	targetHandleRef = (std::shared_ptr<JITDNode>*)query_1->head->ARRAY_NODE_SELF;
-}
-#else
-*/
   long bestScore = searchForCrackArray(
     targetHandleRef
   );
-//#endif
   //std::cout<<"After calling searchForCrackArray Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
   
