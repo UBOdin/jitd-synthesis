@@ -738,7 +738,7 @@ int save_output() {
 			result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%d", ticks_array[i].delta[j]);
 			charcount += result;
 		}
-		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%d\t%d\n", ticks_array[i].node_rw, ticks_array[i].node_type);
+		result = snprintf(output_buffer + charcount, BUFFER_SIZE - charcount, "\t%d\t%d\t%d\n", ticks_array[i].trans_id, ticks_array[i].node_rw, ticks_array[i].node_type);
 		charcount += result;
 		result = write(view_fd, output_buffer, strnlen(output_buffer, BUFFER_SIZE));
 		errtrap("write");
@@ -926,6 +926,7 @@ int replay_trace(STORAGE_HANDLE storage) {
 					printf("Unexpected mutator\n");
 					_exit(1);
 				}
+				not_done = true;
 			} else {
 				not_done = storage->jitd->do_organize();
 			}
