@@ -74,8 +74,12 @@ struct storage_jitd_struct {
 struct ticks_node {
 
 	int id;
-	int maint_type;
+	int maint_type;			// either transform type or mutator type
 	int delta[3];
+	int trans_id;
+	// for per-table (jitd node type) benchmarking:
+	int node_rw;			// whether adding (inserting) or erasing (deleting) a node
+	int node_type;			// the jitd node type
 
 };
 
