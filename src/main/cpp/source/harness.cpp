@@ -662,8 +662,6 @@ int save_output() {
 	char output_buffer[BUFFER_SIZE];
 	int charcount;
 
-	#if not defined PER_NODE
-
 	printf("Saving results\n");
 	result = open(output_filename, O_CREAT | O_RDWR | O_TRUNC, 0666);
 	errtrap("open");
@@ -714,7 +712,7 @@ int save_output() {
 	close(output_fd);
 	printf("Finished writing operation data\n");
 
-	#else
+	#if defined PER_NODE
 
 	// Save out view performance data:
 	int view_fd;
@@ -746,6 +744,7 @@ int save_output() {
 
 	close(view_fd);
 	printf("Finished writing view timing data\n");
+	printf("Maintenance loglines written:  %d\n", ticks_index);
 
 	#endif
 
@@ -908,6 +907,13 @@ int replay_trace(STORAGE_HANDLE storage) {
 		output_array[benchmark_index].key = key;
 		output_array[benchmark_index].nkeys = 1;
 
+		// For selects (non-writes), skip maintenance.  I.e. continue
+		// replaying DB operations until there is a write operation:
+		if (optype == SELECT) {
+			benchmark_index++;
+			continue;
+		}
+
 		time_start = gettime_us();
 
 		while (1) {
@@ -1053,7 +1059,7 @@ int main(int argc, char** argv) {
 
 	output_array = new output_node[output_size]();
 	#if defined PER_NODE
-	ticks_size = output_size * 100;  // Adjust to taste; estimation based on workloads A, F
+	ticks_size = output_size * 200;  // Adjust to taste; estimation based on workloads A, F
 	ticks_array = new ticks_node[ticks_size]();
 	#endif
 	printf("Output size:  %ld  Ticks size:  %d\n", output_size, ticks_size);
