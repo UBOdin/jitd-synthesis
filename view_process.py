@@ -68,15 +68,16 @@ def create_cdf(input_list, maxitem = None, scale = 1.0):
 
 
 
-def process_loglines(input_file_name, results_list_list):
+def process_loglines(input_file_name, results_list_list, datatype):
 
 	# input_file_name = ""
 	# results_list_list = []
+	# datatype = 0  # Node or transform + search collection
 	input_file_obj = "" # file obj
 	iteration = 0
 	logline = ""
 	logline_list = []
-	view_type = 0
+	trans_type = 0
 	delta0 = 0
 	delta1 = 0
 	delta2 = 0
@@ -84,6 +85,7 @@ def process_loglines(input_file_name, results_list_list):
 
 	trans_list_list = results_list_list[0]
 	node_list_list = results_list_list[1]
+	search_list_list = results_list_list[2]
 
 	node_type = 0  # table node 0-6
 
@@ -124,7 +126,7 @@ def process_loglines(input_file_name, results_list_list):
 			sys.exit(1)
 		#end_if
 
-		view_type = int(logline_list[1])
+		trans_type = int(logline_list[1])
 		delta0 = int(logline_list[2])
 		delta1 = int(logline_list[3])
 		delta2 = int(logline_list[4])
@@ -135,18 +137,24 @@ def process_loglines(input_file_name, results_list_list):
 			print("Long latency:  %d on %d" % (iteration, delta_total))
 		#end_if
 
-		node_type = int(logline_list[7])
-
-		# Read operations (>= 100) are not node table maintenance operations.  Skip:
-		if (view_type < 100):
-			try:
+		if (datatype == 1):  # Collect node data
+			node_type = int(logline_list[7])
+			# Read operations (>= 100) are not node table maintenance operations.  Skip:
+			if (trans_type < 100):
 				node_list_list[node_type].append(delta_total)
-			except:
-				print(iteration)
-				print(node_type)
-				sys.exit(1)
-			#end_try
+			#end_if
 		#end_if
+		elif (datatype == 2):  # Collect transform + search data:
+			if (trans_type < 100):
+				trans_list_list[trans_type].append(delta_total)
+			else:
+				search_list_list[trans_type - 100].append(delta_total)
+			#end_if
+		else:
+			print("Invalid data type")
+			exit(1)
+		#end_if
+
 
 		#uber_total += delta_total
 
@@ -168,20 +176,15 @@ def process_loglines(input_file_name, results_list_list):
 #end_def
 
 
-def graph_boxplot(workload):
+def graph_node_boxplots(workload):
 
 	# workload = ""
 	input_file_prefix = ""
 	input_file_name = ""
-	set_results_list_list = [[], []]
-	jitd_results_list_list = [[], []]
-	dbt_results_list_list = [[], []]
+	set_results_list_list = [[], [], []]
+	jitd_results_list_list = [[], [], []]
+	dbt_results_list_list = [[], [], []]
 
-	for i in range(20):
-		set_results_list_list[0].append([])
-		jitd_results_list_list[0].append([])
-		dbt_results_list_list[0].append([])
-	#end_for
 	for i in range(7):
 		set_results_list_list[1].append([])
 		jitd_results_list_list[1].append([])
@@ -189,8 +192,6 @@ def graph_boxplot(workload):
 	#end_for
 
 	fig_list, ax_list = plt.subplots()  #1, 3, sharex = True)
-	#ax2_list = [ax_list[0].twinx(), ax_list[1].twinx(), ax_list[2].twinx()]
-
 	fig_list.set_size_inches(22, 12)
 
 	for i in range(10):
@@ -198,21 +199,16 @@ def graph_boxplot(workload):
 		print(i)
 
 		input_file_name = "view_results/set_node_performance_" + workload + "_" + str(i) + ".txt"
-		process_loglines(input_file_name, set_results_list_list)
+		process_loglines(input_file_name, set_results_list_list, 1)
 
 		input_file_name = "view_results/jitd_node_performance_" + workload + "_" + str(i) + ".txt"
-		process_loglines(input_file_name, jitd_results_list_list)
+		process_loglines(input_file_name, jitd_results_list_list, 1)
 
 		input_file_name = "view_results/dbt_node_performance_" + workload + "_" + str(i) + ".txt"
-		process_loglines(input_file_name, dbt_results_list_list)
+		process_loglines(input_file_name, dbt_results_list_list, 1)
 
 	#end_for
 
-
-	index_list = []
-	for i in range(7 * 4 + 2):
-		index_list.append(i)
-	#end_for
 
 	boxplot_list = []
 	boxplot_list.append([])
@@ -244,7 +240,90 @@ def graph_boxplot(workload):
 
 	ax_list.set_xticklabels(x_labels)
 
-	fig_list.savefig("view_graphs/view_boxplot_" + workload + ".png");
+	fig_list.savefig("view_graphs/view_node_boxplot_" + workload + ".png");
+
+	#plt.show()
+
+#end_def
+
+
+def graph_transform_boxplots(workload):
+
+	# workload = ""
+	input_file_prefix = ""
+	input_file_name = ""
+	set_results_list_list = [[], [], []]
+	jitd_results_list_list = [[], [], []]
+	dbt_results_list_list = [[], [], []]
+
+	for i in range(20):
+		set_results_list_list[0].append([])
+		jitd_results_list_list[0].append([])
+		dbt_results_list_list[0].append([])
+		set_results_list_list[2].append([])
+		jitd_results_list_list[2].append([])
+		dbt_results_list_list[2].append([])
+	#end_for
+
+	fig_list, ax_list = plt.subplots()  #1, 3, sharex = True)
+	fig_list.set_size_inches(22, 12)
+
+	for i in range(10):
+
+		print(i)
+
+		input_file_name = "view_results/set_trans_performance_" + workload + "_" + str(i) + ".txt"
+		process_loglines(input_file_name, set_results_list_list, 2)
+
+		input_file_name = "view_results/jitd_trans_performance_" + workload + "_" + str(i) + ".txt"
+		process_loglines(input_file_name, jitd_results_list_list, 2)
+
+		input_file_name = "view_results/dbt_trans_performance_" + workload + "_" + str(i) + ".txt"
+		process_loglines(input_file_name, dbt_results_list_list, 2)
+
+	#end_for
+
+
+	boxplot_list = []
+	#boxplot_list.append([])
+	#for i in range(20):
+	# Skip node type 1 (DeleteElements) and 4 (SortedArray):
+	for i in [2, 4, 5, 7, 8, 9, 11, 14]:
+		boxplot_list.append([])
+		boxplot_list.append(set_results_list_list[0][i])
+		boxplot_list.append(jitd_results_list_list[0][i])
+		boxplot_list.append(dbt_results_list_list[0][i])
+	#end_for
+
+	bp = ax_list.boxplot(boxplot_list)
+
+	ax_list.set_title("Transform Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
+	ax_list.set_xlabel("Transform Operation Type", fontsize = 14, fontweight = "bold")
+	ax_list.set_ylabel("Operation Latency", fontsize = 14, fontweight = "bold")
+	ax_list.axis([1, 33, 0, 10000])
+
+	x_labels = ax_list.get_xticklabels()
+	x_labels = ["", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", ""]
+	x_labels[0] = "DeleteSingletonFromArray"
+	x_labels[4] = "PushDownDontDeleteSingletonBtreeRight"
+	x_labels[8] = "PushDownDontDeleteSingeltonBtreeLeft"
+	x_labels[12] = "PushDownSingletonRight"
+	x_labels[16] = "PushDownSingletonLeft"
+	x_labels[20] = "CrackArray"
+	x_labels[24] = "after_remove_singleton"
+	x_labels[28] = "after_insert_singleton"
+
+	ax_label_list = ax_list.get_xticklabels()
+	for i in range(len(ax_label_list)):
+		if (i % 4 == 0):
+			ax_label_list[i].set_rotation(-15)
+			ax_label_list[i].set_ha("left")
+		#end_if
+	#end_for
+
+	ax_list.set_xticklabels(x_labels)
+
+	fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".png");
 
 	#plt.show()
 
@@ -259,8 +338,8 @@ def main():
 
 	for workload in workload_list:
 		print("Processing maintenance " + workload)
-		#graph_latency_timeline_pair(workload)
-		graph_boxplot(workload)
+		#graph_node_boxplots(workload)
+		graph_transform_boxplots(workload)
 	#end_for
 
 #end_def
