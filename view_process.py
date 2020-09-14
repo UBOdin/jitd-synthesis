@@ -265,8 +265,11 @@ def graph_transform_boxplots(workload):
 		dbt_results_list_list[2].append([])
 	#end_for
 
-	fig_list, ax_list = plt.subplots()  #1, 3, sharex = True)
+	fig_list, ax_list = plt.subplots()
 	fig_list.set_size_inches(22, 12)
+
+	fig2_list, ax2_list = plt.subplots()
+	fig2_list.set_size_inches(22, 12)
 
 	for i in range(10):
 
@@ -284,18 +287,23 @@ def graph_transform_boxplots(workload):
 	#end_for
 
 
-	boxplot_list = []
+	boxplot_trans_list = []
+	boxplot_search_list = []
 	#boxplot_list.append([])
 	#for i in range(20):
 	# Skip node type 1 (DeleteElements) and 4 (SortedArray):
 	for i in [2, 4, 5, 7, 8, 9, 11, 14]:
-		boxplot_list.append([])
-		boxplot_list.append(set_results_list_list[0][i])
-		boxplot_list.append(jitd_results_list_list[0][i])
-		boxplot_list.append(dbt_results_list_list[0][i])
+		boxplot_trans_list.append([])
+		boxplot_trans_list.append(set_results_list_list[0][i])
+		boxplot_trans_list.append(jitd_results_list_list[0][i])
+		boxplot_trans_list.append(dbt_results_list_list[0][i])
+		boxplot_search_list.append([])
+		boxplot_search_list.append(set_results_list_list[2][i])
+		boxplot_search_list.append(jitd_results_list_list[2][i])
+		boxplot_search_list.append(dbt_results_list_list[2][i])
 	#end_for
 
-	bp = ax_list.boxplot(boxplot_list)
+	bp_trans = ax_list.boxplot(boxplot_trans_list)
 
 	ax_list.set_title("Transform Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax_list.set_xlabel("Transform Operation Type", fontsize = 14, fontweight = "bold")
@@ -313,19 +321,35 @@ def graph_transform_boxplots(workload):
 	x_labels[24] = "\n                                                             remove_singleton"
 	x_labels[28] = "\n                                                             insert_singleton"
 
-	'''
-	ax_label_list = ax_list.get_xticklabels()
-	for i in range(len(ax_label_list)):
-		if (i % 4 == 0):
-			ax_label_list[i].set_rotation(-15)
-			ax_label_list[i].set_ha("left")
-		#end_if
-	#end_for
-	'''
 
 	ax_list.set_xticklabels(x_labels)
 
 	fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".png");
+
+
+	bp_search = ax2_list.boxplot(boxplot_search_list)
+
+	ax2_list.set_title("Transform Search Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
+	ax2_list.set_xlabel("Transform Operation Type", fontsize = 14, fontweight = "bold")
+	ax2_list.set_ylabel("Search Latency", fontsize = 14, fontweight = "bold")
+	ax2_list.axis([1, 25, 0, 20000])
+
+	x_labels = ax_list.get_xticklabels()
+	x_labels = ["", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", ""]
+	x_labels[0] = "\n                                                              DeleteSingletonFromArray"
+	x_labels[4] = "\n                                                             PushDownDontDelete\n                                              SingletonBtreeRight"
+	x_labels[8] = "\n                                                             PushDownDontDelete\n                                              SingeltonBtreeLeft"
+	x_labels[12] = "\n                                                           PushDownSingletonRight"
+	x_labels[16] = "\n                                                           PushDownSingletonLeft"
+	x_labels[20] = "\n                                                                CrackArray"
+	#x_labels[24] = "\n                                                             remove_singleton"
+	#x_labels[28] = "\n                                                             insert_singleton"
+
+
+	ax2_list.set_xticklabels(x_labels)
+
+	fig2_list.savefig("view_graphs/view_search_boxplot_" + workload + ".png");
+
 
 	#plt.show()
 
