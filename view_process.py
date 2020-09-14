@@ -304,15 +304,16 @@ def graph_transform_boxplots(workload):
 
 	x_labels = ax_list.get_xticklabels()
 	x_labels = ["", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", ""]
-	x_labels[0] = "DeleteSingletonFromArray"
-	x_labels[4] = "PushDownDontDeleteSingletonBtreeRight"
-	x_labels[8] = "PushDownDontDeleteSingeltonBtreeLeft"
-	x_labels[12] = "PushDownSingletonRight"
-	x_labels[16] = "PushDownSingletonLeft"
-	x_labels[20] = "CrackArray"
-	x_labels[24] = "after_remove_singleton"
-	x_labels[28] = "after_insert_singleton"
+	x_labels[0] = "\n                                                              DeleteSingletonFromArray"
+	x_labels[4] = "\n                                                             PushDownDontDelete\n                                              SingletonBtreeRight"
+	x_labels[8] = "\n                                                             PushDownDontDelete\n                                              SingeltonBtreeLeft"
+	x_labels[12] = "\n                                                           PushDownSingletonRight"
+	x_labels[16] = "\n                                                           PushDownSingletonLeft"
+	x_labels[20] = "\n                                                                CrackArray"
+	x_labels[24] = "\n                                                             remove_singleton"
+	x_labels[28] = "\n                                                             insert_singleton"
 
+	'''
 	ax_label_list = ax_list.get_xticklabels()
 	for i in range(len(ax_label_list)):
 		if (i % 4 == 0):
@@ -320,6 +321,7 @@ def graph_transform_boxplots(workload):
 			ax_label_list[i].set_ha("left")
 		#end_if
 	#end_for
+	'''
 
 	ax_list.set_xticklabels(x_labels)
 
