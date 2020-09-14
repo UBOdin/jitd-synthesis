@@ -3,7 +3,7 @@ echo "Starting view batch"
 
 keyspace_list="4 5 6"
 #keyspace_list="5 6"
-#keyspace_list="4"
+#keyspace_list="4 5"
 
 operations="3"
 #operations="4"
@@ -31,7 +31,12 @@ if [ "$?" != "0" ]; then
 	echo "Error on node build"
 	exit 1
 fi
-	
+make build_replay_trans
+if [ "$?" != "0" ]; then
+	echo "Error on transform build"
+	exit 1
+fi
+
 for keyspace in $keyspace_list; do
 
 	# The following kludge is necessary because not all shells support **:
@@ -55,32 +60,65 @@ for keyspace in $keyspace_list; do
 
 		for run in $run_list; do
 
-			echo "Running run ${run}"
+			# Per-node runs (set, view, dbt):
+			echo "\nRunning per-node run ${run}\n"
 
 			sleep 2
 			./replay_node_set.exe $crack_size $prepopulate $sleep_time
 			if [ "$?" != "0" ]; then
-				echo "Error on set replay"
+				echo "Error on node set replay"
 				exit 1
 			fi
-			mv output_view_performance.txt view_results/set_view_performance_${workload}_${run}.txt
+			mv output_view_performance.txt view_results/set_node_performance_${workload}_${run}.txt
 			mv output_data.txt view_results/set_data_performance_${workload}_${run}.txt
+
 			sleep 2
 			./replay_node_view.exe $crack_size $prepopulate $sleep_time
 			if [ "$?" != "0" ]; then
-				echo "Error on view replay"
+				echo "Error on node view replay"
 				exit 1
 			fi
-			mv output_view_performance.txt view_results/jitd_view_performance_${workload}_${run}.txt
+			mv output_view_performance.txt view_results/jitd_node_performance_${workload}_${run}.txt
 			mv output_data.txt view_results/jitd_data_performance_${workload}_${run}.txt
+
 			sleep 2
 			./replay_node_dbt.exe $crack_size $prepopulate $sleep_time
 			if [ "$?" != "0" ]; then
-				echo "Error on dbt replay"
+				echo "Error on node dbt replay"
 				exit 1
 			fi
-			mv output_view_performance.txt view_results/dbt_view_performance_${workload}_${run}.txt
+			mv output_view_performance.txt view_results/dbt_node_performance_${workload}_${run}.txt
 			mv output_data.txt view_results/dbt_data_performance_${workload}_${run}.txt
+
+			# Per-transform runs (set, view, dbt):
+			echo "\nRunning per-transform run ${run}\n"
+
+			sleep 2
+			./replay_trans_set.exe $crack_size $prepopulate $sleep_time
+			if [ "$?" != "0" ]; then
+				echo "Error on transform set replay"
+				exit 1
+			fi
+			mv output_view_performance.txt view_results/set_trans_performance_${workload}_${run}.txt
+			#mv output_data.txt view_results/set_data_performance_${workload}_${run}.txt
+
+			sleep 2
+			./replay_trans_view.exe $crack_size $prepopulate $sleep_time
+			if [ "$?" != "0" ]; then
+				echo "Error on transform view replay"
+				exit 1
+			fi
+			mv output_view_performance.txt view_results/jitd_trans_performance_${workload}_${run}.txt
+			#mv output_data.txt view_results/jitd_data_performance_${workload}_${run}.txt
+
+			sleep 2
+			./replay_trans_dbt.exe $crack_size $prepopulate $sleep_time
+			if [ "$?" != "0" ]; then
+				echo "Error on transform dbt replay"
+				exit 1
+			fi
+			mv output_view_performance.txt view_results/dbt_trans_performance_${workload}_${run}.txt
+			#mv output_data.txt view_results/dbt_data_performance_${workload}_${run}.txt
 
 		done
 
