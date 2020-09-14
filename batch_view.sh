@@ -56,7 +56,7 @@ for keyspace in $keyspace_list; do
 
 	for workload in $workload_list; do
 
-		echo "\nRunning workload ${workload}\n"
+		echo "\nRunning workload ${workload} and cracksize ${crack_size}\n"
 
 		cp ycsb_benchmark/ycsb_tab_initialize_${workload}.tsv initialize_data.txt
 		cp ycsb_benchmark/ycsb_tab_benchmark_${workload}.tsv benchmark_data.txt
