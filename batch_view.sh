@@ -3,6 +3,10 @@ echo "Starting view batch"
 
 #keyspace_list="4 5 6"
 keyspace_list="5 6"
+#keyspace_list="4"
+
+operations="3"
+#operations="4"
 
 #workload_list="a b c d e f"
 workload_list="a b c d f"
@@ -41,7 +45,7 @@ for keyspace in $keyspace_list; do
 
 	echo "\nRunning with CRACKSIZE ${crack_size}\n"
 
-	cp YCSB_RAW_10e${keyspace}/* ycsb_benchmark
+	cp YCSB_RAW_10e${keyspace}k_10e${operations}o/* ycsb_benchmark
 
 	for workload in $workload_list; do
 
@@ -83,9 +87,9 @@ for keyspace in $keyspace_list; do
 
 	done
 
-	rm -rf view_results_10e${keyspace}
-	mkdir view_results_10e${keyspace}
-	mv view_results/* view_results_10e${keyspace}
+	rm -rf view_results_10e${keyspace}k_10e${operations}o
+	mkdir view_results_10e${keyspace}k_10e${operations}o
+	mv view_results/* view_results_10e${keyspace}k_10e${operations}o
 
 done
 
