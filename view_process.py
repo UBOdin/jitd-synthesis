@@ -197,13 +197,13 @@ def graph_boxplot(workload):
 
 		print(i)
 
-		input_file_name = "view_results/set_view_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "view_results/set_node_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, set_results_list_list)
 
-		input_file_name = "view_results/jitd_view_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "view_results/jitd_node_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, jitd_results_list_list)
 
-		input_file_name = "view_results/dbt_view_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "view_results/dbt_node_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, dbt_results_list_list)
 
 	#end_for
@@ -216,7 +216,9 @@ def graph_boxplot(workload):
 
 	boxplot_list = []
 	boxplot_list.append([])
-	for i in range(7):
+	#for i in range(7):
+	# Skip node type 1 (DeleteElements) and 4 (SortedArray):
+	for i in [0, 2, 3, 5, 6]:
 
 		boxplot_list.append(set_results_list_list[1][i])
 		boxplot_list.append(jitd_results_list_list[1][i])
@@ -230,17 +232,15 @@ def graph_boxplot(workload):
 	ax_list.set_title("Node (Table) Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax_list.set_xlabel("Node Operation Type", fontsize = 14, fontweight = "bold")
 	ax_list.set_ylabel("Operation Latency", fontsize = 14, fontweight = "bold")
-	ax_list.axis([1, 29, 0, 3000])
+	ax_list.axis([1, 21, 0, 3000])
 
 	x_labels = ax_list.get_xticklabels()
-	x_labels = ["", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", ""]
-	x_labels[0] = "\n                                                Delete Singleton"
-	x_labels[4] = "\n                                                Delete Elements"
-	x_labels[8] = "\n                                                     B-Tree"
-	x_labels[12] = "\n                                                    Concat"
-	x_labels[16] = "\n                                                  Sorted Array"
-	x_labels[20] = "\n                                                     Array"
-	x_labels[24] = "\n                                                   Singleton"
+	x_labels = ["", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", "", "set", "vm", "dbt", ""]
+	x_labels[0] = "\n                                                                     Delete Singleton"
+	x_labels[4] = "\n                                                                          B-Tree"
+	x_labels[8] = "\n                                                                         Concat"
+	x_labels[12] = "\n                                                                          Array"
+	x_labels[16] = "\n                                                                        Singleton"
 
 	ax_list.set_xticklabels(x_labels)
 
@@ -254,8 +254,8 @@ def graph_boxplot(workload):
 def main():
 
 	#workload_list = ["a", "b", "c", "d", "e", "f"]
-	workload_list = ["a", "b", "c", "d", "f"]
-	#workload_list = ["a", "f"]
+	#workload_list = ["a", "b", "c", "d", "f"]
+	workload_list = ["a", "f"]
 
 	for workload in workload_list:
 		print("Processing maintenance " + workload)
