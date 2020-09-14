@@ -188,11 +188,6 @@ def graph_boxplot(workload):
 		dbt_results_list_list[1].append([])
 	#end_for
 
-	'''
-	process_loglines("output_view_performance.txt", results_list_list)
-	exit(0)
-	'''
-
 	fig_list, ax_list = plt.subplots()  #1, 3, sharex = True)
 	#ax2_list = [ax_list[0].twinx(), ax_list[1].twinx(), ax_list[2].twinx()]
 
@@ -203,22 +198,13 @@ def graph_boxplot(workload):
 		print(i)
 
 		input_file_name = "view_results/set_view_performance_" + workload + "_" + str(i) + ".txt"
-		#results_list_list = []
 		process_loglines(input_file_name, set_results_list_list)
-		#set_maint_list.append(results_list_list[1])
-		#set_total_list.append(results_list_list[2])
 
 		input_file_name = "view_results/jitd_view_performance_" + workload + "_" + str(i) + ".txt"
-		#results_list_list = []
 		process_loglines(input_file_name, jitd_results_list_list)
-		#jitd_maint_list.append(results_list_list[1])
-		#jitd_total_list.append(results_list_list[2])
 
 		input_file_name = "view_results/dbt_view_performance_" + workload + "_" + str(i) + ".txt"
-		#results_list_list = []
 		process_loglines(input_file_name, dbt_results_list_list)
-		#dbt_maint_list.append(results_list_list[1])
-		#dbt_total_list.append(results_list_list[2])
 
 	#end_for
 
@@ -260,7 +246,7 @@ def graph_boxplot(workload):
 
 	fig_list.savefig("view_graphs/view_boxplot_" + workload + ".png");
 
-	plt.show()
+	#plt.show()
 
 #end_def
 
