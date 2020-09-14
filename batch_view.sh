@@ -1,8 +1,8 @@
 
 echo "Starting view batch"
 
-#keyspace_list="4 5 6"
-keyspace_list="5 6"
+keyspace_list="4 5 6"
+#keyspace_list="5 6"
 #keyspace_list="4"
 
 operations="3"
@@ -18,6 +18,8 @@ crack_size="1000"  # Will change
 prepopulate="30000000"  # A very big number; ensure all keys are pre-populated
 
 sleep_time="100"
+crack_ratio="10"
+keycount="1"  # will change
 
 make build_replay_dbop
 if [ "$?" != "0" ]; then
@@ -32,16 +34,13 @@ fi
 	
 for keyspace in $keyspace_list; do
 
-	if [ "$keyspace" = "4" ];then
-		crack_size="1000"
-	elif [ "$keyspace" = "5" ]; then
-		crack_size="10000"
-	elif [ "$keyspace" = "6" ]; then
-		crack_size="100000"
-	else
-		printf "Unrecognized keyspace\n"
-		exit 1
-	fi
+	# The following kludge is necessary because not all shells support **:
+	keycount="1"
+	for i in $(seq 1 $keyspace); do
+		keycount=$(($keycount * 10))
+	done
+	crack_size=$(( $keycount / $crack_ratio ))
+	#echo "keyspace:  ${keyspace}  keycount:  ${keycount}  crack_size:  ${crack_size}"
 
 	echo "\nRunning with CRACKSIZE ${crack_size}\n"
 
