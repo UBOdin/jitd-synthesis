@@ -21,6 +21,9 @@ sleep_time="100"
 crack_ratio="10"
 keycount="1"  # will change
 
+#machine="SPINNERS"
+machine="MJOLNIR"
+
 make build_replay_dbop
 if [ "$?" != "0" ]; then
 	echo "Error on dbop build"
@@ -124,9 +127,9 @@ for keyspace in $keyspace_list; do
 
 	done
 
-	rm -rf view_results_10e${keyspace}k_10e${operations}o
-	mkdir view_results_10e${keyspace}k_10e${operations}o
-	mv view_results/* view_results_10e${keyspace}k_10e${operations}o
+	rm -rf ${machine}_view_results_10e${keyspace}k_10e${operations}o
+	mkdir ${machine}_view_results_10e${keyspace}k_10e${operations}o
+	mv view_results/* ${machine}_view_results_10e${keyspace}k_10e${operations}o
 
 done
 
