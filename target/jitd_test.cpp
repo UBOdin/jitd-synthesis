@@ -127,7 +127,7 @@ inline void search_end(int search_type) {
 // Per-transform timing:  include timing brackets.  Regardless, for the first
 // bracket ("_VIEW_START"), fetch transform name:
 
-#ifdef PER_TRANSFORM
+#ifdef PER_TRANS
 #define _VIEW_START maint_type = view_map[std::string(__func__)]; \
 	trans_index++; \
 	sticks = rdtsc();
@@ -152,7 +152,7 @@ inline void search_end(int search_type) {
 #define NODE_END
 #endif
 
-#if defined PER_TRANSFORM || defined PER_NODE
+#if defined PER_TRANS || defined PER_NODE
 #define SEARCH_START sticks = rdtsc();
 #define SEARCH_END(search_type) search_end(search_type);
 #else
