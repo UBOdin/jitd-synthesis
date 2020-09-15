@@ -13,6 +13,8 @@ workload_list="a b c d f"
 #workload_list="a f"
 
 run_list="0 1 2 3 4 5 6 7 8 9"
+#run_list="0 1 2"
+
 
 crack_size="1000"  # Will change
 prepopulate="30000000"  # A very big number; ensure all keys are pre-populated
@@ -52,7 +54,8 @@ for keyspace in $keyspace_list; do
 
 	echo "\nRunning with CRACKSIZE ${crack_size}\n"
 
-	cp YCSB_RAW_10e${keyspace}k_10e${operations}o/* ycsb_benchmark
+	rm ycsb_benchmark
+	ln -s YCSB_RAW_10e${keyspace}k_10e${operations}o ycsb_benchmark
 
 	for workload in $workload_list; do
 
