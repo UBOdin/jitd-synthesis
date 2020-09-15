@@ -407,7 +407,7 @@ def main():
 
 	for workload in workload_list:
 		print("Processing maintenance " + workload)
-		#graph_node_boxplots(workload)
+		graph_node_boxplots(workload)
 		graph_transform_boxplots(workload)
 	#end_for
 
