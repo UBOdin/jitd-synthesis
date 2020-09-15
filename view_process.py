@@ -402,8 +402,8 @@ def graph_transform_boxplots(workload):
 def main():
 
 	#workload_list = ["a", "b", "c", "d", "e", "f"]
-	#workload_list = ["a", "b", "c", "d", "f"]
-	workload_list = ["a", "f"]
+	workload_list = ["a", "b", "c", "d", "f"]
+	#workload_list = ["a", "f"]
 
 	for workload in workload_list:
 		print("Processing maintenance " + workload)
