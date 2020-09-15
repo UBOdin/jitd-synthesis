@@ -1,9 +1,8 @@
 
 echo "Starting view batch"
 
-keyspace_list="4 5 6"
-#keyspace_list="5 6"
-#keyspace_list="4 5"
+#keyspace_list="4 5 6"
+keyspace_list="5 6 7"
 
 operations="3"
 #operations="4"
@@ -25,6 +24,7 @@ keycount="1"  # will change
 
 #machine="SPINNERS"
 machine="MJOLNIR"
+
 
 make build_replay_dbop
 if [ "$?" != "0" ]; then
@@ -52,10 +52,27 @@ for keyspace in $keyspace_list; do
 	crack_size=$(( $keycount / $crack_ratio ))
 	#echo "keyspace:  ${keyspace}  keycount:  ${keycount}  crack_size:  ${crack_size}"
 
+	# 10e7 keyspace is 3M (memory issues) -- kludge
+	if [ "${keyspace}" = "7" ]; then
+		crack_size="300000"
+	fi
+
 	echo "\nRunning with CRACKSIZE ${crack_size}\n"
 
-	rm ycsb_benchmark
-	ln -s YCSB_RAW_10e${keyspace}k_10e${operations}o ycsb_benchmark
+	# Make links in working directory to source files (avoid file copy):
+	sourcepath="YCSB_RAW_10e${keyspace}k_10e${operations}o"
+	destpath="ycsb_benchmark"
+	file_list=$( ls -1 ${sourcepath} )
+
+	for file in $file_list; do
+
+        echo "$sourcepath/$file"
+		ln $sourcepath/$file $destpath/$file
+		if [ "$?" != "0" ]; then
+			echo "Error"
+			exit 1
+		fi
+	done
 
 	for workload in $workload_list; do
 
@@ -129,6 +146,8 @@ for keyspace in $keyspace_list; do
 		done
 
 	done
+
+	rm ycsb_benchmark/*
 
 	rm -rf ${machine}_view_results_10e${keyspace}k_10e${operations}o
 	mkdir ${machine}_view_results_10e${keyspace}k_10e${operations}o
