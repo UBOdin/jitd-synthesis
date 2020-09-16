@@ -63,10 +63,8 @@ for keyspace in $keyspace_list; do
 	sourcepath="YCSB_RAW_10e${keyspace}k_10e${operations}o"
 	destpath="ycsb_benchmark"
 	file_list=$( ls -1 ${sourcepath} )
-
 	for file in $file_list; do
-
-        echo "$sourcepath/$file"
+		#echo "$sourcepath/$file"
 		ln $sourcepath/$file $destpath/$file
 		if [ "$?" != "0" ]; then
 			echo "Error"
@@ -83,8 +81,17 @@ for keyspace in $keyspace_list; do
 
 		for run in $run_list; do
 
-			# Per-node runs (set, view, dbt):
+			# Per-node runs (naive, set, view, dbt):
 			echo "\nRunning per-node run ${run}\n"
+
+			sleep 2
+			./replay_node_naive.exe $crack_size $prepopulate $sleep_time
+			if [ "$?" != "0" ]; then
+				echo "Error on node naive replay"
+				exit 1
+			fi
+			mv output_view_performance.txt view_results/naive_node_performance_${workload}_${run}.txt
+			mv output_data.txt view_results/naive_data_performance_${workload}_${run}.txt
 
 			sleep 2
 			./replay_node_set.exe $crack_size $prepopulate $sleep_time
@@ -113,8 +120,17 @@ for keyspace in $keyspace_list; do
 			mv output_view_performance.txt view_results/dbt_node_performance_${workload}_${run}.txt
 			mv output_data.txt view_results/dbt_data_performance_${workload}_${run}.txt
 
-			# Per-transform runs (set, view, dbt):
+			# Per-transform runs (naive, set, view, dbt):
 			echo "\nRunning per-transform run ${run}\n"
+
+			sleep 2
+			./replay_trans_naive.exe $crack_size $prepopulate $sleep_time
+			if [ "$?" != "0" ]; then
+				echo "Error on transform naive replay"
+				exit 1
+			fi
+			mv output_view_performance.txt view_results/naive_trans_performance_${workload}_${run}.txt
+			#mv output_data.txt view_results/naive_data_performance_${workload}_${run}.txt
 
 			sleep 2
 			./replay_trans_set.exe $crack_size $prepopulate $sleep_time
