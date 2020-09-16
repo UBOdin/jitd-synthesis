@@ -18,6 +18,8 @@
 #include <tbb/compat/thread>
 #endif
 
+#define BUFFER_SIZE 512
+
 //#define PIN_DIFF
 
 #ifdef PIN_SAME
@@ -654,8 +656,6 @@ int test_struct(STORAGE_HANDLE storage) {
 
 int save_output() {
 
-	#define BUFFER_SIZE 512
-
 	int result;
 	int output_fd;
 	char output_filename[] = "output_data.txt";
@@ -828,6 +828,9 @@ int replay_trace(STORAGE_HANDLE storage) {
 
 	FILE* benchmark_stream;
 	char benchmark_file[] = "benchmark_data.txt";
+	int statm_fd;
+	char statm_filename[] = "/proc/self/statm";  // Linux virtual fs path to memory statistics summary
+	char statm_buffer[BUFFER_SIZE];
 	int result;
 	ssize_t chars_read;
 	char* line_buffer = NULL;
@@ -840,8 +843,11 @@ int replay_trace(STORAGE_HANDLE storage) {
 	int benchmark_index;
 	int benchmark_count;
 	char* token;
-	char* save;
-	const char delim[] = "\t";
+	char* input_save;
+	const char input_delim[] = "\t";
+	char* statm_save;
+	const char statm_delim[] = " ";
+	int vmsize;
 	int id;
 	bool not_done;
 	mutatorCqElement pop_mce;
@@ -852,6 +858,11 @@ int replay_trace(STORAGE_HANDLE storage) {
 		_exit(1);
 	}
 
+	// Need to use a raw kernel file handle -- bufferd fstream collection is not realtime
+	result = open(statm_filename, O_RDONLY);
+	errtrap("open");
+	statm_fd = result;
+
 	benchmark_index = 0;
 	while (1) {
 
@@ -861,12 +872,12 @@ int replay_trace(STORAGE_HANDLE storage) {
 			break;
 		}
 
-		token = strtok_r(line_buffer, delim, &save);
+		token = strtok_r(line_buffer, input_delim, &input_save);
 		id = atoi(token);
 		assert(id == benchmark_index);  // Sanity
-		token = strtok_r(NULL, delim, &save);
+		token = strtok_r(NULL, input_delim, &input_save);
 		optype = (harness::operation)atoi(token);
-		token = strtok_r(NULL, delim, &save);
+		token = strtok_r(NULL, input_delim, &input_save);
 		key = strtoul(token, NULL, 0);
 		value = 0;
 
@@ -906,6 +917,13 @@ int replay_trace(STORAGE_HANDLE storage) {
 		output_array[benchmark_index].type = optype;
 		output_array[benchmark_index].key = key;
 		output_array[benchmark_index].nkeys = 1;
+
+		// Save out current process memory usage:
+		result = read(statm_fd, statm_buffer, BUFFER_SIZE);
+		errtrap("read");
+		token = strtok_r(statm_buffer, statm_delim, &statm_save);
+		vmsize = atoi(token);
+		output_array[benchmark_index].depth = vmsize;  // Kludge -- repurpose field
 
 		// For selects (non-writes), skip maintenance.  I.e. continue
 		// replaying DB operations until there is a write operation:
@@ -948,6 +966,8 @@ break;
 
 		benchmark_index++;
 	}
+
+	close(statm_fd);
 
 	fclose(benchmark_stream);
 
