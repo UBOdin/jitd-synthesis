@@ -3701,7 +3701,7 @@ ArrayNode *lock_raw_real = (ArrayNode *)lock_raw;
 
       
 
-      if((array_size((lock_raw_real->data))) > (10)){
+      if((array_size((lock_raw_real->data))) > (__array_size)){
 
         best_score = 0;
           //std::cout<<"Getting best score as "<<best_score<<std::endl;
