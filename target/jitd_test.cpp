@@ -5061,6 +5061,10 @@ bool JITD::do_organize()
 {
   
   
+#if defined REPLAY_NAIVE
+// Bug:  The JITD class "root" element is not maintained.  Need to re-fetch:
+this->root = &(*jitd_root);
+#endif
 
 
 {
