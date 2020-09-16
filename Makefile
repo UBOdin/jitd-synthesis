@@ -80,7 +80,7 @@ build_replay_dbop:  jitd_replay_dbop_naive_${atomic}_${alloc}_${delay}.o jitd_re
 	$(CC) $(CFLAGS) -o replay_dbop_dbt.exe jitd_replay_dbop_dbt_${atomic}_${alloc}_${delay}.o harness_replay_dbop_dbt_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_DBT -D REPLAY_VIEW
 
 build_replay_node:  jitd_replay_node_naive_${atomic}_${alloc}_${delay}.o jitd_replay_node_set_${atomic}_${alloc}_${delay}.o jitd_replay_node_view_${atomic}_${alloc}_${delay}.o jitd_replay_node_dbt_${atomic}_${alloc}_${delay}.o harness_replay_node_naive_${alloc}_${thread}.o harness_replay_node_set_${alloc}_${thread}.o harness_replay_node_view_${alloc}_${thread}.o harness_replay_node_dbt_${alloc}_${thread}.o
-	$(CC) $(CFLAGS) -o replay_node_naive.exe jitd_replay_node_set_${atomic}_${alloc}_${delay}.o harness_replay_node_naive_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_NAIVE -D PER_NODE
+	$(CC) $(CFLAGS) -o replay_node_naive.exe jitd_replay_node_naive_${atomic}_${alloc}_${delay}.o harness_replay_node_naive_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_NAIVE -D PER_NODE
 	$(CC) $(CFLAGS) -o replay_node_set.exe jitd_replay_node_set_${atomic}_${alloc}_${delay}.o harness_replay_node_set_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_JITD -D REPLAY_SET -D PER_NODE
 	$(CC) $(CFLAGS) -o replay_node_view.exe jitd_replay_node_view_${atomic}_${alloc}_${delay}.o harness_replay_node_view_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_JITD -D REPLAY_VIEW -D PER_NODE
 	$(CC) $(CFLAGS) -o replay_node_dbt.exe jitd_replay_node_dbt_${atomic}_${alloc}_${delay}.o harness_replay_node_dbt_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_DBT -D REPLAY_VIEW -D PER_NODE
