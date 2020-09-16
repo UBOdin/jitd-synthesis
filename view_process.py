@@ -359,7 +359,7 @@ def graph_transform_boxplots(workload):
 	fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".png");
 
 
-	bp_search = ax2_list.boxplot(boxplot_search_list)
+	bp_search = ax2_list.boxplot(boxplot_search_list, showmeans = False)
 
 	ax2_list.set_title("Transform Search Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax2_list.set_xlabel("Transform Operation Type", fontsize = 14, fontweight = "bold")
@@ -381,7 +381,7 @@ def graph_transform_boxplots(workload):
 	fig2_list.savefig("view_graphs/view_search_boxplot_" + workload + ".png");
 
 
-	bp_total = ax3_list.boxplot([set_uber_list, jitd_uber_list, dbt_uber_list])
+	bp_total = ax3_list.boxplot([set_uber_list, jitd_uber_list, dbt_uber_list], showmeans = True)
 
 	ax3_list.set_title("Average View Operation Latency by Type (Search + Maintenance) (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax3_list.set_xlabel("Maintenance Method", fontsize = 14, fontweight = "bold")
