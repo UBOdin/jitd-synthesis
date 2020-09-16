@@ -712,7 +712,7 @@ int save_output() {
 	close(output_fd);
 	printf("Finished writing operation data\n");
 
-	#if defined PER_NODE || defined PER_TRANS
+	#if defined PER_NODE || defined PER_TRANS || defined REPLAY_NAIVE
 
 	// Save out view performance data:
 	int view_fd;
@@ -1058,7 +1058,7 @@ int main(int argc, char** argv) {
 	fclose(benchmark_stream);
 
 	output_array = new output_node[output_size]();
-	#if defined PER_NODE || defined PER_TRANS
+	#if defined PER_NODE || defined PER_TRANS || defined REPLAY_NAIVE
 	ticks_size = output_size * 200;  // Adjust to taste; estimation based on workloads A, F
 	ticks_array = new ticks_node[ticks_size]();
 	#endif
@@ -1083,7 +1083,7 @@ int main(int argc, char** argv) {
 	printf("worker sleeptime:  %d\n", __sleep_time);
 	storage->jitd->get_node_count();
 
-	#if defined REPLAY_JITD || defined REPLAY_DBT
+	#if defined REPLAY_JITD || defined REPLAY_DBT || defined REPLAY_NAIVE
 	replay_trace(storage);
 	_exit(0);
 	#endif
