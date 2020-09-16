@@ -26,6 +26,8 @@ name_dict = {0:"DeleteElemFromSingleton", 1:"DeleteKeyFromSingleton", 2:"DeleteS
 	14:"after_insert_singleton", 15:"PushDownAndCrack", 100:"searchFor"}
 
 
+runcount = 10  # Number of runs in each dimension type
+
 
 def create_cdf(input_list, maxitem = None, scale = 1.0):
 
@@ -194,7 +196,7 @@ def graph_node_boxplots(workload):
 	fig_list, ax_list = plt.subplots()  #1, 3, sharex = True)
 	fig_list.set_size_inches(22, 12)
 
-	for i in range(10):
+	for i in range(runcount):
 
 		print(i)
 
@@ -274,7 +276,7 @@ def graph_transform_boxplots(workload):
 	fig3_list, ax3_list = plt.subplots()
 	fig3_list.set_size_inches(22, 12)
 
-	for i in range(10):
+	for i in range(runcount):
 
 		print(i)
 
