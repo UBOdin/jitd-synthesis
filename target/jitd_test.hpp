@@ -410,6 +410,9 @@ class JITD {
   
   public:
 
+#ifdef REPLAY_NAIVE
+    std::shared_ptr<JITDNode>* root;
+#endif
     #ifdef RDTSC
       std::vector<long unsigned int> rdtsc_vector;
     #endif  
@@ -436,7 +439,7 @@ class JITD {
  }
 };
 
-#ifdef REPLAY_SET
+#if defined REPLAY_SET || defined REPLAY_NAIVE
 
 struct SortArray_Cmp{
  bool operator()( std::shared_ptr<JITDNode> * e1, std::shared_ptr<JITDNode> * e2) const{
@@ -531,7 +534,12 @@ std::set<std::shared_ptr<JITDNode> *, CrackArray_Cmp> CrackArray_View;
       }
       this->work_queue.set_capacity(36000);
       //this->childParentMap.reserve(1500);
+#ifdef REPLAY_NAIVE
+      root = &(*(this->jitd_root));
+#endif
+#if defined REPLAY_SET || defined REPLAY_VIEW
       std::shared_ptr<JITDNode> *root_handle = &(*(this->jitd_root));
+#endif
 #ifdef REPLAY_SET
 initialize_struts(root_handle,NULL);
 #endif
@@ -644,7 +652,9 @@ void after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>
     //void print_pq();
     //void check_pq();
     //void print_map();
+//#if defined REPLAY_SET || defined REPLAY_VIEW
     void check_view();
+//#endif
     void jitd_node_count(std::shared_ptr<JITDNode> node);
     void get_node_count(){ jitd_node_count(*jitd_root);std::cout<<"The number of nodes in JITD: "<<node_count<<std::endl;}
     void times_transforms_called();
@@ -673,6 +683,21 @@ void after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>
 
     
     
+#ifdef REPLAY_NAIVE
+    long searchForDeleteElemFromSingleton(std::shared_ptr<JITDNode> * &node,std::shared_ptr<JITDNode> * &targetHandleRef);
+    long searchForDeleteKeyFromSingleton(std::shared_ptr<JITDNode> * &node,std::shared_ptr<JITDNode> * &targetHandleRef);
+    long searchForDeleteSingletonFromArray(std::shared_ptr<JITDNode> * &node,std::shared_ptr<JITDNode> * &targetHandleRef);
+    long searchForDeleteElemFromArray(std::shared_ptr<JITDNode> * &node,std::shared_ptr<JITDNode> * &targetHandleRef);
+    long searchForPushDownDontDeleteSingletonBtreeRight(std::shared_ptr<JITDNode> * &node,std::shared_ptr<JITDNode> * &targetHandleRef);
+    long searchForPushDownDontDeleteSingletonBtreeLeft(std::shared_ptr<JITDNode> * &node,std::shared_ptr<JITDNode> * &targetHandleRef);
+    long searchForPushDownDontDeleteElemBtree(std::shared_ptr<JITDNode> * &node,std::shared_ptr<JITDNode> * &targetHandleRef);
+    long searchForPushDownSingletonRight(std::shared_ptr<JITDNode> * &node,std::shared_ptr<JITDNode> * &targetHandleRef);
+    long searchForPushDownSingletonLeft(std::shared_ptr<JITDNode> * &node,std::shared_ptr<JITDNode> * &targetHandleRef);
+    long searchForPushDownAndCrack(std::shared_ptr<JITDNode> * &node,std::shared_ptr<JITDNode> * &targetHandleRef);
+    long searchForCrackArray(std::shared_ptr<JITDNode> * &node,std::shared_ptr<JITDNode> * &targetHandleRef);
+    long searchForSortArray(std::shared_ptr<JITDNode> * &node,std::shared_ptr<JITDNode> * &targetHandleRef);
+#endif
+#if defined REPLAY_SET || defined REPLAY_VIEW
     long searchForDeleteElemFromSingleton(std::shared_ptr<JITDNode> * &targetHandleRef);
     long searchForDeleteKeyFromSingleton(std::shared_ptr<JITDNode> * &targetHandleRef);
     long searchForDeleteSingletonFromArray(std::shared_ptr<JITDNode> * &targetHandleRef);
@@ -699,6 +724,7 @@ void after_insert_singleton(std::pair<std::shared_ptr<std::shared_ptr<JITDNode>>
     bool matchPushDownAndCrack(std::shared_ptr<JITDNode> * &targetHandleRef);
     bool matchCrackArray(std::shared_ptr<JITDNode> * &targetHandleRef);
     bool matchSortArray(std::shared_ptr<JITDNode> * &targetHandleRef);
+#endif
 
 #ifdef REPLAY_SET
     void initialize_struts(std::shared_ptr<JITDNode>* node, std::shared_ptr<JITDNode>* parent);

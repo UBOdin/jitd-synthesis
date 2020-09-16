@@ -127,6 +127,12 @@ inline void search_end(int search_type) {
 // Per-transform timing:  include timing brackets.  Regardless, for the first
 // bracket ("_VIEW_START"), fetch transform name:
 
+#if defined REPLAY_NAIVE
+#define _VIEW_START
+#define VIEW_START
+#define VIEW_END
+#endif
+#if defined REPLAY_SET || defined REPLAY_VIEW
 #ifdef PER_TRANS
 #define _VIEW_START maint_type = view_map[std::string(__func__)]; \
 	trans_index++; \
@@ -138,6 +144,7 @@ inline void search_end(int search_type) {
 	trans_index++;
 #define VIEW_START
 #define VIEW_END
+#endif
 #endif
 
 #ifdef PER_NODE
@@ -152,7 +159,7 @@ inline void search_end(int search_type) {
 #define NODE_END
 #endif
 
-#if defined PER_TRANS || defined PER_NODE
+#if defined PER_TRANS || defined PER_NODE || defined REPLAY_NAIVE
 #define SEARCH_START sticks = rdtsc();
 #define SEARCH_END(search_type) search_end(search_type);
 #else
@@ -169,6 +176,13 @@ inline void search_end(int search_type) {
 #define _viewErase(foo)
 #define _viewAdd(foo)
 #endif
+#endif
+
+#if defined REPLAY_NAIVE
+#define _targetHandleRef (this->root),targetHandleRef
+#endif
+#if defined REPLAY_SET || defined REPLAY_VIEW
+#define _targetHandleRef targetHandleRef
 #endif
 
 #else
@@ -1679,6 +1693,7 @@ VIEW_START;
 VIEW_END;
 #endif
 
+#if defined REPLAY_SET || defined REPLAY_VIEW
       #ifdef ATOMIC_STORE
       std::atomic_store(&(cast_root->node),*(cq_elem.first));
 
@@ -1688,6 +1703,7 @@ VIEW_END;
       std::atomic_store_explicit(&(cast_root->node),*(cq_elem.first),std::memory_order_release);
 
       #endif
+#endif
 #if defined REPLAY_VIEW
 VIEW_START;
       fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->node));
@@ -1759,6 +1775,7 @@ VIEW_START;
 VIEW_END;
 #endif
 
+#if defined REPLAY_SET || defined REPLAY_VIEW
       #ifdef ATOMIC_STORE
       std::atomic_store(&(cast_root->node),*(cq_elem.first));
 
@@ -1768,7 +1785,7 @@ VIEW_END;
       std::atomic_store_explicit(&(cast_root->node),*(cq_elem.first),std::memory_order_release);
 
       #endif
-
+#endif
 #if defined REPLAY_VIEW
 VIEW_START;
       fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->node));
@@ -1845,6 +1862,7 @@ VIEW_START;
 VIEW_END;
 #endif
 
+#if defined REPLAY_SET || defined REPLAY_VIEW
       #ifdef ATOMIC_STORE
       std::atomic_store(&(cast_root->lhs),*(cq_elem.first));
 
@@ -1854,6 +1872,7 @@ VIEW_END;
       std::atomic_store_explicit(&(cast_root->lhs),*(cq_elem.first),std::memory_order_release);
 
       #endif
+#endif
 #if defined REPLAY_VIEW
 VIEW_START;
       fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->lhs));
@@ -1932,6 +1951,7 @@ VIEW_START;
 VIEW_END;
 #endif
 
+#if defined REPLAY_SET || defined REPLAY_VIEW
       #ifdef ATOMIC_STORE
       std::atomic_store(&(cast_root->lhs),*(cq_elem.first));
 
@@ -1941,6 +1961,7 @@ VIEW_END;
       std::atomic_store_explicit(&(cast_root->lhs),*(cq_elem.first),std::memory_order_release);
 
       #endif
+#endif
 #if defined REPLAY_VIEW
 VIEW_START;
       fixNodeDecendents(&(*(cq_elem.first)),&(cast_root->lhs));
@@ -1970,6 +1991,9 @@ VIEW_END;
 
 
 ///////////////////// OnMatch Transforms /////////////////////
+
+
+#if defined REPLAY_SET || defined REPLAY_VIEW
 
 
 bool JITD::matchPushDownSingletonLeft(std::shared_ptr<JITDNode> * &targetHandleRef) 
@@ -2188,9 +2212,1790 @@ ArrayNode *target_root_lock_real = (ArrayNode *)target_root_lock;
     }
 	
 }
+
+
+#endif
+
+
 ///////////////////// Policy Implementation ///////////////////// 
 
 
+#ifdef REPLAY_NAIVE
+
+
+  long JITD::searchForPushDownSingletonLeft( 
+  std::shared_ptr<JITDNode> * &node,         // Return the "best" score available
+    std::shared_ptr<JITDNode> * &targetHandleRef     // Return value: The pointer with the "best" 
+  ) {
+    std::shared_ptr<JITDNode> lock = std::atomic_load(node);
+    JITDNode *lock_raw = lock.get();
+
+    long best_score = -1;
+    long child_score = -1;
+    std::shared_ptr<JITDNode> child_target;
+    std::shared_ptr<JITDNode> * child_targetHandleRef;
+    
+
+
+    do {
+      
+
+      if(lock_raw->type != JITD_NODE_Concat){break; }
+ConcatNode *lock_raw_real = (ConcatNode *)lock_raw;
+JITDNode *lock_raw_real_lhs = lock_raw_real->lhs.get();
+if(lock_raw_real_lhs->type != JITD_NODE_BTree){break; }
+BTreeNode *lock_raw_real_lhs_real = (BTreeNode *)lock_raw_real_lhs;
+JITDNode *lock_raw_real_rhs = lock_raw_real->rhs.get();
+if(lock_raw_real_rhs->type != JITD_NODE_Singleton){break; }
+SingletonNode *lock_raw_real_rhs_real = (SingletonNode *)lock_raw_real_rhs;
+
+
+      
+
+      if((key_cmp((lock_raw_real_rhs_real->elem), (lock_raw_real_lhs_real->sep))) == (true)){
+
+        best_score = 0;
+          //std::cout<<"Getting best score as "<<best_score<<std::endl;
+        targetHandleRef = (node);
+        return best_score;
+        
+
+      }
+    } while(false);
+
+    
+
+    switch(lock_raw->type){
+      
+        case JITD_NODE_DeleteSingleton: {
+          DeleteSingletonNode *real_node = (DeleteSingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForPushDownSingletonLeft(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_DeleteElements: {
+          DeleteElementsNode *real_node = (DeleteElementsNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForPushDownSingletonLeft(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_BTree: {
+          BTreeNode *real_node = (BTreeNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForPushDownSingletonLeft(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForPushDownSingletonLeft(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_Concat: {
+          ConcatNode *real_node = (ConcatNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForPushDownSingletonLeft(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForPushDownSingletonLeft(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_SortedArray: {
+          SortedArrayNode *real_node = (SortedArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Array: {
+          ArrayNode *real_node = (ArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Singleton: {
+          SingletonNode *real_node = (SingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+    }
+
+    return best_score;
+  }
+
+  long JITD::searchForPushDownSingletonRight( 
+  std::shared_ptr<JITDNode> * &node,         // Return the "best" score available
+    std::shared_ptr<JITDNode> * &targetHandleRef     // Return value: The pointer with the "best" 
+  ) {
+    std::shared_ptr<JITDNode> lock = std::atomic_load(node);
+    JITDNode *lock_raw = lock.get();
+
+    long best_score = -1;
+    long child_score = -1;
+    std::shared_ptr<JITDNode> child_target;
+    std::shared_ptr<JITDNode> * child_targetHandleRef;
+    
+
+
+    do {
+      
+
+      if(lock_raw->type != JITD_NODE_Concat){break; }
+ConcatNode *lock_raw_real = (ConcatNode *)lock_raw;
+JITDNode *lock_raw_real_lhs = lock_raw_real->lhs.get();
+if(lock_raw_real_lhs->type != JITD_NODE_BTree){break; }
+BTreeNode *lock_raw_real_lhs_real = (BTreeNode *)lock_raw_real_lhs;
+JITDNode *lock_raw_real_rhs = lock_raw_real->rhs.get();
+if(lock_raw_real_rhs->type != JITD_NODE_Singleton){break; }
+SingletonNode *lock_raw_real_rhs_real = (SingletonNode *)lock_raw_real_rhs;
+
+
+      
+
+      if((key_cmp((lock_raw_real_rhs_real->elem), (lock_raw_real_lhs_real->sep))) == (false)){
+
+        best_score = 0;
+          //std::cout<<"Getting best score as "<<best_score<<std::endl;
+        targetHandleRef = (node);
+        return best_score;
+        
+
+      }
+    } while(false);
+
+    
+
+    switch(lock_raw->type){
+      
+        case JITD_NODE_DeleteSingleton: {
+          DeleteSingletonNode *real_node = (DeleteSingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForPushDownSingletonRight(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_DeleteElements: {
+          DeleteElementsNode *real_node = (DeleteElementsNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForPushDownSingletonRight(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_BTree: {
+          BTreeNode *real_node = (BTreeNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForPushDownSingletonRight(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForPushDownSingletonRight(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_Concat: {
+          ConcatNode *real_node = (ConcatNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForPushDownSingletonRight(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForPushDownSingletonRight(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_SortedArray: {
+          SortedArrayNode *real_node = (SortedArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Array: {
+          ArrayNode *real_node = (ArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Singleton: {
+          SingletonNode *real_node = (SingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+    }
+
+    return best_score;
+  }
+
+  long JITD::searchForPushDownDontDeleteSingletonBtreeLeft( 
+  std::shared_ptr<JITDNode> * &node,         // Return the "best" score available
+    std::shared_ptr<JITDNode> * &targetHandleRef     // Return value: The pointer with the "best" 
+  ) {
+    std::shared_ptr<JITDNode> lock = std::atomic_load(node);
+    JITDNode *lock_raw = lock.get();
+
+    long best_score = -1;
+    long child_score = -1;
+    std::shared_ptr<JITDNode> child_target;
+    std::shared_ptr<JITDNode> * child_targetHandleRef;
+    
+
+
+    do {
+      
+
+      if(lock_raw->type != JITD_NODE_DeleteSingleton){break; }
+DeleteSingletonNode *lock_raw_real = (DeleteSingletonNode *)lock_raw;
+JITDNode *lock_raw_real_node = lock_raw_real->node.get();
+if(lock_raw_real_node->type != JITD_NODE_BTree){break; }
+BTreeNode *lock_raw_real_node_real = (BTreeNode *)lock_raw_real_node;
+
+
+      
+
+      if((keys_cmp((lock_raw_real->elem), (lock_raw_real_node_real->sep))) == (true)){
+
+        best_score = 0;
+          //std::cout<<"Getting best score as "<<best_score<<std::endl;
+        targetHandleRef = (node);
+        return best_score;
+        
+
+      }
+    } while(false);
+
+    
+
+    switch(lock_raw->type){
+      
+        case JITD_NODE_DeleteSingleton: {
+          DeleteSingletonNode *real_node = (DeleteSingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForPushDownDontDeleteSingletonBtreeLeft(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_DeleteElements: {
+          DeleteElementsNode *real_node = (DeleteElementsNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForPushDownDontDeleteSingletonBtreeLeft(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_BTree: {
+          BTreeNode *real_node = (BTreeNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForPushDownDontDeleteSingletonBtreeLeft(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForPushDownDontDeleteSingletonBtreeLeft(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_Concat: {
+          ConcatNode *real_node = (ConcatNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForPushDownDontDeleteSingletonBtreeLeft(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForPushDownDontDeleteSingletonBtreeLeft(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_SortedArray: {
+          SortedArrayNode *real_node = (SortedArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Array: {
+          ArrayNode *real_node = (ArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Singleton: {
+          SingletonNode *real_node = (SingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+    }
+
+    return best_score;
+  }
+
+  long JITD::searchForPushDownDontDeleteSingletonBtreeRight( 
+  std::shared_ptr<JITDNode> * &node,         // Return the "best" score available
+    std::shared_ptr<JITDNode> * &targetHandleRef     // Return value: The pointer with the "best" 
+  ) {
+    std::shared_ptr<JITDNode> lock = std::atomic_load(node);
+    JITDNode *lock_raw = lock.get();
+
+    long best_score = -1;
+    long child_score = -1;
+    std::shared_ptr<JITDNode> child_target;
+    std::shared_ptr<JITDNode> * child_targetHandleRef;
+    
+
+
+    do {
+      
+
+      if(lock_raw->type != JITD_NODE_DeleteSingleton){break; }
+DeleteSingletonNode *lock_raw_real = (DeleteSingletonNode *)lock_raw;
+JITDNode *lock_raw_real_node = lock_raw_real->node.get();
+if(lock_raw_real_node->type != JITD_NODE_BTree){break; }
+BTreeNode *lock_raw_real_node_real = (BTreeNode *)lock_raw_real_node;
+
+
+      
+
+      if((keys_cmp((lock_raw_real->elem), (lock_raw_real_node_real->sep))) == (false)){
+
+        best_score = 0;
+          //std::cout<<"Getting best score as "<<best_score<<std::endl;
+        targetHandleRef = (node);
+        return best_score;
+        
+
+      }
+    } while(false);
+
+    
+
+    switch(lock_raw->type){
+      
+        case JITD_NODE_DeleteSingleton: {
+          DeleteSingletonNode *real_node = (DeleteSingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForPushDownDontDeleteSingletonBtreeRight(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_DeleteElements: {
+          DeleteElementsNode *real_node = (DeleteElementsNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForPushDownDontDeleteSingletonBtreeRight(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_BTree: {
+          BTreeNode *real_node = (BTreeNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForPushDownDontDeleteSingletonBtreeRight(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForPushDownDontDeleteSingletonBtreeRight(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_Concat: {
+          ConcatNode *real_node = (ConcatNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForPushDownDontDeleteSingletonBtreeRight(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForPushDownDontDeleteSingletonBtreeRight(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_SortedArray: {
+          SortedArrayNode *real_node = (SortedArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Array: {
+          ArrayNode *real_node = (ArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Singleton: {
+          SingletonNode *real_node = (SingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+    }
+
+    return best_score;
+  }
+
+  long JITD::searchForPushDownDontDeleteElemBtree( 
+  std::shared_ptr<JITDNode> * &node,         // Return the "best" score available
+    std::shared_ptr<JITDNode> * &targetHandleRef     // Return value: The pointer with the "best" 
+  ) {
+    std::shared_ptr<JITDNode> lock = std::atomic_load(node);
+    JITDNode *lock_raw = lock.get();
+
+    long best_score = -1;
+    long child_score = -1;
+    std::shared_ptr<JITDNode> child_target;
+    std::shared_ptr<JITDNode> * child_targetHandleRef;
+    
+
+
+    do {
+      
+
+      if(lock_raw->type != JITD_NODE_DeleteElements){break; }
+DeleteElementsNode *lock_raw_real = (DeleteElementsNode *)lock_raw;
+JITDNode *lock_raw_real_node = lock_raw_real->node.get();
+if(lock_raw_real_node->type != JITD_NODE_BTree){break; }
+BTreeNode *lock_raw_real_node_real = (BTreeNode *)lock_raw_real_node;
+
+
+      
+
+      if(true){
+
+        best_score = 0;
+          //std::cout<<"Getting best score as "<<best_score<<std::endl;
+        targetHandleRef = (node);
+        return best_score;
+        
+
+      }
+    } while(false);
+
+    
+
+    switch(lock_raw->type){
+      
+        case JITD_NODE_DeleteSingleton: {
+          DeleteSingletonNode *real_node = (DeleteSingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForPushDownDontDeleteElemBtree(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_DeleteElements: {
+          DeleteElementsNode *real_node = (DeleteElementsNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForPushDownDontDeleteElemBtree(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_BTree: {
+          BTreeNode *real_node = (BTreeNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForPushDownDontDeleteElemBtree(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForPushDownDontDeleteElemBtree(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_Concat: {
+          ConcatNode *real_node = (ConcatNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForPushDownDontDeleteElemBtree(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForPushDownDontDeleteElemBtree(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_SortedArray: {
+          SortedArrayNode *real_node = (SortedArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Array: {
+          ArrayNode *real_node = (ArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Singleton: {
+          SingletonNode *real_node = (SingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+    }
+
+    return best_score;
+  }
+
+  long JITD::searchForDeleteElemFromSingleton( 
+  std::shared_ptr<JITDNode> * &node,         // Return the "best" score available
+    std::shared_ptr<JITDNode> * &targetHandleRef     // Return value: The pointer with the "best" 
+  ) {
+    std::shared_ptr<JITDNode> lock = std::atomic_load(node);
+    JITDNode *lock_raw = lock.get();
+
+    long best_score = -1;
+    long child_score = -1;
+    std::shared_ptr<JITDNode> child_target;
+    std::shared_ptr<JITDNode> * child_targetHandleRef;
+    
+
+
+    do {
+      
+
+      if(lock_raw->type != JITD_NODE_DeleteElements){break; }
+DeleteElementsNode *lock_raw_real = (DeleteElementsNode *)lock_raw;
+JITDNode *lock_raw_real_node = lock_raw_real->node.get();
+if(lock_raw_real_node->type != JITD_NODE_Singleton){break; }
+SingletonNode *lock_raw_real_node_real = (SingletonNode *)lock_raw_real_node;
+
+
+      
+
+      if(true){
+
+        best_score = 0;
+          //std::cout<<"Getting best score as "<<best_score<<std::endl;
+        targetHandleRef = (node);
+        return best_score;
+        
+
+      }
+    } while(false);
+
+    
+
+    switch(lock_raw->type){
+      
+        case JITD_NODE_DeleteSingleton: {
+          DeleteSingletonNode *real_node = (DeleteSingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForDeleteElemFromSingleton(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_DeleteElements: {
+          DeleteElementsNode *real_node = (DeleteElementsNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForDeleteElemFromSingleton(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_BTree: {
+          BTreeNode *real_node = (BTreeNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForDeleteElemFromSingleton(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForDeleteElemFromSingleton(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_Concat: {
+          ConcatNode *real_node = (ConcatNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForDeleteElemFromSingleton(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForDeleteElemFromSingleton(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_SortedArray: {
+          SortedArrayNode *real_node = (SortedArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Array: {
+          ArrayNode *real_node = (ArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Singleton: {
+          SingletonNode *real_node = (SingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+    }
+
+    return best_score;
+  }
+
+  long JITD::searchForDeleteKeyFromSingleton( 
+  std::shared_ptr<JITDNode> * &node,         // Return the "best" score available
+    std::shared_ptr<JITDNode> * &targetHandleRef     // Return value: The pointer with the "best" 
+  ) {
+    std::shared_ptr<JITDNode> lock = std::atomic_load(node);
+    JITDNode *lock_raw = lock.get();
+
+    long best_score = -1;
+    long child_score = -1;
+    std::shared_ptr<JITDNode> child_target;
+    std::shared_ptr<JITDNode> * child_targetHandleRef;
+    
+
+
+    do {
+      
+
+      if(lock_raw->type != JITD_NODE_DeleteSingleton){break; }
+DeleteSingletonNode *lock_raw_real = (DeleteSingletonNode *)lock_raw;
+JITDNode *lock_raw_real_node = lock_raw_real->node.get();
+if(lock_raw_real_node->type != JITD_NODE_Singleton){break; }
+SingletonNode *lock_raw_real_node_real = (SingletonNode *)lock_raw_real_node;
+
+
+      
+
+      if(true){
+
+        best_score = 0;
+          //std::cout<<"Getting best score as "<<best_score<<std::endl;
+        targetHandleRef = (node);
+        return best_score;
+        
+
+      }
+    } while(false);
+
+    
+
+    switch(lock_raw->type){
+      
+        case JITD_NODE_DeleteSingleton: {
+          DeleteSingletonNode *real_node = (DeleteSingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForDeleteKeyFromSingleton(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_DeleteElements: {
+          DeleteElementsNode *real_node = (DeleteElementsNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForDeleteKeyFromSingleton(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_BTree: {
+          BTreeNode *real_node = (BTreeNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForDeleteKeyFromSingleton(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForDeleteKeyFromSingleton(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_Concat: {
+          ConcatNode *real_node = (ConcatNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForDeleteKeyFromSingleton(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForDeleteKeyFromSingleton(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_SortedArray: {
+          SortedArrayNode *real_node = (SortedArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Array: {
+          ArrayNode *real_node = (ArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Singleton: {
+          SingletonNode *real_node = (SingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+    }
+
+    return best_score;
+  }
+
+  long JITD::searchForDeleteSingletonFromArray( 
+  std::shared_ptr<JITDNode> * &node,         // Return the "best" score available
+    std::shared_ptr<JITDNode> * &targetHandleRef     // Return value: The pointer with the "best" 
+  ) {
+    std::shared_ptr<JITDNode> lock = std::atomic_load(node);
+    JITDNode *lock_raw = lock.get();
+
+    long best_score = -1;
+    long child_score = -1;
+    std::shared_ptr<JITDNode> child_target;
+    std::shared_ptr<JITDNode> * child_targetHandleRef;
+    
+
+
+    do {
+      
+
+      if(lock_raw->type != JITD_NODE_DeleteSingleton){break; }
+DeleteSingletonNode *lock_raw_real = (DeleteSingletonNode *)lock_raw;
+JITDNode *lock_raw_real_node = lock_raw_real->node.get();
+if(lock_raw_real_node->type != JITD_NODE_Array){break; }
+ArrayNode *lock_raw_real_node_real = (ArrayNode *)lock_raw_real_node;
+
+
+      
+
+      if(true){
+
+        best_score = 0;
+          //std::cout<<"Getting best score as "<<best_score<<std::endl;
+        targetHandleRef = (node);
+        return best_score;
+        
+
+      }
+    } while(false);
+
+    
+
+    switch(lock_raw->type){
+      
+        case JITD_NODE_DeleteSingleton: {
+          DeleteSingletonNode *real_node = (DeleteSingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForDeleteSingletonFromArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_DeleteElements: {
+          DeleteElementsNode *real_node = (DeleteElementsNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForDeleteSingletonFromArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_BTree: {
+          BTreeNode *real_node = (BTreeNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForDeleteSingletonFromArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForDeleteSingletonFromArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_Concat: {
+          ConcatNode *real_node = (ConcatNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForDeleteSingletonFromArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForDeleteSingletonFromArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_SortedArray: {
+          SortedArrayNode *real_node = (SortedArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Array: {
+          ArrayNode *real_node = (ArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Singleton: {
+          SingletonNode *real_node = (SingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+    }
+
+    return best_score;
+  }
+
+  long JITD::searchForDeleteElemFromArray( 
+  std::shared_ptr<JITDNode> * &node,         // Return the "best" score available
+    std::shared_ptr<JITDNode> * &targetHandleRef     // Return value: The pointer with the "best" 
+  ) {
+    std::shared_ptr<JITDNode> lock = std::atomic_load(node);
+    JITDNode *lock_raw = lock.get();
+
+    long best_score = -1;
+    long child_score = -1;
+    std::shared_ptr<JITDNode> child_target;
+    std::shared_ptr<JITDNode> * child_targetHandleRef;
+    
+
+
+    do {
+      
+
+      if(lock_raw->type != JITD_NODE_DeleteElements){break; }
+DeleteElementsNode *lock_raw_real = (DeleteElementsNode *)lock_raw;
+JITDNode *lock_raw_real_node = lock_raw_real->node.get();
+if(lock_raw_real_node->type != JITD_NODE_Array){break; }
+ArrayNode *lock_raw_real_node_real = (ArrayNode *)lock_raw_real_node;
+
+
+      
+
+      if(true){
+
+        best_score = 0;
+          //std::cout<<"Getting best score as "<<best_score<<std::endl;
+        targetHandleRef = (node);
+        return best_score;
+        
+
+      }
+    } while(false);
+
+    
+
+    switch(lock_raw->type){
+      
+        case JITD_NODE_DeleteSingleton: {
+          DeleteSingletonNode *real_node = (DeleteSingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForDeleteElemFromArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_DeleteElements: {
+          DeleteElementsNode *real_node = (DeleteElementsNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForDeleteElemFromArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_BTree: {
+          BTreeNode *real_node = (BTreeNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForDeleteElemFromArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForDeleteElemFromArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_Concat: {
+          ConcatNode *real_node = (ConcatNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForDeleteElemFromArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForDeleteElemFromArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_SortedArray: {
+          SortedArrayNode *real_node = (SortedArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Array: {
+          ArrayNode *real_node = (ArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Singleton: {
+          SingletonNode *real_node = (SingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+    }
+
+    return best_score;
+  }
+
+  long JITD::searchForCrackArray( 
+  std::shared_ptr<JITDNode> * &node,         // Return the "best" score available
+    std::shared_ptr<JITDNode> * &targetHandleRef     // Return value: The pointer with the "best" 
+  ) {
+    std::shared_ptr<JITDNode> lock = std::atomic_load(node);
+    JITDNode *lock_raw = lock.get();
+
+    long best_score = -1;
+    long child_score = -1;
+    std::shared_ptr<JITDNode> child_target;
+    std::shared_ptr<JITDNode> * child_targetHandleRef;
+    
+
+
+    do {
+      
+
+      if(lock_raw->type != JITD_NODE_Array){break; }
+ArrayNode *lock_raw_real = (ArrayNode *)lock_raw;
+
+
+      
+
+      if((array_size((lock_raw_real->data))) > (10)){
+
+        best_score = 0;
+          //std::cout<<"Getting best score as "<<best_score<<std::endl;
+        targetHandleRef = (node);
+        return best_score;
+        
+
+      }
+    } while(false);
+
+    
+
+    switch(lock_raw->type){
+      
+        case JITD_NODE_DeleteSingleton: {
+          DeleteSingletonNode *real_node = (DeleteSingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForCrackArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_DeleteElements: {
+          DeleteElementsNode *real_node = (DeleteElementsNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForCrackArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_BTree: {
+          BTreeNode *real_node = (BTreeNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForCrackArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForCrackArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_Concat: {
+          ConcatNode *real_node = (ConcatNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForCrackArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForCrackArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_SortedArray: {
+          SortedArrayNode *real_node = (SortedArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Array: {
+          ArrayNode *real_node = (ArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Singleton: {
+          SingletonNode *real_node = (SingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+    }
+
+    return best_score;
+  }
+
+  long JITD::searchForSortArray( 
+  std::shared_ptr<JITDNode> * &node,         // Return the "best" score available
+    std::shared_ptr<JITDNode> * &targetHandleRef     // Return value: The pointer with the "best" 
+  ) {
+    std::shared_ptr<JITDNode> lock = std::atomic_load(node);
+    JITDNode *lock_raw = lock.get();
+
+    long best_score = -1;
+    long child_score = -1;
+    std::shared_ptr<JITDNode> child_target;
+    std::shared_ptr<JITDNode> * child_targetHandleRef;
+    
+
+
+    do {
+      
+
+      if(lock_raw->type != JITD_NODE_Array){break; }
+ArrayNode *lock_raw_real = (ArrayNode *)lock_raw;
+
+
+      
+
+      if(true){
+
+        best_score = array_size((lock_raw_real->data));
+          //std::cout<<"Getting best score as "<<best_score<<std::endl;
+        targetHandleRef = (node);
+        return best_score;
+        
+
+      }
+    } while(false);
+
+    
+
+    switch(lock_raw->type){
+      
+        case JITD_NODE_DeleteSingleton: {
+          DeleteSingletonNode *real_node = (DeleteSingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForSortArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_DeleteElements: {
+          DeleteElementsNode *real_node = (DeleteElementsNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->node);
+            child_score = searchForSortArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_BTree: {
+          BTreeNode *real_node = (BTreeNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForSortArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForSortArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_Concat: {
+          ConcatNode *real_node = (ConcatNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          real_nodeHandleRef = &(real_node->lhs);
+            child_score = searchForSortArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          real_nodeHandleRef = &(real_node->rhs);
+            child_score = searchForSortArray(
+              real_nodeHandleRef, 
+              child_targetHandleRef
+            );
+            if(child_score > best_score) { 
+              //target = child_target; 
+              targetHandleRef = child_targetHandleRef;
+              best_score = child_score;
+            }
+          
+          break;
+        }
+      
+        case JITD_NODE_SortedArray: {
+          SortedArrayNode *real_node = (SortedArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Array: {
+          ArrayNode *real_node = (ArrayNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+        case JITD_NODE_Singleton: {
+          SingletonNode *real_node = (SingletonNode *)lock_raw;
+          std::shared_ptr<JITDNode> * real_nodeHandleRef;
+          
+          break;
+        }
+      
+    }
+
+    return best_score;
+  }
+
+
+#endif
 #ifdef REPLAY_SET
 
 
@@ -3047,7 +4852,109 @@ int JITD::organize_wait()
   return t;
 }
 
+
+#ifdef REPLAY_SET
+
+
+void JITD::initialize_struts(std::shared_ptr<JITDNode>* node,std::shared_ptr<JITDNode>* parent)
+{
+    std::shared_ptr<JITDNode> target_root_lock;
+    #ifdef ATOMIC_LOAD
+    target_root_lock = std::atomic_load((node));
+    #endif
+    #ifdef ATOMIC_LOAD_CONSUME
+    target_root_lock = std::atomic_load_explicit(node,std::memory_order_consume);
+    #endif
+    #ifdef ATOMIC_LOAD_ACQUIRE
+    target_root_lock = std::atomic_load_explicit(node,std::memory_order_acquire);
+    #endif
+  //std::shared_ptr<JITDNode> target_root_lock = std::atomic_load((node));
+  //this->childParentMap.emplace(node,parent);
+  //viewAdd(node);
+  switch(target_root_lock->type)
+  {
+    
+      case JITD_NODE_DeleteSingleton : {
+      this->JITD_NODE_DeleteSingleton_set.emplace(node);
+
+      
+      DeleteSingletonNode *node_real = (DeleteSingletonNode *)target_root_lock.get();
+        initialize_struts(&(node_real->node),node);
+ 
+        break;      
+      }
+
+    
+      case JITD_NODE_DeleteElements : {
+      
+      
+      DeleteElementsNode *node_real = (DeleteElementsNode *)target_root_lock.get();
+        initialize_struts(&(node_real->node),node);
+ 
+        break;      
+      }
+
+    
+      case JITD_NODE_BTree : {
+      
+      
+      BTreeNode *node_real = (BTreeNode *)target_root_lock.get();
+        initialize_struts(&(node_real->lhs),node);
+initialize_struts(&(node_real->rhs),node);
+ 
+        break;      
+      }
+
+    
+      case JITD_NODE_Concat : {
+      this->JITD_NODE_Concat_set.emplace(node);
+
+      
+      ConcatNode *node_real = (ConcatNode *)target_root_lock.get();
+        initialize_struts(&(node_real->lhs),node);
+initialize_struts(&(node_real->rhs),node);
+ 
+        break;      
+      }
+
+    
+      case JITD_NODE_SortedArray : {
+      
+      
+      SortedArrayNode *node_real = (SortedArrayNode *)target_root_lock.get();
+         
+        break;      
+      }
+
+    
+      case JITD_NODE_Array : {
+      
+      this->CrackArray_PQ.emplace(node);
+
+      ArrayNode *node_real = (ArrayNode *)target_root_lock.get();
+         
+        break;      
+      }
+
+    
+      case JITD_NODE_Singleton : {
+      
+      
+      SingletonNode *node_real = (SingletonNode *)target_root_lock.get();
+         
+        break;      
+      }
+
+    
+
+  }
+
+}
+
+
+#endif
 #ifdef REPLAY_VIEW
+
 
 void JITD::initialize_struts_view(std::shared_ptr<JITDNode>* node,std::shared_ptr<JITDNode>* parent)
 {
@@ -3146,105 +5053,9 @@ initialize_struts_view(&(node_real->rhs),node);
   }
 }
 
-#endif
-#ifdef REPLAY_SET
-
-void JITD::initialize_struts(std::shared_ptr<JITDNode>* node,std::shared_ptr<JITDNode>* parent)
-{
-    std::shared_ptr<JITDNode> target_root_lock;
-    #ifdef ATOMIC_LOAD
-    target_root_lock = std::atomic_load((node));
-    #endif
-    #ifdef ATOMIC_LOAD_CONSUME
-    target_root_lock = std::atomic_load_explicit(node,std::memory_order_consume);
-    #endif
-    #ifdef ATOMIC_LOAD_ACQUIRE
-    target_root_lock = std::atomic_load_explicit(node,std::memory_order_acquire);
-    #endif
-  //std::shared_ptr<JITDNode> target_root_lock = std::atomic_load((node));
-  //this->childParentMap.emplace(node,parent);
-  //viewAdd(node);
-  switch(target_root_lock->type)
-  {
-    
-      case JITD_NODE_DeleteSingleton : {
-      this->JITD_NODE_DeleteSingleton_set.emplace(node);
-
-      
-      DeleteSingletonNode *node_real = (DeleteSingletonNode *)target_root_lock.get();
-        initialize_struts(&(node_real->node),node);
- 
-        break;      
-      }
-
-    
-      case JITD_NODE_DeleteElements : {
-      
-      
-      DeleteElementsNode *node_real = (DeleteElementsNode *)target_root_lock.get();
-        initialize_struts(&(node_real->node),node);
- 
-        break;      
-      }
-
-    
-      case JITD_NODE_BTree : {
-      
-      
-      BTreeNode *node_real = (BTreeNode *)target_root_lock.get();
-        initialize_struts(&(node_real->lhs),node);
-initialize_struts(&(node_real->rhs),node);
- 
-        break;      
-      }
-
-    
-      case JITD_NODE_Concat : {
-      this->JITD_NODE_Concat_set.emplace(node);
-
-      
-      ConcatNode *node_real = (ConcatNode *)target_root_lock.get();
-        initialize_struts(&(node_real->lhs),node);
-initialize_struts(&(node_real->rhs),node);
- 
-        break;      
-      }
-
-    
-      case JITD_NODE_SortedArray : {
-      
-      
-      SortedArrayNode *node_real = (SortedArrayNode *)target_root_lock.get();
-         
-        break;      
-      }
-
-    
-      case JITD_NODE_Array : {
-      
-      this->CrackArray_PQ.emplace(node);
-
-      ArrayNode *node_real = (ArrayNode *)target_root_lock.get();
-         
-        break;      
-      }
-
-    
-      case JITD_NODE_Singleton : {
-      
-      
-      SingletonNode *node_real = (SingletonNode *)target_root_lock.get();
-         
-        break;      
-      }
-
-    
-
-  }
-
-}
 
 #endif
+
 
 bool JITD::do_organize()
 {
@@ -3262,7 +5073,7 @@ bool JITD::do_organize()
 
 SEARCH_START;
   long bestScore = searchForPushDownSingletonLeft(
-    targetHandleRef
+    _targetHandleRef
   );
 SEARCH_END(108);
   //std::cout<<"After calling searchForPushDownSingletonLeft Best Score is "<<bestScore<<std::endl;
@@ -3308,7 +5119,7 @@ SEARCH_END(108);
 
 SEARCH_START;
   long bestScore = searchForPushDownSingletonRight(
-    targetHandleRef
+    _targetHandleRef
   );
 SEARCH_END(107);
   //std::cout<<"After calling searchForPushDownSingletonRight Best Score is "<<bestScore<<std::endl;
@@ -3354,7 +5165,7 @@ SEARCH_END(107);
 
 SEARCH_START;
   long bestScore = searchForPushDownDontDeleteSingletonBtreeLeft(
-    targetHandleRef
+    _targetHandleRef
   );
 SEARCH_END(105);
   //std::cout<<"After calling searchForPushDownDontDeleteSingletonBtreeLeft Best Score is "<<bestScore<<std::endl;
@@ -3400,7 +5211,7 @@ SEARCH_END(105);
 
 SEARCH_START;
   long bestScore = searchForPushDownDontDeleteSingletonBtreeRight(
-    targetHandleRef
+    _targetHandleRef
   );
 SEARCH_END(104);
   //std::cout<<"After calling searchForPushDownDontDeleteSingletonBtreeRight Best Score is "<<bestScore<<std::endl;
@@ -3446,7 +5257,7 @@ SEARCH_END(104);
 
 SEARCH_START;
   long bestScore = searchForDeleteSingletonFromArray(
-    targetHandleRef
+    _targetHandleRef
   );
 SEARCH_END(102);
   //std::cout<<"After calling searchForDeleteSingletonFromArray Best Score is "<<bestScore<<std::endl;
@@ -3492,7 +5303,7 @@ SEARCH_END(102);
   //check_pq();
 
   long bestScore = searchForPushDownAndCrack(
-    targetHandleRef
+    _targetHandleRef
   );
   //std::cout<<"After calling searchForPushDownAndCrack Best Score is "<<bestScore<<std::endl;
   if(bestScore >= 0) {
@@ -3540,7 +5351,7 @@ SEARCH_END;
 
 SEARCH_START;
   long bestScore = searchForCrackArray(
-    targetHandleRef
+    _targetHandleRef
   );
 SEARCH_END(109);
   //std::cout<<"After calling searchForCrackArray Best Score is "<<bestScore<<std::endl;
