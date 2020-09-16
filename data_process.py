@@ -13,6 +13,9 @@ import matplotlib.patches as mpatches
 import math
 
 
+runcount = 10
+
+
 def process_loglines(input_file_name, results_list_list):
 
 	# input_file_name = ""
@@ -93,7 +96,7 @@ def graph_boxplot(workload):
 	dbt_latency_list = []
 	dbt_total_list = []
 
-	for i in range(10):
+	for i in range(runcount):
 
 		print(i)
 		index_list.append(i + 1)
