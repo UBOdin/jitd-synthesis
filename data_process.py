@@ -16,10 +16,10 @@ import math
 runcount = 10
 
 
-def process_loglines(input_file_name, results_list_list):
+def process_loglines(input_file_name, results_list_list_list):
 
 	# input_file_name = ""
-	# results_list_list = []
+	# results_list_list_list = []
 	# type_dict = {}
 	input_file_obj = "" # file obj
 	iteration = -1
@@ -27,12 +27,14 @@ def process_loglines(input_file_name, results_list_list):
 	logline_list = []
 	latency = 0
 	latency_total = 0
+	optype = 0
+	vmsize = 0
 
-	id_list = []
-	latency_list = []
+	latency_list = results_list_list_list[0]
+	operation_list_list = results_list_list_list[1]
+	vmsize_list = results_list_list_list[2]
 
 	input_file_obj = open(input_file_name, "r")
-	#input_file_obj = open(input_file_name, "r")
 
 	# Skip first line (schema info):
 	logline = input_file_obj.readline() #.decode("ascii")
@@ -62,14 +64,17 @@ def process_loglines(input_file_name, results_list_list):
 		latency = int(logline_list[1])
 		latency_total += latency
 
-		id_list.append(iteration)
+		#id_list.append(iteration)
+		#latency_list.append(latency)
+
+		optype = int(logline_list[2])
+		vmsize = int(logline_list[6])  # repurposed jitd depth field (kludge)
+
 		latency_list.append(latency)
+		operation_list_list[optype].append(latency)  # per-operation type
+		vmsize_list.append(vmsize)
 
 	#end_while
-
-	results_list_list.append(id_list)
-	results_list_list.append(latency_list)
-	results_list_list.append(latency_total)
 
 	return
 
@@ -81,144 +86,104 @@ def graph_boxplot(workload):
 	# workload = ""
 	input_file_prefix = ""
 	input_file_name = ""
-	results_list_list = []
 
-	fig_list, ax_list = plt.subplots(1, 4, sharex = True)
-	ax2_list = [ax_list[0].twinx(), ax_list[1].twinx(), ax_list[2].twinx(), ax_list[3].twinx()]
+	naive_results_list_list_list = [[], [], []]
+	set_results_list_list_list = [[], [], []]
+	jitd_results_list_list_list = [[], [], []]
+	dbt_results_list_list_list = [[], [], []]
 
+	for i in range(5):  # 5 DB operations
+		naive_results_list_list_list[1].append([])
+		set_results_list_list_list[1].append([])
+		jitd_results_list_list_list[1].append([])
+		dbt_results_list_list_list[1].append([])
+	#end_if
+
+
+	fig_list, ax_list = plt.subplots()
 	fig_list.set_size_inches(22, 12)
-
-	index_list = []
-	naive_latency_list = []
-	naive_total_list = []
-	set_latency_list = []
-	set_total_list = []
-	jitd_latency_list = []
-	jitd_total_list = []
-	dbt_latency_list = []
-	dbt_total_list = []
 
 	for i in range(runcount):
 
 		print(i)
-		index_list.append(i + 1)
+		#index_list.append(i + 1)
 
 		input_file_name = "view_results/naive_data_performance_" + workload + "_" + str(i) + ".txt"
-		results_list_list = []
-		process_loglines(input_file_name, results_list_list)
-		naive_latency_list.append(results_list_list[1])
-		naive_total_list.append(results_list_list[2])
+		process_loglines(input_file_name, naive_results_list_list_list)
 
 		input_file_name = "view_results/set_data_performance_" + workload + "_" + str(i) + ".txt"
-		results_list_list = []
-		process_loglines(input_file_name, results_list_list)
-		set_latency_list.append(results_list_list[1])
-		set_total_list.append(results_list_list[2])
+		process_loglines(input_file_name, set_results_list_list_list)
 
 		input_file_name = "view_results/jitd_data_performance_" + workload + "_" + str(i) + ".txt"
-		results_list_list = []
-		process_loglines(input_file_name, results_list_list)
-		jitd_latency_list.append(results_list_list[1])
-		jitd_total_list.append(results_list_list[2])
+		process_loglines(input_file_name, jitd_results_list_list_list)
 
 		input_file_name = "view_results/dbt_data_performance_" + workload + "_" + str(i) + ".txt"
-		results_list_list = []
-		process_loglines(input_file_name, results_list_list)
-		dbt_latency_list.append(results_list_list[1])
-		dbt_total_list.append(results_list_list[2])
+		process_loglines(input_file_name, dbt_results_list_list_list)
 
 	#end_for
 
 
-	bp = ax_list[0].boxplot(set_latency_list)
-
-	for flier in bp['fliers']:
-		flier.set(marker='.', color='#e7298a', alpha=0.5)
+	boxplot_dbop_list = []
+	#for i in range(5):
+	for i in [0, 1, 3]:  # Delete (2) and Upsert (4) never used in YCSB
+		boxplot_dbop_list.append([])
+		boxplot_dbop_list.append(naive_results_list_list_list[1][i])
+		boxplot_dbop_list.append(set_results_list_list_list[1][i])
+		boxplot_dbop_list.append(jitd_results_list_list_list[1][i])
+		boxplot_dbop_list.append(dbt_results_list_list_list[1][i])
 	#end_for
 
-	ax_list[0].set_title("Database Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list[0].set_xlabel("JITD Set Run #", fontsize = 14, fontweight = "bold")
-	ax_list[0].set_ylabel("Database Operation Latency ($ms$)", fontsize = 14, fontweight = "bold")
-	ax_list[0].axis([0, 11, 0, 200])
+	bp_operations = ax_list.boxplot(boxplot_dbop_list)
 
-	ax2_list[0].plot(index_list, set_total_list, marker = "o", color = "blue", label = "Naive Total time (right axis)")
-	ax2_list[0].axis([0, 11, 0, 70000])
-	ax2_list[0].legend(loc = "upper right")
+	ax_list.set_title("Database Per-Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
+	ax_list.set_xlabel("Transform Selection and Database Operation Type", fontsize = 14, fontweight = "bold")
+	ax_list.set_ylabel("Database Operation Latency", fontsize = 14, fontweight = "bold")
+	ax_list.axis([1, 16, 0, 150])
 
-	# Remove RH Y tick labels on LH subplot:
-	y_labels = ax2_list[0].get_yticklabels()
-	y_labels = [ "" for e in y_labels]
-	ax2_list[0].set_yticklabels(y_labels)
+	x_labels = ax_list.get_xticklabels()
+	x_labels = ["", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", ""]
+	x_labels[0] = "\n                                                                                                                           Insert"
+	x_labels[5] = "\n                                                                                                                           Select"
+	#x_labels[10] = "\n                                                                                                                         Delete"
+	x_labels[10] = "\n                                                                                                                          Update"
+	#x_labels[20] = "\n                                                                                                                         Upsert"
+	ax_list.set_xticklabels(x_labels)
 
-
-	bp = ax_list[1].boxplot(jitd_latency_list)
-
-	for flier in bp['fliers']:
-		flier.set(marker='.', color='#e7298a', alpha=0.5)
-	#end_for
-
-	ax_list[1].set_title("Database Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list[1].set_xlabel("JITD View Run #", fontsize = 14, fontweight = "bold")
-	ax_list[1].axis([0, 11, 0, 200])
-
-	ax2_list[1].plot(index_list, jitd_total_list, marker = "o", color = "red", label = "Set View Total time (right axis)")
-	ax2_list[1].axis([0, 11, 0, 70000])
-	ax2_list[1].legend(loc = "upper right")
-
-	# Remove both LH and RH labels from middle subplot:
-	y_labels = ax_list[1].get_yticklabels()
-	y_labels = [ "" for e in y_labels]
-	ax_list[1].set_yticklabels(y_labels)
-	y_labels = ax2_list[1].get_yticklabels()
-	y_labels = [ "" for e in y_labels]
-	ax2_list[1].set_yticklabels(y_labels)
+	fig_list.savefig("view_graphs/data_dbop_boxplot_" + workload + ".png");
 
 
+	fig2_list, ax2_list = plt.subplots()
+	fig2_list.set_size_inches(22, 12)
+
+	bp_latency = ax2_list.boxplot([naive_results_list_list_list[0], set_results_list_list_list[0], jitd_results_list_list_list[0], dbt_results_list_list_list[0]])
+
+	ax2_list.set_title("Database Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
+	ax2_list.set_xlabel("Transform Selection Type", fontsize = 14, fontweight = "bold")
+	ax2_list.set_ylabel("Database Operation Latency", fontsize = 14, fontweight = "bold")
+	ax2_list.axis([0, 5, 0, 150])
+
+	x_labels = ax2_list.get_xticklabels()
+	x_labels = ["naive", "set", "vm", "dbt"]
+	ax2_list.set_xticklabels(x_labels)
+
+	fig2_list.savefig("view_graphs/data_latency_boxplot_" + workload + ".png");
 
 
-	bp = ax_list[2].boxplot(jitd_latency_list)
+	fig3_list, ax3_list = plt.subplots()
+	fig3_list.set_size_inches(22, 12)
 
-	for flier in bp['fliers']:
-		flier.set(marker='.', color='#e7298a', alpha=0.5)
-	#end_for
+	bp_latency = ax3_list.boxplot([naive_results_list_list_list[2], set_results_list_list_list[2], jitd_results_list_list_list[2], dbt_results_list_list_list[2]])
 
-	ax_list[2].set_title("Database Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list[2].set_xlabel("JITD View Run #", fontsize = 14, fontweight = "bold")
-	ax_list[2].axis([0, 11, 0, 200])
+	ax3_list.set_title("Per-Operation Process Memory Usage (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
+	ax3_list.set_xlabel("Transform Selection Type", fontsize = 14, fontweight = "bold")
+	ax3_list.set_ylabel("Virtual Memory Pages Allocated", fontsize = 14, fontweight = "bold")
+	ax3_list.axis([0, 5, 0, 70000])
 
-	ax2_list[2].plot(index_list, jitd_total_list, marker = "o", color = "red", label = "JITD View Total time (right axis)")
-	ax2_list[2].axis([0, 11, 0, 70000])
-	ax2_list[2].legend(loc = "upper right")
+	x_labels = ax3_list.get_xticklabels()
+	x_labels = ["naive", "set", "vm", "dbt"]
+	ax3_list.set_xticklabels(x_labels)
 
-	# Remove both LH and RH labels from middle subplot:
-	y_labels = ax_list[2].get_yticklabels()
-	y_labels = [ "" for e in y_labels]
-	ax_list[2].set_yticklabels(y_labels)
-	y_labels = ax2_list[1].get_yticklabels()
-	y_labels = [ "" for e in y_labels]
-	ax2_list[2].set_yticklabels(y_labels)
-
-
-
-	bp = ax_list[3].boxplot(dbt_latency_list)
-
-	ax_list[3].set_title("Database Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list[3].set_xlabel("DBT View Run #", fontsize = 14, fontweight = "bold")
-	ax_list[3].axis([0, 11, 0, 200])
-
-	ax2_list[3].plot(index_list, dbt_total_list, marker = "o", color = "green", label = "DBT View Total time (right axis)")
-	ax2_list[3].set_ylabel("Total View Operation Latency", fontsize = 14, fontweight = "bold")
-	ax2_list[3].axis([0, 11, 0, 70000])
-	ax2_list[3].legend(loc = "upper right")
-
-	# Remove LH Y tick labels on RH subplot:
-	y_labels = ax_list[3].get_yticklabels()
-	y_labels = [ "" for e in y_labels]
-	ax_list[3].set_yticklabels(y_labels)
-
-
-
-	fig_list.savefig("view_graphs/data_boxplot_" + workload + ".png");
+	fig3_list.savefig("view_graphs/data_memory_boxplot_" + workload + ".png");
 
 
 	#plt.show()
