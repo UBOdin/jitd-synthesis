@@ -138,7 +138,7 @@ def graph_boxplot(workload):
 	ax1.set_title("Database Per-Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax1.set_xlabel("Transform Selection and Database Operation Type", fontsize = 14, fontweight = "bold")
 	ax1.set_ylabel("Database Operation Latency", fontsize = 14, fontweight = "bold")
-	ax1.axis([1, 16, 0, 150])
+	ax1.axis([1, 16, 0, 300])
 
 	x_labels = ax1.get_xticklabels()
 	x_labels = ["", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", ""]
@@ -160,7 +160,7 @@ def graph_boxplot(workload):
 	ax2_list[0].set_title("Database Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax2_list[0].set_xlabel("Transform Selection Type", fontsize = 14, fontweight = "bold")
 	ax2_list[0].set_ylabel("Database Operation Latency", fontsize = 14, fontweight = "bold")
-	ax2_list[0].axis([0, 5, 0, 150])
+	ax2_list[0].axis([0, 5, 0, 300])
 
 	x_labels = ax2_list[0].get_xticklabels()
 	x_labels = ["naive", "set", "vm", "dbt"]
@@ -174,7 +174,7 @@ def graph_boxplot(workload):
 	ax2_list[1].set_title("Per-Operation Process Memory Usage (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax2_list[1].set_xlabel("Transform Selection Type", fontsize = 14, fontweight = "bold")
 	ax2_list[1].set_ylabel("Virtual Memory Pages Allocated", fontsize = 14, fontweight = "bold")
-	ax2_list[1].axis([0, 5, 0, 70000])
+	ax2_list[1].axis([0, 5, 0, 100000])
 
 	x_labels = ax2_list[1].get_xticklabels()
 	x_labels = ["naive", "set", "vm", "dbt"]

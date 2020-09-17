@@ -358,7 +358,7 @@ def graph_transform_boxplots(workload):
 	ax_list.set_title("Transform Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax_list.set_xlabel("Transform Operation Type", fontsize = 14, fontweight = "bold")
 	ax_list.set_ylabel("Operation Latency", fontsize = 14, fontweight = "bold")
-	ax_list.axis([1, (4 * 8 + 1), 0, 10000])
+	ax_list.axis([1, (4 * 8 + 1), 0, 20000])
 
 	x_labels = ax_list.get_xticklabels()
 	#  N.b. No data/plots for naive -- no view maintenance structures to update
@@ -404,7 +404,7 @@ def graph_transform_boxplots(workload):
 	ax3_list.set_xlabel("Maintenance Method", fontsize = 14, fontweight = "bold")
 	ax3_list.set_ylabel("Average View Operation Latency (Search + Maintnenace)", fontsize = 14, fontweight = "bold")
 	#ax3_list.axis([0, 4, 0, 10000])
-	ax3_list.axis([0, 5, 0, 80000])
+	ax3_list.axis([0, 5, 0, 120000])
 	x_labels = ax3_list.get_xticklabels()
 	x_labels = ["Naive", "Set", "VM", "DBT"]
 	ax3_list.set_xticklabels(x_labels)
