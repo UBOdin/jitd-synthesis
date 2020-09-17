@@ -100,8 +100,8 @@ def graph_boxplot(workload):
 	#end_if
 
 
-	fig_list, ax_list = plt.subplots()
-	fig_list.set_size_inches(22, 12)
+	fig1, ax1 = plt.subplots()
+	fig1.set_size_inches(22, 12)
 
 	for i in range(runcount):
 
@@ -133,57 +133,54 @@ def graph_boxplot(workload):
 		boxplot_dbop_list.append(dbt_results_list_list_list[1][i])
 	#end_for
 
-	bp_operations = ax_list.boxplot(boxplot_dbop_list)
+	bp_operations = ax1.boxplot(boxplot_dbop_list)
 
-	ax_list.set_title("Database Per-Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list.set_xlabel("Transform Selection and Database Operation Type", fontsize = 14, fontweight = "bold")
-	ax_list.set_ylabel("Database Operation Latency", fontsize = 14, fontweight = "bold")
-	ax_list.axis([1, 16, 0, 150])
+	ax1.set_title("Database Per-Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
+	ax1.set_xlabel("Transform Selection and Database Operation Type", fontsize = 14, fontweight = "bold")
+	ax1.set_ylabel("Database Operation Latency", fontsize = 14, fontweight = "bold")
+	ax1.axis([1, 16, 0, 150])
 
-	x_labels = ax_list.get_xticklabels()
+	x_labels = ax1.get_xticklabels()
 	x_labels = ["", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", ""]
 	x_labels[0] = "\n                                                                                                                           Insert"
 	x_labels[5] = "\n                                                                                                                           Select"
 	#x_labels[10] = "\n                                                                                                                         Delete"
 	x_labels[10] = "\n                                                                                                                          Update"
 	#x_labels[20] = "\n                                                                                                                         Upsert"
-	ax_list.set_xticklabels(x_labels)
+	ax1.set_xticklabels(x_labels)
 
-	fig_list.savefig("view_graphs/data_dbop_boxplot_" + workload + ".png");
+	fig1.savefig("view_graphs/data_dbop_boxplot_" + workload + ".png");
 
 
-	fig2_list, ax2_list = plt.subplots()
+	fig2_list, ax2_list = plt.subplots(1, 2)
 	fig2_list.set_size_inches(22, 12)
 
-	bp_latency = ax2_list.boxplot([naive_results_list_list_list[0], set_results_list_list_list[0], jitd_results_list_list_list[0], dbt_results_list_list_list[0]])
+	bp_latency = ax2_list[0].boxplot([naive_results_list_list_list[0], set_results_list_list_list[0], jitd_results_list_list_list[0], dbt_results_list_list_list[0]])
 
-	ax2_list.set_title("Database Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax2_list.set_xlabel("Transform Selection Type", fontsize = 14, fontweight = "bold")
-	ax2_list.set_ylabel("Database Operation Latency", fontsize = 14, fontweight = "bold")
-	ax2_list.axis([0, 5, 0, 150])
+	ax2_list[0].set_title("Database Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
+	ax2_list[0].set_xlabel("Transform Selection Type", fontsize = 14, fontweight = "bold")
+	ax2_list[0].set_ylabel("Database Operation Latency", fontsize = 14, fontweight = "bold")
+	ax2_list[0].axis([0, 5, 0, 150])
 
-	x_labels = ax2_list.get_xticklabels()
+	x_labels = ax2_list[0].get_xticklabels()
 	x_labels = ["naive", "set", "vm", "dbt"]
-	ax2_list.set_xticklabels(x_labels)
+	ax2_list[0].set_xticklabels(x_labels)
 
-	fig2_list.savefig("view_graphs/data_latency_boxplot_" + workload + ".png");
+	#fig2_list[0].savefig("view_graphs/data_latency_boxplot_" + workload + ".png");
 
 
-	fig3_list, ax3_list = plt.subplots()
-	fig3_list.set_size_inches(22, 12)
+	bp_latency = ax2_list[1].boxplot([naive_results_list_list_list[2], set_results_list_list_list[2], jitd_results_list_list_list[2], dbt_results_list_list_list[2]])
 
-	bp_latency = ax3_list.boxplot([naive_results_list_list_list[2], set_results_list_list_list[2], jitd_results_list_list_list[2], dbt_results_list_list_list[2]])
+	ax2_list[1].set_title("Per-Operation Process Memory Usage (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
+	ax2_list[1].set_xlabel("Transform Selection Type", fontsize = 14, fontweight = "bold")
+	ax2_list[1].set_ylabel("Virtual Memory Pages Allocated", fontsize = 14, fontweight = "bold")
+	ax2_list[1].axis([0, 5, 0, 70000])
 
-	ax3_list.set_title("Per-Operation Process Memory Usage (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax3_list.set_xlabel("Transform Selection Type", fontsize = 14, fontweight = "bold")
-	ax3_list.set_ylabel("Virtual Memory Pages Allocated", fontsize = 14, fontweight = "bold")
-	ax3_list.axis([0, 5, 0, 70000])
-
-	x_labels = ax3_list.get_xticklabels()
+	x_labels = ax2_list[1].get_xticklabels()
 	x_labels = ["naive", "set", "vm", "dbt"]
-	ax3_list.set_xticklabels(x_labels)
+	ax2_list[1].set_xticklabels(x_labels)
 
-	fig3_list.savefig("view_graphs/data_memory_boxplot_" + workload + ".png");
+	fig2_list.savefig("view_graphs/data_memory_boxplot_" + workload + ".png");
 
 
 	#plt.show()
