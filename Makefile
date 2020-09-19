@@ -73,24 +73,27 @@ help:
 default: $(MAIN)
 	@echo Build successful
 
-build_replay_dbop:  jitd_replay_dbop_naive_${atomic}_${alloc}_${delay}.o jitd_replay_dbop_set_${atomic}_${alloc}_${delay}.o jitd_replay_dbop_view_${atomic}_${alloc}_${delay}.o jitd_replay_dbop_toaster_${atomic}_${alloc}_${delay}.o harness_replay_dbop_naive_${alloc}_${thread}.o harness_replay_dbop_set_${alloc}_${thread}.o harness_replay_dbop_view_${alloc}_${thread}.o harness_replay_dbop_toaster_${alloc}_${thread}.o
+build_replay_dbop:  jitd_replay_dbop_naive_${atomic}_${alloc}_${delay}.o jitd_replay_dbop_set_${atomic}_${alloc}_${delay}.o jitd_replay_dbop_view_${atomic}_${alloc}_${delay}.o jitd_replay_dbop_toaster_${atomic}_${alloc}_${delay}.o jitd_replay_dbop_classic_${atomic}_${alloc}_${delay}.o harness_replay_dbop_naive_${alloc}_${thread}.o harness_replay_dbop_set_${alloc}_${thread}.o harness_replay_dbop_view_${alloc}_${thread}.o harness_replay_dbop_toaster_${alloc}_${thread}.o harness_replay_dbop_classic_${alloc}_${thread}.o
 	$(CC) $(CFLAGS) -o replay_dbop_naive.exe jitd_replay_dbop_naive_${atomic}_${alloc}_${delay}.o harness_replay_dbop_naive_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_NAIVE
 	$(CC) $(CFLAGS) -o replay_dbop_set.exe jitd_replay_dbop_set_${atomic}_${alloc}_${delay}.o harness_replay_dbop_set_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_JITD -D REPLAY_SET
 	$(CC) $(CFLAGS) -o replay_dbop_view.exe jitd_replay_dbop_view_${atomic}_${alloc}_${delay}.o harness_replay_dbop_view_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_JITD -D REPLAY_VIEW
 	$(CC) $(CFLAGS) -o replay_dbop_toaster.exe jitd_replay_dbop_toaster_${atomic}_${alloc}_${delay}.o harness_replay_dbop_toaster_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_TOASTER -D REPLAY_VIEW
+	$(CC) $(CFLAGS) -o replay_dbop_classic.exe jitd_replay_dbop_classic_${atomic}_${alloc}_${delay}.o harness_replay_dbop_classic_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_CLASSIC -D REPLAY_VIEW
 
-build_replay_node:  jitd_replay_node_naive_${atomic}_${alloc}_${delay}.o jitd_replay_node_set_${atomic}_${alloc}_${delay}.o jitd_replay_node_view_${atomic}_${alloc}_${delay}.o jitd_replay_node_toaster_${atomic}_${alloc}_${delay}.o harness_replay_node_naive_${alloc}_${thread}.o harness_replay_node_set_${alloc}_${thread}.o harness_replay_node_view_${alloc}_${thread}.o harness_replay_node_toaster_${alloc}_${thread}.o
+build_replay_node:  jitd_replay_node_naive_${atomic}_${alloc}_${delay}.o jitd_replay_node_set_${atomic}_${alloc}_${delay}.o jitd_replay_node_view_${atomic}_${alloc}_${delay}.o jitd_replay_node_toaster_${atomic}_${alloc}_${delay}.o jitd_replay_node_classic_${atomic}_${alloc}_${delay}.o harness_replay_node_naive_${alloc}_${thread}.o harness_replay_node_set_${alloc}_${thread}.o harness_replay_node_view_${alloc}_${thread}.o harness_replay_node_toaster_${alloc}_${thread}.o harness_replay_node_classic_${alloc}_${thread}.o
 	$(CC) $(CFLAGS) -o replay_node_naive.exe jitd_replay_node_naive_${atomic}_${alloc}_${delay}.o harness_replay_node_naive_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_NAIVE -D PER_NODE
 	$(CC) $(CFLAGS) -o replay_node_set.exe jitd_replay_node_set_${atomic}_${alloc}_${delay}.o harness_replay_node_set_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_JITD -D REPLAY_SET -D PER_NODE
 	$(CC) $(CFLAGS) -o replay_node_view.exe jitd_replay_node_view_${atomic}_${alloc}_${delay}.o harness_replay_node_view_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_JITD -D REPLAY_VIEW -D PER_NODE
 	$(CC) $(CFLAGS) -o replay_node_toaster.exe jitd_replay_node_toaster_${atomic}_${alloc}_${delay}.o harness_replay_node_toaster_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_TOASTER -D REPLAY_VIEW -D PER_NODE
+	$(CC) $(CFLAGS) -o replay_node_classic.exe jitd_replay_node_classic_${atomic}_${alloc}_${delay}.o harness_replay_node_classic_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_CLASSIC -D REPLAY_VIEW -D PER_NODE
 	@echo built with jitd storage with ${atomic} atomic, ${alloc} allocator, ${thread} thread, and ${delay} delay
 
-build_replay_trans:  jitd_replay_trans_naive_${atomic}_${alloc}_${delay}.o jitd_replay_trans_set_${atomic}_${alloc}_${delay}.o jitd_replay_trans_view_${atomic}_${alloc}_${delay}.o jitd_replay_trans_toaster_${atomic}_${alloc}_${delay}.o harness_replay_trans_naive_${alloc}_${thread}.o harness_replay_trans_set_${alloc}_${thread}.o harness_replay_trans_view_${alloc}_${thread}.o harness_replay_trans_toaster_${alloc}_${thread}.o
+build_replay_trans:  jitd_replay_trans_naive_${atomic}_${alloc}_${delay}.o jitd_replay_trans_set_${atomic}_${alloc}_${delay}.o jitd_replay_trans_view_${atomic}_${alloc}_${delay}.o jitd_replay_trans_toaster_${atomic}_${alloc}_${delay}.o jitd_replay_trans_classic_${atomic}_${alloc}_${delay}.o harness_replay_trans_naive_${alloc}_${thread}.o harness_replay_trans_set_${alloc}_${thread}.o harness_replay_trans_view_${alloc}_${thread}.o harness_replay_trans_toaster_${alloc}_${thread}.o harness_replay_trans_classic_${alloc}_${thread}.o
 	$(CC) $(CFLAGS) -o replay_trans_naive.exe jitd_replay_trans_naive_${atomic}_${alloc}_${delay}.o harness_replay_trans_naive_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_NAIVE -D PER_TRANS
 	$(CC) $(CFLAGS) -o replay_trans_set.exe jitd_replay_trans_set_${atomic}_${alloc}_${delay}.o harness_replay_trans_set_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_JITD -D REPLAY_SET -D PER_TRANS
 	$(CC) $(CFLAGS) -o replay_trans_view.exe jitd_replay_trans_view_${atomic}_${alloc}_${delay}.o harness_replay_trans_view_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_JITD -D REPLAY_VIEW -D PER_TRANS
 	$(CC) $(CFLAGS) -o replay_trans_toaster.exe jitd_replay_trans_toaster_${atomic}_${alloc}_${delay}.o harness_replay_trans_toaster_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_TOASTER -D REPLAY_VIEW -D PER_TRANS
+	$(CC) $(CFLAGS) -o replay_trans_classic.exe jitd_replay_trans_classic_${atomic}_${alloc}_${delay}.o harness_replay_trans_classic_${alloc}_${thread}.o $(TBB_LIBRARY) -ltbb -D REPLAY_CLASSIC -D REPLAY_VIEW -D PER_TRANS
 	@echo built with jitd storage with ${atomic} atomic, ${alloc} allocator, ${thread} thread, and ${delay} delay
 
 
@@ -106,6 +109,9 @@ jitd_replay_dbop_view_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H
 jitd_replay_dbop_toaster_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H) toaster_harness/toaster_maintenance.hpp
 	$(CC) $(CFLAGS) -o jitd_replay_dbop_toaster_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) $(TOASTER_INCLUDES) ${jitd_defines} -D REPLAY_TOASTER -D REPLAY_VIEW
 
+jitd_replay_dbop_classic_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H) toaster_harness/classic_maintenance.hpp
+	$(CC) $(CFLAGS) -o jitd_replay_dbop_classic_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) $(TOASTER_INCLUDES) ${jitd_defines} -D REPLAY_CLASSIC -D REPLAY_VIEW
+
 jitd_replay_node_naive_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H)
 	$(CC) $(CFLAGS) -o jitd_replay_node_naive_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) ${jitd_defines} -D REPLAY_NAIVE -D PER_NODE
 
@@ -118,6 +124,9 @@ jitd_replay_node_view_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H
 jitd_replay_node_toaster_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H) toaster_harness/toaster_maintenance.hpp
 	$(CC) $(CFLAGS) -o jitd_replay_node_toaster_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) $(TOASTER_INCLUDES) ${jitd_defines} -D REPLAY_TOASTER -D REPLAY_VIEW -D PER_NODE
 
+jitd_replay_node_classic_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H) toaster_harness/classic_maintenance.hpp
+	$(CC) $(CFLAGS) -o jitd_replay_node_classic_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) $(TOASTER_INCLUDES) ${jitd_defines} -D REPLAY_CLASSIC -D REPLAY_VIEW -D PER_NODE
+
 jitd_replay_trans_naive_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H)
 	$(CC) $(CFLAGS) -o jitd_replay_trans_naive_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) ${jitd_defines} -D REPLAY_NAIVE -D PER_TRANS
 
@@ -129,6 +138,9 @@ jitd_replay_trans_view_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_
 
 jitd_replay_trans_toaster_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H) toaster_harness/toaster_maintenance.hpp
 	$(CC) $(CFLAGS) -o jitd_replay_trans_toaster_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) $(TOASTER_INCLUDES) ${jitd_defines} -D REPLAY_TOASTER -D REPLAY_VIEW -D PER_TRANS
+
+jitd_replay_trans_classic_${atomic}_${alloc}_${delay}.o:  $(JITD_TEST_C) $(RUNTIME_H) $(JITD_TEST_H) $(HARNESS_H) toaster_harness/classic_maintenance.hpp
+	$(CC) $(CFLAGS) -o jitd_replay_trans_classic_${atomic}_${alloc}_${delay}.o -c $(JITD_TEST_C) $(INCLUDES) $(TOASTER_INCLUDES) ${jitd_defines} -D REPLAY_CLASSIC -D REPLAY_VIEW -D PER_TRANS
 
 
 harness_replay_dbop_naive_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
@@ -147,6 +159,10 @@ harness_replay_dbop_toaster_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $
 	@echo "#define STORAGE_JITD" > $(CONF_H)
 	$(CC) $(CFLAGS) -o harness_replay_dbop_toaster_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) $(TOASTER_INCLUDES) ${harness_defines} -D REPLAY_TOASTER -D REPLAY_VIEW
 
+harness_replay_dbop_classic_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
+	@echo "#define STORAGE_JITD" > $(CONF_H)
+	$(CC) $(CFLAGS) -o harness_replay_dbop_classic_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) $(TOASTER_INCLUDES) ${harness_defines} -D REPLAY_CLASSIC -D REPLAY_VIEW
+
 harness_replay_node_naive_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_JITD" > $(CONF_H)
 	$(CC) $(CFLAGS) -o harness_replay_node_naive_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) ${harness_defines} -D REPLAY_NAIVE -D PER_NODE
@@ -163,6 +179,10 @@ harness_replay_node_toaster_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $
 	@echo "#define STORAGE_JITD" > $(CONF_H)
 	$(CC) $(CFLAGS) -o harness_replay_node_toaster_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) $(TOASTER_INCLUDES) ${harness_defines} -D REPLAY_TOASTER -D REPLAY_VIEW -D PER_NODE
 
+harness_replay_node_classic_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
+	@echo "#define STORAGE_JITD" > $(CONF_H)
+	$(CC) $(CFLAGS) -o harness_replay_node_classic_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) $(TOASTER_INCLUDES) ${harness_defines} -D REPLAY_CLASSIC -D REPLAY_VIEW -D PER_NODE
+
 harness_replay_trans_naive_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_JITD" > $(CONF_H)
 	$(CC) $(CFLAGS) -o harness_replay_trans_naive_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) ${harness_defines} -D REPLAY_NAIVE -D PER_TRANS
@@ -178,6 +198,10 @@ harness_replay_trans_view_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(H
 harness_replay_trans_toaster_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
 	@echo "#define STORAGE_JITD" > $(CONF_H)
 	$(CC) $(CFLAGS) -o harness_replay_trans_toaster_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) $(TOASTER_INCLUDES) ${harness_defines} -D REPLAY_TOASTER -D REPLAY_VIEW -D PER_TRANS
+
+harness_replay_trans_classic_${alloc}_${thread}.o:  $(HARNESS_C) $(JITD_TEST_H) $(HARNESS_H)
+	@echo "#define STORAGE_JITD" > $(CONF_H)
+	$(CC) $(CFLAGS) -o harness_replay_trans_classic_${alloc}_${thread}.o -c $(HARNESS_C) $(INCLUDES) $(TOASTER_INCLUDES) ${harness_defines} -D REPLAY_CLASSIC -D REPLAY_VIEW -D PER_TRANS
 
 clean: 
 	$(RM) jitd_harness *.o *~ $(MAIN)
