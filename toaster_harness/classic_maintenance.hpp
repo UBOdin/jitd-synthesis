@@ -1239,9 +1239,9 @@ namespace dbtoaster {
       data_t data;
   };
   
-  class Toaster_maintenance : public Program {
+  class Classic_maintenance : public Program {
     public:
-      Toaster_maintenance(int argc = 0, char* argv[] = 0) : Program(argc, argv) { }
+      Classic_maintenance(int argc = 0, char* argv[] = 0) : Program(argc, argv) { }
   };
 
 }
