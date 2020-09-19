@@ -961,7 +961,7 @@ namespace dbtoaster {
     void on_insert_ARRAY(const long array_iter_id, const long array_node_self, const long array_size) {
       
       ++tN;
-      if (array_size > 100) {
+      if (array_size > __array_size) {
         QUERY_1_COUNT.addOrDelOnZero(se39.modify(array_node_self), 1);
       }
       
@@ -989,7 +989,7 @@ namespace dbtoaster {
     void on_delete_ARRAY(const long array_iter_id, const long array_node_self, const long array_size) {
       
       ++tN;
-      if ((array_size > 100)) {
+      if ((array_size > __array_size)) {
         QUERY_1_COUNT.addOrDelOnZero(se43.modify(array_node_self), -1);
       }
       
@@ -1092,7 +1092,7 @@ namespace dbtoaster {
       
     }
   
-  private:
+//  private:
     
       /* Preallocated map entries (to avoid recreation of temporary objects) */
       QUERY_3_COUNT_entry se1;
