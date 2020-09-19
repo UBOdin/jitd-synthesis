@@ -14,6 +14,9 @@ workload_list="a b c d f"
 run_list="0 1 2 3 4 5 6 7 8 9"
 #run_list="0 1 2"
 
+method_list="naive set view toaster classic"  # Search method
+
+class_list="node trans"  # Data classification method
 
 crack_size="1000"  # Will change
 prepopulate="30000000"  # A very big number; ensure all keys are pre-populated
@@ -81,101 +84,27 @@ for keyspace in $keyspace_list; do
 
 		for run in $run_list; do
 
-			# Per-node runs (naive, set, view, toaster, classic):
-			echo "\nRunning per-node run ${run}\n"
+			for class in $class_list; do
 
-			sleep 2
-			./replay_node_naive.exe $crack_size $prepopulate $sleep_time
-			if [ "$?" != "0" ]; then
-				echo "Error on node naive replay"
-				exit 1
-			fi
-			mv output_view_performance.txt view_results/naive_node_performance_${workload}_${run}.txt
-			mv output_data.txt view_results/naive_data_performance_${workload}_${run}.txt
+			# Per-{node / trans} runs (naive, set, view, toaster, classic):
+			echo "\nRunning per-${class} run ${run}\n"
 
-			sleep 2
-			./replay_node_set.exe $crack_size $prepopulate $sleep_time
-			if [ "$?" != "0" ]; then
-				echo "Error on node set replay"
-				exit 1
-			fi
-			mv output_view_performance.txt view_results/set_node_performance_${workload}_${run}.txt
-			mv output_data.txt view_results/set_data_performance_${workload}_${run}.txt
+				for method in $method_list; do
 
-			sleep 2
-			./replay_node_view.exe $crack_size $prepopulate $sleep_time
-			if [ "$?" != "0" ]; then
-				echo "Error on node view replay"
-				exit 1
-			fi
-			mv output_view_performance.txt view_results/jitd_node_performance_${workload}_${run}.txt
-			mv output_data.txt view_results/jitd_data_performance_${workload}_${run}.txt
+					sleep 2
+					./replay_${class}_${method}.exe $crack_size $prepopulate $sleep_time
+					if [ "$?" != "0" ]; then
+						echo "Error on ${class} ${method} replay"
+						exit 1
+					fi
+					mv output_view_performance.txt view_results/${method}_${class}_performance_${workload}_${run}.txt
+					if [ "${class}" = "node" ]; then
+						mv output_data.txt view_results/${method}_data_performance_${workload}_${run}.txt
+					fi
 
-			sleep 2
-			./replay_node_toaster.exe $crack_size $prepopulate $sleep_time
-			if [ "$?" != "0" ]; then
-				echo "Error on node toaster replay"
-				exit 1
-			fi
-			mv output_view_performance.txt view_results/toaster_node_performance_${workload}_${run}.txt
-			mv output_data.txt view_results/toaster_data_performance_${workload}_${run}.txt
+				done
 
-			sleep 2
-			./replay_node_classic.exe $crack_size $prepopulate $sleep_time
-			if [ "$?" != "0" ]; then
-				echo "Error on node classic replay"
-				exit 1
-			fi
-			mv output_view_performance.txt view_results/classic_node_performance_${workload}_${run}.txt
-			mv output_data.txt view_results/classic_data_performance_${workload}_${run}.txt
-
-			# Per-transform runs (naive, set, view, toaster, classic):
-			echo "\nRunning per-transform run ${run}\n"
-
-			sleep 2
-			./replay_trans_naive.exe $crack_size $prepopulate $sleep_time
-			if [ "$?" != "0" ]; then
-				echo "Error on transform naive replay"
-				exit 1
-			fi
-			mv output_view_performance.txt view_results/naive_trans_performance_${workload}_${run}.txt
-			#mv output_data.txt view_results/naive_data_performance_${workload}_${run}.txt
-
-			sleep 2
-			./replay_trans_set.exe $crack_size $prepopulate $sleep_time
-			if [ "$?" != "0" ]; then
-				echo "Error on transform set replay"
-				exit 1
-			fi
-			mv output_view_performance.txt view_results/set_trans_performance_${workload}_${run}.txt
-			#mv output_data.txt view_results/set_data_performance_${workload}_${run}.txt
-
-			sleep 2
-			./replay_trans_view.exe $crack_size $prepopulate $sleep_time
-			if [ "$?" != "0" ]; then
-				echo "Error on transform view replay"
-				exit 1
-			fi
-			mv output_view_performance.txt view_results/jitd_trans_performance_${workload}_${run}.txt
-			#mv output_data.txt view_results/jitd_data_performance_${workload}_${run}.txt
-
-			sleep 2
-			./replay_trans_toaster.exe $crack_size $prepopulate $sleep_time
-			if [ "$?" != "0" ]; then
-				echo "Error on transform toaster replay"
-				exit 1
-			fi
-			mv output_view_performance.txt view_results/toaster_trans_performance_${workload}_${run}.txt
-			#mv output_data.txt view_results/toaster_data_performance_${workload}_${run}.txt
-
-			sleep 2
-			./replay_trans_classic.exe $crack_size $prepopulate $sleep_time
-			if [ "$?" != "0" ]; then
-				echo "Error on transform classic replay"
-				exit 1
-			fi
-			mv output_view_performance.txt view_results/classic_trans_performance_${workload}_${run}.txt
-			#mv output_data.txt view_results/classic_data_performance_${workload}_${run}.txt
+			done
 
 		done
 
