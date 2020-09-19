@@ -11,9 +11,16 @@
 #include <map>
 #include "harness.hpp"
 
-#ifdef REPLAY_DBT
-
+#ifdef REPLAY_TOASTER
 #include "../toaster_harness/toaster_maintenance.hpp"
+#define REPLAY_DBT
+#endif
+#ifdef REPLAY_CLASSIC
+#include "../toaster_harness/classic_maintenance.hpp"
+#define REPLAY_DBT
+#endif
+
+#ifdef REPLAY_DBT
 
 #include "program_base.cpp"
 #include "event.cpp"
