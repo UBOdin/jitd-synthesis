@@ -1036,10 +1036,13 @@ int main(int argc, char** argv) {
 	#ifdef REPLAY_JITD
 	printf("Running REPLAY_JITD trace harness\n");
 	#endif
-	#ifdef REPLAY_DBT
-	printf("Running REPLAY_DBT trace harness\n");
+	#ifdef REPLAY_TOASTER
+	printf("Running REPLAY_TOASTER trace harness\n");
 	#endif
-	#if not defined REPLAY_JITD && not defined REPLAY_DBT
+	#ifdef REPLAY_CLASSIC
+	printf("Running REPLAY_CLASSIC trace harness\n");
+	#endif
+	#if not defined REPLAY_JITD && not defined REPLAY_TOASTER && not defined REPLAY_CLASSIC
 	printf("Running COLLECT trace harness\n");
 	#endif
 
@@ -1103,7 +1106,7 @@ int main(int argc, char** argv) {
 	printf("worker sleeptime:  %d\n", __sleep_time);
 	storage->jitd->get_node_count();
 
-	#if defined REPLAY_JITD || defined REPLAY_DBT || defined REPLAY_NAIVE
+	#if defined REPLAY_JITD || defined REPLAY_TOASTER || defined REPLAY_CLASSIC || defined REPLAY_NAIVE
 	replay_trace(storage);
 	_exit(0);
 	#endif
