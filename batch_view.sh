@@ -81,7 +81,7 @@ for keyspace in $keyspace_list; do
 
 		for run in $run_list; do
 
-			# Per-node runs (naive, set, view, dbt):
+			# Per-node runs (naive, set, view, toaster, classic):
 			echo "\nRunning per-node run ${run}\n"
 
 			sleep 2
@@ -112,15 +112,24 @@ for keyspace in $keyspace_list; do
 			mv output_data.txt view_results/jitd_data_performance_${workload}_${run}.txt
 
 			sleep 2
-			./replay_node_dbt.exe $crack_size $prepopulate $sleep_time
+			./replay_node_toaster.exe $crack_size $prepopulate $sleep_time
 			if [ "$?" != "0" ]; then
-				echo "Error on node dbt replay"
+				echo "Error on node toaster replay"
 				exit 1
 			fi
-			mv output_view_performance.txt view_results/dbt_node_performance_${workload}_${run}.txt
-			mv output_data.txt view_results/dbt_data_performance_${workload}_${run}.txt
+			mv output_view_performance.txt view_results/toaster_node_performance_${workload}_${run}.txt
+			mv output_data.txt view_results/toaster_data_performance_${workload}_${run}.txt
 
-			# Per-transform runs (naive, set, view, dbt):
+			sleep 2
+			./replay_node_classic.exe $crack_size $prepopulate $sleep_time
+			if [ "$?" != "0" ]; then
+				echo "Error on node classic replay"
+				exit 1
+			fi
+			mv output_view_performance.txt view_results/classic_node_performance_${workload}_${run}.txt
+			mv output_data.txt view_results/classic_data_performance_${workload}_${run}.txt
+
+			# Per-transform runs (naive, set, view, toaster, classic):
 			echo "\nRunning per-transform run ${run}\n"
 
 			sleep 2
@@ -151,13 +160,22 @@ for keyspace in $keyspace_list; do
 			#mv output_data.txt view_results/jitd_data_performance_${workload}_${run}.txt
 
 			sleep 2
-			./replay_trans_dbt.exe $crack_size $prepopulate $sleep_time
+			./replay_trans_toaster.exe $crack_size $prepopulate $sleep_time
 			if [ "$?" != "0" ]; then
-				echo "Error on transform dbt replay"
+				echo "Error on transform toaster replay"
 				exit 1
 			fi
-			mv output_view_performance.txt view_results/dbt_trans_performance_${workload}_${run}.txt
-			#mv output_data.txt view_results/dbt_data_performance_${workload}_${run}.txt
+			mv output_view_performance.txt view_results/toaster_trans_performance_${workload}_${run}.txt
+			#mv output_data.txt view_results/toaster_data_performance_${workload}_${run}.txt
+
+			sleep 2
+			./replay_trans_classic.exe $crack_size $prepopulate $sleep_time
+			if [ "$?" != "0" ]; then
+				echo "Error on transform classic replay"
+				exit 1
+			fi
+			mv output_view_performance.txt view_results/classic_trans_performance_${workload}_${run}.txt
+			#mv output_data.txt view_results/classic_data_performance_${workload}_${run}.txt
 
 		done
 
