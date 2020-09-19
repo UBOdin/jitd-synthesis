@@ -562,7 +562,7 @@ namespace dbtoaster {
       return QUERY_5_COUNT;
     }
   
-  protected:
+//  protected:
     /* Data structures used for storing / computing top-level queries */
     QUERY_1_COUNT_map QUERY_1_COUNT;
     QUERY_2_COUNT_map QUERY_2_COUNT;
@@ -1092,7 +1092,7 @@ namespace dbtoaster {
       
     }
   
-//  private:
+  private:
     
       /* Preallocated map entries (to avoid recreation of temporary objects) */
       QUERY_3_COUNT_entry se1;
@@ -1235,7 +1235,7 @@ namespace dbtoaster {
           return snapshot_t( d );
       }
   
-    protected:
+//    protected:
       data_t data;
   };
   
