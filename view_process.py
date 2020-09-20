@@ -27,9 +27,12 @@ name_dict = {0:"DeleteElemFromSingleton", 1:"DeleteKeyFromSingleton", 2:"DeleteS
 
 
 runcount = 3  # Number of runs in each dimension type
-xdim = 22 #10
-ydim =  12 #6
+#xdim = 22 #10
+#ydim =  12 #6
 
+xdim = 10
+ydim = 6
+savepdf = True
 
 def create_cdf(input_list, maxitem = None, scale = 1.0):
 
@@ -251,9 +254,12 @@ def graph_node_boxplots(workload):
 
 	ax_list.set_xticklabels(x_labels)
 
-	fig_list.savefig("view_graphs/view_node_boxplot_" + workload + ".png");
-	#fig_list.tight_layout()
-	#fig_list.savefig("view_graphs/view_node_boxplot_" + workload + ".pdf");
+	if (savepdf == True):
+		#fig_list.tight_layout()
+		fig_list.savefig("view_graphs/view_node_boxplot_" + workload + ".pdf");
+	else:
+		fig_list.savefig("view_graphs/view_node_boxplot_" + workload + ".png");
+	#endif
 
 	#plt.show()
 
@@ -402,8 +408,11 @@ def graph_transform_boxplots(workload):
 	ax_list.axis([0, 36, 0, 17000])
 	ax_list.set_xticklabels(x_labels)
 
-	fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".png");
-	#fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".pdf");
+	if (savepdf == True):
+		fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".pdf");
+	else:
+		fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".png");
+	#endif
 
 
 	bp_search = ax2_list.boxplot(boxplot_search_list, showmeans = False)
@@ -426,8 +435,11 @@ def graph_transform_boxplots(workload):
 	#  N.b. No data/plots for insert_singleton or remove_singleton -- these are mutate only
 	ax2_list.set_xticklabels(x_labels)
 
-	fig2_list.savefig("view_graphs/view_search_boxplot_" + workload + ".png");
-	#fig2_list.savefig("view_graphs/view_search_boxplot_" + workload + ".pdf");
+	if (savepdf == True):
+		fig2_list.savefig("view_graphs/view_search_boxplot_" + workload + ".pdf");
+	else:
+		fig2_list.savefig("view_graphs/view_search_boxplot_" + workload + ".png");
+	#endif
 
 
 	bp_total = ax3_list.boxplot([naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list], showmeans = True)
@@ -440,8 +452,11 @@ def graph_transform_boxplots(workload):
 	x_labels = ["Naive", "Set", "Classic", "DBT", "TT"]
 	ax3_list.set_xticklabels(x_labels)
 
-	fig3_list.savefig("view_graphs/view_total_boxplot_" + workload + ".png");
-	#fig3_list.savefig("view_graphs/view_total_boxplot_" + workload + ".pdf");
+	if (savepdf == True):
+		fig3_list.savefig("view_graphs/view_total_boxplot_" + workload + ".pdf");
+	else:
+		fig3_list.savefig("view_graphs/view_total_boxplot_" + workload + ".png");
+	#endif
 
 
 	#plt.show()

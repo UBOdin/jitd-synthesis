@@ -15,6 +15,14 @@ import math
 
 runcount = 10
 
+#xdim = 22
+#ydim = 12
+
+#xdim = 10
+#ydim = 6
+
+savepdf = True
+
 
 def process_loglines(input_file_name, results_list_list_list):
 
@@ -103,7 +111,7 @@ def graph_boxplot(workload):
 
 
 	fig1, ax1 = plt.subplots()
-	fig1.set_size_inches(22, 12)
+	fig1.set_size_inches(xdim, ydim)
 
 	for i in range(runcount):
 
@@ -155,11 +163,15 @@ def graph_boxplot(workload):
 	#x_labels[20] = "\n                                                                                                                         Upsert"
 	ax1.set_xticklabels(x_labels)
 
-	fig1.savefig("view_graphs/data_dbop_boxplot_" + workload + ".png");
+	if (savepdf == True):
+		fig1.savefig("view_graphs/data_dbop_boxplot_" + workload + ".pdf");
+	else:
+		fig1.savefig("view_graphs/data_dbop_boxplot_" + workload + ".png");
+	#endif
 
 
 	fig2_list, ax2_list = plt.subplots(1, 2)
-	fig2_list.set_size_inches(22, 12)
+	fig2_list.set_size_inches(xdim, ydim)
 
 	bp_latency = ax2_list[0].boxplot([naive_results_list_list_list[0], set_results_list_list_list[0], classic_results_list_list_list[0], toaster_results_list_list_list[0], jitd_results_list_list_list[0]])
 
@@ -186,7 +198,11 @@ def graph_boxplot(workload):
 	x_labels = ["Naive", "Set", "Classic", "DBT", "TT"]
 	ax2_list[1].set_xticklabels(x_labels)
 
-	fig2_list.savefig("view_graphs/data_memory_boxplot_" + workload + ".png");
+	if (savepdf == True):
+		fig2_list.savefig("view_graphs/data_memory_boxplot_" + workload + ".pdf");
+	else:
+		fig2_list.savefig("view_graphs/data_memory_boxplot_" + workload + ".png");
+	#endif
 
 
 	#plt.show()
