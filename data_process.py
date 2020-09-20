@@ -23,6 +23,12 @@ runcount = 10
 
 savepdf = True
 
+n_naive = "Naive"
+n_set = "Set"
+n_classic = "Clas"
+n_dbt = "DBT"
+n_tt = "TT"
+
 
 def process_loglines(input_file_name, results_list_list_list):
 
@@ -155,7 +161,7 @@ def graph_boxplot(workload):
 	ax1.axis([1, 19, 0, 300])
 
 	x_labels = ax1.get_xticklabels()
-	x_labels = ["", "Naive", "Set", "Classic", "DBT", "TT", "", "Naive", "Set", "Classic", "DBT", "TT", "", "Naive", "Set", "Classic", "DBT", "TT", ""]
+	x_labels = ["", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, ""]
 	x_labels[0] = "\n                                                                                                                           Insert"
 	x_labels[6] = "\n                                                                                                                           Select"
 	#x_labels[12] = "\n                                                                                                                         Delete"

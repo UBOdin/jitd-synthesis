@@ -26,13 +26,20 @@ name_dict = {0:"DeleteElemFromSingleton", 1:"DeleteKeyFromSingleton", 2:"DeleteS
 	14:"after_insert_singleton", 15:"PushDownAndCrack", 100:"searchFor"}
 
 
-runcount = 3  # Number of runs in each dimension type
+runcount = 10  # Number of runs in each dimension type
 #xdim = 22 #10
 #ydim =  12 #6
 
-xdim = 10
-ydim = 6
+xdim = 14
+ydim = 7
 savepdf = True
+
+n_naive = "Naive"
+n_set = "Set"
+n_classic = "Clas"
+n_dbt = "DBT"
+n_tt = "TT"
+
 
 def create_cdf(input_list, maxitem = None, scale = 1.0):
 
@@ -245,7 +252,7 @@ def graph_node_boxplots(workload):
 	ax_list.axis([1, 26, 0, 3000])
 
 	x_labels = ax_list.get_xticklabels()
-	x_labels = ["", "Set", "Clas", "DBT", "TT", "", "Set", "Clas", "DBT", "TT", "", "Set", "Clas", "DBT", "TT", "", "Set", "Clas", "DBT", "TT", "", "Set", "Clas", "DBT", "TT", ""]
+	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
 	x_labels[0] = "\n                                                                     Delete Singleton"
 	x_labels[5] = "\n                                                                          B-Tree"
 	x_labels[10] = "\n                                                                         Concat"
@@ -396,7 +403,7 @@ def graph_transform_boxplots(workload):
 
 	x_labels = ax_list.get_xticklabels()
 	#  N.b. No data/plots for naive -- no view maintenance structures to update
-	x_labels = ["", "Set", "Classic", "DBT", "TT", "", "Set", "Classic", "DBT", "TT", "", "Set", "Classic", "DBT", "TT", "", "Set", "Classic", "DBT", "TT", "", "Set", "Classic", "DBT", "TT", "", "Set", "Classic", "DBT", "TT", "", "Set", "Classic", "DBT", "TT", "", "Set", "Classic", "DBT", "TT", ""]
+	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
 	x_labels[0] = "\n                                                              DeleteSingletonFromArray"
 	x_labels[5] = "\n                                                             PushDownDontDelete\n                                              SingletonBtreeRight"
 	x_labels[10] = "\n                                                             PushDownDontDelete\n                                              SingeltonBtreeLeft"
@@ -420,12 +427,10 @@ def graph_transform_boxplots(workload):
 	ax2_list.set_title("Transform Search Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax2_list.set_xlabel("Transform Operation Type", fontsize = 14, fontweight = "bold")
 	ax2_list.set_ylabel("Search Latency", fontsize = 14, fontweight = "bold")
-	ax2_list.axis([1, 41, 0, 80000])
+	ax2_list.axis([1, 37, 0, 80000])
 
 	x_labels = ax2_list.get_xticklabels()
-	x_labels = ["", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", "", "naive", "set", "vm", "dbt", ""]
-
-	x_labels = ["", "Naive", "Set", "Classic", "DBT", "TT", "", "Naive", "Set", "Classic", "DBT", "TT", "", "Naive", "Set", "Classic", "DBT", "TT", "", "Naive", "Set", "Classic", "DBT", "TT", "", "Naive", "Set", "Classic", "DBT", "TT", "", "Naive", "Set", "Classic", "DBT", "TT", ""]
+	x_labels = ["", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, ""]
 	x_labels[0] = "\n                                                              DeleteSingletonFromArray"
 	x_labels[6] = "\n                                                             PushDownDontDelete\n                                              SingletonBtreeRight"
 	x_labels[12] = "\n                                                             PushDownDontDelete\n                                              SingeltonBtreeLeft"
