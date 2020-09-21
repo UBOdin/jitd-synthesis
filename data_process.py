@@ -26,7 +26,7 @@ setbox = False
 
 n_naive = "Naive"
 n_set = "Set"
-n_classic = "Clas"
+n_classic = "Classic"
 n_dbt = "DBT"
 n_tt = "TT"
 
@@ -96,7 +96,7 @@ def process_loglines(input_file_name, results_list_list_list):
 #end_def
 
 
-def graph_boxplot(workload):
+def get_memory_lists(workload):
 
 	# workload = ""
 	input_file_prefix = ""
@@ -115,7 +115,6 @@ def graph_boxplot(workload):
 		toaster_results_list_list_list[1].append([])
 		classic_results_list_list_list[1].append([])
 	#end_if
-
 
 	fig1, ax1 = plt.subplots()
 	if (setbox == True):
@@ -144,75 +143,74 @@ def graph_boxplot(workload):
 
 	#end_for
 
+	return naive_results_list_list_list, set_results_list_list_list, classic_results_list_list_list, toaster_results_list_list_list, jitd_results_list_list_list
 
-	boxplot_dbop_list = []
-	#for i in range(5):
-	for i in [0, 1, 3]:  # Delete (2) and Upsert (4) never used in YCSB
-		boxplot_dbop_list.append([])
-		boxplot_dbop_list.append(naive_results_list_list_list[1][i])
-		boxplot_dbop_list.append(set_results_list_list_list[1][i])
-		boxplot_dbop_list.append(classic_results_list_list_list[1][i])
-		boxplot_dbop_list.append(toaster_results_list_list_list[1][i])
-		boxplot_dbop_list.append(jitd_results_list_list_list[1][i])
+#end_def
+
+
+def graph_boxplot():
+
+	workload_list = ["a", "b", "c", "d", "f"]
+	#workload_list = ["a", "b", "d", "f"]
+	#workload_list = ["a", "f"]
+
+	naive_uber_list = []
+	set_uber_list = []
+	classic_uber_list = []
+	toaster_uber_list = []
+	jitd_uber_list = []
+
+	summary_list = []
+	summary_list.append([])
+
+	for workload in workload_list:
+		print("Processing maintenance " + workload)
+		naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list = get_memory_lists(workload)
+
+		#summary_list.append(naive_uber_list[2])
+		summary_list.append(set_uber_list[2])
+		summary_list.append(classic_uber_list[2])
+		summary_list.append(toaster_uber_list[2])
+		summary_list.append(jitd_uber_list[2])
+		summary_list.append([])
+
 	#end_for
 
-	bp_operations = ax1.boxplot(boxplot_dbop_list)
 
-	ax1.set_title("Database Per-Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax1.set_xlabel("Transform Selection and Database Operation Type", fontsize = 14, fontweight = "bold")
-	ax1.set_ylabel("Database Operation Latency", fontsize = 14, fontweight = "bold")
-	ax1.axis([1, 19, 0, 300])
+	fig2_list, ax2_list = plt.subplots()
 
-	x_labels = ax1.get_xticklabels()
-	x_labels = ["", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, ""]
-	x_labels[0] = "\n                                                                                                                           Insert"
-	x_labels[6] = "\n                                                                                                                           Select"
-	#x_labels[12] = "\n                                                                                                                         Delete"
-	x_labels[12] = "\n                                                                                                                          Update"
-	#x_labels[20] = "\n                                                                                                                         Upsert"
-	ax1.set_xticklabels(x_labels)
-
-	if (savepdf == True):
-		fig1.savefig("view_graphs/data_dbop_boxplot_" + workload + ".pdf");
-	else:
-		fig1.savefig("view_graphs/data_dbop_boxplot_" + workload + ".png");
-	#endif
-
-
-	fig2_list, ax2_list = plt.subplots(1, 2)
 	if (setbox == True):
-		fig2_list.set_size_inches(xdim, ydim)
+		fig2_list.set_size_inches(7, 8)
 	#end_if
 
-	bp_latency = ax2_list[0].boxplot([naive_results_list_list_list[0], set_results_list_list_list[0], classic_results_list_list_list[0], toaster_results_list_list_list[0], jitd_results_list_list_list[0]])
+	bp_latency = ax2_list.boxplot(summary_list)
 
-	ax2_list[0].set_title("Database Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax2_list[0].set_xlabel("Transform Selection Type", fontsize = 14, fontweight = "bold")
-	ax2_list[0].set_ylabel("Database Operation Latency", fontsize = 14, fontweight = "bold")
-	ax2_list[0].axis([0, 6, 0, 300])
+	ax2_list.set_title("Average Process Memory Usage By Workload", fontsize = 14, fontweight = "bold")
+	ax2_list.set_xlabel("Maintenance type and workload (YCSB)", fontsize = 14, fontweight = "bold")
+	ax2_list.set_ylabel("Average memory pages allocated", fontsize = 14, fontweight = "bold")
+	ax2_list.axis([1, len(workload_list) * 5 + 1, 0, 100000])
+	x_labels = ax2_list.get_xticklabels()
+	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
+	x_labels[0] = "\n\n\n                                YCSB-A"
+	x_labels[5] = "\n\n\n                                YCSB-B"
+	x_labels[10] = "\n\n\n                               YCSB-C"
+	x_labels[15] = "\n\n\n                               YCSB-D"
+	x_labels[20] = "\n\n\n                               YCSB-F"
+	#  N.b. No data/plots for insert_singleton or remove_singleton -- these are mutate only
+	ax2_list.set_xticklabels(x_labels)
 
-	x_labels = ax2_list[0].get_xticklabels()
-	x_labels = ["Naive", "Set", "Classic", "DBT", "TT"]
-	ax2_list[0].set_xticklabels(x_labels)
-
-	#fig2_list[0].savefig("view_graphs/data_latency_boxplot_" + workload + ".png");
-
-
-	bp_latency = ax2_list[1].boxplot([naive_results_list_list_list[2], set_results_list_list_list[2], classic_results_list_list_list[2], toaster_results_list_list_list[2], jitd_results_list_list_list[2]])
-
-	ax2_list[1].set_title("Per-Operation Process Memory Usage (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax2_list[1].set_xlabel("Transform Selection Type", fontsize = 14, fontweight = "bold")
-	ax2_list[1].set_ylabel("Virtual Memory Pages Allocated", fontsize = 14, fontweight = "bold")
-	ax2_list[1].axis([0, 6, 0, 100000])
-
-	x_labels = ax2_list[1].get_xticklabels()
-	x_labels = ["Naive", "Set", "Classic", "DBT", "TT"]
-	ax2_list[1].set_xticklabels(x_labels)
+	tick_list = ax2_list.get_xticklabels()
+	for i in range(len(tick_list)):
+		if (i % 5 != 0):
+			tick_list[i].set_rotation(-45)
+			tick_list[i].set_ha("left")
+		#end_if
+	#end_for
 
 	if (savepdf == True):
-		fig2_list.savefig("view_graphs/data_memory_boxplot_" + workload + ".pdf");
+		fig2_list.savefig("view_graphs/data_memory_boxplot.pdf", bbox_inches = "tight");
 	else:
-		fig2_list.savefig("view_graphs/data_memory_boxplot_" + workload + ".png");
+		fig2_list.savefig("view_graphs/data_memory_boxplot.png");
 	#endif
 
 
@@ -223,15 +221,7 @@ def graph_boxplot(workload):
 
 def main():
 
-	#workload_list = ["a", "b", "c", "d", "e", "f"]
-	#workload_list = ["a", "b", "c", "d", "f"]
-	workload_list = ["a", "f"]
-
-	for workload in workload_list:
-		print("Processing workload " + workload)
-		#graph_latency_timeline_pair(workload)
-		graph_boxplot(workload)
-	#end_for
+	graph_boxplot()
 
 #end_def
 
