@@ -35,9 +35,9 @@ ydim = 9
 savepdf = True
 setbox = True
 
-n_naive = "Nai"
+n_naive = "Naive"
 n_set = "Set"
-n_classic = "Clas"
+n_classic = "Classic"
 n_dbt = "DBT"
 n_tt = "TT"
 
@@ -208,11 +208,6 @@ def graph_node_boxplots(workload):
 		classic_results_list_list[1].append([])
 	#end_for
 
-	fig_list, ax_list = plt.subplots()  #1, 3, sharex = True)
-	if (setbox == True):
-		fig_list.set_size_inches(14, 4)
-	#endif
-
 	for i in range(runcount):
 
 		print(i)
@@ -246,6 +241,12 @@ def graph_node_boxplots(workload):
 
 	#end_for
 
+
+	fig_list, ax_list = plt.subplots()  #1, 3, sharex = True)
+	if (setbox == True):
+		fig_list.set_size_inches(14, 4)
+	#endif
+
 	bp = ax_list.boxplot(boxplot_list)
 
 	ax_list.set_title("Node (Table) Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
@@ -255,13 +256,21 @@ def graph_node_boxplots(workload):
 
 	x_labels = ax_list.get_xticklabels()
 	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
-	x_labels[0] = "\n                                               Delete Singleton"
-	x_labels[5] = "\n                                                 B-Tree"
-	x_labels[10] = "\n                                                Concat"
-	x_labels[15] = "\n                                                Array"
-	x_labels[20] = "\n                                                Singleton"
-
+	x_labels[0] = "\n\n                                               Delete Singleton"
+	x_labels[5] = "\n\n                                                 B-Tree"
+	x_labels[10] = "\n\n                                                Concat"
+	x_labels[15] = "\n\n                                                Array"
+	x_labels[20] = "\n\n                                                Singleton"
 	ax_list.set_xticklabels(x_labels)
+
+	tick_list = ax_list.get_xticklabels()
+	for i in range(len(tick_list)):
+		if (i % 5 != 0):
+			tick_list[i].set_rotation(-15)
+			tick_list[i].set_ha("left")
+		#end_if
+	#end_for
+
 
 	if (savepdf == True):
 		#fig_list.tight_layout()
@@ -420,7 +429,7 @@ def graph_transform_boxplots(workload):
 	tick_list = ax_list.get_xticklabels()
 	for i in range(len(tick_list)):
 		if (i % 5 != 0):
-			tick_list[i].set_rotation(-45)
+			tick_list[i].set_rotation(-15)
 			tick_list[i].set_ha("left")
 		#end_if
 	#end_for
@@ -458,7 +467,7 @@ def graph_transform_boxplots(workload):
 	tick_list = ax2_list.get_xticklabels()
 	for i in range(len(tick_list)):
 		if (i % 6 != 0):
-			tick_list[i].set_rotation(-45)
+			tick_list[i].set_rotation(-15)
 			tick_list[i].set_ha("left")
 		#end_if
 	#end_for
