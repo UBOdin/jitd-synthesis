@@ -22,6 +22,7 @@ runcount = 10
 #ydim = 6
 
 savepdf = True
+setbox = False
 
 n_naive = "Naive"
 n_set = "Set"
@@ -117,7 +118,9 @@ def graph_boxplot(workload):
 
 
 	fig1, ax1 = plt.subplots()
-	fig1.set_size_inches(xdim, ydim)
+	if (setbox == True):
+		fig1.set_size_inches(xdim, ydim)
+	#end_if
 
 	for i in range(runcount):
 
@@ -177,7 +180,9 @@ def graph_boxplot(workload):
 
 
 	fig2_list, ax2_list = plt.subplots(1, 2)
-	fig2_list.set_size_inches(xdim, ydim)
+	if (setbox == True):
+		fig2_list.set_size_inches(xdim, ydim)
+	#end_if
 
 	bp_latency = ax2_list[0].boxplot([naive_results_list_list_list[0], set_results_list_list_list[0], classic_results_list_list_list[0], toaster_results_list_list_list[0], jitd_results_list_list_list[0]])
 
