@@ -566,7 +566,7 @@ def graph_summary_boxplots():
 	fig3_list, ax3_list = plt.subplots()
 
 	if (setbox == True):
-		fig3_list.set_size_inches(7, 8)
+		fig3_list.set_size_inches(7, 5)
 	#end_if
 
 	#bp_total = ax3_list.boxplot([naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list], showmeans = True)
