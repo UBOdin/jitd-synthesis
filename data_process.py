@@ -180,7 +180,7 @@ def graph_boxplot():
 	fig2_list, ax2_list = plt.subplots()
 
 	if (setbox == True):
-		fig2_list.set_size_inches(7, 8)
+		fig2_list.set_size_inches(7, 5)
 	#end_if
 
 	bp_latency = ax2_list.boxplot(summary_list)
