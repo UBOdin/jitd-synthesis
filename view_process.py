@@ -26,12 +26,12 @@ name_dict = {0:"DeleteElemFromSingleton", 1:"DeleteKeyFromSingleton", 2:"DeleteS
 	14:"after_insert_singleton", 15:"PushDownAndCrack", 100:"searchFor"}
 
 
-runcount = 10  # Number of runs in each dimension type
+runcount = 3  # Number of runs in each dimension type
 #xdim = 22 #10
 #ydim =  12 #6
 
 xdim = 14
-ydim = 9 
+ydim = 9
 savepdf = True
 setbox = True
 
@@ -341,7 +341,8 @@ def graph_transform_boxplots(workload):
 	#boxplot_list.append([])
 	#for i in range(20):
 	# Skip node type 1 (DeleteElements) and 4 (SortedArray):
-	for i in [2, 4, 5, 7, 8, 9, 11, 14]:
+	#for i in [2, 4, 5, 7, 8, 9, 11, 14]:
+	for i in [4, 5, 7, 8, 9, 11, 14]:
 		boxplot_trans_list.append([])
 		# N.b. No transform view maintenance for naive -- naive_results_list_list[0][i]
 		boxplot_trans_list.append(set_results_list_list[0][i])
@@ -362,7 +363,8 @@ def graph_transform_boxplots(workload):
 	jitd_uber_list = []
 	toaster_uber_list = []
 	classic_uber_list = []
-	for i in [2, 4, 5, 7, 8, 9, 11, 14]:
+	#for i in [2, 4, 5, 7, 8, 9, 11, 14]:
+	for i in [4, 5, 7, 8, 9, 11, 14]:
 
 		# N.b. No transform view maintenance for naive -- naive_results_list_list[0][i]
 		for e in naive_results_list_list[2][i]:
@@ -411,17 +413,25 @@ def graph_transform_boxplots(workload):
 
 	x_labels = ax_list.get_xticklabels()
 	#  N.b. No data/plots for naive -- no view maintenance structures to update
-	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
-	x_labels[0] = "\n                                                 DeleteSingletonFromArray"
-	x_labels[5] = "\n                                                PushDownDontDelete\n                                              SingletonBtreeRight"
-	x_labels[10] = "\n                                                PushDownDontDelete\n                                              SingeltonBtreeLeft"
-	x_labels[15] = "\n                                              PushDownSingletonRight"
-	x_labels[20] = "\n                                              PushDownSingletonLeft"
-	x_labels[25] = "\n                                                   CrackArray"
-	x_labels[30] = "\n                                                remove_singleton"
-	x_labels[35] = "\n                                                insert_singleton"
-	ax_list.axis([0, 36, 0, 17000])
+	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
+	#x_labels[0] = "\n                                                 DeleteSingletonFromArray"
+	x_labels[0] = "\n\n                                        PushDownDontDelete\n                                          SingletonBtreeRight"
+	x_labels[5] = "\n\n                                        PushDownDontDelete\n                                          SingeltonBtreeLeft"
+	x_labels[10] = "\n\n                                          PushDown\n                                        SingletonRight"
+	x_labels[15] = "\n\n                                          PushDown\n                                        SingletonLeft"
+	x_labels[20] = "\n\n                                     CrackArray"
+	x_labels[25] = "\n\n                                    remove_singleton"
+	x_labels[30] = "\n\n                                    insert_singleton"
+	ax_list.axis([1, 36, 0, 17000])
 	ax_list.set_xticklabels(x_labels)
+
+	tick_list = ax_list.get_xticklabels()
+	for i in range(len(tick_list)):
+		if (i % 5 != 0):
+			tick_list[i].set_rotation(-45)
+			tick_list[i].set_ha("left")
+		#end_if
+	#end_for
 
 	if (savepdf == True):
 		fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".pdf");
@@ -435,16 +445,16 @@ def graph_transform_boxplots(workload):
 	ax2_list.set_title("Transform Search Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax2_list.set_xlabel("Transform Operation Type", fontsize = 14, fontweight = "bold")
 	ax2_list.set_ylabel("Search Latency", fontsize = 14, fontweight = "bold")
-	ax2_list.axis([1, 37, 0, 80000])
+	ax2_list.axis([1, 31, 0, 80000])
 
 	x_labels = ax2_list.get_xticklabels()
-	x_labels = ["", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, ""]
-	x_labels[0] = "\n\n                                              DeleteSingletonFromArray"
-	x_labels[6] = "\n\n                                               PushDownDontDelete\n                                              SingletonBtreeRight"
-	x_labels[12] = "\n\n                                              PushDownDontDelete\n                                              SingeltonBtreeLeft"
-	x_labels[18] = "\n\n                                                PushDownSingletonRight"
-	x_labels[24] = "\n\n                                                PushDownSingletonLeft"
-	x_labels[30] = "\n\n                                                CrackArray"
+	x_labels = ["", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, ""]
+	#x_labels[0] = "\n\n                                              DeleteSingletonFromArray"
+	x_labels[0] = "\n\n                                               PushDownDontDelete\n                                              SingletonBtreeRight"
+	x_labels[6] = "\n\n                                              PushDownDontDelete\n                                              SingeltonBtreeLeft"
+	x_labels[12] = "\n\n                                                PushDownSingletonRight"
+	x_labels[18] = "\n\n                                                PushDownSingletonLeft"
+	x_labels[24] = "\n\n                                                CrackArray"
 	#  N.b. No data/plots for insert_singleton or remove_singleton -- these are mutate only
 	ax2_list.set_xticklabels(x_labels)
 
