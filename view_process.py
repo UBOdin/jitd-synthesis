@@ -537,8 +537,8 @@ def get_uber_lists(workload):
 
 def graph_summary_boxplots():
 
-	#workload_list = ["a", "b", "c", "d", "f"]
-	workload_list = ["a", "b", "d", "f"]
+	workload_list = ["a", "b", "c", "d", "f"]
+	#workload_list = ["a", "b", "d", "f"]
 	#workload_list = ["a", "f"]
 
 	naive_uber_list = []
@@ -579,11 +579,11 @@ def graph_summary_boxplots():
 	ax3_list.axis([1, len(workload_list) * 5 + 1, 0, 10000])
 	x_labels = ax3_list.get_xticklabels()
 	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
-	x_labels[0] = "\n\n\n                                        YCSB-A"
-	x_labels[5] = "\n\n\n                                        YCSB-B"
-	#x_labels[10] = "\n\n\n                                       YCSB-C"
-	x_labels[10] = "\n\n\n                                       YCSB-D"
-	x_labels[15] = "\n\n\n                                       YCSB-F"
+	x_labels[0] = "\n\n\n                                    YCSB-A"
+	x_labels[5] = "\n\n\n                                    YCSB-B"
+	x_labels[10] = "\n\n\n                                   YCSB-C"
+	x_labels[15] = "\n\n\n                                   YCSB-D"
+	x_labels[20] = "\n\n\n                                   YCSB-F"
 	#  N.b. No data/plots for insert_singleton or remove_singleton -- these are mutate only
 	ax3_list.set_xticklabels(x_labels)
 
@@ -601,14 +601,6 @@ def graph_summary_boxplots():
 	else:
 		fig3_list.savefig("view_graphs/view_total_boxplot.png");
 	#endif
-
-
-
-	plt.show()
-
-	return
-
-
 
 	return
 
