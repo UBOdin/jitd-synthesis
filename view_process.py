@@ -210,7 +210,7 @@ def graph_node_boxplots(workload):
 
 	fig_list, ax_list = plt.subplots()  #1, 3, sharex = True)
 	if (setbox == True):
-		fig_list.set_size_inches(xdim, ydim)
+		fig_list.set_size_inches(14, 4)
 	#endif
 
 	for i in range(runcount):
@@ -251,7 +251,7 @@ def graph_node_boxplots(workload):
 	ax_list.set_title("Node (Table) Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax_list.set_xlabel("Node Operation Type", fontsize = 14, fontweight = "bold")
 	ax_list.set_ylabel("Operation Latency", fontsize = 14, fontweight = "bold")
-	ax_list.axis([1, 26, 0, 3000])
+	ax_list.axis([1, 26, 0, 1250])
 
 	x_labels = ax_list.get_xticklabels()
 	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
@@ -265,7 +265,7 @@ def graph_node_boxplots(workload):
 
 	if (savepdf == True):
 		#fig_list.tight_layout()
-		fig_list.savefig("view_graphs/view_node_boxplot_" + workload + ".pdf");
+		fig_list.savefig("view_graphs/view_node_boxplot_" + workload + ".pdf", bbox_inches = "tight");
 	else:
 		fig_list.savefig("view_graphs/view_node_boxplot_" + workload + ".png");
 	#endif
@@ -286,6 +286,7 @@ def graph_transform_boxplots(workload):
 	toaster_results_list_list = [[], [], []]
 	classic_results_list_list = [[], [], []]
 
+
 	for i in range(20):
 		naive_results_list_list[0].append([])
 		set_results_list_list[0].append([])
@@ -299,20 +300,6 @@ def graph_transform_boxplots(workload):
 		classic_results_list_list[2].append([])
 	#end_for
 
-	fig_list, ax_list = plt.subplots()
-	if (setbox == True):
-		fig_list.set_size_inches(xdim, ydim)
-	#end_if
-
-	fig2_list, ax2_list = plt.subplots()
-	if (setbox == True):
-		fig2_list.set_size_inches(xdim, ydim)
-	#end_if
-
-	fig3_list, ax3_list = plt.subplots()
-	if (setbox == True):
-		fig3_list.set_size_inches(xdim, ydim)
-	#end_if
 
 	for i in range(runcount):
 
@@ -404,6 +391,11 @@ def graph_transform_boxplots(workload):
 	#end_for
 
 
+	fig_list, ax_list = plt.subplots()
+	if (setbox == True):
+		fig_list.set_size_inches(14, 8)
+	#end_if
+
 	bp_trans = ax_list.boxplot(boxplot_trans_list)
 
 	ax_list.set_title("Transform Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
@@ -434,18 +426,23 @@ def graph_transform_boxplots(workload):
 	#end_for
 
 	if (savepdf == True):
-		fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".pdf");
+		fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".pdf", bbox_inches = "tight");
 	else:
 		fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".png");
 	#endif
 
+
+	fig2_list, ax2_list = plt.subplots()
+	if (setbox == True):
+		fig2_list.set_size_inches(14, 4)
+	#end_if
 
 	bp_search = ax2_list.boxplot(boxplot_search_list, showmeans = False)
 
 	ax2_list.set_title("Transform Search Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	ax2_list.set_xlabel("Transform Operation Type", fontsize = 14, fontweight = "bold")
 	ax2_list.set_ylabel("Search Latency", fontsize = 14, fontweight = "bold")
-	ax2_list.axis([1, 31, 0, 80000])
+	ax2_list.axis([1, 31, 0, 50000])
 
 	x_labels = ax2_list.get_xticklabels()
 	x_labels = ["", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, ""]
@@ -467,11 +464,16 @@ def graph_transform_boxplots(workload):
 	#end_for
 
 	if (savepdf == True):
-		fig2_list.savefig("view_graphs/view_search_boxplot_" + workload + ".pdf");
+		fig2_list.savefig("view_graphs/view_search_boxplot_" + workload + ".pdf", bbox_inches = "tight");
 	else:
 		fig2_list.savefig("view_graphs/view_search_boxplot_" + workload + ".png");
 	#endif
 
+
+	fig3_list, ax3_list = plt.subplots()
+	if (setbox == True):
+		fig3_list.set_size_inches(xdim, ydim)
+	#end_if
 
 	bp_total = ax3_list.boxplot([naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list], showmeans = True)
 
@@ -484,7 +486,7 @@ def graph_transform_boxplots(workload):
 	ax3_list.set_xticklabels(x_labels)
 
 	if (savepdf == True):
-		fig3_list.savefig("view_graphs/view_total_boxplot_" + workload + ".pdf");
+		fig3_list.savefig("view_graphs/view_total_boxplot_" + workload + ".pdf", bbox_inches = "tight");
 	else:
 		fig3_list.savefig("view_graphs/view_total_boxplot_" + workload + ".png");
 	#endif
