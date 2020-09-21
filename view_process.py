@@ -26,12 +26,12 @@ name_dict = {0:"DeleteElemFromSingleton", 1:"DeleteKeyFromSingleton", 2:"DeleteS
 	14:"after_insert_singleton", 15:"PushDownAndCrack", 100:"searchFor"}
 
 
-runcount = 3  # Number of runs in each dimension type
+runcount = 10  # Number of runs in each dimension type
 #xdim = 22 #10
 #ydim =  12 #6
 
 xdim = 14
-ydim = 9
+ydim = 2.5
 savepdf = True
 setbox = True
 
@@ -242,9 +242,9 @@ def graph_node_boxplots(workload):
 	#end_for
 
 
-	fig_list, ax_list = plt.subplots()  #1, 3, sharex = True)
+	fig_list, ax_list = plt.subplots()
 	if (setbox == True):
-		fig_list.set_size_inches(14, 4)
+		fig_list.set_size_inches(xdim, ydim)
 	#endif
 
 	bp = ax_list.boxplot(boxplot_list)
@@ -354,6 +354,7 @@ def graph_transform_boxplots(workload):
 	#end_for
 
 
+	'''
 	fig_list, ax_list = plt.subplots()
 	if (setbox == True):
 		fig_list.set_size_inches(14, 8)
@@ -393,11 +394,12 @@ def graph_transform_boxplots(workload):
 	else:
 		fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".png");
 	#endif
+	'''
 
 
 	fig2_list, ax2_list = plt.subplots()
 	if (setbox == True):
-		fig2_list.set_size_inches(14, 4)
+		fig2_list.set_size_inches(xdim, ydim)
 	#end_if
 
 	bp_search = ax2_list.boxplot(boxplot_search_list, showmeans = False)
@@ -610,8 +612,8 @@ def graph_summary_boxplots():
 def main():
 
 	#workload_list = ["a", "b", "c", "d", "e", "f"]
-	#workload_list = ["a", "b", "c", "d", "f"]
-	workload_list = ["a", "f"]
+	workload_list = ["a", "b", "c", "d", "f"]
+	#workload_list = ["a", "f"]
 
 	for workload in workload_list:
 		print("Processing maintenance " + workload)
@@ -622,7 +624,7 @@ def main():
 #end_def
 
 
-#main()
-graph_summary_boxplots()
+main()
+#graph_summary_boxplots()
 
 
