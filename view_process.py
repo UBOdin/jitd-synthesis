@@ -354,52 +354,6 @@ def graph_transform_boxplots(workload):
 	#end_for
 
 
-	naive_uber_list = []
-	set_uber_list = []
-	jitd_uber_list = []
-	toaster_uber_list = []
-	classic_uber_list = []
-	#for i in [2, 4, 5, 7, 8, 9, 11, 14]:
-	for i in [4, 5, 7, 8, 9, 11, 14]:
-
-		# N.b. No transform view maintenance for naive -- naive_results_list_list[0][i]
-		for e in naive_results_list_list[2][i]:
-			naive_uber_list.append(e)
-		#end_for
-
-		for e in set_results_list_list[0][i]:
-			set_uber_list.append(e)
-		#end_for
-		for e in set_results_list_list[2][i]:
-			set_uber_list.append(e)
-		#end_for
-
-		for e in jitd_results_list_list[0][i]:
-			jitd_uber_list.append(e)
-		#end_for
-		for e in jitd_results_list_list[2][i]:
-			jitd_uber_list.append(e)
-		#end_for
-
-		for e in toaster_results_list_list[0][i]:
-			toaster_uber_list.append(e)
-		#end_for
-
-		for e in toaster_results_list_list[2][i]:
-			toaster_uber_list.append(e)
-		#end_for
-
-		for e in classic_results_list_list[0][i]:
-			classic_uber_list.append(e)
-		#end_for
-
-		for e in classic_results_list_list[2][i]:
-			classic_uber_list.append(e)
-		#end_for
-
-	#end_for
-
-
 	fig_list, ax_list = plt.subplots()
 	if (setbox == True):
 		fig_list.set_size_inches(14, 8)
@@ -479,29 +433,184 @@ def graph_transform_boxplots(workload):
 	#endif
 
 
+	#plt.show()
+
+	return
+
+#end_def
+
+
+def get_uber_lists(workload):
+
+	# workload = ""
+	input_file_prefix = ""
+	input_file_name = ""
+	naive_results_list_list = [[], [], []]
+	set_results_list_list = [[], [], []]
+	jitd_results_list_list = [[], [], []]
+	toaster_results_list_list = [[], [], []]
+	classic_results_list_list = [[], [], []]
+
+
+	for i in range(20):
+		naive_results_list_list[0].append([])
+		set_results_list_list[0].append([])
+		jitd_results_list_list[0].append([])
+		toaster_results_list_list[0].append([])
+		classic_results_list_list[0].append([])
+		naive_results_list_list[2].append([])
+		set_results_list_list[2].append([])
+		jitd_results_list_list[2].append([])
+		toaster_results_list_list[2].append([])
+		classic_results_list_list[2].append([])
+	#end_for
+
+
+	for i in range(runcount):
+
+		print(i)
+
+		input_file_name = "view_results/naive_trans_performance_" + workload + "_" + str(i) + ".txt"
+		process_loglines(input_file_name, naive_results_list_list, 2)
+
+		input_file_name = "view_results/set_trans_performance_" + workload + "_" + str(i) + ".txt"
+		process_loglines(input_file_name, set_results_list_list, 2)
+
+		input_file_name = "view_results/view_trans_performance_" + workload + "_" + str(i) + ".txt"
+		process_loglines(input_file_name, jitd_results_list_list, 2)
+
+		input_file_name = "view_results/toaster_trans_performance_" + workload + "_" + str(i) + ".txt"
+		process_loglines(input_file_name, toaster_results_list_list, 2)
+
+		input_file_name = "view_results/classic_trans_performance_" + workload + "_" + str(i) + ".txt"
+		process_loglines(input_file_name, classic_results_list_list, 2)
+
+	#end_for
+
+
+	naive_uber_list = []
+	set_uber_list = []
+	jitd_uber_list = []
+	toaster_uber_list = []
+	classic_uber_list = []
+	#for i in [2, 4, 5, 7, 8, 9, 11, 14]:
+	for i in [4, 5, 7, 8, 9, 11, 14]:
+
+		'''
+		for e in naive_results_list_list[2][i]:
+			naive_uber_list.append(e)
+		#end_for
+		for e in set_results_list_list[2][i]:
+			set_uber_list.append(e)
+		#end_for
+		for e in jitd_results_list_list[2][i]:
+			jitd_uber_list.append(e)
+		#end_for
+		for e in toaster_results_list_list[2][i]:
+			toaster_uber_list.append(e)
+		#end_for
+		for e in classic_results_list_list[2][i]:
+			classic_uber_list.append(e)
+		#end_for
+		'''
+
+		# N.b. No transform view maintenance for naive -- naive_results_list_list[0][i]
+		for e in set_results_list_list[0][i]:
+			set_uber_list.append(e)
+		#end_for
+		for e in jitd_results_list_list[0][i]:
+			jitd_uber_list.append(e)
+		#end_for
+		for e in toaster_results_list_list[0][i]:
+			toaster_uber_list.append(e)
+		#end_for
+		for e in classic_results_list_list[0][i]:
+			classic_uber_list.append(e)
+		#end_for
+
+	#end_for
+
+	return naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list
+
+#end_def
+
+
+def graph_summary_boxplots():
+
+	#workload_list = ["a", "b", "c", "d", "f"]
+	workload_list = ["a", "b", "d", "f"]
+	#workload_list = ["a", "f"]
+
+	naive_uber_list = []
+	set_uber_list = []
+	classic_uber_list = []
+	toaster_uber_list = []
+	jitd_uber_list = []
+
+	summary_list = []
+	summary_list.append([])
+
+	for workload in workload_list:
+		print("Processing maintenance " + workload)
+		naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list = get_uber_lists(workload)
+
+		#summary_list.append(naive_uber_list)
+		summary_list.append(set_uber_list)
+		summary_list.append(classic_uber_list)
+		summary_list.append(toaster_uber_list)
+		summary_list.append(jitd_uber_list)
+		summary_list.append([])
+
+	#end_for
+
 	fig3_list, ax3_list = plt.subplots()
+
 	if (setbox == True):
-		fig3_list.set_size_inches(xdim, ydim)
+		fig3_list.set_size_inches(7, 8)
 	#end_if
 
-	bp_total = ax3_list.boxplot([naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list], showmeans = True)
+	#bp_total = ax3_list.boxplot([naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list], showmeans = True)
+	bp_total = ax3_list.boxplot(summary_list)
 
-	ax3_list.set_title("Average View Operation Latency by Type (Search + Maintenance) (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax3_list.set_xlabel("Maintenance Method", fontsize = 14, fontweight = "bold")
-	ax3_list.set_ylabel("Average View Operation Latency (Search + Maintnenace)", fontsize = 14, fontweight = "bold")
-	ax3_list.axis([0, 6, 0, 120000])
+
+	ax3_list.set_title("Average View Operation Latency By Workload", fontsize = 14, fontweight = "bold")
+	ax3_list.set_xlabel("Maintenance type and workload (YCSB)", fontsize = 14, fontweight = "bold")
+	ax3_list.set_ylabel("Average View Operation Latency", fontsize = 14, fontweight = "bold")
+	ax3_list.axis([1, len(workload_list) * 5 + 1, 0, 10000])
 	x_labels = ax3_list.get_xticklabels()
-	x_labels = ["Naive", "Set", "Classic", "DBT", "TT"]
+	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
+	x_labels[0] = "\n\n\n                                        YCSB-A"
+	x_labels[5] = "\n\n\n                                        YCSB-B"
+	#x_labels[10] = "\n\n\n                                       YCSB-C"
+	x_labels[10] = "\n\n\n                                       YCSB-D"
+	x_labels[15] = "\n\n\n                                       YCSB-F"
+	#  N.b. No data/plots for insert_singleton or remove_singleton -- these are mutate only
 	ax3_list.set_xticklabels(x_labels)
 
+	tick_list = ax3_list.get_xticklabels()
+	for i in range(len(tick_list)):
+		if (i % 5 != 0):
+			tick_list[i].set_rotation(-45)
+			tick_list[i].set_ha("left")
+		#end_if
+	#end_for
+
+
 	if (savepdf == True):
-		fig3_list.savefig("view_graphs/view_total_boxplot_" + workload + ".pdf", bbox_inches = "tight");
+		fig3_list.savefig("view_graphs/view_total_boxplot.pdf", bbox_inches = "tight");
 	else:
-		fig3_list.savefig("view_graphs/view_total_boxplot_" + workload + ".png");
+		fig3_list.savefig("view_graphs/view_total_boxplot.png");
 	#endif
 
 
-	#plt.show()
+
+	plt.show()
+
+	return
+
+
+
+	return
 
 #end_def
 
@@ -521,6 +630,7 @@ def main():
 #end_def
 
 
-main()
+#main()
+graph_summary_boxplots()
 
 
