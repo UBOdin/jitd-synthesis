@@ -582,7 +582,6 @@ def graph_summary_boxplots():
 	#bp_total = ax3_list.boxplot([naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list], showmeans = True)
 	bp_total = ax3_list.boxplot(summary_list)
 
-
 	ax3_list.set_title("Average View Operation Latency By Workload", fontsize = 14, fontweight = "bold")
 	ax3_list.set_xlabel("Maintenance type and workload (YCSB)", fontsize = 14, fontweight = "bold")
 	ax3_list.set_ylabel("Average View Operation Latency", fontsize = 14, fontweight = "bold")
@@ -605,14 +604,43 @@ def graph_summary_boxplots():
 		#end_if
 	#end_for
 
-
 	if (savepdf == True):
 		fig3_list.savefig("view_graphs/view_total_boxplot.pdf", bbox_inches = "tight");
 	else:
 		fig3_list.savefig("view_graphs/view_total_boxplot.png");
 	#endif
 
-	return
+	#return
+
+
+	line_list = []
+	median = 0
+	boxplot_output_file_obj = open("boxplot_output.txt", "w")
+	output_line = ""
+
+	line_list = bp_total["medians"]  # boxplot return value is a dictionary -- get medians
+
+	for line in line_list:
+		# line is a pyplot line2d object
+		# get_ydata() returns a 2-tuple of redundant values
+		# so, get_ydata()[0] returns a float (or a "nan")
+		median = line.get_ydata()[0]
+		if (math.isnan(median) == True):
+			output_line = "0\n"
+		else:
+			output_line = str(median) + "\n"
+		#end_if
+		boxplot_output_file_obj.write(output_line)
+	#end_for
+
+	boxplot_output_file_obj.close()
+
+	print("Early exit")
+	exit(0)
+
+
+
+
 
 #end_def
 
@@ -632,7 +660,7 @@ def main():
 #end_def
 
 
-main()
-#graph_summary_boxplots()
+#main()
+graph_summary_boxplots()
 
 
