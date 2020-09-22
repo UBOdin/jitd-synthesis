@@ -12,6 +12,8 @@ import numpy as np
 import matplotlib.patches as mpatches
 import math
 
+from matplotlib.patches import Patch
+from matplotlib.lines import Line2D
 
 runcount = 10
 
@@ -263,11 +265,34 @@ def graph_boxplot():
 	#end_if
 
 	for e, f, g in zip(range(len(view_cost_list)), view_cost_list, memory_list):
+		if (e % 5 == 0):
+			continue
+		#end_if
 		print(f, g)
 		color = color_list[e % 5]
 		marker = marker_list[int(e / 5)]
-		ax3.scatter(f, g, s = 100, color = color, marker = marker)
+		ax3.scatter(f, g, s = 40, color = color, marker = marker)
 	#end_for
+
+	ax3.set_title("Latency / Memory Crossplot", fontsize = 14, fontweight = "bold")
+	ax3.set_xlabel("Average total latency (search + maintenance)", fontsize = 14, fontweight = "bold")
+	ax3.set_ylabel("Average memory\npages allocated", fontsize = 14, fontweight = "bold")
+	ax3.axis([0, 25000, 0, 80000])
+
+	handle_list = []
+
+	handle_list.append(Patch(color = "black", label = "Set"))
+	handle_list.append(Patch(color = "blue", label = "Classic"))
+	handle_list.append(Patch(color = "red", label = "DBT"))
+	handle_list.append(Patch(color = "green", label = "TT"))
+
+	handle_list.append(Line2D([], [], marker = "o", color = "black", label = "YCSB A", linewidth = 0))
+	handle_list.append(Line2D([], [], marker = "s", color = "black", label = "YCSB B", linewidth = 0))
+	handle_list.append(Line2D([], [], marker = "<", color = "black", label = "YCSB C", linewidth = 0))
+	handle_list.append(Line2D([], [], marker = ">", color = "black", label = "YCSB D", linewidth = 0))
+	handle_list.append(Line2D([], [], marker = "P", color = "black", label = "YCSB F", linewidth = 0))
+
+	ax3.legend(handles = handle_list, loc = "upper right")
 
 	fig3.savefig("foo.pdf")
 
