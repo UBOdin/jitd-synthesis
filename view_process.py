@@ -576,7 +576,7 @@ def graph_summary_boxplots():
 	fig3_list, ax3_list = plt.subplots()
 
 	if (setbox == True):
-		fig3_list.set_size_inches(7, 5)
+		fig3_list.set_size_inches(7, 3)
 	#end_if
 
 	#bp_total = ax3_list.boxplot([naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list], showmeans = True)
@@ -584,7 +584,7 @@ def graph_summary_boxplots():
 
 	ax3_list.set_title("Average View Operation Latency By Workload", fontsize = 14, fontweight = "bold")
 	ax3_list.set_xlabel("Maintenance type and workload (YCSB)", fontsize = 14, fontweight = "bold")
-	ax3_list.set_ylabel("Average View Operation Latency", fontsize = 14, fontweight = "bold")
+	ax3_list.set_ylabel("Average View\nOperation Latency", fontsize = 14, fontweight = "bold")
 	ax3_list.axis([1, len(workload_list) * 5 + 1, 0, 10000])
 	x_labels = ax3_list.get_xticklabels()
 	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
