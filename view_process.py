@@ -36,7 +36,7 @@ savepdf = True
 setbox = True
 
 n_naive = "Naive"
-n_set = "Set"
+n_set = "Index"
 n_classic = "Classic"
 n_dbt = "DBT"
 n_tt = "TT"
@@ -166,7 +166,9 @@ def process_loglines(input_file_name, results_list_list, datatype):
 			elif ((trans_type == 11) or (trans_type == 14)):
 				search_total = 0  # Clear previous search latency
 			else:
-				trans_list_list[trans_type].append(search_total + delta_total)
+				#trans_list_list[trans_type].append(search_total + delta_total)
+				trans_list_list[trans_type].append(delta_total)
+
 				search_total = 0  # Reset sum
 			#end_if
 		else:
@@ -253,10 +255,10 @@ def graph_node_boxplots(workload):
 
 	bp = ax_list.boxplot(boxplot_list)
 
-	ax_list.set_title("Node (Table) Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list.set_xlabel("Node Operation Type", fontsize = 14, fontweight = "bold")
-	ax_list.set_ylabel("Operation Latency", fontsize = 14, fontweight = "bold")
-	ax_list.axis([1, 26, 0, 1250])
+	#ax_list.set_title("Node (Table) Operation Latency (Workload " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
+	#ax_list.set_xlabel("Node operation type", fontsize = 14, fontweight = "bold")
+	ax_list.set_ylabel("Operation latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
+	#ax_list.axis([1, 26, 0, 1250])
 
 	x_labels = ax_list.get_xticklabels()
 	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
@@ -276,7 +278,7 @@ def graph_node_boxplots(workload):
 	#end_for
 
 	if (workload == "d"):
-		ax_list.annotate("  N/A -- YCSB D has\nno delete operations", xy = (1.8, 550))
+		ax_list.annotate("  N/A -- Workload D has\nno delete operations", xy = (1.8, 550))
 	#end_if
 
 	if (savepdf == True):
@@ -284,6 +286,9 @@ def graph_node_boxplots(workload):
 		fig_list.savefig("view_graphs/view_node_boxplot_" + workload + ".pdf", bbox_inches = "tight");
 	else:
 		fig_list.savefig("view_graphs/view_node_boxplot_" + workload + ".png");
+	#endif
+	fig_list.savefig("view_graphs/view_node_boxplot_" + workload + ".png");
+
 	#endif
 
 	#plt.show()
@@ -368,20 +373,20 @@ def graph_transform_boxplots(workload):
 
 	bp_trans = ax_list.boxplot(boxplot_trans_list)
 
-	ax_list.set_title("Transform Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list.set_xlabel("Target Transform Operation (Node) Type (View)", fontsize = 14, fontweight = "bold")
-	ax_list.set_ylabel("Operation Latency", fontsize = 14, fontweight = "bold")
+	#ax_list.set_title("Transform Operation Latency (Workload " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
+	#ax_list.set_xlabel("Target transform operation (Node) Type (View)", fontsize = 14, fontweight = "bold")
+	ax_list.set_ylabel("Operation latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
 	ax_list.axis([1, 26, 0, 20000])
 
 	x_labels = ax_list.get_xticklabels()
 	#  N.b. No data/plots for naive -- no view maintenance structures to update
 	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
 	#x_labels[0] = "\n                                                 DeleteSingletonFromArray"
-	x_labels[0] = "\n\n                                        PushDownDontDelete\n                                          SingletonBtreeRight"
-	x_labels[5] = "\n\n                                        PushDownDontDelete\n                                          SingeltonBtreeLeft"
-	x_labels[10] = "\n\n                                          PushDown\n                                        SingletonRight"
-	x_labels[15] = "\n\n                                          PushDown\n                                        SingletonLeft"
-	x_labels[20] = "\n\n                                     CrackArray"
+	x_labels[0] = "\n\n                                                PushDownDontDelete\n                                              SingletonBtreeRight"
+	x_labels[5] = "\n\n                                                PushDownDontDelete\n                                              SingeltonBtreeLeft"
+	x_labels[10] = "\n\n                                                  PushDown\n                                                    SingletonRight"
+	x_labels[15] = "\n\n                                                  PushDown\n                                                    SingletonLeft"
+	x_labels[20] = "\n\n                                             CrackArray"
 	#x_labels[25] = "\n\n                                    remove_singleton"
 	#x_labels[30] = "\n\n                                    insert_singleton"
 	ax_list.set_xticklabels(x_labels)
@@ -395,7 +400,7 @@ def graph_transform_boxplots(workload):
 	#end_for
 
 	if (workload == "d"):
-		ax_list.annotate("N/A -- YCSB D has no delete operations", xy = (3, 10000))
+		ax_list.annotate("N/A -- Workload D has no delete operations", xy = (3, 10000))
 	#end_if
 
 	if (savepdf == True):
@@ -412,19 +417,19 @@ def graph_transform_boxplots(workload):
 
 	bp_search = ax2_list.boxplot(boxplot_search_list, showmeans = False)
 
-	ax2_list.set_title("Target Node Search Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax2_list.set_xlabel("Target Transform Operation (Node) Type (View)", fontsize = 14, fontweight = "bold")
-	ax2_list.set_ylabel("Search Latency", fontsize = 14, fontweight = "bold")
+	#ax2_list.set_title("Target Node Search Latency (Workload " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
+	#ax2_list.set_xlabel("Target Transform Operation (Node) Type (View)", fontsize = 14, fontweight = "bold")
+	ax2_list.set_ylabel("Search Latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
 	ax2_list.axis([1, 31, 0, 50000])
 
 	x_labels = ax2_list.get_xticklabels()
 	x_labels = ["", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, ""]
 	#x_labels[0] = "\n\n                                              DeleteSingletonFromArray"
-	x_labels[0] = "\n\n                                               PushDownDontDelete\n                                              SingletonBtreeRight"
-	x_labels[6] = "\n\n                                              PushDownDontDelete\n                                              SingeltonBtreeLeft"
-	x_labels[12] = "\n\n                                                PushDownSingletonRight"
-	x_labels[18] = "\n\n                                                PushDownSingletonLeft"
-	x_labels[24] = "\n\n                                                CrackArray"
+	x_labels[0] = "\n\n                                                   PushDownDontDelete\n                                                    SingletonBtreeRight"
+	x_labels[6] = "\n\n                                                  PushDownDontDelete\n                                                  SingeltonBtreeLeft"
+	x_labels[12] = "\n\n                                                    PushDownSingletonRight"
+	x_labels[18] = "\n\n                                                    PushDownSingletonLeft"
+	x_labels[24] = "\n\n                                                    CrackArray"
 	#  N.b. No data/plots for insert_singleton or remove_singleton -- these are mutate only
 	ax2_list.set_xticklabels(x_labels)
 
@@ -583,16 +588,16 @@ def graph_summary_boxplots():
 	bp_total = ax3_list.boxplot(summary_list)
 
 	ax3_list.set_title("Average View Operation Latency By Workload", fontsize = 14, fontweight = "bold")
-	ax3_list.set_xlabel("Maintenance type and workload (YCSB)", fontsize = 14, fontweight = "bold")
-	ax3_list.set_ylabel("Average View\nOperation Latency", fontsize = 14, fontweight = "bold")
+	ax3_list.set_xlabel("Maintenance type and workload", fontsize = 14, fontweight = "bold")
+	ax3_list.set_ylabel("Average latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
 	ax3_list.axis([1, len(workload_list) * 5 + 1, 0, 10000])
 	x_labels = ax3_list.get_xticklabels()
 	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
-	x_labels[0] = "\n\n\n                                    YCSB-A"
-	x_labels[5] = "\n\n\n                                    YCSB-B"
-	x_labels[10] = "\n\n\n                                   YCSB-C"
-	x_labels[15] = "\n\n\n                                   YCSB-D"
-	x_labels[20] = "\n\n\n                                   YCSB-F"
+	x_labels[0] = "\n\n\n                                Workload A"
+	x_labels[5] = "\n\n\n                                Workload B"
+	x_labels[10] = "\n\n\n                               Workload C"
+	x_labels[15] = "\n\n\n                               Workload D"
+	x_labels[20] = "\n\n\n                               Workload F"
 	#  N.b. No data/plots for insert_singleton or remove_singleton -- these are mutate only
 	ax3_list.set_xticklabels(x_labels)
 
@@ -610,7 +615,7 @@ def graph_summary_boxplots():
 		fig3_list.savefig("view_graphs/view_total_boxplot.png");
 	#endif
 
-	#return
+	return
 
 
 	line_list = []
@@ -635,12 +640,7 @@ def graph_summary_boxplots():
 
 	boxplot_output_file_obj.close()
 
-	print("Early exit")
-	exit(0)
-
-
-
-
+	return
 
 #end_def
 
@@ -660,7 +660,7 @@ def main():
 #end_def
 
 
-#main()
-graph_summary_boxplots()
+main()
+#graph_summary_boxplots()
 
 
