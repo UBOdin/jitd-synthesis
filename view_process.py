@@ -89,7 +89,7 @@ def process_loglines(input_file_name, results_list_list, datatype):
 	# results_list_list = []
 	# datatype = 0  # Node or transform + search collection
 	input_file_obj = "" # file obj
-	iteration = 0
+	iteration = -1
 	logline = ""
 	logline_list = []
 	trans_type = 0
@@ -97,6 +97,7 @@ def process_loglines(input_file_name, results_list_list, datatype):
 	delta1 = 0
 	delta2 = 0
 	delta_total = 0
+	search_total = 0
 
 	trans_list_list = results_list_list[0]
 	node_list_list = results_list_list[1]
@@ -112,7 +113,7 @@ def process_loglines(input_file_name, results_list_list, datatype):
 	input_file_obj = open(input_file_name, "r")
 	#input_file_obj = open(input_file_name, "r")
 
-	logline = input_file_obj.readline()  # Skip first line
+	#logline = input_file_obj.readline()  # Skip first line
 
 	while (True):
 
@@ -158,12 +159,15 @@ def process_loglines(input_file_name, results_list_list, datatype):
 			if (trans_type < 100):
 				node_list_list[node_type].append(delta_total)
 			#end_if
-		#end_if
 		elif (datatype == 2):  # Collect transform + search data:
-			if (trans_type < 100):
-				trans_list_list[trans_type].append(delta_total)
-			else:
+			if (trans_type >= 100):
 				search_list_list[trans_type - 100].append(delta_total)
+				search_total += delta_total
+			elif ((trans_type == 11) or (trans_type == 14)):
+				search_total = 0  # Clear previous search latency
+			else:
+				trans_list_list[trans_type].append(search_total + delta_total)
+				search_total = 0  # Reset sum
 			#end_if
 		else:
 			print("Invalid data type")
@@ -271,6 +275,9 @@ def graph_node_boxplots(workload):
 		#end_if
 	#end_for
 
+	if (workload == "d"):
+		ax_list.annotate("  N/A -- YCSB D has\nno delete operations", xy = (1.8, 550))
+	#end_if
 
 	if (savepdf == True):
 		#fig_list.tight_layout()
@@ -354,31 +361,29 @@ def graph_transform_boxplots(workload):
 	#end_for
 
 
-	'''
 	fig_list, ax_list = plt.subplots()
 	if (setbox == True):
-		fig_list.set_size_inches(14, 8)
+		fig_list.set_size_inches(xdim, ydim)
 	#end_if
 
 	bp_trans = ax_list.boxplot(boxplot_trans_list)
 
 	ax_list.set_title("Transform Operation Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax_list.set_xlabel("Transform Operation Type", fontsize = 14, fontweight = "bold")
+	ax_list.set_xlabel("Target Transform Operation (Node) Type (View)", fontsize = 14, fontweight = "bold")
 	ax_list.set_ylabel("Operation Latency", fontsize = 14, fontweight = "bold")
-	#ax_list.axis([1, (4 * 8 + 1), 0, 20000])
+	ax_list.axis([1, 26, 0, 20000])
 
 	x_labels = ax_list.get_xticklabels()
 	#  N.b. No data/plots for naive -- no view maintenance structures to update
-	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
+	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
 	#x_labels[0] = "\n                                                 DeleteSingletonFromArray"
 	x_labels[0] = "\n\n                                        PushDownDontDelete\n                                          SingletonBtreeRight"
 	x_labels[5] = "\n\n                                        PushDownDontDelete\n                                          SingeltonBtreeLeft"
 	x_labels[10] = "\n\n                                          PushDown\n                                        SingletonRight"
 	x_labels[15] = "\n\n                                          PushDown\n                                        SingletonLeft"
 	x_labels[20] = "\n\n                                     CrackArray"
-	x_labels[25] = "\n\n                                    remove_singleton"
-	x_labels[30] = "\n\n                                    insert_singleton"
-	ax_list.axis([1, 36, 0, 17000])
+	#x_labels[25] = "\n\n                                    remove_singleton"
+	#x_labels[30] = "\n\n                                    insert_singleton"
 	ax_list.set_xticklabels(x_labels)
 
 	tick_list = ax_list.get_xticklabels()
@@ -389,12 +394,15 @@ def graph_transform_boxplots(workload):
 		#end_if
 	#end_for
 
+	if (workload == "d"):
+		ax_list.annotate("N/A -- YCSB D has no delete operations", xy = (3, 10000))
+	#end_if
+
 	if (savepdf == True):
 		fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".pdf", bbox_inches = "tight");
 	else:
 		fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".png");
 	#endif
-	'''
 
 
 	fig2_list, ax2_list = plt.subplots()
@@ -404,8 +412,8 @@ def graph_transform_boxplots(workload):
 
 	bp_search = ax2_list.boxplot(boxplot_search_list, showmeans = False)
 
-	ax2_list.set_title("Transform Search Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
-	ax2_list.set_xlabel("Transform Operation Type", fontsize = 14, fontweight = "bold")
+	ax2_list.set_title("Target Node Search Latency (YCSB " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
+	ax2_list.set_xlabel("Target Transform Operation (Node) Type (View)", fontsize = 14, fontweight = "bold")
 	ax2_list.set_ylabel("Search Latency", fontsize = 14, fontweight = "bold")
 	ax2_list.axis([1, 31, 0, 50000])
 
