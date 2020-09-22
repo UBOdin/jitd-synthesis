@@ -622,7 +622,9 @@ VIEW_END;
               /*** ViewMaintenanceParent ***/
 VIEW_START;
 #if defined REPLAY_SET
+_NODE_START;
               this->JITD_NODE_DeleteSingleton_set.erase(target);
+node_end(0, 8);
               SetPqErase(&(target_root_node->lhs));
               SetPqErase(&(target_root_node->rhs));
 #endif
@@ -653,7 +655,9 @@ VIEW_END;
 VIEW_START;
 #if defined REPLAY_SET
               SetPqAdd(&(to_ptr->lhs));
+_NODE_START;
               this->JITD_NODE_DeleteSingleton_set.emplace(&(to_ptr->rhs));
+node_end(1, 8);
               SetPqAdd(&(to_ptr_rhs->node));
 #endif
 #if defined REPLAY_VIEW
@@ -736,7 +740,9 @@ VIEW_END;
               /*** ViewMaintenanceParent ***/
 VIEW_START;
 #if defined REPLAY_SET
+_NODE_START;
               this->JITD_NODE_DeleteSingleton_set.erase(target);
+node_end(0, 8);
               SetPqErase(&(target_root_node->lhs));
               SetPqErase(&(target_root_node->rhs));
 #endif
@@ -766,7 +772,9 @@ VIEW_END;
               /*** ViewMaintenanceParent ***/
 VIEW_START;
 #if defined REPLAY_SET
+_NODE_START;
               this->JITD_NODE_DeleteSingleton_set.emplace(&(to_ptr->lhs));
+node_end(1, 8);
               SetPqAdd(&(to_ptr_lhs->node));
               SetPqAdd(&(to_ptr->rhs));
 #endif
@@ -982,7 +990,9 @@ VIEW_END;
                   /*** ViewMaintenanceParent ***/
 VIEW_START;
 #if defined REPLAY_SET
+_NODE_START;
                   this->JITD_NODE_Concat_set.erase(target);
+node_end(0, 7);
                   SetPqErase(&(target_root_lhs->lhs));
                   SetPqErase(&(target_root_lhs->rhs));
 #endif
@@ -1017,7 +1027,9 @@ VIEW_END;
 VIEW_START;
 #if defined REPLAY_SET
                   SetPqAdd(&(to_ptr->lhs));
+_NODE_START;
                   this->JITD_NODE_Concat_set.emplace(&(to_ptr->rhs));
+node_end(1, 7);
                   SetPqAdd(&(to_ptr_rhs->lhs));
 #endif
 #if defined REPLAY_VIEW
@@ -1124,7 +1136,9 @@ VIEW_END;
                   /*** ViewMaintenanceParent ***/
 VIEW_START;
 #if defined REPLAY_SET
+_NODE_START;
                   this->JITD_NODE_Concat_set.erase(target);
+node_end(0, 7);
                   SetPqErase(&(target_root_lhs->lhs));
                   SetPqErase(&(target_root_lhs->rhs));
 #endif
@@ -1158,7 +1172,9 @@ VIEW_END;
                   /*** ViewMaintenanceParent ***/
 VIEW_START;
 #if defined REPLAY_SET
+_NODE_START;
                   this->JITD_NODE_Concat_set.emplace(&(to_ptr->lhs));
+node_end(1, 7);
                   SetPqAdd(&(to_ptr_lhs->lhs));
                   SetPqAdd(&(to_ptr->rhs));
 #endif
@@ -1394,7 +1410,9 @@ VIEW_END;
           /*** ViewMaintenanceParent ***/
 VIEW_START;
 #if defined REPLAY_SET
+_NODE_START;
           this->CrackArray_PQ.erase(target);
+node_end(0, 9);
           //this->SortArray_PQ.erase(target);
 #endif
 #if defined REPLAY_VIEW
@@ -1425,9 +1443,13 @@ VIEW_END;
           /*** ViewMaintenanceParent ***/
 VIEW_START;
 #if defined REPLAY_SET
+_NODE_START;
           this->CrackArray_PQ.emplace(&(to_ptr->lhs));
+node_end(1, 9);
           //this->SortArray_PQ.emplace(&(to_ptr->lhs));
+_NODE_START;
           this->CrackArray_PQ.emplace(&(to_ptr->rhs));
+node_end(1, 9);
           //this->SortArray_PQ.emplace(&(to_ptr->rhs));
 #endif
 #if defined REPLAY_VIEW
