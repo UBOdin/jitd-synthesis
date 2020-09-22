@@ -27,7 +27,7 @@ savepdf = True
 setbox = True
 
 n_naive = "Naive"
-n_set = "Set"
+n_set = "Index"
 n_classic = "Classic"
 n_dbt = "DBT"
 n_tt = "TT"
@@ -183,16 +183,16 @@ def graph_boxplot():
 	bp_latency = ax2_list.boxplot(summary_list)
 
 	ax2_list.set_title("Average Process Memory Usage By Workload", fontsize = 14, fontweight = "bold")
-	ax2_list.set_xlabel("Maintenance type and workload (YCSB)", fontsize = 14, fontweight = "bold")
+	ax2_list.set_xlabel("Maintenance type and workload", fontsize = 14, fontweight = "bold")
 	ax2_list.set_ylabel("Average memory\npages allocated", fontsize = 14, fontweight = "bold")
 	ax2_list.axis([1, len(workload_list) * 5 + 1, 0, 100000])
 	x_labels = ax2_list.get_xticklabels()
 	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
-	x_labels[0] = "\n\n\n                                YCSB-A"
-	x_labels[5] = "\n\n\n                                YCSB-B"
-	x_labels[10] = "\n\n\n                               YCSB-C"
-	x_labels[15] = "\n\n\n                               YCSB-D"
-	x_labels[20] = "\n\n\n                               YCSB-F"
+	x_labels[0] = "\n\n\n                            Workload A"
+	x_labels[5] = "\n\n\n                            Workload B"
+	x_labels[10] = "\n\n\n                           Workload C"
+	x_labels[15] = "\n\n\n                           Workload D"
+	x_labels[20] = "\n\n\n                           Workload F"
 	#  N.b. No data/plots for insert_singleton or remove_singleton -- these are mutate only
 	ax2_list.set_xticklabels(x_labels)
 
@@ -209,6 +209,8 @@ def graph_boxplot():
 	else:
 		fig2_list.savefig("view_graphs/data_memory_boxplot.png");
 	#endif
+
+	return
 
 
 	line_list = []
@@ -245,7 +247,6 @@ def graph_boxplot():
 	print(memory_list)
 
 
-	plt.close()
 	fig3, ax3 = plt.subplots()
 
 	'''
@@ -286,16 +287,17 @@ def graph_boxplot():
 	handle_list.append(Patch(color = "red", label = "DBT"))
 	handle_list.append(Patch(color = "green", label = "TT"))
 
-	handle_list.append(Line2D([], [], marker = "o", color = "black", label = "YCSB A", linewidth = 0))
-	handle_list.append(Line2D([], [], marker = "s", color = "black", label = "YCSB B", linewidth = 0))
-	handle_list.append(Line2D([], [], marker = "<", color = "black", label = "YCSB C", linewidth = 0))
-	handle_list.append(Line2D([], [], marker = ">", color = "black", label = "YCSB D", linewidth = 0))
-	handle_list.append(Line2D([], [], marker = "P", color = "black", label = "YCSB F", linewidth = 0))
+	handle_list.append(Line2D([], [], marker = "o", color = "black", label = "Workload A", linewidth = 0))
+	handle_list.append(Line2D([], [], marker = "s", color = "black", label = "Workload B", linewidth = 0))
+	handle_list.append(Line2D([], [], marker = "<", color = "black", label = "Workload C", linewidth = 0))
+	handle_list.append(Line2D([], [], marker = ">", color = "black", label = "Workload D", linewidth = 0))
+	handle_list.append(Line2D([], [], marker = "P", color = "black", label = "Workload F", linewidth = 0))
 
 	ax3.legend(handles = handle_list, loc = "upper right")
 
-	fig3.savefig("foo.pdf")
+	fig3.savefig("crossplot.pdf")
 
+	return
 
 #end_def
 
