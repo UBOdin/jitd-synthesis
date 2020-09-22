@@ -22,7 +22,7 @@ runcount = 10
 #ydim = 6
 
 savepdf = True
-setbox = False
+setbox = True
 
 n_naive = "Naive"
 n_set = "Set"
@@ -116,11 +116,6 @@ def get_memory_lists(workload):
 		classic_results_list_list_list[1].append([])
 	#end_if
 
-	fig1, ax1 = plt.subplots()
-	if (setbox == True):
-		fig1.set_size_inches(xdim, ydim)
-	#end_if
-
 	for i in range(runcount):
 
 		print(i)
@@ -180,14 +175,14 @@ def graph_boxplot():
 	fig2_list, ax2_list = plt.subplots()
 
 	if (setbox == True):
-		fig2_list.set_size_inches(7, 5)
+		fig2_list.set_size_inches(7, 3)
 	#end_if
 
 	bp_latency = ax2_list.boxplot(summary_list)
 
 	ax2_list.set_title("Average Process Memory Usage By Workload", fontsize = 14, fontweight = "bold")
 	ax2_list.set_xlabel("Maintenance type and workload (YCSB)", fontsize = 14, fontweight = "bold")
-	ax2_list.set_ylabel("Average memory pages allocated", fontsize = 14, fontweight = "bold")
+	ax2_list.set_ylabel("Average memory\npages allocated", fontsize = 14, fontweight = "bold")
 	ax2_list.axis([1, len(workload_list) * 5 + 1, 0, 100000])
 	x_labels = ax2_list.get_xticklabels()
 	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
@@ -214,7 +209,68 @@ def graph_boxplot():
 	#endif
 
 
-	#plt.show()
+	line_list = []
+	median = 0
+	memory_list = []
+	view_cost_list = []
+	boxplot_input_file_obj = open("boxplot_output.txt")
+	input_line = ""
+
+	while (True):
+		input_line =  boxplot_input_file_obj.readline()
+		if (input_line == ""):
+			break
+		#end_if
+		view_cost_list.append(float(input_line))
+	#end_while
+
+	line_list = bp_latency["medians"]  # boxplot return value is a dictionary -- get medians
+
+	for line in line_list:
+		# line is a pyplot line2d object
+		# get_ydata() returns a 2-tuple of redundant values
+		# so, get_ydata()[0] returns a float (or a "nan")
+		median = line.get_ydata()[0]
+		if (math.isnan(median) == True):
+			memory_list.append(0.0)
+		else:
+			memory_list.append(float(median))
+		#end_if
+	#end_for
+
+	print(view_cost_list)
+	print("")
+	print(memory_list)
+
+
+	plt.close()
+	fig3, ax3 = plt.subplots()
+
+	'''
+	if (setbox == True):
+		fig3_list.set_size_inches(7, 5)
+	#end_if
+	'''
+
+	color_list = ["orange", "black", "blue", "red", "green"]
+	color = ""
+	marker_list = ["o", "s", "<", ">", "P", "*"]
+	marker = ""
+
+	if (len(view_cost_list) != len(memory_list)):
+		print("Error:  Mismatched lists")
+		exit(1)
+	#end_if
+
+	for e, f, g in zip(range(len(view_cost_list)), view_cost_list, memory_list):
+		print(f, g)
+		color = color_list[e % 5]
+		marker = marker_list[int(e / 5)]
+		ax3.scatter(f, g, s = 100, color = color, marker = marker)
+	#end_for
+
+	fig3.savefig("foo.pdf")
+
 
 #end_def
 
