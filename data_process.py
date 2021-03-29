@@ -164,7 +164,7 @@ def graph_boxplot():
 		print("Processing maintenance " + workload)
 		naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list = get_memory_lists(workload)
 
-		#summary_list.append(naive_uber_list[2])
+		summary_list.append(naive_uber_list[2])
 		summary_list.append(set_uber_list[2])
 		summary_list.append(classic_uber_list[2])
 		summary_list.append(toaster_uber_list[2])
@@ -210,7 +210,7 @@ def graph_boxplot():
 		fig2_list.savefig("view_graphs/data_memory_boxplot.png");
 	#endif
 
-	return
+	#return
 
 
 	line_list = []
@@ -255,7 +255,7 @@ def graph_boxplot():
 	#end_if
 	'''
 
-	color_list = ["orange", "black", "blue", "red", "green"]
+	color_list = ["brown", "orange", "black", "blue", "red", "green"]
 	color = ""
 	marker_list = ["o", "s", "<", ">", "P", "*"]
 	marker = ""
@@ -266,22 +266,23 @@ def graph_boxplot():
 	#end_if
 
 	for e, f, g in zip(range(len(view_cost_list)), view_cost_list, memory_list):
-		if (e % 5 == 0):
-			continue
+		#if (e % 5 == 0):
+		#	continue
 		#end_if
 		print(f, g)
-		color = color_list[e % 5]
-		marker = marker_list[int(e / 5)]
+		color = color_list[e % 6]
+		marker = marker_list[int(e / 6)]
 		ax3.scatter(f, g, s = 40, color = color, marker = marker)
 	#end_for
 
 	ax3.set_title("Latency / Memory Crossplot", fontsize = 14, fontweight = "bold")
 	ax3.set_xlabel("Average total latency (search + maintenance)", fontsize = 14, fontweight = "bold")
 	ax3.set_ylabel("Average memory\npages allocated", fontsize = 14, fontweight = "bold")
-	ax3.axis([0, 25000, 0, 80000])
+	ax3.axis([0, 15000, 0, 90000])
 
 	handle_list = []
 
+	handle_list.append(Patch(color = "orange", label = "Naive"))
 	handle_list.append(Patch(color = "black", label = "Set"))
 	handle_list.append(Patch(color = "blue", label = "Classic"))
 	handle_list.append(Patch(color = "red", label = "DBT"))

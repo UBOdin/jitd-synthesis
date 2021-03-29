@@ -31,7 +31,7 @@ runcount = 10  # Number of runs in each dimension type
 #ydim =  12 #6
 
 xdim = 14
-ydim = 2.5
+ydim = 2
 savepdf = True
 setbox = True
 
@@ -156,6 +156,14 @@ def process_loglines(input_file_name, results_list_list, datatype):
 		if (datatype == 1):  # Collect node data
 			node_type = int(logline_list[7])
 			# Read operations (>= 100) are not node table maintenance operations.  Skip:
+			if (node_type == 7):
+				node_type = 3
+			elif (node_type == 8):
+				node_type = 0
+			elif (node_type == 9):
+				node_type = 5
+			#end_if
+
 			if (trans_type < 100):
 				node_list_list[node_type].append(delta_total)
 			#end_if
@@ -166,8 +174,8 @@ def process_loglines(input_file_name, results_list_list, datatype):
 			elif ((trans_type == 11) or (trans_type == 14)):
 				search_total = 0  # Clear previous search latency
 			else:
-				#trans_list_list[trans_type].append(search_total + delta_total)
-				trans_list_list[trans_type].append(delta_total)
+				trans_list_list[trans_type].append(search_total + delta_total)
+				#trans_list_list[trans_type].append(delta_total)
 
 				search_total = 0  # Reset sum
 			#end_if
@@ -207,7 +215,7 @@ def graph_node_boxplots(workload):
 	toaster_results_list_list = [[], [], []]
 	classic_results_list_list = [[], [], []]
 
-	for i in range(7):
+	for i in range(10):
 		set_results_list_list[1].append([])
 		jitd_results_list_list[1].append([])
 		toaster_results_list_list[1].append([])
@@ -258,7 +266,7 @@ def graph_node_boxplots(workload):
 	#ax_list.set_title("Node (Table) Operation Latency (Workload " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	#ax_list.set_xlabel("Node operation type", fontsize = 14, fontweight = "bold")
 	ax_list.set_ylabel("Operation latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
-	#ax_list.axis([1, 26, 0, 1250])
+	ax_list.axis([1, 26, 0, 1250])
 
 	x_labels = ax_list.get_xticklabels()
 	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
@@ -287,7 +295,6 @@ def graph_node_boxplots(workload):
 	else:
 		fig_list.savefig("view_graphs/view_node_boxplot_" + workload + ".png");
 	#endif
-	fig_list.savefig("view_graphs/view_node_boxplot_" + workload + ".png");
 
 	#endif
 
@@ -376,7 +383,7 @@ def graph_transform_boxplots(workload):
 	#ax_list.set_title("Transform Operation Latency (Workload " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	#ax_list.set_xlabel("Target transform operation (Node) Type (View)", fontsize = 14, fontweight = "bold")
 	ax_list.set_ylabel("Operation latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
-	ax_list.axis([1, 26, 0, 20000])
+	ax_list.axis([1, 26, 0, 10000])
 
 	x_labels = ax_list.get_xticklabels()
 	#  N.b. No data/plots for naive -- no view maintenance structures to update
@@ -398,6 +405,10 @@ def graph_transform_boxplots(workload):
 			tick_list[i].set_ha("left")
 		#end_if
 	#end_for
+
+	if (workload == "c"):
+		ax_list.annotate("N/A -- Workload C has no delete or singleton operations", xy = (7, 10000))
+	#end_if
 
 	if (workload == "d"):
 		ax_list.annotate("N/A -- Workload D has no delete operations", xy = (3, 10000))
@@ -511,7 +522,7 @@ def get_uber_lists(workload):
 	#for i in [2, 4, 5, 7, 8, 9, 11, 14]:
 	for i in [4, 5, 7, 8, 9, 11, 14]:
 
-		'''
+		#'''
 		for e in naive_results_list_list[2][i]:
 			naive_uber_list.append(e)
 		#end_for
@@ -527,7 +538,7 @@ def get_uber_lists(workload):
 		for e in classic_results_list_list[2][i]:
 			classic_uber_list.append(e)
 		#end_for
-		'''
+		#'''
 
 		# N.b. No transform view maintenance for naive -- naive_results_list_list[0][i]
 		for e in set_results_list_list[0][i]:
@@ -569,7 +580,7 @@ def graph_summary_boxplots():
 		print("Processing maintenance " + workload)
 		naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list = get_uber_lists(workload)
 
-		#summary_list.append(naive_uber_list)
+		summary_list.append(naive_uber_list)
 		summary_list.append(set_uber_list)
 		summary_list.append(classic_uber_list)
 		summary_list.append(toaster_uber_list)
@@ -590,7 +601,7 @@ def graph_summary_boxplots():
 	ax3_list.set_title("Average View Operation Latency By Workload", fontsize = 14, fontweight = "bold")
 	ax3_list.set_xlabel("Maintenance type and workload", fontsize = 14, fontweight = "bold")
 	ax3_list.set_ylabel("Average latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
-	ax3_list.axis([1, len(workload_list) * 5 + 1, 0, 10000])
+	ax3_list.axis([1, len(workload_list) * 5 + 1, 0, 20000])
 	x_labels = ax3_list.get_xticklabels()
 	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
 	x_labels[0] = "\n\n\n                                Workload A"
@@ -615,7 +626,7 @@ def graph_summary_boxplots():
 		fig3_list.savefig("view_graphs/view_total_boxplot.png");
 	#endif
 
-	return
+	#return
 
 
 	line_list = []
@@ -660,7 +671,7 @@ def main():
 #end_def
 
 
-main()
-#graph_summary_boxplots()
+#main()
+graph_summary_boxplots()
 
 
