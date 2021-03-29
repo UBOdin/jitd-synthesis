@@ -383,7 +383,7 @@ def graph_transform_boxplots(workload):
 	#ax_list.set_title("Transform Operation Latency (Workload " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	#ax_list.set_xlabel("Target transform operation (Node) Type (View)", fontsize = 14, fontweight = "bold")
 	ax_list.set_ylabel("Operation latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
-	ax_list.axis([1, 26, 0, 10000])
+	ax_list.axis([1, 26, 0, 30000])  # SIZE PARAMETERS:  TRANSFORM GRAPHS
 
 	x_labels = ax_list.get_xticklabels()
 	#  N.b. No data/plots for naive -- no view maintenance structures to update
@@ -431,7 +431,7 @@ def graph_transform_boxplots(workload):
 	#ax2_list.set_title("Target Node Search Latency (Workload " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	#ax2_list.set_xlabel("Target Transform Operation (Node) Type (View)", fontsize = 14, fontweight = "bold")
 	ax2_list.set_ylabel("Search Latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
-	ax2_list.axis([1, 31, 0, 50000])
+	ax2_list.axis([1, 31, 0, 160000])  # SIZE PARAMETERS:  SEARCH GRAPHS
 
 	x_labels = ax2_list.get_xticklabels()
 	x_labels = ["", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, ""]
@@ -671,7 +671,7 @@ def main():
 #end_def
 
 
-#main()
-graph_summary_boxplots()
+main()
+#graph_summary_boxplots()
 
 
