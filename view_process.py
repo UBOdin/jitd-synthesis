@@ -176,6 +176,7 @@ def process_loglines(input_file_name, results_list_list, datatype):
 			else:
 				trans_list_list[trans_type].append(search_total + delta_total)
 				#trans_list_list[trans_type].append(delta_total)
+				#trans_list_list[trans_type].append(search_total)
 
 				search_total = 0  # Reset sum
 			#end_if
@@ -380,10 +381,13 @@ def graph_transform_boxplots(workload):
 
 	bp_trans = ax_list.boxplot(boxplot_trans_list)
 
+	height_dict = {"a":80000, "b":50000, "c":50000, "d":50000, "f":80000}
+	height = height_dict[workload]
+
 	#ax_list.set_title("Transform Operation Latency (Workload " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	#ax_list.set_xlabel("Target transform operation (Node) Type (View)", fontsize = 14, fontweight = "bold")
 	ax_list.set_ylabel("Operation latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
-	ax_list.axis([1, 26, 0, 30000])  # SIZE PARAMETERS:  TRANSFORM GRAPHS
+	ax_list.axis([1, 26, 0, height])  # SIZE PARAMETERS:  TRANSFORM GRAPHS
 
 	x_labels = ax_list.get_xticklabels()
 	#  N.b. No data/plots for naive -- no view maintenance structures to update
@@ -407,11 +411,11 @@ def graph_transform_boxplots(workload):
 	#end_for
 
 	if (workload == "c"):
-		ax_list.annotate("N/A -- Workload C has no delete or singleton operations", xy = (7, 10000))
+		ax_list.annotate("N/A -- Workload C has no delete or singleton operations", xy = (7, 15000))
 	#end_if
 
 	if (workload == "d"):
-		ax_list.annotate("N/A -- Workload D has no delete operations", xy = (3, 10000))
+		ax_list.annotate("N/A -- Workload D has no delete operations", xy = (3, 15000))
 	#end_if
 
 	if (savepdf == True):
@@ -428,10 +432,13 @@ def graph_transform_boxplots(workload):
 
 	bp_search = ax2_list.boxplot(boxplot_search_list, showmeans = False)
 
+	height_dict = {"a":350000, "b":60000, "c":20000, "d":50000, "f":400000}
+	height = height_dict[workload]
+
 	#ax2_list.set_title("Target Node Search Latency (Workload " + workload.upper() + ")", fontsize = 14, fontweight = "bold")
 	#ax2_list.set_xlabel("Target Transform Operation (Node) Type (View)", fontsize = 14, fontweight = "bold")
 	ax2_list.set_ylabel("Search Latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
-	ax2_list.axis([1, 31, 0, 160000])  # SIZE PARAMETERS:  SEARCH GRAPHS
+	ax2_list.axis([1, 31, 0, height])  # SIZE PARAMETERS:  SEARCH GRAPHS
 
 	x_labels = ax2_list.get_xticklabels()
 	x_labels = ["", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, ""]
@@ -580,7 +587,7 @@ def graph_summary_boxplots():
 		print("Processing maintenance " + workload)
 		naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list = get_uber_lists(workload)
 
-		summary_list.append(naive_uber_list)
+		#summary_list.append(naive_uber_list)
 		summary_list.append(set_uber_list)
 		summary_list.append(classic_uber_list)
 		summary_list.append(toaster_uber_list)
@@ -601,7 +608,7 @@ def graph_summary_boxplots():
 	ax3_list.set_title("Average View Operation Latency By Workload", fontsize = 14, fontweight = "bold")
 	ax3_list.set_xlabel("Maintenance type and workload", fontsize = 14, fontweight = "bold")
 	ax3_list.set_ylabel("Average latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
-	ax3_list.axis([1, len(workload_list) * 5 + 1, 0, 20000])
+	ax3_list.axis([1, len(workload_list) * 5 + 1, 0, 10000])  # SIZE PARAMETER:  SUMMARY TOTAL GRAPH
 	x_labels = ax3_list.get_xticklabels()
 	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
 	x_labels[0] = "\n\n\n                                Workload A"
@@ -671,7 +678,7 @@ def main():
 #end_def
 
 
-main()
-#graph_summary_boxplots()
+#main()
+graph_summary_boxplots()
 
 
