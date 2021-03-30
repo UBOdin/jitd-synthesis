@@ -1,0 +1,4 @@
+[0m[[0m[31merror[0m] [0m[0m/Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/core/src/main/scala/org/apache/spark/sql/Dataset.scala:560:17: org.apache.spark.sql.catalyst.CustomLogger.type does not take parameters[0m
+[0m[[0m[31merror[0m] [0m[0m    CustomLogger("DARSHANA: Explain ", queryExecution.optimizedPlan.map{_ => 1}.sum)[0m
+[0m[[0m[31merror[0m] [0m[0m                ^[0m
+[0m[[0m[31merror[0m] [0m[0mone error found[0m

@@ -1,0 +1,3 @@
+[0m[[0m[0mdebug[0m] [0m[0mCopy resource mappings: [0m
+[0m[[0m[0mdebug[0m] [0m[0m	(/Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/catalyst/src/main/resources/julian-gregorian-rebase-micros.json,/Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/catalyst/target/scala-2.12/classes/julian-gregorian-rebase-micros.json)[0m
+[0m[[0m[0mdebug[0m] [0m[0m	(/Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/catalyst/src/main/resources/gregorian-julian-rebase-micros.json,/Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/catalyst/target/scala-2.12/classes/gregorian-julian-rebase-micros.json)[0m

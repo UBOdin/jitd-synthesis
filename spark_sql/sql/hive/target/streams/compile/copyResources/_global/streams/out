@@ -1,0 +1,3 @@
+[0m[[0m[0mdebug[0m] [0m[0mCopy resource mappings: [0m
+[0m[[0m[0mdebug[0m] [0m[0m	(/Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/resources/META-INF/services/org.apache.spark.security.HadoopDelegationTokenProvider,/Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/target/scala-2.12/classes/META-INF/services/org.apache.spark.security.HadoopDelegationTokenProvider)[0m
+[0m[[0m[0mdebug[0m] [0m[0m	(/Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/resources/META-INF/services/org.apache.spark.sql.sources.DataSourceRegister,/Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/target/scala-2.12/classes/META-INF/services/org.apache.spark.sql.sources.DataSourceRegister)[0m

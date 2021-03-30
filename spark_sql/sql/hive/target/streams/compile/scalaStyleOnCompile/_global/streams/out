@@ -1,0 +1,66 @@
+[0m[[0m[0minfo[0m] [0m[0mscalastyle using config /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/scalastyle-on-compile.generated.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0mStarting scalastyle[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveMetastoreCatalog.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveMetastoreCatalog.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveStrategies.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveStrategies.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveContext.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveContext.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/security/HiveDelegationTokenProvider.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/security/HiveDelegationTokenProvider.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveSessionCatalog.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveSessionCatalog.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/TableReader.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/TableReader.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveUtils.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveUtils.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveSessionStateBuilder.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveSessionStateBuilder.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveShim.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveShim.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/InsertIntoHiveTable.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/InsertIntoHiveTable.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/InsertIntoHiveDirCommand.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/InsertIntoHiveDirCommand.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/SaveAsHiveFile.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/SaveAsHiveFile.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/PruneHiveTablePartitions.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/PruneHiveTablePartitions.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/HiveOptions.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/HiveOptions.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/HiveScriptTransformationExec.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/HiveScriptTransformationExec.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/HiveTableScanExec.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/HiveTableScanExec.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/HiveFileFormat.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/HiveFileFormat.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/CreateHiveTableAsSelectCommand.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/execution/CreateHiveTableAsSelectCommand.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/package.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/package.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveInspectors.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveInspectors.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/orc/OrcFileFormat.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/orc/OrcFileFormat.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/orc/OrcFileOperator.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/orc/OrcFileOperator.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveExternalCatalog.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/HiveExternalCatalog.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/client/HiveClientImpl.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/client/HiveClientImpl.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/client/IsolatedClientLoader.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/client/IsolatedClientLoader.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/client/HiveShim.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/client/HiveShim.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/client/package.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/client/package.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/client/HiveClient.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/client/HiveClient.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mstart file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/hiveUDFs.scala[0m
+[0m[[0m[0mdebug[0m] [0m[0mend file /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/src/main/scala/org/apache/spark/sql/hive/hiveUDFs.scala[0m
+[0m[[0m[0minfo[0m] [0m[0mscalastyle Processed 29 file(s)[0m
+[0m[[0m[0minfo[0m] [0m[0mscalastyle Found 0 errors[0m
+[0m[[0m[0minfo[0m] [0m[0mscalastyle Found 0 warnings[0m
+[0m[[0m[0minfo[0m] [0m[0mscalastyle Found 0 infos[0m
+[0m[[0m[0minfo[0m] [0m[0mscalastyle Finished in 10 ms[0m
+[0m[[0m[32msuccess[0m] [0m[0mcreated output: /Users/darshanabalakrishnan/Desktop/Spark_Scratch/spark/sql/hive/target[0m

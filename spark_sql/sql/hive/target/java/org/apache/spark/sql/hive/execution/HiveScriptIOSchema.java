@@ -1,0 +1,19 @@
+package org.apache.spark.sql.hive.execution;
+public  class HiveScriptIOSchema {
+  static public  scala.Option<scala.Tuple2<org.apache.hadoop.hive.serde2.AbstractSerDe, org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector>> initInputSerDe (org.apache.spark.sql.execution.ScriptTransformationIOSchema ioschema, scala.collection.Seq<org.apache.spark.sql.catalyst.expressions.Expression> input)  { throw new RuntimeException(); }
+  static public  scala.Option<scala.Tuple2<org.apache.hadoop.hive.serde2.AbstractSerDe, org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector>> initOutputSerDe (org.apache.spark.sql.execution.ScriptTransformationIOSchema ioschema, scala.collection.Seq<org.apache.spark.sql.catalyst.expressions.Attribute> output)  { throw new RuntimeException(); }
+  static public  org.apache.hadoop.hive.serde2.AbstractSerDe initSerDe (java.lang.String serdeClassName, scala.collection.Seq<java.lang.String> columns, scala.collection.Seq<org.apache.spark.sql.types.DataType> columnTypes, scala.collection.Seq<scala.Tuple2<java.lang.String, java.lang.String>> serdeProps)  { throw new RuntimeException(); }
+  static public  scala.Option<org.apache.hadoop.hive.ql.exec.RecordReader> recordReader (org.apache.spark.sql.execution.ScriptTransformationIOSchema ioschema, java.io.InputStream inputStream, org.apache.hadoop.conf.Configuration conf)  { throw new RuntimeException(); }
+  static public  scala.Option<org.apache.hadoop.hive.ql.exec.RecordWriter> recordWriter (org.apache.spark.sql.execution.ScriptTransformationIOSchema ioschema, java.io.OutputStream outputStream, org.apache.hadoop.conf.Configuration conf)  { throw new RuntimeException(); }
+  static public  org.apache.spark.sql.types.DataType javaTypeToDataType (java.lang.reflect.Type clz)  { throw new RuntimeException(); }
+  static protected  scala.Function1<java.lang.Object, java.lang.Object> wrapperFor (org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector oi, org.apache.spark.sql.types.DataType dataType)  { throw new RuntimeException(); }
+  static public  scala.Function1<java.lang.Object, java.lang.Object> unwrapperFor (org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector objectInspector)  { throw new RuntimeException(); }
+  static public  scala.Function3<java.lang.Object, org.apache.spark.sql.catalyst.InternalRow, java.lang.Object, scala.runtime.BoxedUnit> unwrapperFor (org.apache.hadoop.hive.serde2.objectinspector.StructField field)  { throw new RuntimeException(); }
+  static public  java.lang.Object wrap (Object a, org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector oi, org.apache.spark.sql.types.DataType dataType)  { throw new RuntimeException(); }
+  static public  java.lang.Object[] wrap (org.apache.spark.sql.catalyst.InternalRow row, scala.Function1<java.lang.Object, java.lang.Object>[] wrappers, java.lang.Object[] cache, org.apache.spark.sql.types.DataType[] dataTypes)  { throw new RuntimeException(); }
+  static public  java.lang.Object[] wrap (scala.collection.Seq<java.lang.Object> row, scala.Function1<java.lang.Object, java.lang.Object>[] wrappers, java.lang.Object[] cache, org.apache.spark.sql.types.DataType[] dataTypes)  { throw new RuntimeException(); }
+  static public  org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector toInspector (org.apache.spark.sql.types.DataType dataType)  { throw new RuntimeException(); }
+  static public  org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector toInspector (org.apache.spark.sql.catalyst.expressions.Expression expr)  { throw new RuntimeException(); }
+  static public  org.apache.spark.sql.types.DataType inspectorToDataType (org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector inspector)  { throw new RuntimeException(); }
+  static public  org.apache.spark.sql.hive.HiveInspectors.typeInfoConversions typeInfoConversions (org.apache.spark.sql.types.DataType dt)  { throw new RuntimeException(); }
+}
