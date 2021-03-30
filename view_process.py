@@ -596,20 +596,33 @@ def graph_summary_boxplots():
 
 	#end_for
 
-	fig3_list, ax3_list = plt.subplots()
+	fig3_list, ax3_list = plt.subplots(2, 1)
 
+	'''
 	if (setbox == True):
 		fig3_list.set_size_inches(7, 3)
 	#end_if
+	'''
 
-	#bp_total = ax3_list.boxplot([naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list], showmeans = True)
-	bp_total = ax3_list.boxplot(summary_list)
 
-	##ax3_list.set_title("Average View Operation Latency By Workload", fontsize = 14, fontweight = "bold")
-	ax3_list.set_xlabel("Maintenance type and workload", fontsize = 14, fontweight = "bold")
-	ax3_list.set_ylabel("Average latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
-	ax3_list.axis([1, len(workload_list) * 5 + 1, 0, 10000])  # SIZE PARAMETER:  SUMMARY TOTAL GRAPH
-	x_labels = ax3_list.get_xticklabels()
+	# TOP GRAPH
+
+	bp_total_top = ax3_list[0].boxplot(summary_list)
+
+	#ax3_list[0].set_title("Average View Operation Latency By Workload", fontsize = 14, fontweight = "bold")
+	ax3_list[0].set_ylabel("Average latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
+	ax3_list[0].axis([1, len(workload_list) * 5 + 1, 0, 200000])  # SIZE PARAMETER:  SUMMARY TOTAL GRAPH
+	ax3_list[0].set_xticks([])
+
+
+	# BOTTOM GRAPH
+
+	bp_total_bottom = ax3_list[1].boxplot(summary_list)
+
+	ax3_list[1].set_xlabel("Maintenance type and workload", fontsize = 14, fontweight = "bold")
+	ax3_list[1].set_ylabel("Average latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
+	ax3_list[1].axis([1, len(workload_list) * 5 + 1, 0, 10000])  # SIZE PARAMETER:  SUMMARY TOTAL GRAPH
+	x_labels = ax3_list[1].get_xticklabels()
 	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
 	x_labels[0] = "\n\n\n                                Workload A"
 	x_labels[5] = "\n\n\n                                Workload B"
@@ -617,24 +630,28 @@ def graph_summary_boxplots():
 	x_labels[15] = "\n\n\n                               Workload D"
 	x_labels[20] = "\n\n\n                               Workload F"
 	#  N.b. No data/plots for insert_singleton or remove_singleton -- these are mutate only
-	##'''
-	ax3_list.set_xticklabels(x_labels)
+	ax3_list[1].set_xticklabels(x_labels)
 
-	tick_list = ax3_list.get_xticklabels()
+	tick_list = ax3_list[1].get_xticklabels()
 	for i in range(len(tick_list)):
 		if (i % 5 != 0):
 			tick_list[i].set_rotation(-45)
 			tick_list[i].set_ha("left")
 		#end_if
 	#end_for
-	##'''
-	##ax3_list.set_xticks([])
+
+
+	fig3_list.show()
+
 
 	if (savepdf == True):
 		fig3_list.savefig("view_graphs/view_total_boxplot.pdf", bbox_inches = "tight");
 	else:
 		fig3_list.savefig("view_graphs/view_total_boxplot.png");
 	#endif
+
+	print("Clean exit")
+	sys.exit(0)
 
 	#return
 
