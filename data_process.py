@@ -145,11 +145,11 @@ def get_memory_lists(workload):
 #end_def
 
 
-def graph_boxplot():
+def graph_boxplot(usenaive):
+
+	# usenaive = False  # Whether to use naive search data in processing graphs
 
 	workload_list = ["a", "b", "c", "d", "f"]
-	#workload_list = ["a", "b", "d", "f"]
-	#workload_list = ["a", "f"]
 
 	naive_uber_list = []
 	set_uber_list = []
@@ -164,7 +164,9 @@ def graph_boxplot():
 		print("Processing maintenance " + workload)
 		naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list = get_memory_lists(workload)
 
-		summary_list.append(naive_uber_list[2])
+		if (usenaive == True):
+			summary_list.append(naive_uber_list[2])
+		#end_if
 		summary_list.append(set_uber_list[2])
 		summary_list.append(classic_uber_list[2])
 		summary_list.append(toaster_uber_list[2])
@@ -175,12 +177,6 @@ def graph_boxplot():
 
 
 	fig2_list, ax2_list = plt.subplots()
-
-	'''
-	if (setbox == True):
-		fig2_list.set_size_inches(7, 2)
-	#end_if
-	'''
 
 	bp_latency = ax2_list.boxplot(summary_list)
 
@@ -206,15 +202,15 @@ def graph_boxplot():
 		#end_if
 	#end_for
 
-	'''
-	if (savepdf == True):
-		fig2_list.savefig("view_graphs/data_memory_boxplot.pdf", bbox_inches = "tight");
-	else:
-		fig2_list.savefig("view_graphs/data_memory_boxplot.png");
-	#endif
-
-	#return
-	'''
+	# Do not include naive search in memory usage boxplot:
+	if (usenaive == False):
+		if (savepdf == True):
+			fig2_list.savefig("view_graphs/data_memory_boxplot.pdf", bbox_inches = "tight");
+		else:
+			fig2_list.savefig("view_graphs/data_memory_boxplot.png");
+		#endif
+		return  # Done; do not process scatter crossplot with naive search data
+	#end_if
 
 
 	line_list = []
@@ -253,20 +249,8 @@ def graph_boxplot():
 
 	fig3, ax3 = plt.subplots()
 
-	#fig3.set_figheight(4.3)
-
-	'''
-	if (setbox == True):
-		fig3.set_size_inches(10, 3)
-	#end_if
-	'''
-
-	#ax3.margins(x = 0.2, y = 0.2)
-	#fig3.subplots_adjust(left = 0.125, right = 0.90, top = 0.88, bottom = 0.115) DEFAULT
-
 	hadj = .07
 	vadj = 0.1
-
 	fig3.subplots_adjust(left = 0.125 + hadj, right = 0.90 + hadj, top = 0.88 + vadj, bottom = 0.115 + vadj)
 
 	color_list = ["brown", "orange", "black", "blue", "red", "green"]
@@ -323,7 +307,8 @@ def graph_boxplot():
 
 def main():
 
-	graph_boxplot()
+	graph_boxplot(True)
+	graph_boxplot(False)
 
 #end_def
 
