@@ -1,3 +1,5 @@
+Get apache spark version 3.2.0-SNAPSHOT from the spark github repository and merge in the spark_sql/sql located at the root directory and compile with scala version 2.12.10.
+
 To generate the spark sql files from get_sql_script.py:
 1. Get the TPC-H Queries along with the schema from the directory /tpch_queries.
 2. Get the TPC-H benchmark data from /tpch_table
