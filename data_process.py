@@ -176,13 +176,15 @@ def graph_boxplot():
 
 	fig2_list, ax2_list = plt.subplots()
 
+	'''
 	if (setbox == True):
-		fig2_list.set_size_inches(7, 3)
+		fig2_list.set_size_inches(7, 2)
 	#end_if
+	'''
 
 	bp_latency = ax2_list.boxplot(summary_list)
 
-	ax2_list.set_title("Average Process Memory Usage By Workload", fontsize = 14, fontweight = "bold")
+	#ax2_list.set_title("Average Process Memory Usage By Workload", fontsize = 14, fontweight = "bold")
 	ax2_list.set_xlabel("Maintenance type and workload", fontsize = 14, fontweight = "bold")
 	ax2_list.set_ylabel("Average memory\npages allocated", fontsize = 14, fontweight = "bold")
 	ax2_list.axis([1, len(workload_list) * 5 + 1, 0, 100000])
@@ -204,6 +206,7 @@ def graph_boxplot():
 		#end_if
 	#end_for
 
+	'''
 	if (savepdf == True):
 		fig2_list.savefig("view_graphs/data_memory_boxplot.pdf", bbox_inches = "tight");
 	else:
@@ -211,6 +214,7 @@ def graph_boxplot():
 	#endif
 
 	#return
+	'''
 
 
 	line_list = []
@@ -249,13 +253,24 @@ def graph_boxplot():
 
 	fig3, ax3 = plt.subplots()
 
+	#fig3.set_figheight(4.3)
+
 	'''
 	if (setbox == True):
-		fig3_list.set_size_inches(7, 5)
+		fig3.set_size_inches(10, 3)
 	#end_if
 	'''
 
+	#ax3.margins(x = 0.2, y = 0.2)
+	#fig3.subplots_adjust(left = 0.125, right = 0.90, top = 0.88, bottom = 0.115) DEFAULT
+
+	hadj = .07
+	vadj = 0.1
+
+	fig3.subplots_adjust(left = 0.125 + hadj, right = 0.90 + hadj, top = 0.88 + vadj, bottom = 0.115 + vadj)
+
 	color_list = ["brown", "orange", "black", "blue", "red", "green"]
+	#color_list = ["brown", "black", "blue", "red", "green"]
 	color = ""
 	marker_list = ["o", "s", "<", ">", "P", "*"]
 	marker = ""
@@ -272,18 +287,21 @@ def graph_boxplot():
 		print(f, g)
 		color = color_list[e % 6]
 		marker = marker_list[int(e / 6)]
+		if (f == 0):
+			continue
+		#end_if
 		ax3.scatter(f, g, s = 40, color = color, marker = marker)
 	#end_for
 
-	ax3.set_title("Latency / Memory Crossplot", fontsize = 14, fontweight = "bold")
+	#ax3.set_title("Latency / Memory Crossplot", fontsize = 14, fontweight = "bold")
 	ax3.set_xlabel("Average total latency (search + maintenance)", fontsize = 14, fontweight = "bold")
 	ax3.set_ylabel("Average memory\npages allocated", fontsize = 14, fontweight = "bold")
-	ax3.axis([0, 15000, 0, 90000])
+	ax3.axis([0, 15000, 0, 80000])
 
 	handle_list = []
 
 	handle_list.append(Patch(color = "orange", label = "Naive"))
-	handle_list.append(Patch(color = "black", label = "Set"))
+	handle_list.append(Patch(color = "black", label = "Index"))
 	handle_list.append(Patch(color = "blue", label = "Classic"))
 	handle_list.append(Patch(color = "red", label = "DBT"))
 	handle_list.append(Patch(color = "green", label = "TT"))
@@ -294,7 +312,7 @@ def graph_boxplot():
 	handle_list.append(Line2D([], [], marker = ">", color = "black", label = "Workload D", linewidth = 0))
 	handle_list.append(Line2D([], [], marker = "P", color = "black", label = "Workload F", linewidth = 0))
 
-	ax3.legend(handles = handle_list, loc = "upper right")
+	ax3.legend(handles = handle_list, loc = "upper right", ncol = 2)
 
 	fig3.savefig("crossplot.pdf")
 

@@ -587,7 +587,7 @@ def graph_summary_boxplots():
 		print("Processing maintenance " + workload)
 		naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list = get_uber_lists(workload)
 
-		#summary_list.append(naive_uber_list)
+		summary_list.append(naive_uber_list)
 		summary_list.append(set_uber_list)
 		summary_list.append(classic_uber_list)
 		summary_list.append(toaster_uber_list)
@@ -596,7 +596,8 @@ def graph_summary_boxplots():
 
 	#end_for
 
-	fig3_list, ax3_list = plt.subplots(2, 1)
+	#fig3_list, ax3_list = plt.subplots(2, 1)
+	fig3_list, ax3_list = plt.subplots(2, 1, gridspec_kw = {"height_ratios": [5, 3]})
 
 	'''
 	if (setbox == True):
@@ -610,7 +611,7 @@ def graph_summary_boxplots():
 	bp_total_top = ax3_list[0].boxplot(summary_list)
 
 	#ax3_list[0].set_title("Average View Operation Latency By Workload", fontsize = 14, fontweight = "bold")
-	ax3_list[0].set_ylabel("Average latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
+	#ax3_list[0].set_ylabel("Average latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
 	ax3_list[0].axis([1, len(workload_list) * 5 + 1, 0, 200000])  # SIZE PARAMETER:  SUMMARY TOTAL GRAPH
 	ax3_list[0].set_xticks([])
 
@@ -620,7 +621,7 @@ def graph_summary_boxplots():
 	bp_total_bottom = ax3_list[1].boxplot(summary_list)
 
 	ax3_list[1].set_xlabel("Maintenance type and workload", fontsize = 14, fontweight = "bold")
-	ax3_list[1].set_ylabel("Average latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
+	#ax3_list[1].set_ylabel("Average latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
 	ax3_list[1].axis([1, len(workload_list) * 5 + 1, 0, 10000])  # SIZE PARAMETER:  SUMMARY TOTAL GRAPH
 	x_labels = ax3_list[1].get_xticklabels()
 	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
@@ -640,28 +641,24 @@ def graph_summary_boxplots():
 		#end_if
 	#end_for
 
+	fig3_list.text(0, .8, "Average latency (CPU ticks)", fontsize = 14, fontweight = "bold", rotation = "vertical")
 
-	fig3_list.show()
+	#fig3_list.show()
 
-
+	'''
 	if (savepdf == True):
 		fig3_list.savefig("view_graphs/view_total_boxplot.pdf", bbox_inches = "tight");
 	else:
 		fig3_list.savefig("view_graphs/view_total_boxplot.png");
 	#endif
-
-	print("Clean exit")
-	sys.exit(0)
-
-	#return
-
+	'''
 
 	line_list = []
 	median = 0
 	boxplot_output_file_obj = open("boxplot_output.txt", "w")
 	output_line = ""
 
-	line_list = bp_total["medians"]  # boxplot return value is a dictionary -- get medians
+	line_list = bp_total_bottom["medians"]  # boxplot return value is a dictionary -- get medians
 
 	for line in line_list:
 		# line is a pyplot line2d object
