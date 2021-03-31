@@ -87,7 +87,7 @@ def process_loglines(input_file_name, results_list_list, datatype):
 
 	# input_file_name = ""
 	# results_list_list = []
-	# datatype = 0  # Node or transform + search collection
+	# datatype = 0  # Collect per-node information (1), or per-transform information (2-3-4)
 	input_file_obj = "" # file obj
 	iteration = -1
 	logline = ""
@@ -167,17 +167,23 @@ def process_loglines(input_file_name, results_list_list, datatype):
 			if (trans_type < 100):
 				node_list_list[node_type].append(delta_total)
 			#end_if
-		elif (datatype == 2):  # Collect transform + search data:
+		elif (datatype >= 2):  # Collect transform + search data:
 			if (trans_type >= 100):
 				search_list_list[trans_type - 100].append(delta_total)
 				search_total += delta_total
 			elif ((trans_type == 11) or (trans_type == 14)):
 				search_total = 0  # Clear previous search latency
 			else:
-				trans_list_list[trans_type].append(search_total + delta_total)
-				#trans_list_list[trans_type].append(delta_total)
-				#trans_list_list[trans_type].append(search_total)
-
+				if (datatype == 2):
+					trans_list_list[trans_type].append(search_total)
+				elif (datatype == 3):
+					trans_list_list[trans_type].append(delta_total)
+				elif (datatype == 4):
+					trans_list_list[trans_type].append(search_total + delta_total)
+				else:
+					print("Invalid data type  != 2-3-4")
+					sys.exit(1)
+				#end_if
 				search_total = 0  # Reset sum
 			#end_if
 		else:
@@ -304,9 +310,10 @@ def graph_node_boxplots(workload):
 #end_def
 
 
-def graph_transform_boxplots(workload):
+def graph_transform_boxplots(workload, datatype):
 
 	# workload = ""
+	# datatype = 0  # Collect per-transform latency on search (2), maintenance (3), or both (4)
 	input_file_prefix = ""
 	input_file_name = ""
 	naive_results_list_list = [[], [], []]
@@ -335,19 +342,19 @@ def graph_transform_boxplots(workload):
 		print(i)
 
 		input_file_name = "view_results/naive_trans_performance_" + workload + "_" + str(i) + ".txt"
-		process_loglines(input_file_name, naive_results_list_list, 2)
+		process_loglines(input_file_name, naive_results_list_list, datatype)
 
 		input_file_name = "view_results/set_trans_performance_" + workload + "_" + str(i) + ".txt"
-		process_loglines(input_file_name, set_results_list_list, 2)
+		process_loglines(input_file_name, set_results_list_list, datatype)
 
 		input_file_name = "view_results/view_trans_performance_" + workload + "_" + str(i) + ".txt"
-		process_loglines(input_file_name, jitd_results_list_list, 2)
+		process_loglines(input_file_name, jitd_results_list_list, datatype)
 
 		input_file_name = "view_results/toaster_trans_performance_" + workload + "_" + str(i) + ".txt"
-		process_loglines(input_file_name, toaster_results_list_list, 2)
+		process_loglines(input_file_name, toaster_results_list_list, datatype)
 
 		input_file_name = "view_results/classic_trans_performance_" + workload + "_" + str(i) + ".txt"
-		process_loglines(input_file_name, classic_results_list_list, 2)
+		process_loglines(input_file_name, classic_results_list_list, datatype)
 
 	#end_for
 
@@ -411,19 +418,22 @@ def graph_transform_boxplots(workload):
 	#end_for
 
 	if (workload == "c"):
-		ax_list.annotate("N/A -- Workload C has no delete or singleton operations", xy = (7, 15000))
+		ax_list.annotate("N/A -- Workload C has no delete or singleton operations", xy = (7, 22500))
 	#end_if
 
 	if (workload == "d"):
-		ax_list.annotate("N/A -- Workload D has no delete operations", xy = (3, 15000))
+		ax_list.annotate("N/A -- Workload D has no delete operations", xy = (3, 22500))
 	#end_if
 
-	if (savepdf == True):
-		fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".pdf", bbox_inches = "tight");
-	else:
-		fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".png");
-	#endif
+	if (datatype == 4):
 
+		if (savepdf == True):
+			fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".pdf", bbox_inches = "tight");
+		else:
+			fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".png");
+		#endif
+
+	#end_if
 
 	fig2_list, ax2_list = plt.subplots()
 	if (setbox == True):
@@ -459,12 +469,15 @@ def graph_transform_boxplots(workload):
 		#end_if
 	#end_for
 
-	if (savepdf == True):
-		fig2_list.savefig("view_graphs/view_search_boxplot_" + workload + ".pdf", bbox_inches = "tight");
-	else:
-		fig2_list.savefig("view_graphs/view_search_boxplot_" + workload + ".png");
-	#endif
+	if (datatype == 2):
 
+		if (savepdf == True):
+			fig2_list.savefig("view_graphs/view_search_boxplot_" + workload + ".pdf", bbox_inches = "tight");
+		else:
+			fig2_list.savefig("view_graphs/view_search_boxplot_" + workload + ".png");
+		#endif
+
+	#end_if
 
 	#plt.show()
 
@@ -504,19 +517,19 @@ def get_uber_lists(workload):
 		print(i)
 
 		input_file_name = "view_results/naive_trans_performance_" + workload + "_" + str(i) + ".txt"
-		process_loglines(input_file_name, naive_results_list_list, 2)
+		process_loglines(input_file_name, naive_results_list_list, 4)
 
 		input_file_name = "view_results/set_trans_performance_" + workload + "_" + str(i) + ".txt"
-		process_loglines(input_file_name, set_results_list_list, 2)
+		process_loglines(input_file_name, set_results_list_list, 4)
 
 		input_file_name = "view_results/view_trans_performance_" + workload + "_" + str(i) + ".txt"
-		process_loglines(input_file_name, jitd_results_list_list, 2)
+		process_loglines(input_file_name, jitd_results_list_list, 4)
 
 		input_file_name = "view_results/toaster_trans_performance_" + workload + "_" + str(i) + ".txt"
-		process_loglines(input_file_name, toaster_results_list_list, 2)
+		process_loglines(input_file_name, toaster_results_list_list, 4)
 
 		input_file_name = "view_results/classic_trans_performance_" + workload + "_" + str(i) + ".txt"
-		process_loglines(input_file_name, classic_results_list_list, 2)
+		process_loglines(input_file_name, classic_results_list_list, 4)
 
 	#end_for
 
@@ -568,11 +581,11 @@ def get_uber_lists(workload):
 #end_def
 
 
-def graph_summary_boxplots():
+def graph_summary_boxplots(usenaive):
+
+	# usenaive = False  # Whether to include naive search in summary results
 
 	workload_list = ["a", "b", "c", "d", "f"]
-	#workload_list = ["a", "b", "d", "f"]
-	#workload_list = ["a", "f"]
 
 	naive_uber_list = []
 	set_uber_list = []
@@ -587,7 +600,9 @@ def graph_summary_boxplots():
 		print("Processing maintenance " + workload)
 		naive_uber_list, set_uber_list, classic_uber_list, toaster_uber_list, jitd_uber_list = get_uber_lists(workload)
 
-		summary_list.append(naive_uber_list)
+		if (usenaive == True):
+			summary_list.append(naive_uber_list)
+		#end_if
 		summary_list.append(set_uber_list)
 		summary_list.append(classic_uber_list)
 		summary_list.append(toaster_uber_list)
@@ -598,12 +613,6 @@ def graph_summary_boxplots():
 
 	#fig3_list, ax3_list = plt.subplots(2, 1)
 	fig3_list, ax3_list = plt.subplots(2, 1, gridspec_kw = {"height_ratios": [5, 3]})
-
-	'''
-	if (setbox == True):
-		fig3_list.set_size_inches(7, 3)
-	#end_if
-	'''
 
 
 	# TOP GRAPH
@@ -645,13 +654,17 @@ def graph_summary_boxplots():
 
 	#fig3_list.show()
 
-	'''
-	if (savepdf == True):
-		fig3_list.savefig("view_graphs/view_total_boxplot.pdf", bbox_inches = "tight");
-	else:
-		fig3_list.savefig("view_graphs/view_total_boxplot.png");
-	#endif
-	'''
+	# Do not include naive search in summary boxplot:
+	if (usenaive == False):
+		if (savepdf == True):
+			fig3_list.savefig("view_graphs/view_total_boxplot.pdf", bbox_inches = "tight");
+		else:
+			fig3_list.savefig("view_graphs/view_total_boxplot.png");
+		#endif
+		return  # Do not save out results that do not include naive search data
+	#end_if
+
+	# Save out latency summary -- including naive search results -- for use in crossplot:
 
 	line_list = []
 	median = 0
@@ -682,20 +695,21 @@ def graph_summary_boxplots():
 
 def main():
 
-	#workload_list = ["a", "b", "c", "d", "e", "f"]
 	workload_list = ["a", "b", "c", "d", "f"]
-	#workload_list = ["a", "f"]
 
 	for workload in workload_list:
 		print("Processing maintenance " + workload)
-		graph_node_boxplots(workload)
-		graph_transform_boxplots(workload)
+		#graph_node_boxplots(workload)
+		graph_transform_boxplots(workload, 2)
+		graph_transform_boxplots(workload, 4)
 	#end_for
+
+	graph_summary_boxplots(True)  # Saveout summary data for crossplot (including naive search data)
+	graph_summary_boxplots(False)  # Create stacked summary graph (without naive search data)
 
 #end_def
 
 
-#main()
-graph_summary_boxplots()
+main()
 
 
