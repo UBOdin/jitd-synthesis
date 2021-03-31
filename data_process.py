@@ -298,7 +298,7 @@ def graph_boxplot(usenaive):
 
 	ax3.legend(handles = handle_list, loc = "upper right", ncol = 2)
 
-	fig3.savefig("crossplot.pdf")
+	fig3.savefig("view_graphs/crossplot.pdf")
 
 	return
 
