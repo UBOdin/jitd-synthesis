@@ -149,9 +149,11 @@ def process_loglines(input_file_name, results_list_list, datatype):
 
 		delta_total = delta0 + delta1 + delta2
 
+		'''
 		if (delta_total > 100000):
 			print("Long latency:  %d on %d" % (iteration, delta_total))
 		#end_if
+		'''
 
 		if (datatype == 1):  # Collect node data
 			node_type = int(logline_list[7])
@@ -196,7 +198,7 @@ def process_loglines(input_file_name, results_list_list, datatype):
 
 	#end_while
 
-	#'''
+	'''
 	print("\nIteration\n")
 	node_list = []
 	for i in range(len(node_list_list)):
@@ -205,7 +207,7 @@ def process_loglines(input_file_name, results_list_list, datatype):
 		print(len(node_list))
 		#print(node_list)
 	#end_for
-	#'''
+	'''
 
 	return
 
@@ -338,8 +340,6 @@ def graph_transform_boxplots(workload, datatype):
 
 
 	for i in range(runcount):
-
-		print(i)
 
 		input_file_name = "view_results/naive_trans_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, naive_results_list_list, datatype)
@@ -480,6 +480,7 @@ def graph_transform_boxplots(workload, datatype):
 	#end_if
 
 	#plt.show()
+	plt.close("all")
 
 	return
 
@@ -513,8 +514,6 @@ def get_uber_lists(workload):
 
 
 	for i in range(runcount):
-
-		print(i)
 
 		input_file_name = "view_results/naive_trans_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, naive_results_list_list, 4)
@@ -688,6 +687,8 @@ def graph_summary_boxplots(usenaive):
 
 	boxplot_output_file_obj.close()
 
+	plt.close("all")
+
 	return
 
 #end_def
@@ -698,13 +699,15 @@ def main():
 	workload_list = ["a", "b", "c", "d", "f"]
 
 	for workload in workload_list:
-		print("Processing maintenance " + workload)
+		print("Processing boxplot graphs (Figures 9-10) for workload " + workload)
 		#graph_node_boxplots(workload)
 		graph_transform_boxplots(workload, 2)
 		graph_transform_boxplots(workload, 4)
 	#end_for
 
+	print("Processing summary boxplot graph (Figure 12)")
 	graph_summary_boxplots(True)  # Saveout summary data for crossplot (including naive search data)
+	print("Creating latency data for scatter crossplot (Figure 11)")
 	graph_summary_boxplots(False)  # Create stacked summary graph (without naive search data)
 
 #end_def

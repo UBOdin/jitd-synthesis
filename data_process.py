@@ -120,7 +120,6 @@ def get_memory_lists(workload):
 
 	for i in range(runcount):
 
-		print(i)
 		#index_list.append(i + 1)
 
 		input_file_name = "view_results/naive_data_performance_" + workload + "_" + str(i) + ".txt"
@@ -242,9 +241,11 @@ def graph_boxplot(usenaive):
 		#end_if
 	#end_for
 
+	'''
 	print(view_cost_list)
 	print("")
 	print(memory_list)
+	'''
 
 
 	fig3, ax3 = plt.subplots()
@@ -265,10 +266,6 @@ def graph_boxplot(usenaive):
 	#end_if
 
 	for e, f, g in zip(range(len(view_cost_list)), view_cost_list, memory_list):
-		#if (e % 5 == 0):
-		#	continue
-		#end_if
-		print(f, g)
 		color = color_list[e % 6]
 		marker = marker_list[int(e / 6)]
 		if (f == 0):
@@ -307,7 +304,9 @@ def graph_boxplot(usenaive):
 
 def main():
 
+	print("Processing scatter crossplot (Figure 12)")
 	graph_boxplot(True)
+	print("Processing memory boxplot graph (Figure 13)")
 	graph_boxplot(False)
 
 #end_def
