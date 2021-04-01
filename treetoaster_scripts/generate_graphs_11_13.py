@@ -122,19 +122,19 @@ def get_memory_lists(workload):
 
 		#index_list.append(i + 1)
 
-		input_file_name = "view_results/naive_data_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/naive_data_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, naive_results_list_list_list)
 
-		input_file_name = "view_results/set_data_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/set_data_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, set_results_list_list_list)
 
-		input_file_name = "view_results/view_data_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/view_data_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, jitd_results_list_list_list)
 
-		input_file_name = "view_results/toaster_data_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/toaster_data_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, toaster_results_list_list_list)
 
-		input_file_name = "view_results/classic_data_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/classic_data_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, classic_results_list_list_list)
 
 	#end_for
@@ -204,9 +204,9 @@ def graph_boxplot(usenaive):
 	# Do not include naive search in memory usage boxplot:
 	if (usenaive == False):
 		if (savepdf == True):
-			fig2_list.savefig("view_graphs/data_memory_boxplot.pdf", bbox_inches = "tight");
+			fig2_list.savefig("graphs/figure_13.pdf", bbox_inches = "tight");
 		else:
-			fig2_list.savefig("view_graphs/data_memory_boxplot.png");
+			fig2_list.savefig("graphs/figure_13.png");
 		#endif
 		return  # Done; do not process scatter crossplot with naive search data
 	#end_if
@@ -216,7 +216,12 @@ def graph_boxplot(usenaive):
 	median = 0
 	memory_list = []
 	view_cost_list = []
-	boxplot_input_file_obj = open("boxplot_output.txt")
+	try:
+		boxplot_input_file_obj = open("graphdata_summary.txt")
+	except:
+		print("ERROR:  Missing data file.  Please run script to create graphs 9-10-12 first.")
+		sys.exit(1)
+	#end_try
 	input_line = ""
 
 	while (True):
@@ -295,7 +300,7 @@ def graph_boxplot(usenaive):
 
 	ax3.legend(handles = handle_list, loc = "upper right", ncol = 2)
 
-	fig3.savefig("view_graphs/crossplot.pdf")
+	fig3.savefig("graphs/figure_11.pdf")
 
 	return
 
@@ -308,6 +313,7 @@ def main():
 	graph_boxplot(True)
 	print("Processing memory boxplot graph (Figure 13)")
 	graph_boxplot(False)
+	print("Success.  Graphs in ../graph directory")
 
 #end_def
 

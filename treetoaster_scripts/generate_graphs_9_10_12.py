@@ -235,16 +235,16 @@ def graph_node_boxplots(workload):
 
 		print(i)
 
-		input_file_name = "view_results/set_node_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/set_node_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, set_results_list_list, 1)
 
-		input_file_name = "view_results/view_node_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/view_node_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, jitd_results_list_list, 1)
 
-		input_file_name = "view_results/toaster_node_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/toaster_node_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, toaster_results_list_list, 1)
 
-		input_file_name = "view_results/classic_node_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/classic_node_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, classic_results_list_list, 1)
 
 	#end_for
@@ -300,9 +300,9 @@ def graph_node_boxplots(workload):
 
 	if (savepdf == True):
 		#fig_list.tight_layout()
-		fig_list.savefig("view_graphs/view_node_boxplot_" + workload + ".pdf", bbox_inches = "tight");
+		fig_list.savefig("graphs/view_node_boxplot_" + workload + ".pdf", bbox_inches = "tight");
 	else:
-		fig_list.savefig("view_graphs/view_node_boxplot_" + workload + ".png");
+		fig_list.savefig("graphs/view_node_boxplot_" + workload + ".png");
 	#endif
 
 	#endif
@@ -341,19 +341,19 @@ def graph_transform_boxplots(workload, datatype):
 
 	for i in range(runcount):
 
-		input_file_name = "view_results/naive_trans_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/naive_trans_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, naive_results_list_list, datatype)
 
-		input_file_name = "view_results/set_trans_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/set_trans_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, set_results_list_list, datatype)
 
-		input_file_name = "view_results/view_trans_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/view_trans_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, jitd_results_list_list, datatype)
 
-		input_file_name = "view_results/toaster_trans_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/toaster_trans_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, toaster_results_list_list, datatype)
 
-		input_file_name = "view_results/classic_trans_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/classic_trans_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, classic_results_list_list, datatype)
 
 	#end_for
@@ -428,9 +428,9 @@ def graph_transform_boxplots(workload, datatype):
 	if (datatype == 4):
 
 		if (savepdf == True):
-			fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".pdf", bbox_inches = "tight");
+			fig_list.savefig("graphs/figure_10_" + workload + ".pdf", bbox_inches = "tight");
 		else:
-			fig_list.savefig("view_graphs/view_trans_boxplot_" + workload + ".png");
+			fig_list.savefig("graphs/figure_10__" + workload + ".png");
 		#endif
 
 	#end_if
@@ -472,9 +472,9 @@ def graph_transform_boxplots(workload, datatype):
 	if (datatype == 2):
 
 		if (savepdf == True):
-			fig2_list.savefig("view_graphs/view_search_boxplot_" + workload + ".pdf", bbox_inches = "tight");
+			fig2_list.savefig("graphs/figure_9_" + workload + ".pdf", bbox_inches = "tight");
 		else:
-			fig2_list.savefig("view_graphs/view_search_boxplot_" + workload + ".png");
+			fig2_list.savefig("graphs/figure_9_" + workload + ".png");
 		#endif
 
 	#end_if
@@ -515,19 +515,19 @@ def get_uber_lists(workload):
 
 	for i in range(runcount):
 
-		input_file_name = "view_results/naive_trans_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/naive_trans_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, naive_results_list_list, 4)
 
-		input_file_name = "view_results/set_trans_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/set_trans_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, set_results_list_list, 4)
 
-		input_file_name = "view_results/view_trans_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/view_trans_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, jitd_results_list_list, 4)
 
-		input_file_name = "view_results/toaster_trans_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/toaster_trans_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, toaster_results_list_list, 4)
 
-		input_file_name = "view_results/classic_trans_performance_" + workload + "_" + str(i) + ".txt"
+		input_file_name = "tracefiles/classic_trans_performance_" + workload + "_" + str(i) + ".txt"
 		process_loglines(input_file_name, classic_results_list_list, 4)
 
 	#end_for
@@ -656,9 +656,9 @@ def graph_summary_boxplots(usenaive):
 	# Do not include naive search in summary boxplot:
 	if (usenaive == False):
 		if (savepdf == True):
-			fig3_list.savefig("view_graphs/view_total_boxplot.pdf", bbox_inches = "tight");
+			fig3_list.savefig("graphs/figure_12.pdf", bbox_inches = "tight");
 		else:
-			fig3_list.savefig("view_graphs/view_total_boxplot.png");
+			fig3_list.savefig("graphs/figure_12.png");
 		#endif
 		return  # Do not save out results that do not include naive search data
 	#end_if
@@ -667,7 +667,7 @@ def graph_summary_boxplots(usenaive):
 
 	line_list = []
 	median = 0
-	boxplot_output_file_obj = open("boxplot_output.txt", "w")
+	boxplot_output_file_obj = open("graphdata_summary.txt", "w")
 	output_line = ""
 
 	line_list = bp_total_bottom["medians"]  # boxplot return value is a dictionary -- get medians
@@ -709,6 +709,7 @@ def main():
 	graph_summary_boxplots(True)  # Saveout summary data for crossplot (including naive search data)
 	print("Creating latency data for scatter crossplot (Figure 11)")
 	graph_summary_boxplots(False)  # Create stacked summary graph (without naive search data)
+	print("Success.  Graphs in ../graph directory")
 
 #end_def
 
