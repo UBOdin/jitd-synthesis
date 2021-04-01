@@ -323,6 +323,7 @@ def graph_transform_boxplots(workload, datatype):
 	jitd_results_list_list = [[], [], []]
 	toaster_results_list_list = [[], [], []]
 	classic_results_list_list = [[], [], []]
+	subgraph = ""
 
 
 	for i in range(20):
@@ -425,12 +426,19 @@ def graph_transform_boxplots(workload, datatype):
 		ax_list.annotate("N/A -- Workload D has no delete operations", xy = (3, 22500))
 	#end_if
 
+	# We use YCSB workloads ABCDF (no E).  Used as subgraphs abcde.
+	if (workload == "f"):
+		subgraph = "e"
+	else:
+		subgraph = workload
+	#end_if
+
 	if (datatype == 4):
 
 		if (savepdf == True):
-			fig_list.savefig("graphs/figure_10_" + workload + ".pdf", bbox_inches = "tight");
+			fig_list.savefig("graphs/figure_10_" + subgraph + ".pdf", bbox_inches = "tight");
 		else:
-			fig_list.savefig("graphs/figure_10__" + workload + ".png");
+			fig_list.savefig("graphs/figure_10_" + subgraph + ".png");
 		#endif
 
 	#end_if
@@ -472,9 +480,9 @@ def graph_transform_boxplots(workload, datatype):
 	if (datatype == 2):
 
 		if (savepdf == True):
-			fig2_list.savefig("graphs/figure_9_" + workload + ".pdf", bbox_inches = "tight");
+			fig2_list.savefig("graphs/figure_9_" + subgraph + ".pdf", bbox_inches = "tight");
 		else:
-			fig2_list.savefig("graphs/figure_9_" + workload + ".png");
+			fig2_list.savefig("graphs/figure_9_" + subgraph + ".png");
 		#endif
 
 	#end_if
