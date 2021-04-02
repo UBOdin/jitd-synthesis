@@ -29,5 +29,6 @@ if [ "$result" != "0" ]; then
 	exit 1
 fi
 
-echo "\nSUCCESS.  All graphs in treetoaster_scripts/graphs directory"
+echo ""
+echo "SUCCESS.  All graphs in treetoaster_scripts/graphs directory"
 
