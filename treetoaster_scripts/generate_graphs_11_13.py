@@ -183,8 +183,18 @@ def graph_boxplot(usenaive):
 	ax2_list.set_xlabel("Maintenance type and workload", fontsize = 14, fontweight = "bold")
 	ax2_list.set_ylabel("Average memory\npages allocated", fontsize = 14, fontweight = "bold")
 	ax2_list.axis([1, len(workload_list) * 5 + 1, 0, 100000])
-	x_labels = ax2_list.get_xticklabels()
-	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
+
+	if (usenaive == True):
+		x_subname_list = [n_naive, n_set, n_classic, n_dbt, n_tt, ""]
+	else:
+		x_subname_list = [n_set, n_classic, n_dbt, n_tt, ""]
+	#end_if
+	x_labels = [""]
+	for i in range(5):
+		for e in x_subname_list:
+			x_labels.append(e)
+		#end_for
+	#end_for
 	x_labels[0] = "\n\n\n                            Workload A"
 	x_labels[5] = "\n\n\n                            Workload B"
 	x_labels[10] = "\n\n\n                           Workload C"

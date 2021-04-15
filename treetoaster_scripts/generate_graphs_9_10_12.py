@@ -399,8 +399,14 @@ def graph_transform_boxplots(workload, datatype):
 
 	x_labels = ax_list.get_xticklabels()
 	#  N.b. No data/plots for naive -- no view maintenance structures to update
-	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
-	#x_labels[0] = "\n                                                 DeleteSingletonFromArray"
+
+	x_subname_list = ["", n_set, n_classic, n_dbt, n_tt]
+	x_labels = []
+	for i in range(7):
+		for e in x_subname_list:
+			x_labels.append(e)
+		#end_for
+	#end_for
 	x_labels[0] = "\n\n                                                PushDownDontDelete\n                                              SingletonBtreeRight"
 	x_labels[5] = "\n\n                                                PushDownDontDelete\n                                              SingeltonBtreeLeft"
 	x_labels[10] = "\n\n                                                  PushDown\n                                                    SingletonRight"
@@ -458,9 +464,15 @@ def graph_transform_boxplots(workload, datatype):
 	ax2_list.set_ylabel("Search Latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
 	ax2_list.axis([1, 31, 0, height])  # SIZE PARAMETERS:  SEARCH GRAPHS
 
-	x_labels = ax2_list.get_xticklabels()
-	x_labels = ["", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, "", n_naive, n_set, n_classic, n_dbt, n_tt, ""]
-	#x_labels[0] = "\n\n                                              DeleteSingletonFromArray"
+	#x_labels = ax2_list.get_xticklabels()
+
+	x_subname_list = ["", n_naive, n_set, n_classic, n_dbt, n_tt]
+	x_labels = []
+	for i in range(7):
+		for e in x_subname_list:
+			x_labels.append(e)
+		#end_for
+	#end_for
 	x_labels[0] = "\n\n                                                   PushDownDontDelete\n                                                    SingletonBtreeRight"
 	x_labels[6] = "\n\n                                                  PushDownDontDelete\n                                                  SingeltonBtreeLeft"
 	x_labels[12] = "\n\n                                                    PushDownSingletonRight"
@@ -618,6 +630,7 @@ def graph_summary_boxplots(usenaive):
 
 	#end_for
 
+
 	#fig3_list, ax3_list = plt.subplots(2, 1)
 	fig3_list, ax3_list = plt.subplots(2, 1, gridspec_kw = {"height_ratios": [5, 3]})
 
@@ -639,8 +652,18 @@ def graph_summary_boxplots(usenaive):
 	ax3_list[1].set_xlabel("Maintenance type and workload", fontsize = 14, fontweight = "bold")
 	#ax3_list[1].set_ylabel("Average latency\n(CPU ticks)", fontsize = 14, fontweight = "bold")
 	ax3_list[1].axis([1, len(workload_list) * 5 + 1, 0, 10000])  # SIZE PARAMETER:  SUMMARY TOTAL GRAPH
-	x_labels = ax3_list[1].get_xticklabels()
-	x_labels = ["", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, "", n_set, n_classic, n_dbt, n_tt, ""]
+
+	if (usenaive == True):
+		x_subname_list = [n_naive, n_set, n_classic, n_dbt, n_tt, ""]
+	else:
+		x_subname_list = [n_set, n_classic, n_dbt, n_tt, ""]
+	#end_if
+	x_labels = [""]
+	for i in range(5):
+		for e in x_subname_list:
+			x_labels.append(e)
+		#end_for
+	#end_for
 	x_labels[0] = "\n\n\n                                Workload A"
 	x_labels[5] = "\n\n\n                                Workload B"
 	x_labels[10] = "\n\n\n                               Workload C"
@@ -657,7 +680,7 @@ def graph_summary_boxplots(usenaive):
 		#end_if
 	#end_for
 
-	fig3_list.text(0, .8, "Average latency (CPU ticks)", fontsize = 14, fontweight = "bold", rotation = "vertical")
+	fig3_list.text(0, .2, "Average latency (CPU ticks)", fontsize = 14, fontweight = "bold", rotation = "vertical")
 
 	#fig3_list.show()
 
@@ -703,6 +726,16 @@ def graph_summary_boxplots(usenaive):
 
 
 def main():
+
+	# Sanity check versions (backcompatibility and formtting):
+	if (sys.version_info[0] < 3):
+		print("Please run with python 3")
+		sys.exit(1)
+	#end_if
+	if (mpl.__version__[0] != "3"):
+		print("Please install Matplotlib 3")
+		sys.exit(1)
+	#end_if
 
 	workload_list = ["a", "b", "c", "d", "f"]
 
