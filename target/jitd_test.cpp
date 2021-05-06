@@ -104,7 +104,6 @@ inline void node_end(int node_rw, int node_type) {
 	ticks_array[ticks_index].trans_id = trans_index;
 	ticks_array[ticks_index].node_rw = node_rw;
 	ticks_array[ticks_index].node_type = node_type;
-	assert(delta_count == 0);
 	ticks_index++;
 
 	return;
@@ -160,10 +159,12 @@ inline void search_end(int search_type) {
 	sticks = rdtsc();
 #define _NODE_START sticks = rdtsc();
 #define NODE_END(node_rw) node_end(node_rw, node_type);
+#define _NODE_END(node_rw, node_type) node_end(node_rw, node_type);
 #else
 #define NODE_START
 #define _NODE_START
 #define NODE_END
+#define _NODE_END
 #endif
 
 #if defined PER_TRANS || defined PER_NODE || defined REPLAY_NAIVE
@@ -624,7 +625,7 @@ VIEW_START;
 #if defined REPLAY_SET
 _NODE_START;
               this->JITD_NODE_DeleteSingleton_set.erase(target);
-node_end(0, JITD_NODE_DeleteSingleton);
+_NODE_END(0, JITD_NODE_DeleteSingleton);
               SetPqErase(&(target_root_node->lhs));
               SetPqErase(&(target_root_node->rhs));
 #endif
@@ -657,7 +658,7 @@ VIEW_START;
               SetPqAdd(&(to_ptr->lhs));
 _NODE_START;
               this->JITD_NODE_DeleteSingleton_set.emplace(&(to_ptr->rhs));
-node_end(1, JITD_NODE_DeleteSingleton);
+_NODE_END(1, JITD_NODE_DeleteSingleton);
               SetPqAdd(&(to_ptr_rhs->node));
 #endif
 #if defined REPLAY_VIEW
@@ -742,7 +743,7 @@ VIEW_START;
 #if defined REPLAY_SET
 _NODE_START;
               this->JITD_NODE_DeleteSingleton_set.erase(target);
-node_end(0, JITD_NODE_DeleteSingleton);
+_NODE_END(0, JITD_NODE_DeleteSingleton);
               SetPqErase(&(target_root_node->lhs));
               SetPqErase(&(target_root_node->rhs));
 #endif
@@ -774,7 +775,7 @@ VIEW_START;
 #if defined REPLAY_SET
 _NODE_START;
               this->JITD_NODE_DeleteSingleton_set.emplace(&(to_ptr->lhs));
-node_end(1, JITD_NODE_DeleteSingleton);
+_NODE_END(1, JITD_NODE_DeleteSingleton);
               SetPqAdd(&(to_ptr_lhs->node));
               SetPqAdd(&(to_ptr->rhs));
 #endif
@@ -992,7 +993,7 @@ VIEW_START;
 #if defined REPLAY_SET
 _NODE_START;
                   this->JITD_NODE_Concat_set.erase(target);
-node_end(0, JITD_NODE_Concat);
+_NODE_END(0, JITD_NODE_Concat);
                   SetPqErase(&(target_root_lhs->lhs));
                   SetPqErase(&(target_root_lhs->rhs));
 #endif
@@ -1029,7 +1030,7 @@ VIEW_START;
                   SetPqAdd(&(to_ptr->lhs));
 _NODE_START;
                   this->JITD_NODE_Concat_set.emplace(&(to_ptr->rhs));
-node_end(1, JITD_NODE_Concat);
+_NODE_END(1, JITD_NODE_Concat);
                   SetPqAdd(&(to_ptr_rhs->lhs));
 #endif
 #if defined REPLAY_VIEW
@@ -1138,7 +1139,7 @@ VIEW_START;
 #if defined REPLAY_SET
 _NODE_START;
                   this->JITD_NODE_Concat_set.erase(target);
-node_end(0, JITD_NODE_Concat);
+_NODE_END(0, JITD_NODE_Concat);
                   SetPqErase(&(target_root_lhs->lhs));
                   SetPqErase(&(target_root_lhs->rhs));
 #endif
@@ -1174,7 +1175,7 @@ VIEW_START;
 #if defined REPLAY_SET
 _NODE_START;
                   this->JITD_NODE_Concat_set.emplace(&(to_ptr->lhs));
-node_end(1, JITD_NODE_Concat);
+_NODE_END(1, JITD_NODE_Concat);
                   SetPqAdd(&(to_ptr_lhs->lhs));
                   SetPqAdd(&(to_ptr->rhs));
 #endif
@@ -1412,7 +1413,7 @@ VIEW_START;
 #if defined REPLAY_SET
 _NODE_START;
           this->CrackArray_PQ.erase(target);
-node_end(0, JITD_NODE_Array);
+_NODE_END(0, JITD_NODE_Array);
           //this->SortArray_PQ.erase(target);
 #endif
 #if defined REPLAY_VIEW
@@ -1445,11 +1446,11 @@ VIEW_START;
 #if defined REPLAY_SET
 _NODE_START;
           this->CrackArray_PQ.emplace(&(to_ptr->lhs));
-node_end(1, JITD_NODE_Array);
+_NODE_END(1, JITD_NODE_Array);
           //this->SortArray_PQ.emplace(&(to_ptr->lhs));
 _NODE_START;
           this->CrackArray_PQ.emplace(&(to_ptr->rhs));
-node_end(1, JITD_NODE_Array);
+_NODE_END(1, JITD_NODE_Array);
           //this->SortArray_PQ.emplace(&(to_ptr->rhs));
 #endif
 #if defined REPLAY_VIEW
