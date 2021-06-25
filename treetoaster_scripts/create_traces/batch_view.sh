@@ -2,7 +2,8 @@
 echo "Starting view batch"
 
 #keyspace_list="4 5 6"
-keyspace_list="5 6 7"
+#keyspace_list="5 6 7"
+keyspace_list="7"
 
 operations="3"
 #operations="4"
@@ -16,7 +17,8 @@ run_list="0 1 2 3 4 5 6 7 8 9"
 
 method_list="naive set view toaster classic"  # Search method
 
-class_list="node trans"  # Data classification method
+#class_list="node trans"  # Data classification method
+class_list="trans"
 
 crack_size="1000"  # Will change
 prepopulate="30000000"  # A very big number; ensure all keys are pre-populated
@@ -25,16 +27,14 @@ sleep_time="100"
 crack_ratio="10"
 keycount="1"  # will change
 
-#machine="SPINNERS"
-machine="MJOLNIR"
+export LD_LIBRARY_PATH=/opt/intel/compilers_and_libraries_2020.0.166/linux/tbb/lib/intel64/gcc4.8
 
-
-make build_replay_dbop
+#make build_replay_dbop
 if [ "$?" != "0" ]; then
 	echo "Error on dbop build"
 	exit 1
 fi
-make build_replay_node
+#make build_replay_node
 if [ "$?" != "0" ]; then
 	echo "Error on node build"
 	exit 1
@@ -62,19 +62,6 @@ for keyspace in $keyspace_list; do
 
 	echo "\nRunning with CRACKSIZE ${crack_size}\n"
 
-	# Make links in working directory to source files (avoid file copy):
-	sourcepath="YCSB_RAW_10e${keyspace}k_10e${operations}o"
-	destpath="ycsb_benchmark"
-	file_list=$( ls -1 ${sourcepath} )
-	for file in $file_list; do
-		#echo "$sourcepath/$file"
-		ln $sourcepath/$file $destpath/$file
-		if [ "$?" != "0" ]; then
-			echo "Error"
-			exit 1
-		fi
-	done
-
 	for workload in $workload_list; do
 
 		echo "\nRunning workload ${workload} and cracksize ${crack_size}\n"
@@ -92,13 +79,17 @@ for keyspace in $keyspace_list; do
 				for method in $method_list; do
 
 					sleep 2
+
+					echo $class $method $crack_size $prepopulate $sleep_time
+
 					./replay_${class}_${method}.exe $crack_size $prepopulate $sleep_time
 					if [ "$?" != "0" ]; then
 						echo "Error on ${class} ${method} replay"
 						exit 1
 					fi
 					mv output_view_performance.txt view_results/${method}_${class}_performance_${workload}_${run}.txt
-					if [ "${class}" = "node" ]; then
+					#if [ "${class}" = "node" ]; then
+					if [ "${class}" = "trans" ]; then
 						mv output_data.txt view_results/${method}_data_performance_${workload}_${run}.txt
 					fi
 
@@ -110,15 +101,14 @@ for keyspace in $keyspace_list; do
 
 	done
 
-	rm ycsb_benchmark/*
-
-	rm -rf ${machine}_view_results_10e${keyspace}k_10e${operations}o
-	mkdir ${machine}_view_results_10e${keyspace}k_10e${operations}o
-	mv view_results/* ${machine}_view_results_10e${keyspace}k_10e${operations}o
+#	rm ycsb_benchmark/*
 
 done
 
-#echo "\nRunning with CRACKSIZE ${crack_size}"
+# Cleanup:
+rm initialize_data.txt
+rm benchmark_data.txt
+rm output_data.txt
 
 echo "\nFinished"
 
